@@ -185,9 +185,8 @@ public class AgentManagementService extends BaseService {
 	private class CommandSourceSink implements Sink {
 		
 		public void consume(VerticalCommand cmd) {
-			
+			String name = cmd.getName();
 			try {
-				String name = cmd.getName();
 				if(name.equals(AgentManagementSlice.REQUEST_CREATE)) {
 					handleRequestCreate(cmd);
 				}
@@ -480,9 +479,8 @@ public class AgentManagementService extends BaseService {
 	private class CommandTargetSink implements Sink {
 		
 		public void consume(VerticalCommand cmd) {
-			
+			String name = cmd.getName();
 			try {
-				String name = cmd.getName();
 				if(name.equals(AgentManagementSlice.REQUEST_CREATE)) {
 					handleRequestCreate(cmd);
 				}

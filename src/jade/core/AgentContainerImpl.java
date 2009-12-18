@@ -290,6 +290,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			}
 			else if (ret instanceof Throwable) {
 				((Throwable) ret).printStackTrace();
+				throw new IMTPException("Unexpected error initializing agent "+agentID.getName(), (Throwable) ret);
 			}
 		}
 	}
