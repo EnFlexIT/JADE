@@ -294,34 +294,19 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			}
 		}
 		catch (ProfileException pe1) {
-			//System.err.println("Error reading MTPs/Codecs");
-			if (myLogger.isLoggable(Logger.SEVERE))
-				myLogger.log(Logger.SEVERE,"Error reading MTPs/Codecs");
-			pe1.printStackTrace();
+			myLogger.log(Logger.SEVERE,"Error reading MTPs/Codecs", pe1);
 		}
 		catch(ServiceException se) {
-			//System.err.println("Error installing local MTPs");
-			if (myLogger.isLoggable(Logger.SEVERE))
-				myLogger.log(Logger.SEVERE,"Error installing local MTPs");
-			se.printStackTrace();
+			myLogger.log(Logger.SEVERE,"Error installing local MTPs", se);
 		}
 		catch(jade.lang.acl.ACLCodec.CodecException ce) {
-			//System.err.println("Error installing ACL Codec");
-			if (myLogger.isLoggable(Logger.SEVERE))
-				myLogger.log(Logger.SEVERE,"Error installing ACL Codec");
-			ce.printStackTrace();
+			myLogger.log(Logger.SEVERE,"Error installing ACL Codec", ce);
 		}
 		catch(MTPException me) {
-			//System.err.println("Error installing MTP");
-			if (myLogger.isLoggable(Logger.SEVERE))
-				myLogger.log(Logger.SEVERE,"Error installing MTP");
-			me.printStackTrace();
+			myLogger.log(Logger.SEVERE,"Error installing MTP", me);
 		}
 		catch(IOException ioe) {
-			//System.err.println("Error writing platform address");
-			if (myLogger.isLoggable(Logger.SEVERE))
-				myLogger.log(Logger.SEVERE,"Error writing platform address");
-			ioe.printStackTrace();
+			myLogger.log(Logger.SEVERE,"Error writing platform address", ioe);
 		}
 		catch(IMTPException imtpe) {
 			// Should never happen as this is a local call
@@ -502,18 +487,19 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				}
 			}
 			catch(IMTPException imtpe) {
-				imtpe.printStackTrace();
+				cmd.setReturnValue(imtpe);
 			}
 			catch(NotFoundException nfe) {
-				nfe.printStackTrace();
+				cmd.setReturnValue(nfe);
 			}
 			catch(ServiceException se) {
-				se.printStackTrace();
+				cmd.setReturnValue(se);
 			}
 			catch(MTPException mtpe) {
-				mtpe.printStackTrace();
+				cmd.setReturnValue(mtpe);
 			}
 			catch(Throwable t) {
+				t.printStackTrace();
 				cmd.setReturnValue(t);
 			}
 		}

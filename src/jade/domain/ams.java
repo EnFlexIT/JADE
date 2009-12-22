@@ -250,8 +250,8 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 				try {
 					myPlatform.create(agentName, className, args, container, owner, initialCredentials, requesterPrincipal, requesterCredentials);
 				} catch (UnreachableException ue) {
-					// Send failure notification to the requester if any
-					sendFailureNotification(ca, agentID, new InternalError("Destination container unreachable. " + ue.getMessage()));
+					// Send failure notification to the requester if any. Note that UnreachableException also wraps IMTPException that is not necessarily related to a real un-reachability problem
+					sendFailureNotification(ca, agentID, new InternalError(ue.getMessage()));
 				} catch (JADESecurityException ae) {
 					if (logger.isLoggable(Logger.SEVERE))
 						logger.log(Logger.SEVERE, "Agent " + requester.getName() + " does not have permission to perform action Create-agent: " + ae);

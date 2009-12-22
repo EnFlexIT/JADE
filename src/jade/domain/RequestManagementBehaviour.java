@@ -140,7 +140,7 @@ public abstract class RequestManagementBehaviour extends SimpleAchieveREResponde
 			notification = request.createReply();
 			notification.setPerformative(ACLMessage.FAILURE);
 
-			notification.setContent(prepareErrorContent(request.getContent(), ExceptionVocabulary.INTERNALERROR+" \""+t+"\""));
+			notification.setContent(prepareErrorContent(request.getContent(), ExceptionVocabulary.INTERNALERROR+" \""+tr+"\""));
 		}
 		if (t != null) {
 			if (myLogger.isLoggable(Logger.CONFIG)) {
