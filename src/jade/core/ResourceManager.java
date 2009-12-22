@@ -48,5 +48,8 @@ public interface ResourceManager {
 	   returned <code>Thread</code>.
 	 */
   public Thread getThread(int type, String name, Runnable r);
+  
+  public void initGraphicResources();
+  
   public void releaseResources();
 }

@@ -109,6 +109,12 @@ public abstract class Profile {
 	 */
 	public static final String DUMP_OPTIONS = "dump-options";
 	
+	/**
+	 * This constant, when set to <code>true</code> tells the JADE runtime that it will be executed 
+	 * in an environment with no display available. 
+	 */
+	public static final String NO_DISPLAY = "no-display";
+	
 	//#APIDOC_EXCLUDE_BEGIN
 	public static final String MASTER_NODE_NAME = "master-node-name";
 	public static final String BE_BASE_NAME = "be-base-name";

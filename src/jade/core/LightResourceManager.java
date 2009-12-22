@@ -52,8 +52,12 @@ class LightResourceManager implements ResourceManager {
 	}
 
 	public void releaseResources() {
+		// Do nothing
 	}
 
+	public void initGraphicResources() {
+		// Do nothing
+	}
 }
 
 

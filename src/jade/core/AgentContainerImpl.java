@@ -362,6 +362,9 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 		// Create the ResourceManager
 		myResourceManager = myProfile.getResourceManager();
+		if (!myProfile.getBooleanProperty(Profile.NO_DISPLAY, false)) {
+			myResourceManager.initGraphicResources();
+		}
 
 		// Initialize the Container ID
 		TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);

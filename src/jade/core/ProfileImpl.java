@@ -589,6 +589,7 @@ public class ProfileImpl extends Profile {
 	
 	private void createResourceManager() throws ProfileException {
 		//#J2ME_EXCLUDE_BEGIN
+		
 		String className = getParameter(RESOURCE, "jade.core.FullResourceManager");
 		//#J2ME_EXCLUDE_END
 		/*#J2ME_INCLUDE_BEGIN

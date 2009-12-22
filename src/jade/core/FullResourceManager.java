@@ -39,15 +39,6 @@ class FullResourceManager implements ResourceManager {
 
 
 	public FullResourceManager() {
-		// Start the AWT-Toolkit outside the JADE Thread Group to avoid annoying InterruptedException-s 
-		// on termination
-		try {
-			Class.forName("java.awt.Frame").newInstance();
-		}
-		catch (Throwable t) {
-			// Ignore failure (e.g. in case we don't have the display)
-		}
-		
 		parent = new ThreadGroup("JADE") {
 			public void uncaughtException(Thread t, Throwable e) {
 				if (!terminating) {
@@ -99,6 +90,18 @@ class FullResourceManager implements ResourceManager {
 		systemAgentThreads = null;
 		criticalThreads = null;
 		parent = null;
+	}
+
+	public void initGraphicResources() {
+		// Start the AWT-Toolkit outside the JADE Thread Group to avoid annoying InterruptedException-s on termination
+		// when some agent with a Swing or AWT based GUI is used
+		try {
+			Class.forName("java.awt.Frame").newInstance();
+		}
+		catch (Throwable t) {
+			// Ignore failure (e.g. in case we don't have the display)
+		}
+		
 	}
 
 }
