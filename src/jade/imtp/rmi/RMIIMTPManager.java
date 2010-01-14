@@ -372,7 +372,7 @@ public class RMIIMTPManager implements IMTPManager {
 			return l;
 		}
 		catch (Exception e) {
-			throw new IMTPException("Exception in reading local addresses", e);
+			throw new IMTPException("Exception reading local addresses", e);
 		}
 	}
 	

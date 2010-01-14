@@ -208,7 +208,7 @@ public class PlatformManagerImpl implements PlatformManager {
 				TransportAddress localAddr = (TransportAddress) l.get(0);
 				platformID = localAddr.getHost() + ":" + localAddr.getPort() + "/JADE";
 			} catch (Exception e) {
-				throw new ProfileException("Can't set PlatformID");
+				throw new ProfileException("Can't set PlatformID", e);
 			}
 		}
 	}

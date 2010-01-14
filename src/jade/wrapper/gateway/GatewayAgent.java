@@ -20,10 +20,10 @@ import jade.util.Logger;
  * @version $Date$ $Revision$
  **/
 public class GatewayAgent extends Agent {
-	
+
 	private  GatewayBehaviour myB = null;
 	private final Logger myLogger = Logger.getMyLogger(this.getClass().getName());
-	
+
 	/** subclasses may implement this method.
 	 * The method is called each time a request to process a command
 	 * is received from the JSP Gateway.
@@ -56,8 +56,8 @@ public class GatewayAgent extends Agent {
 			myLogger.log(Logger.WARNING, "Unknown command "+command);
 		}
 	}
-	
-	
+
+
 	/**
 	 * notify that the command has been processed and remove the command from the queue
 	 * @param command is the same object that was passed in the processCommand method
@@ -65,12 +65,12 @@ public class GatewayAgent extends Agent {
 	final public void releaseCommand(Object command) {	
 		myB.releaseCommand(command);
 	}
-	
+
 	public GatewayAgent() {
 		// enable object2agent communication with queue of infinite length
 		setEnabledO2ACommunication(true, 0);
 	}
-	
+
 	/*
 	 * Those classes that extends this setup method of the GatewayAgent
 	 * MUST absolutely call <code>super.setup()</code> otherwise this
@@ -78,8 +78,7 @@ public class GatewayAgent extends Agent {
 	 * @see jade.core.Agent#setup()
 	 */
 	protected void setup() {
-		if (myLogger.isLoggable(Logger.INFO)) 
-			myLogger.log(Logger.INFO, "Started GatewayAgent "+getLocalName());			
+		myLogger.log(Logger.INFO, "Started GatewayAgent "+getLocalName());			
 		myB = new GatewayBehaviour() {
 			protected void processCommand(Object command){
 				((GatewayAgent)myAgent).processCommand(command);
@@ -88,6 +87,6 @@ public class GatewayAgent extends Agent {
 		addBehaviour(myB);
 		setO2AManager(myB);
 	}
-	
+
 }
 
