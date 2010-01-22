@@ -26,9 +26,9 @@ package jade.content.onto;
 
 //#MIDP_EXCLUDE_FILE
 
-import jade.content.*;
 import jade.content.abs.*;
 import jade.content.schema.*;
+import jade.util.leap.ArrayList;
 import jade.util.leap.Collection;
 import jade.util.leap.List;
 import jade.util.leap.Iterator;
@@ -54,71 +54,14 @@ import java.lang.reflect.*;
  */
 public class BCReflectiveIntrospector extends ReflectiveIntrospector {
 	
-	/**
-	 * Translate an object of a class representing an element in an
-	 * ontology into a proper abstract descriptor.  
-	 * @param obj The Object to be translated
-	 * @param schema The schema for the ontological element this object
-	 * is an instance of.
-	 * @param javaClass The class of the Object to be translated
-	 * @param referenceOnto The reference ontology in the context of
-	 * this translation. 
-	 * @return The Abstract descriptor produced by the translation 
-	 * @throws OntologyException If some error occurs during the translation
-	 */
-	public AbsObject externalise(Object obj, ObjectSchema schema, Class javaClass, Ontology referenceOnto) throws OntologyException {
-		try {
-			AbsObject    abs = schema.newInstance();
-			//System.out.println("Externalizing Object of class "+javaClass.getName()+". Schema is "+schema.getTypeName());
-			
-			String[]     names = schema.getNames();
-			// Loop on slots
-			for (int i = 0; i < names.length; ++i) {
-				String slotName = names[i];
-				//System.out.println("Handling slot "+slotName);
-				
-				// Retrieve the accessor method from the class and call it
-				// Agregate slots require a special handling 
-				ObjectSchema slotSchema = schema.getSchema(slotName);
-				if (slotSchema instanceof AggregateSchema) {
-					/*String methodName = "getAll" + translateName(slotName);
-					Method getMethod = findMethodCaseInsensitive(methodName, javaClass);
-					Object slotValue = invokeAccessorMethod(getMethod, obj);*/
-					Object slotValue = getAggregateSlotValue(slotName, obj);
-					if (slotValue != null) {
-						// Directly call AbsHelper.externaliseIterator() to properly handle different types of aggregate
-						//#J2ME_EXCLUDE_BEGIN
-						java.util.Iterator it = (java.util.Iterator) slotValue;
-						//#J2ME_EXCLUDE_END
-						/*#J2ME_INCLUDE_BEGIN
-						Iterator it = (Iterator) slotValue;
-						#J2ME_INCLUDE_END*/
-						if (it.hasNext() || schema.isMandatory(slotName)) {
-							AbsObject absSlotValue = AbsHelper.externaliseIterator(it, referenceOnto, slotSchema.getTypeName());
-							AbsHelper.setAttribute(abs, slotName, absSlotValue);
-						}
-					} 
-				}
-				else {
-					/*String methodName = "get" + translateName(slotName);
-					Method getMethod = findMethodCaseInsensitive(methodName, javaClass);
-					Object slotValue = invokeAccessorMethod(getMethod, obj);*/
-					Object slotValue = getScalarSlotValue(slotName, obj);
-					if (slotValue != null) {
-						AbsObject absSlotValue = referenceOnto.fromObject(slotValue);
-						AbsHelper.setAttribute(abs, slotName, absSlotValue);
-					} 
-				}
-			}
-			return abs;
-		}
-		catch (OntologyException oe) {
-			throw oe;
-		} 
-		catch (Throwable t) {
-			throw new OntologyException("Schema and Java class do not match", t);
-		} 
-	} 
+	protected boolean isAggregateObject(Object obj) {
+		//#J2ME_EXCLUDE_BEGIN
+		return obj instanceof java.util.Iterator;
+		//#J2ME_EXCLUDE_END
+		/*#J2ME_INCLUDE_BEGIN
+		return obj instanceof Iterator;
+		#J2ME_INCLUDE_END*/
+	}
 	
 	public Object getSlotValue(String slotName, Object obj, ObjectSchema schema) throws OntologyException {
 		ObjectSchema slotSchema = schema.getSchema(slotName);
@@ -146,68 +89,6 @@ public class BCReflectiveIntrospector extends ReflectiveIntrospector {
 		Method getMethod = findMethodCaseInsensitive(methodName, obj.getClass());
 		return invokeAccessorMethod(getMethod, obj);
 	}
-
-	/**
-	 * Translate an abstract descriptor into an object of a proper class 
-	 * representing an element in an ontology 
-	 * @param abs The abstract descriptor to be translated
-	 * @param schema The schema for the ontological element this abstract descriptor
-	 * is an instance of.
-	 * @param javaClass The class of the Object to be produced by the translation
-	 * @param referenceOnto The reference ontology in the context of
-	 * this translation. 
-	 * @return The Java object produced by the translation 
-	 * @throws UngroundedException If the abstract descriptor to be translated 
-	 * contains a variable
-	 * @throws OntologyException If some error occurs during the translation
-	 */
-	public Object internalise(AbsObject abs, ObjectSchema schema, Class javaClass, Ontology referenceOnto) throws UngroundedException, OntologyException {
-		
-		try {     
-			Object       obj = javaClass.newInstance();
-			String[]     names = schema.getNames();
-			
-			// LOOP on slots 
-			for (int i = 0; i < names.length; ++i) {
-				String slotName = names[i];
-				AbsObject absSlotValue = abs.getAbsObject(slotName);
-				if (absSlotValue != null) {
-					Object slotValue = referenceOnto.toObject(absSlotValue);
-					
-					/*
-					// Retrieve the modifier method from the class and call it
-					ObjectSchema slotSchema = schema.getSchema(slotName);
-					String methodName;
-					// Note that here checking if absSlotValue is an AbsAggregate would be wrong as we have add methods only if the schema of the slot is AggregateSchema
-					if (slotSchema instanceof AggregateSchema) {
-						// FIXME: Here we should check for Long --> Integer casting, but how?
-						methodName = "add" + translateName(slotName);
-						Method addMethod = findMethodCaseInsensitive(methodName, javaClass);
-						invokeAddMethod(addMethod, obj, slotValue);
-					}
-					else {
-						methodName = "set" + translateName(slotName);
-						Method setMethod = findMethodCaseInsensitive(methodName, javaClass);
-						invokeSetterMethod(setMethod, obj, slotValue);
-					}*/
-					setSlotValue(slotName, slotValue, obj, schema);
-				} 
-			}
-			return obj;
-		}
-		catch (OntologyException oe) {
-			throw oe;
-		} 
-		catch (InstantiationException ie) {
-			throw new OntologyException("Class "+javaClass+" can't be instantiated", ie);
-		} 
-		catch (IllegalAccessException iae) {
-			throw new OntologyException("Class "+javaClass+" does not have an accessible constructor", iae);
-		} 
-		catch (Throwable t) {
-			throw new OntologyException("Schema and Java class do not match", t);
-		} 
-	} 
 	
 	public void setSlotValue(String slotName, Object slotValue, Object obj, ObjectSchema schema) throws OntologyException {
 		ObjectSchema slotSchema = schema.getSchema(slotName);
@@ -381,6 +262,43 @@ public class BCReflectiveIntrospector extends ReflectiveIntrospector {
 	 */
 	private Class getReturnType(Method m) {
 		return m.getReturnType();
+	}
+	
+	public AbsAggregate externalizeAggregate(String slotName, Object obj, ObjectSchema schema, Ontology referenceOnto) throws OntologyException {
+		if (!isAggregateObject(obj)) {
+			throw new NotAnAggregate();
+		}
+		
+		AbsAggregate absAggregateValue = null;
+		//#J2ME_EXCLUDE_BEGIN
+		java.util.Iterator it = (java.util.Iterator) obj;
+		//#J2ME_EXCLUDE_END
+		/*#J2ME_INCLUDE_BEGIN
+		Iterator it = (Iterator) obj;
+		#J2ME_INCLUDE_END*/
+		if (it.hasNext() || schema.isMandatory(slotName)) {
+			String slotSchemaTypeName = schema.getSchema(slotName).getTypeName();
+			absAggregateValue = new AbsAggregate(slotSchemaTypeName);
+			try {
+				while(it.hasNext())
+					absAggregateValue.add((AbsTerm)Ontology.externalizeSlotValue(it.next(), this, referenceOnto));
+			}
+			catch (ClassCastException cce) {
+				throw new OntologyException("Non term object in aggregate");
+			}
+		}
+		return absAggregateValue;
+	}
+
+	public Object internalizeAggregate(String slotName, AbsAggregate abs, ObjectSchema schema, Ontology referenceOnto) throws OntologyException {
+		List l = new ArrayList();
+		for (int i = 0; i < abs.size(); i++) {
+			Object element = Ontology.internalizeSlotValue(abs.get(i), this, referenceOnto);
+			// Check if the element is a Term, a primitive an AID or a List
+			Ontology.checkIsTerm(element);
+			l.add(element);
+		}
+		return l;
 	}
 }
 

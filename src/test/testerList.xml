@@ -138,4 +138,9 @@
 			</Description>
 			<TestsListRif>test/streaming/streamingTestsList.xml</TestsListRif>
 		</Tester>
+		<Tester name="Bean Ontology Builder" skip="false">
+			<ClassName>test.bob.BeanOntologyBuilderTesterAgent</ClassName>
+			<Description>Test of Bean Ontology Builder functionalities.</Description>
+			<TestsListRif>test/bob/beanOntologyBuilderTestsList.xml</TestsListRif>
+		</Tester>
 	</TesterList>

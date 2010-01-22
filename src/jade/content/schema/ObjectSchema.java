@@ -168,6 +168,14 @@ public abstract class ObjectSchema implements Serializable {
 	public abstract String[] getNames();
 	
 	/**
+	 * Returns the names of the slots defined in this <code>Schema</code> 
+	 * (excluding slots defined in super schemas).
+	 *
+	 * @return the names of the slots defined in this <code>Schema</code>.
+	 */
+	public abstract String[] getOwnNames();
+	
+	/**
 	 * Retrieves the schema of a slot of this <code>Schema</code>.
 	 *
 	 * @param name The name of the slot.
@@ -179,13 +187,23 @@ public abstract class ObjectSchema implements Serializable {
 	
 	/**
 	 * Indicate whether a given <code>String</code> is the name of a
-	 * slot defined in this <code>Schema</code>
+	 * slot defined in this <code>Schema</code> including super-schemas
 	 *
 	 * @param name The <code>String</code> to test.
 	 * @return <code>true</code> if <code>name</code> is the name of a
-	 * slot defined in this <code>Schema</code>.
+	 * slot defined in this <code>Schema</code> including super-schemas.
 	 */
 	public abstract boolean containsSlot(String name);
+	
+	/**
+	 * Indicate whether a given <code>String</code> is the name of a
+	 * slot actually defined in this <code>Schema</code> (excluding super-schemas)
+	 *
+	 * @param name The <code>String</code> to test.
+	 * @return <code>true</code> if <code>name</code> is the name of a
+	 * slot actually defined in this <code>Schema</code> (excluding super-schemas).
+	 */
+	public abstract boolean isOwnSlot(String name);
 	
 	/**
 	 * Indicate whether a slot of this schema is mandatory

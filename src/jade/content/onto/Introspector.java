@@ -37,40 +37,6 @@ import jade.util.leap.Serializable;
 public interface Introspector extends Serializable {
 
 	/**
-	 * Translate an object of a class representing an element in an
-	 * ontology into a proper abstract descriptor 
-	 * @param onto The ontology that uses this Introspector.
-	 * @param referenceOnto The reference ontology in the context of
-	 * this translation i.e. the most extended ontology that extends 
-	 * <code>onto</code> (directly or indirectly). 
-	 * @param obj The Object to be translated
-	 * @return The Abstract descriptor produced by the translation 
-	 * @throws UnknownSchemaException If no schema for the object to be
-	 * translated is defined in the ontology that uses this Introspector
-	 * @throws OntologyException If some error occurs during the translation
-	 */
-	AbsObject externalise(Object obj, ObjectSchema schema, Class javaClass, Ontology referenceOnto) 
-	throws OntologyException;
-
-	/**
-	 * Translate an abstract descriptor into an object of a proper class 
-	 * representing an element in an ontology 
-	 * @param onto The ontology that uses this Introspector.
-	 * @param referenceOnto The reference ontology in the context of
-	 * this translation i.e. the most extended ontology that extends 
-	 * <code>onto</code> (directly or indirectly). 
-	 * @param abs The abstract descriptor to be translated
-	 * @return The Java object produced by the translation 
-	 * @throws UngroundedException If the abstract descriptor to be translated 
-	 * contains a variable
-	 * @throws UnknownSchemaException If no schema for the abstract descriptor
-	 * to be translated is defined in the ontology that uses this Introspector
-	 * @throws OntologyException If some error occurs during the translation
-	 */
-	Object internalise(AbsObject abs, ObjectSchema schema, Class javaClass, Ontology referenceOnto) 
-	throws UngroundedException, OntologyException;
-
-	/**
        Check the structure of a java class associated to an ontological element 
        to ensure that translations to/from abstract descriptors and java objects
        (instances of that class) can be accomplished by this introspector.
@@ -80,10 +46,25 @@ public interface Introspector extends Serializable {
        @throws OntologyException if the java class does not have the correct 
        structure
 	 */
-	void checkClass(ObjectSchema schema, Class javaClass, Ontology onto) throws OntologyException;
+	void checkClass(ObjectSchema schema, Class javaClass, Ontology onto) 
+	throws OntologyException;
 
-	Object getSlotValue(String slotName, Object obj, ObjectSchema schema) throws OntologyException;
+	Object getSlotValue(String slotName, Object obj, ObjectSchema schema) 
+	throws OntologyException;
 
-	void setSlotValue(String slotName, Object slotValue, Object obj, ObjectSchema schema) throws OntologyException;
+	void setSlotValue(String slotName, Object slotValue, Object obj, ObjectSchema schema) 
+	throws OntologyException;
+	
+	AbsAggregate externalizeAggregate(String slotName, Object obj, ObjectSchema schema, Ontology referenceOnto) 
+	throws OntologyException;
+
+	Object internalizeAggregate(String slotName, AbsAggregate abs, ObjectSchema schema, Ontology referenceOnto) 
+	throws OntologyException;
+
+	AbsObject externalizeSpecialType(Object obj, ObjectSchema schema, Class javaClass, Ontology referenceOnto) 
+	throws OntologyException;
+
+	Object internalizeSpecialType(AbsObject abs, ObjectSchema schema, Class javaClass, Ontology referenceOnto) 
+	throws OntologyException;
 }
 

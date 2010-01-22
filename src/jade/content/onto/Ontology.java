@@ -34,6 +34,8 @@ import java.util.ArrayList;
 //#J2ME_EXCLUDE_END
 
 import jade.content.Concept;
+import jade.content.abs.AbsAggregate;
+import jade.content.abs.AbsHelper;
 import jade.content.abs.AbsObject;
 import jade.content.schema.ConceptSlotFunctionSchema;
 import jade.content.schema.ObjectSchema;
@@ -306,6 +308,9 @@ public class Ontology implements Serializable {
 				
 		if (ret == null) {
 			// Check if a ConceptSlotFunctionSchema must be returned
+			if ("BC-Ontology".equals(getName())) {
+				System.out.println("Searching for schema "+name);
+			}
 			if (conceptSlots != null && conceptSlots.containsKey(name)) {
 				return new ConceptSlotFunctionSchema(name);
 			}
@@ -407,7 +412,7 @@ public class Ontology implements Serializable {
 		if (obj == null) {
 			return null;
 		}
-
+		
 		try {
 			return fromObject(obj, this);
 		}
@@ -417,6 +422,7 @@ public class Ontology implements Serializable {
 			// ontologies) --> throw a generic OntologyException
 			throw new OntologyException("No schema found for class "+obj.getClass().getName());
 		}
+		
 	}
 
 	/**
@@ -444,6 +450,29 @@ public class Ontology implements Serializable {
 		}
 		return ret;
 	}
+	
+	/**
+	 * Retrieves the ontology actually containing the definition of a given schema. 
+	 * This can be the ontology itself or one of its super-ontologies.  
+	 * @param lcName The lower-case version of the name of the schema whose defining ontology must be retrieved
+	 * @return The ontology actually containing the definition of schema <code>lcName</code> or null if such schema
+	 * is not defined neither in this ontology nor in one of its super-ontologies
+	 */
+	private Ontology getDefiningOntology(String lcName) {
+		Ontology definingOntology = null;
+		if (elements.containsKey(lcName)) {
+			definingOntology = this;
+		}
+		else {
+			for (int i = 0; i < base.length; ++i) {
+				definingOntology = base[i].getDefiningOntology(lcName);
+				if (definingOntology != null) {
+					break;
+				}
+			}
+		}
+		return definingOntology;
+	}
 
 	//#APIDOC_EXCLUDE_BEGIN
 	/**
@@ -462,14 +491,14 @@ public class Ontology implements Serializable {
 	 * @throws OntologyException if some mismatch with the schema is found      * ontology. In this case UnknownSchema
 	 */
 	protected Object toObject(AbsObject abs, String lcType, Ontology globalOnto) throws UnknownSchemaException, UngroundedException, OntologyException {
-
 		if(logger.isLoggable(Logger.FINE))
-			logger.log(Logger.FINE,"Ontology "+getName()+". Abs is: "+abs);
+			logger.log(Logger.FINE,"Ontology "+getName()+". Translating ABS descriptor "+abs);
+
 		// Retrieve the schema
 		ObjectSchema schema = (ObjectSchema) elements.get(lcType);
-		if(logger.isLoggable(Logger.FINE))
-			logger.log(Logger.FINE,"Ontology "+getName()+". Schema is: "+schema);
 		if (schema != null) {
+			if(logger.isLoggable(Logger.FINE))
+				logger.log(Logger.FINE,"Ontology "+getName()+". Schema for type "+abs.getTypeName()+" found locally: "+schema);
 
 			// Retrieve the java class
 			Class javaClass = (Class) classes.get(lcType);
@@ -477,18 +506,35 @@ public class Ontology implements Serializable {
 				throw new OntologyException("No java class associated to type "+abs.getTypeName());
 			}
 			if(logger.isLoggable(Logger.FINE))
-				logger.log(Logger.FINE,"Ontology "+getName()+". Class is: "+javaClass.getName());
+				logger.log(Logger.FINE,"Ontology "+getName()+". Class for type "+abs.getTypeName()+" = "+javaClass.getName());
 
 			// If the Java class is an Abstract descriptor --> just return abs
 			if (absObjectClass.isAssignableFrom(javaClass)) {
 				return abs;
 			}
 
-			if (introspector != null) {
-				if(logger.isLoggable(Logger.FINE))
-					logger.log(Logger.FINE,"Ontology "+getName()+". Try to internalise "+abs+" through "+introspector);
-				return introspector.internalise(abs, schema, javaClass, globalOnto);
+			try {
+				// Try to manage as special type
+				Object obj = null;
+				try {
+					obj = internalizeSpecialType(abs, schema, javaClass, globalOnto);
+				} catch(NotASpecialType nasp) {
+					// Manage as structure slot
+					obj = javaClass.newInstance();  
+					internalize(abs, obj, schema, globalOnto);
+				}
+				return obj;
 			}
+			catch (OntologyException oe) {
+				// Let the exception pass through
+				throw oe;
+			}
+			catch (InstantiationException ie) {
+				throw new OntologyException("Class "+javaClass+" can't be instantiated", ie);
+			} 
+			catch (IllegalAccessException iae) {
+				throw new OntologyException("Class "+javaClass+" does not have an accessible constructor", iae);
+			} 
 		}
 
 		// If we get here --> This ontology is not able to translate abs
@@ -503,6 +549,52 @@ public class Ontology implements Serializable {
 		}
 
 		throw new UnknownSchemaException();
+	}
+
+	private Object internalizeSpecialType(AbsObject abs, ObjectSchema schema, Class javaClass, Ontology globalOnto) throws OntologyException {
+		if (introspector == null) {
+			throw new NotASpecialType();
+		}
+		
+		return introspector.internalizeSpecialType(abs, schema, javaClass, globalOnto);
+	}
+	
+	/**
+	 * Internalize (abs --> obj) the slots defined in <code>schema</code> and its super-schemas
+	 */
+	protected void internalize(AbsObject abs, Object obj, ObjectSchema schema, Ontology globalOnto) throws OntologyException {
+		// Let the proper ontology manage slots defined in super schemas if any
+		ObjectSchema[] superSchemas = schema.getSuperSchemas();
+		for (int i = 0; i < superSchemas.length; ++i) {
+			ObjectSchema superSchema = superSchemas[i];
+			Ontology definingOntology = getDefiningOntology(superSchema.getTypeName().toLowerCase());
+			if (definingOntology != null) {
+				definingOntology.internalize(abs, obj, superSchema, globalOnto);
+			}
+		}
+		
+		// Finally manage "local" slots through the introspector
+		if (introspector != null) {
+			String[] names = schema.getOwnNames();
+			for (int i = 0; i < names.length; ++i) {
+				String slotName = names[i];
+				AbsObject absSlotValue = abs.getAbsObject(slotName);
+				if (absSlotValue != null) {
+					Object slotValue = null;
+					if (absSlotValue.getAbsType() == AbsObject.ABS_AGGREGATE) {
+						// Manage as aggregate
+						slotValue = introspector.internalizeAggregate(slotName, (AbsAggregate)absSlotValue, schema, globalOnto);
+					} else {
+						// Manage as normal slot
+						slotValue = globalOnto.toObject(absSlotValue);
+					}
+
+					if (slotValue != null) {
+						introspector.setSlotValue(slotName, slotValue, obj, schema);
+					}
+				}
+			}
+		}	
 	}
 
 	/**
@@ -523,20 +615,26 @@ public class Ontology implements Serializable {
 		}
 
 		// Retrieve the Java class
-		Class        javaClass = obj.getClass();
+		Class javaClass = obj.getClass();
 		if(logger.isLoggable(Logger.FINE))
-			logger.log(Logger.FINE,"Ontology "+getName()+". Class is: "+javaClass);
+			logger.log(Logger.FINE,"Ontology "+getName()+". Translating object of class "+javaClass);
 
 		// Retrieve the schema
 		ObjectSchema schema = (ObjectSchema) schemas.get(javaClass);
-		if(logger.isLoggable(Logger.FINE))
-			logger.log(Logger.FINE,"Ontology "+getName()+". Schema is: "+schema);
 		if (schema != null) {
-			if (introspector != null) {
-				if(logger.isLoggable(Logger.FINE))
-					logger.log(Logger.FINE,"Ontology "+getName()+". Try to externalise "+obj+" through "+introspector);
-				return introspector.externalise(obj, schema, javaClass, globalOnto);
+			if(logger.isLoggable(Logger.FINE))
+				logger.log(Logger.FINE,"Ontology "+getName()+". Schema for class "+javaClass+" found locally: "+schema);
+
+			// Try to manage as special type
+			AbsObject abs = null;
+			try {
+				abs = externalizeSpecialType(obj, schema, javaClass, globalOnto);
+			} catch(NotASpecialType nasp) {
+				// Manage as structure slot
+				abs = schema.newInstance();
+				externalize(obj, abs, schema, globalOnto);
 			}
+			return abs;
 		}
 
 		// If we get here --> This ontology is not able to translate obj
@@ -551,6 +649,143 @@ public class Ontology implements Serializable {
 		}
 
 		throw new UnknownSchemaException();
+	}
+
+	private AbsObject externalizeSpecialType(Object obj, ObjectSchema schema, Class javaClass, Ontology globalOnto) throws OntologyException {
+		if (introspector == null) {
+			throw new NotASpecialType();
+		}
+		return introspector.externalizeSpecialType(obj, schema, javaClass, globalOnto);
+	}
+
+	/**
+	 * Externalize (obj --> abs) the slots defined in <code>schema</code> and its super-schemas
+	 */
+	protected void externalize(Object obj, AbsObject abs, ObjectSchema schema, Ontology globalOnto) throws OntologyException {
+		// Let the proper ontology manage slots defined in super schemas if any
+		ObjectSchema[] superSchemas = schema.getSuperSchemas();
+		for (int i = 0; i < superSchemas.length; ++i) {
+			ObjectSchema superSchema = superSchemas[i];
+			Ontology definingOntology = getDefiningOntology(superSchema.getTypeName().toLowerCase());
+			if (definingOntology != null) {
+				definingOntology.externalize(obj, abs, superSchema, globalOnto);
+			}
+		}
+		
+		// Finally manage "local" slots through the introspector
+		if (introspector != null) {
+			String[] names = schema.getOwnNames();
+			for (int i = 0; i < names.length; ++i) {
+				String slotName = names[i];
+				Object slotValue = introspector.getSlotValue(slotName, obj, schema);
+				if (slotValue != null) {
+					// Try to manage as aggregate
+					AbsObject absSlotValue = null;
+					try {
+						absSlotValue = introspector.externalizeAggregate(slotName, slotValue, schema, globalOnto);
+					} catch(NotAnAggregate naa) {
+						// Manage as normal slot
+						absSlotValue = globalOnto.fromObject(slotValue);
+					}
+					
+					if (absSlotValue != null) {
+						AbsHelper.setAttribute(abs, slotName, absSlotValue);
+					}
+				}
+			} 
+		}
+	}
+	
+	/**
+	 * Set the value of slot <code>slotName</code> as <code>slotValue</code> to object <code>obj</code>
+	 */
+	public void setSlotValue(String slotName, Object slotValue, Object obj) throws OntologyException {
+		Class javaClass = obj.getClass();
+		ObjectSchema schema = (ObjectSchema) schemas.get(javaClass);
+		if (schema != null) {
+			setSlotValue(slotName, slotValue, obj, schema);
+			return;
+		}
+
+		// The schema must be defined in a super-ontology --> let it do the job
+		for (int i = 0; i < base.length; ++i) {
+			try {
+				base[i].setSlotValue(slotName, slotValue, obj);
+				return;
+			}
+			catch (UnknownSchemaException use) {
+				// Try the next one
+			}
+		}
+		
+		throw new UnknownSchemaException();
+	}
+	
+	private void setSlotValue(String slotName, Object slotValue, Object obj, ObjectSchema schema) throws OntologyException {
+		if (schema.isOwnSlot(slotName)) {
+			// The slot is defined in "schema" --> use the Introspector of the ontology actually defining "schema"
+			Ontology definingOntology = getDefiningOntology(schema.getTypeName().toLowerCase());
+			definingOntology.introspector.setSlotValue(slotName, slotValue, obj, schema);
+			return;
+		}
+		else {
+			// The slot must be defined in a super-schema 
+			ObjectSchema[] superSchemas = schema.getSuperSchemas();
+			for (int i = 0; i < superSchemas.length; ++i) {
+				try {
+					setSlotValue(slotName, slotValue, obj, superSchemas[i]);
+					return;
+				}
+				catch (UnknownSlotException use) {
+					// Try next super-schema
+				}
+			}
+		}
+		throw new UnknownSlotException(slotName);
+	}
+	
+	/**
+	 * Retrieve the value of slot <code>slotName</code> from object <code>obj</code>
+	 */
+	public Object getSlotValue(String slotName, Object obj) throws OntologyException {
+		Class javaClass = obj.getClass();
+		ObjectSchema schema = (ObjectSchema) schemas.get(javaClass);
+		if (schema != null) {
+			return getSlotValue(slotName, obj, schema);
+		}
+
+		// The schema must be defined in a super-ontology --> let it do the job
+		for (int i = 0; i < base.length; ++i) {
+			try {
+				return base[i].getSlotValue(slotName, obj);
+			}
+			catch (UnknownSchemaException use) {
+				// Try the next one
+			}
+		}
+		
+		throw new UnknownSchemaException();
+	}
+
+	private Object getSlotValue(String slotName, Object obj, ObjectSchema schema) throws OntologyException {
+		if (schema.isOwnSlot(slotName)) {
+			// The slot is defined in "schema" --> use the Introspector of the ontology actually defining "schema"
+			Ontology definingOntology = getDefiningOntology(schema.getTypeName().toLowerCase());
+			return definingOntology.introspector.getSlotValue(slotName, obj, schema);
+		}
+		else {
+			// The slot must be defined in a super-schema 
+			ObjectSchema[] superSchemas = schema.getSuperSchemas();
+			for (int i = 0; i < superSchemas.length; ++i) {
+				try {
+					return getSlotValue(slotName, obj, superSchemas[i]);
+				}
+				catch (UnknownSlotException use) {
+					// Try next super-schema
+				}
+			}
+		}
+		throw new UnknownSlotException(slotName);
 	}
 	//#APIDOC_EXCLUDE_END
 
@@ -770,9 +1005,27 @@ public class Ontology implements Serializable {
 			ObjectSchema schema = (ObjectSchema) en.nextElement();
 			String[] slotNames = schema.getNames();
 			for (int i = 0; i < slotNames.length; ++i) {
+				System.out.println("Concept-slot-function: "+slotNames[i]);
 				conceptSlots.put(slotNames[i], slotNames[i]);
 			}
 		}
 	}
 	//#MIDP_EXCLUDE_END
+	
+	public static AbsObject externalizeSlotValue(Object obj, Introspector introspector, Ontology referenceOnto) throws OntologyException {
+		try {
+			return introspector.externalizeAggregate(null, obj, null, referenceOnto);
+		} catch(NotAnAggregate nan) {
+			
+			return referenceOnto.fromObject(obj);
+		}
+	}
+	
+	public static Object internalizeSlotValue(AbsObject abs, Introspector introspector, Ontology referenceOnto) throws OntologyException {
+		if (abs.getAbsType() == AbsObject.ABS_AGGREGATE) {
+			return introspector.internalizeAggregate(null, (AbsAggregate)abs, null, referenceOnto);
+		} 
+		
+		return referenceOnto.toObject(abs);
+	}
 }

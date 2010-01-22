@@ -34,7 +34,6 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import jade.util.leap.Set;
-import jade.util.leap.SortedSetImpl;
 import jade.core.AID;
 import jade.core.CaseInsensitiveString;
 import jade.lang.acl.ACLMessage;
@@ -68,13 +67,21 @@ public class AbsHelper {
 		return ret;
 	} 
 
-	//#J2ME_EXCLUDE_BEGIN
-	public static AbsAggregate externaliseList(java.util.List obj, Ontology onto, String AggregateType) throws OntologyException {
+	/**
+	 * Converts a <code>Set</code> into a <code>AbsAggregate</code> using
+	 * the specified ontology.
+	 * @param obj the <code>Set</code>
+	 * @param onto the ontology.
+	 * @return the abstract descriptor.
+	 * @throws OntologyException
+	 */
+	public static AbsAggregate externaliseSet(Set obj, Ontology onto, String AggregateType) throws OntologyException {
 		AbsAggregate ret = new AbsAggregate(AggregateType);
 
 		try {
-			for (int i = 0; i < obj.size(); i++) {
-				ret.add((AbsTerm) (onto.fromObject(obj.get(i))));
+			Iterator it = obj.iterator();
+			while(it.hasNext()) {
+				ret.add((AbsTerm) (onto.fromObject(it.next())));
 			}
 		}
 		catch (ClassCastException cce) {
@@ -83,7 +90,6 @@ public class AbsHelper {
 
 		return ret;
 	} 
-	//#J2ME_EXCLUDE_END
 
 	/**
 	 * Converts an <code>Iterator</code> into a <code>AbsAggregate</code> using

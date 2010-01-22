@@ -90,9 +90,8 @@ public class ConceptSlotFunction extends AbsConceptSlotFunction {
 	}
 	
 	public Object apply(Concept c)  throws OntologyException {
-		Introspector introspector = onto.getIntrospector();
 		if (concept.getClass().isAssignableFrom(c.getClass())) {
-			return introspector.getSlotValue(getTypeName(), c, onto.getSchema(concept.getClass()));
+			return onto.getSlotValue(getTypeName(), c);
 		}
 		else {
 			throw new OntologyException("Concept "+c.getClass()+" is not compatible with internal concept "+concept.getClass());
@@ -102,11 +101,11 @@ public class ConceptSlotFunction extends AbsConceptSlotFunction {
 	public void fill(Object val) throws OntologyException {
 		fill(concept, val);
 	}
+
 	
 	public void fill(Concept c, Object val) throws OntologyException {
-		Introspector introspector = onto.getIntrospector();
 		if (concept.getClass().isAssignableFrom(c.getClass())) {
-			introspector.setSlotValue(getTypeName(), val, c, onto.getSchema(concept.getClass()));
+			onto.setSlotValue(getTypeName(), val, c);
 		}
 		else {
 			throw new OntologyException("Concept "+c.getClass()+" is not compatible with internal concept "+concept.getClass());

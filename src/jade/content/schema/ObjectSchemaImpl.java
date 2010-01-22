@@ -259,6 +259,26 @@ class ObjectSchemaImpl extends ObjectSchema {
 
 		return names;
 	}
+	
+	/**
+	 * Returns the names of the slots defined in this <code>Schema</code> 
+	 * (excluding slots defined in super schemas).
+	 *
+	 * @return the names of the slots defined in this <code>Schema</code>.
+	 */
+	public String[] getOwnNames() {
+		if (slotNames != null) {
+			String[] ownNames = new String[slotNames.size()];
+			int counter = 0;
+			for (Enumeration e = slotNames.elements(); e.hasMoreElements(); ) {
+				ownNames[counter++] = ((CaseInsensitiveString) e.nextElement()).toString();
+			}
+			return ownNames;
+		}
+		else {
+			return new String[0];
+		}
+	}
 
 	/**
 	 * Retrieves the schema of a slot of this <code>Schema</code>.
@@ -289,6 +309,19 @@ class ObjectSchemaImpl extends ObjectSchema {
 		return (slot != null);
 	}
 
+	/**
+	 * Indicate whether a given <code>String</code> is the name of a
+	 * slot actually defined in this <code>Schema</code> (excluding super-schemas)
+	 *
+	 * @param name The <code>String</code> to test.
+	 * @return <code>true</code> if <code>name</code> is the name of a
+	 * slot actually defined in this <code>Schema</code> (excluding super-schemas).
+	 */
+	public boolean isOwnSlot(String name) {
+		SlotDescriptor slot = getOwnSlot(new CaseInsensitiveString(name));
+		return (slot != null);
+	}
+	
 	/**
 	 * Indicate whether a slot of this schema is mandatory
 	 *
@@ -408,7 +441,7 @@ class ObjectSchemaImpl extends ObjectSchema {
 				if(logger.isLoggable(Logger.CONFIG))
 					logger.log(Logger.CONFIG,"Actual schema for "+value+" is "+s);
 				if (s == null) {
-					throw new OntologyException("No schema found for type "+value.getTypeName());
+					throw new OntologyException("No schema found for type "+value.getTypeName()+". Ontology is "+onto.getName());
 				}
 				if (!s.isCompatibleWith(dsc.schema)) {
 					throw new OntologyException("Schema "+s+" for element "+value+" is not compatible with schema "+dsc.schema+" for slot "+slotName);

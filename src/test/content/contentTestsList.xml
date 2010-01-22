@@ -11,6 +11,12 @@
 			<HowWorkTest> The test encodes and successively decodes a message whose content makes use of the ConceptSlotFunction class: (= (CSF) value).</HowWorkTest>
 			<WhenTestPass> The test passes if no exception is fired and the fill() operation properly set the slot value as indicated by the ConceptSlotFunction construct.</WhenTestPass>
 		</Test>		
+		<Test name="CSF with inheritance" skip="false">
+			<TestClassName>test.content.tests.TestCSFWithInheritance</TestClassName>
+			<WhatTest> Tests the usage of the ConceptSlotFunction class with a slot of a concept that inherits from another concept defined in a different ontology.</WhatTest>
+			<HowWorkTest> The test encodes and successively decodes a message whose content makes use of the ConceptSlotFunction class: (= (CSF) value).</HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired and the fill() operation properly set the slot value as indicated by the ConceptSlotFunction construct.</WhenTestPass>
+		</Test>		
 		<Test name="CSF in IOTA" skip="false">
 			<TestClassName>test.content.tests.TestIotaCSF</TestClassName>
 			<WhatTest> Tests the usage of the ConceptSlotFunction class inside a iota-based expression.</WhatTest>
@@ -179,6 +185,12 @@
 			<TestClassName>test.content.tests.TestCFReflectiveIntrospector</TestClassName>
 			<WhatTest> Tests the Collection-Framework-based reflective Introspector</WhatTest>
 			<HowWorkTest>The test encodes and successively decodes a content expression refering to an ontology (LEAP-Ontology) that has among its base ontologies another one (CF-Ontology) using the CFReflectiveIntrospector. The latter, on its turn has among its base ontologies another one using the BCReflectiveIntrospector. The content expression includes a mixture of java.util.List and jade.util.leap.List slots.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired and the decoded content is consistent with the original one.</WhenTestPass>
+		</Test>		
+		<Test name="Inheritance over different ontologies" skip="false">
+			<TestClassName>test.content.tests.TestInheritanceOverDifferentOntologies</TestClassName>
+			<WhatTest> Tests the case where Concept C2 in ontology O2 extends Concept C1 in ontology O1 and O1 and O2 use introspectors with different method names convention</WhatTest>
+			<HowWorkTest>The test encodes and successively decodes a content expression refering to an ontology (BC-Ontology) that has among its base ontologies another one (LEAP-Ontology and therefore CF-Ontology). BC-Ontology and CF-Ontology use different Introspectors. The content expression includes a BCThing (defined in BC-Ontology) that extends CF-Thing (defined in CF-Ontology).</HowWorkTest>
 			<WhenTestPass> Test passed if no exception is fired and the decoded content is consistent with the original one.</WhenTestPass>
 		</Test>		
 		<Test name="Abs Descriptor As Concept" skip="false">

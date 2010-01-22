@@ -347,11 +347,14 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 				return AbsPrimitive.wrap((byte[]) obj);
 			} 
 
-
 			if (obj instanceof List) {
 				return AbsHelper.externaliseList((List) obj, referenceOnto, SEQUENCE);
 			}
-			
+
+			if (obj instanceof Set) {
+				return AbsHelper.externaliseSet((Set) obj, referenceOnto, SET);
+			}
+
 			if (obj instanceof Iterator) {
 				return AbsHelper.externaliseIterator((Iterator) obj, referenceOnto, SEQUENCE);
 			}
