@@ -2,7 +2,11 @@ package jade.wrapper.gateway;
 
 //#J2ME_EXCLUDE_FILE
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jade.core.AID;
+import jade.core.Agent;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
@@ -16,6 +20,10 @@ import jade.wrapper.StaleProxyException;
 
 public class DynamicJadeGateway {
 
+	private static final int UNKNOWN = -1;
+	private static final int ACTIVE = 1;
+	private static final int NOT_ACTIVE = 2;
+	
 	private ContainerController myContainer = null;
 	private AgentController myAgent = null;
 	private String agentType;
@@ -23,6 +31,11 @@ public class DynamicJadeGateway {
 	private ProfileImpl profile;
 	private Properties jadeProps;
 	private Object[] agentArguments;
+	
+	private int gatewayAgentState = UNKNOWN;
+	private List<GatewayListener> listeners = new ArrayList<GatewayListener>();
+	private volatile GatewayListener[] listenersArray = new GatewayListener[0];
+	
 	private static Logger myLogger = Logger.getMyLogger(DynamicJadeGateway.class.getName());
 	
 	
@@ -100,8 +113,29 @@ public class DynamicJadeGateway {
 			}
 		}
 		if (myAgent == null) {
-			myAgent = myContainer.createNewAgent("Control"+myContainer.getContainerName(), agentType, agentArguments);
-			myAgent.start();
+			try {
+				Agent a = (Agent) Class.forName(agentType).newInstance();
+				if (a instanceof GatewayAgent) {
+					((GatewayAgent) a).setListener(new GatewayListenerImpl());
+					// We are able to detect the GatewayAgent state only if the internal agent is a GatewayAgent instance
+					gatewayAgentState = NOT_ACTIVE;
+				}
+				a.setArguments(agentArguments);
+				myAgent = myContainer.acceptNewAgent("Control"+myContainer.getContainerName(), a);
+				
+				if (gatewayAgentState == NOT_ACTIVE) {
+					// Set the ACTIVE state synchronously so that when checkJADE() completes isGatewayActive() certainly returns true 
+					gatewayAgentState = ACTIVE;
+				}
+				myAgent.start();
+			}
+			catch (StaleProxyException spe) {
+				// Just let it through
+				throw spe;
+			}
+			catch (Exception e) {
+				throw new ControllerException("Error creating GatewayAgent [" + e + "]");
+			}
 		}
 	}
 	
@@ -171,10 +205,70 @@ public class DynamicJadeGateway {
 	 * @return true if the container and the gateway agent are active, false otherwise
 	 */
 	public final boolean isGatewayActive() {
-		return myContainer != null && myAgent != null;
+		if (gatewayAgentState != UNKNOWN) {
+			return gatewayAgentState == ACTIVE;
+		}
+		else {
+			// If we are not able to monitor the actual gatewayAgentState, just check if myContainer and myAgent are not null
+			return myContainer != null && myAgent != null;
+		}
 	}
 	
 	public AID createAID(String localName) {
 		return new AID(localName+'@'+myContainer.getPlatformName(), AID.ISGUID);
 	}
+	
+	public void addListener(GatewayListener l) {
+		listeners.add(l);
+		listenersArray = listeners.toArray(new GatewayListener[0]);
+	}
+	
+	public void removeListener(GatewayListener l) {
+		if (listeners.remove(l)) {
+			listenersArray = listeners.toArray(new GatewayListener[0]);
+		}
+	}
+	
+	/**
+	 * Inner class GatewayListenerImpl
+	 */
+	private class GatewayListenerImpl implements GatewayListener {
+		public void handleGatewayConnected() {
+			// This is executed by the GatewayAgent Thread --> Notify listeners by means of an ad-hoc 
+			// Thread to avoid deadlocks with other threads waiting for the execute() method to complete
+			Thread t = new Thread() {
+				public void run() {
+					for (GatewayListener listener : listenersArray) {
+						try {
+							listener.handleGatewayConnected();
+						}
+						catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			};
+			t.start();
+		}
+		
+		public void handleGatewayDisconnected() {
+			gatewayAgentState = NOT_ACTIVE;
+			
+			// This is executed by the GatewayAgent Thread --> Notify listeners by means of an ad-hoc 
+			// Thread to avoid deadlocks with other threads waiting for the execute() method to complete
+			Thread t = new Thread() {
+				public void run() {
+					for (GatewayListener listener : listenersArray) {
+						try {
+							listener.handleGatewayDisconnected();
+						}
+						catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			};
+			t.start();
+		}
+	} // END of inner class GatewayListenerImpl
 }

@@ -21,7 +21,8 @@ import jade.util.Logger;
  **/
 public class GatewayAgent extends Agent {
 
-	private  GatewayBehaviour myB = null;
+	private GatewayBehaviour myB = null;
+	private GatewayListener listener;
 	private final Logger myLogger = Logger.getMyLogger(this.getClass().getName());
 
 	/** subclasses may implement this method.
@@ -86,6 +87,21 @@ public class GatewayAgent extends Agent {
 		};
 		addBehaviour(myB);
 		setO2AManager(myB);
+		
+		if (listener != null) {
+			listener.handleGatewayConnected();
+		}
+	}
+	
+	protected void takeDown() {
+		if (listener != null) {
+			listener.handleGatewayDisconnected();
+		}
+	}
+	
+	// No need for synchronizations since this is only called when the Agent Thread has not started yet
+	void setListener(GatewayListener listener) {
+		this.listener = listener;
 	}
 
 }
