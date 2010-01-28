@@ -467,5 +467,130 @@ public class AbsHelper {
 		throw new OntologyException("Type incompatibility: value of attribute "+attrName+" of "+abs+" is "+attrValue); 
 	}
 
+	/**
+	 * Remove all variables and empty aggregates (only if specified)
+	 * @param abs to nullify
+	 * @param removeEmptyAggregate if true remove all empty aggregates  
+	 * @return abs without variables and empty aggregates
+	 * @throws OntologyException
+	 */
+	public static AbsObject nullifyVariables(AbsObject abs, boolean removeEmptyAggregate) throws OntologyException {
+		// Remove AbsVariable
+		if (abs instanceof AbsVariable) {
+			return null;
+		}
+		// Remove empty AbsAggregate
+		if (removeEmptyAggregate && abs instanceof AbsAggregate) {
+			AbsAggregate absAggregate = (AbsAggregate)abs;
+			if (absAggregate.size() == 0) {
+				return null;
+			}
+		}
+		// If not grounded -> check all slots
+		if (!abs.isGrounded()) {
+			for (String slotName : abs.getNames()) {
+				AbsObject slotValue = abs.getAbsObject(slotName);
+				AbsObject nullifiedSlotValue = nullifyVariables(slotValue, removeEmptyAggregate);
+				
+				if (abs instanceof AbsAggregate && nullifiedSlotValue == null) {
+					// Only in aggregate remove null slot
+					((AbsAggregate)abs).remove((AbsTerm)slotValue);
+				} else {
+					// Replace nullified value into the slot
+					((AbsConcept)abs).set(slotName, nullifiedSlotValue);
+				}
+			}
+			if (removeEmptyAggregate && abs.getCount() == 0) {
+				return null;
+			}
+		}
+		return abs;
+	}
+	
+	/**
+	 * Generate an AbsObject consistently with class structure. 
+	 * The class must be described in the ontology.     
+	 * @param clazz to convert
+	 * @param onto reference ontology
+	 * @return abs-object
+	 * @throws Exception
+	 */
+	public static AbsObject createAbs(Class clazz, Ontology onto) throws Exception {
+
+		// Sequence type
+		if (java.util.List.class.isAssignableFrom(clazz) ||
+			jade.util.leap.List.class.isAssignableFrom(clazz)) {
+
+			return new AbsAggregate(BasicOntology.SEQUENCE);
+		}
+
+		// Set type
+		if (java.util.Set.class.isAssignableFrom(clazz) ||
+			jade.util.leap.Set.class.isAssignableFrom(clazz)) {
+			
+			return new AbsAggregate(BasicOntology.SET);
+		}
+		
+		// Primitive type
+		ObjectSchema schema = onto.getSchema(clazz);
+		if (schema instanceof PrimitiveSchema) {
+			return new AbsVariable(null, schema.getTypeName());
+		}
+		
+		// Complex type
+		return createAbs(schema);
+	}
+	
+	/**
+	 * Generate an AbsObject consistently with schema. 
+	 * @param schema to convert
+	 * @return abs-object
+	 * @throws Exception
+	 */
+	public static AbsObject createAbs(ObjectSchema schema) throws OntologyException {
+		return createAbs(schema, null, -1);
+	}
+	
+	/**
+	 * Generate an AbsObject consistently with schema.
+	 * All variables are prefixed 
+	 * @param schema to convert
+	 * @param prefix for variable
+	 * @return abs-object
+	 * @throws Exception
+	 */
+	public static AbsObject createAbs(ObjectSchema schema, String prefix) throws OntologyException {
+		return createAbs(schema, prefix, -1);
+	}
+
+	private static AbsObject createAbs(ObjectSchema schema, String prefix, int index) throws OntologyException {
+		
+		if (schema instanceof PrimitiveSchema) {
+			PrimitiveSchema primitiveSchema = (PrimitiveSchema)schema;
+			String varName = (prefix!=null ? prefix : "") + index;
+			index++;
+			return new AbsVariable(varName, primitiveSchema.getTypeName());
+		}
+		
+		if (schema instanceof AggregateSchema) {
+			AggregateSchema aggregateSchema = (AggregateSchema)schema; 
+			AbsAggregate aggregate = new AbsAggregate(aggregateSchema.getTypeName());
+			
+			// If is present the element schema add to aggregate one element of correct type
+			ObjectSchema elementsSchema = aggregateSchema.getElementsSchema();
+			if (elementsSchema != null) {
+				aggregate.add((AbsTerm)createAbs(elementsSchema, prefix, index));
+			}
+			return aggregate;
+		}
+		
+		AbsObject abs = schema.newInstance();
+		for (String slotName : schema.getNames()) {
+			ObjectSchema slotSchema = schema.getSchema(slotName);
+			setAttribute(abs, slotName, createAbs(slotSchema, prefix, index));
+		}
+		return abs;
+	}
+
 }
 
