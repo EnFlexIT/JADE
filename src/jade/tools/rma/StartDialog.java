@@ -98,6 +98,10 @@ public class StartDialog extends JDialog implements ActionListener {
 			"jade.tools.logging.LogHelperAgent"
 		};
 
+		// Exclude all classes that are
+		// - Not concrete (abstract or interfaces)
+		// - Contained in the jade.core package (a part from the jade.core.Agent class itself)
+		// - Explicitly mentioned in the "exclude" array
 		public boolean include(Class superClazz, Class clazz) {
 			String clazzName = clazz.getName();
 			int modifiers = clazz.getModifiers();
