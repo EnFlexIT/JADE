@@ -42,6 +42,7 @@ import jade.content.schema.ObjectSchema;
 import jade.content.schema.PredicateSchema;
 import jade.content.schema.TermSchema;
 import jade.content.schema.facets.DefaultValueFacet;
+import jade.content.schema.facets.DocumentationFacet;
 import jade.content.schema.facets.PermittedValuesFacet;
 import jade.content.schema.facets.RegexFacet;
 import jade.util.Logger;
@@ -233,6 +234,7 @@ class BeanOntologyBuilder {
 		String regex;
 		String[] permittedValues;
 		int position;
+		String documentation;
 		boolean orderByPosition = false;
 
 		while (gettersIter.hasNext()) {
@@ -244,6 +246,7 @@ class BeanOntologyBuilder {
 			defaultValue = null;
 			regex = null;
 			permittedValues = null;
+			documentation = null;
 			aggregateType = null;
 			position = -1;
 			slotAnnotation = getter.getAnnotation(Slot.class);
@@ -282,6 +285,9 @@ class BeanOntologyBuilder {
 						if (slotAnnotation.permittedValues().length > 0) {
 							permittedValues = slotAnnotation.permittedValues();
 						}
+						if (!Slot.NULL.equals(slotAnnotation.documentation())) {
+							documentation = slotAnnotation.documentation();
+						}
 						
 						mandatory = slotAnnotation.mandatory();
 					}
@@ -312,7 +318,7 @@ class BeanOntologyBuilder {
 							}
 						}
 					}
-					sad = new SlotAccessData(slotClazz, getter, setter, mandatory, aggregateType, cardMin, cardMax, defaultValue, regex, permittedValues);
+					sad = new SlotAccessData(slotClazz, getter, setter, mandatory, aggregateType, cardMin, cardMax, defaultValue, regex, permittedValues, documentation);
 					result.put(new SlotKey(schemaName, slotName, position), sad);
 				} else {
 					// TODO it's not a bean property, maybe we could generate a warning...
@@ -459,6 +465,9 @@ class BeanOntologyBuilder {
 				}
 				if (sad.regex != null) {
 					schema.addFacet(slotName, new RegexFacet(sad.regex));
+				}
+				if (sad.documentation != null) {
+					schema.addFacet(slotName, new DocumentationFacet(sad.documentation));
 				}
 				if (sad.permittedValues != null) {
 					// Adjust permitted values in correct class type 

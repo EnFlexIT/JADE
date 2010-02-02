@@ -40,6 +40,7 @@ public @interface Slot {
 	String NULL = "__NULL__";
 
 	String name() default USE_METHOD_NAME;
+	String documentation() default NULL;
 	int position() default -1;
 	boolean mandatory() default false;
 	String defaultValue() default NULL; 

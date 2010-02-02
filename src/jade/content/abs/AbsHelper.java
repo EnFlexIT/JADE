@@ -515,7 +515,7 @@ public class AbsHelper {
 	 * @return abs-object
 	 * @throws Exception
 	 */
-	public static AbsObject createAbs(Class clazz, Ontology onto) throws Exception {
+	public static AbsObject createAbsTemplate(Class clazz, Ontology onto) throws Exception {
 
 		// Sequence type
 		if (java.util.List.class.isAssignableFrom(clazz) ||
@@ -538,7 +538,7 @@ public class AbsHelper {
 		}
 		
 		// Complex type
-		return createAbs(schema);
+		return createAbsTemplate(schema);
 	}
 	
 	/**
@@ -547,8 +547,8 @@ public class AbsHelper {
 	 * @return abs-object
 	 * @throws Exception
 	 */
-	public static AbsObject createAbs(ObjectSchema schema) throws OntologyException {
-		return createAbs(schema, null, -1);
+	public static AbsObject createAbsTemplate(ObjectSchema schema) throws OntologyException {
+		return createAbsTemplate(schema, null, -1);
 	}
 	
 	/**
@@ -559,11 +559,11 @@ public class AbsHelper {
 	 * @return abs-object
 	 * @throws Exception
 	 */
-	public static AbsObject createAbs(ObjectSchema schema, String prefix) throws OntologyException {
-		return createAbs(schema, prefix, -1);
+	public static AbsObject createAbsTemplate(ObjectSchema schema, String prefix) throws OntologyException {
+		return createAbsTemplate(schema, prefix, -1);
 	}
 
-	private static AbsObject createAbs(ObjectSchema schema, String prefix, int index) throws OntologyException {
+	private static AbsObject createAbsTemplate(ObjectSchema schema, String prefix, int index) throws OntologyException {
 		
 		if (schema instanceof PrimitiveSchema) {
 			PrimitiveSchema primitiveSchema = (PrimitiveSchema)schema;
@@ -579,7 +579,7 @@ public class AbsHelper {
 			// If is present the element schema add to aggregate one element of correct type
 			ObjectSchema elementsSchema = aggregateSchema.getElementsSchema();
 			if (elementsSchema != null) {
-				aggregate.add((AbsTerm)createAbs(elementsSchema, prefix, index));
+				aggregate.add((AbsTerm)createAbsTemplate(elementsSchema, prefix, index));
 			}
 			return aggregate;
 		}
@@ -587,7 +587,7 @@ public class AbsHelper {
 		AbsObject abs = schema.newInstance();
 		for (String slotName : schema.getNames()) {
 			ObjectSchema slotSchema = schema.getSchema(slotName);
-			setAttribute(abs, slotName, createAbs(slotSchema, prefix, index));
+			setAttribute(abs, slotName, createAbsTemplate(slotSchema, prefix, index));
 		}
 		return abs;
 	}

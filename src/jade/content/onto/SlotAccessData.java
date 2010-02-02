@@ -40,8 +40,9 @@ class SlotAccessData {
 	Object defaultValue; 
 	String regex;
 	String[] permittedValues;
+	String documentation;
 
-	SlotAccessData(Class type, Method getter, Method setter, boolean mandatory, Class aggregateClass, int cardMin, int cardMax, Object defaultValue, String regex, String[] permittedValues) {
+	SlotAccessData(Class type, Method getter, Method setter, boolean mandatory, Class aggregateClass, int cardMin, int cardMax, Object defaultValue, String regex, String[] permittedValues, String documentation) {
 		this.type = type;
 		this.getter = getter;
 		this.setter = setter;
@@ -53,6 +54,7 @@ class SlotAccessData {
 		this.defaultValue = defaultValue;
 		this.regex = regex;
 		this.permittedValues = permittedValues;
+		this.documentation = documentation;
 	}
 
 	static boolean isAggregate(Class clazz) {
