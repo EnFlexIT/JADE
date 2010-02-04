@@ -71,5 +71,15 @@
 			    <br></br><em>NOTES: This test will take ~ 20 sec.</em>			
 		    </HowWorkTest>
 			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+		</Test>	
+
+	
+		<Test name="Iterated FIPA-REQUEST with explicit CANCEL sent by the Initiator" skip="false">
+			<TestClassName>test.proto.tests.achieveRE.TestIteratedAchieveRE</TestClassName>
+			<WhatTest> Tests the Iterated FIPA-REQUEST protocol in the case where the session is terminated by the initiator by means of an explicit CANCEL</WhatTest>
+			<HowWorkTest> 
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
 		</Test>		
 	</TestsList>

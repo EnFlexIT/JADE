@@ -78,10 +78,6 @@ public class IteratedAchieveREInitiator extends AchieveREInitiator {
 	public IteratedAchieveREInitiator(Agent a, ACLMessage msg, DataStore store) {
 		super(a, msg, store);
 		
-		// Register the FSM transitions specific to the Iterated-Achieve-RE protocol
-		registerDefaultTransition(HANDLE_ALL_RESULT_NOTIFICATIONS, REINIT);					
-		registerDefaultTransition(REINIT, SEND_INITIATIONS);		
-		
 		// The HANDLE_ALL_RESULT_NOTIFICATIONS state must no longer be final
 		Behaviour b = deregisterState(HANDLE_ALL_RESULT_NOTIFICATIONS);
 		b.setDataStore(getDataStore());
@@ -95,6 +91,10 @@ public class IteratedAchieveREInitiator extends AchieveREInitiator {
 		};
 		b.setDataStore(getDataStore());
 		registerState(b, REINIT);
+		
+		// Register the FSM transitions specific to the Iterated-Achieve-RE protocol
+		registerDefaultTransition(HANDLE_ALL_RESULT_NOTIFICATIONS, REINIT);					
+		registerDefaultTransition(REINIT, SEND_INITIATIONS);		
 	}
 	
 	//#APIDOC_EXCLUDE_BEGIN
