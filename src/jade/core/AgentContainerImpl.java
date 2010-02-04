@@ -165,14 +165,14 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			}
 
 			public void createAgent(AID id, String className, Object[] args) throws Throwable {
-				// Do as if it was a remote call from the main to allows
+				// Do as if it was a remote call from the main to allow
 				// security checks to take place if needed
 				AgentManagementSlice target = (AgentManagementSlice) getProxyToLocalSlice(AgentManagementSlice.NAME);
 				target.createAgent(id, className, args, principal, null, AgentManagementSlice.CREATE_ONLY, dummyCmd);
 			}
 
 			public void killContainer() throws Throwable {
-				// Do as if it was a remote call from the main to allows
+				// Do as if it was a remote call from the main to allow
 				// security checks to take place if needed
 				AgentManagementSlice target = (AgentManagementSlice) getProxyToLocalSlice(AgentManagementSlice.NAME);
 				// FIXME: set Principal and Credentials
@@ -180,7 +180,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			}
 
 			public MTPDescriptor installMTP(String address, String className) throws Throwable {
-				// Do as if it was a remote call from the main to allows
+				// Do as if it was a remote call from the main to allow
 				// security checks to take place if needed
 				jade.core.messaging.MessagingSlice target = (jade.core.messaging.MessagingSlice) getProxyToLocalSlice(jade.core.messaging.MessagingSlice.NAME);
 				// FIXME: set Principal and Credentials
@@ -188,7 +188,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			}
 
 			public void uninstallMTP(String address) throws Throwable {
-				// Do as if it was a remote call from the main to allows
+				// Do as if it was a remote call from the main to allow
 				// security checks to take place if needed
 				jade.core.messaging.MessagingSlice target = (jade.core.messaging.MessagingSlice) getProxyToLocalSlice(jade.core.messaging.MessagingSlice.NAME);
 				// FIXME: set Principal and Credentials
@@ -196,7 +196,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			}
 
 			public void suspendAgent(AID id) throws Throwable {
-				// Do as if it was a remote call from the main to allows
+				// Do as if it was a remote call from the main to allow
 				// security checks to take place if needed
 				jade.core.management.AgentManagementSlice target = (jade.core.management.AgentManagementSlice) getProxyToLocalSlice(jade.core.management.AgentManagementSlice.NAME);
 				// FIXME: set Principal and Credentials
@@ -204,7 +204,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			}
 
 			public void activateAgent(AID id) throws Throwable {
-				// Do as if it was a remote call from the main to allows
+				// Do as if it was a remote call from the main to allow
 				// security checks to take place if needed
 				jade.core.management.AgentManagementSlice target = (jade.core.management.AgentManagementSlice) getProxyToLocalSlice(jade.core.management.AgentManagementSlice.NAME);
 				// FIXME: set Principal and Credentials
@@ -212,14 +212,14 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			}
 
 			public void killAgent(AID id) throws Throwable {
-				// Do as if it was a remote call from the main to allows
+				// Do as if it was a remote call from the main to allow
 				// security checks to take place if needed
 				jade.core.management.AgentManagementSlice target = (jade.core.management.AgentManagementSlice) getProxyToLocalSlice(jade.core.management.AgentManagementSlice.NAME);
 				target.killAgent(id, dummyCmd);
 			}
 
 			public void moveAgent(AID id, Location where) throws Throwable {
-				// Do as if it was a remote call from the main to allows
+				// Do as if it was a remote call from the main to allow
 				// security checks to take place if needed
 				jade.core.mobility.AgentMobilitySlice target = (jade.core.mobility.AgentMobilitySlice) getProxyToLocalSlice(jade.core.mobility.AgentMobilitySlice.NAME);
 				// FIXME: set Principal and Credentials
@@ -227,7 +227,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			}
 
 			public void cloneAgent(AID id, Location where, String newName) throws Throwable {
-				// Do as if it was a remote call from the main to allows
+				// Do as if it was a remote call from the main to allow
 				// security checks to take place if needed
 				jade.core.mobility.AgentMobilitySlice target = (jade.core.mobility.AgentMobilitySlice) getProxyToLocalSlice(jade.core.mobility.AgentMobilitySlice.NAME);
 				// FIXME: set Principal and Credentials
