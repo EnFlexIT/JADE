@@ -29,16 +29,6 @@ public class NIOHTTPSConnection extends NIOHTTPConnection {
         super.close();
     }
 
-    @Override
-    public void notifyMoreDataAvailable() {
-        if (helper.needSocketData()) {
-            super.doNotifyMoreDataAvailable();
-        } else {
-            super.notifyMoreDataAvailable();
-        }
-    }
-
-
     /**
      * need to set a HTTPHelper here, that can do wrapping of JICPPacket in HTTPPacket and unwrapping the other way
      * @param channel

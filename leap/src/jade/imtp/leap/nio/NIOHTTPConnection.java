@@ -25,21 +25,6 @@ public class NIOHTTPConnection extends NIOJICPConnection {
         helper = new NIOHTTPHelper(this);
         addBufferTransformer(helper);
     }
-
-    @Override
-    public void notifyMoreDataAvailable() {
-        if (helper.needSocketData()) {
-            super.notifyMoreDataAvailable();
-        }
-    }
-
-    /**
-     * a hook to allow subclasses to trigger extra read (needed in ssl handshaking), not a very nice solution....
-     */
-    protected void doNotifyMoreDataAvailable() {
-        super.notifyMoreDataAvailable();
-    }
-
   
     private static Logger log = Logger.getLogger(NIOHTTPConnection.class.getName());
 

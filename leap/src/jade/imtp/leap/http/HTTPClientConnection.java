@@ -54,6 +54,9 @@ import javax.microedition.io.*;
  * @author Giovanni Caire - TILAB
  */
 class HTTPClientConnection extends Connection {
+	private static final int READY = 0;
+	private static final int WRITTEN = 1;
+	private static final int CLOSED = -1;
 
     //#MIDP_EXCLUDE_BEGIN
     private HttpURLConnection hc;
@@ -64,14 +67,14 @@ class HTTPClientConnection extends Connection {
     private String url;
     private InputStream is;
     private OutputStream os;
-    private boolean opened;
+    private int state;
 
     /**
      * Constructor declaration
      */
     public HTTPClientConnection(TransportAddress ta) {
         url = getProtocol() + ta.getHost() + ":" + ta.getPort() + "/jade";
-        opened = false;
+        state = READY;
         //#MIDP_EXCLUDE_BEGIN
         //#PJAVA_EXCLUDE_BEGIN
         // If the HTTP connection must go through an authenticated proxy
@@ -115,7 +118,7 @@ class HTTPClientConnection extends Connection {
     //#MIDP_EXCLUDE_END
 
     public int writePacket(JICPPacket pkt) throws IOException {
-        if (!opened) {
+        if (state == READY) {
             int ret = 0;
             //#MIDP_EXCLUDE_BEGIN
             hc = open(url);
@@ -139,7 +142,7 @@ class HTTPClientConnection extends Connection {
             }
             #MIDP_INCLUDE_END*/
 
-            opened = true;
+            state = WRITTEN;
             return ret;
         } else {
             throw new IOException("Write not available");
@@ -147,7 +150,7 @@ class HTTPClientConnection extends Connection {
     }
 
     public JICPPacket readPacket() throws IOException {
-        if (opened) {
+        if (state == WRITTEN) {
             try {
                 //#MIDP_EXCLUDE_BEGIN
                 is = hc.getInputStream();
@@ -164,14 +167,14 @@ class HTTPClientConnection extends Connection {
                 }
             }
         } else {
-            throw new IOException("Can't read from a closed connection");
+            throw new IOException("Wrong connection state "+state);
         }
     }
 
     /**
      */
     public void close() throws IOException {
-        opened = false;
+    	state = CLOSED;
         try {
             is.close();
         } catch (Exception e) {

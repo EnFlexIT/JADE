@@ -23,6 +23,7 @@
 
 package jade.core;
 
+import jade.imtp.leap.JICP.JICPProtocol;
 import jade.lang.acl.ACLMessage;
 import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
@@ -134,6 +135,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			configProperties.setProperty(MicroRuntime.BE_REQUIRED_SERVICES_KEY, beServices);
 		}
 		
+		manageProtoOption(configProperties);
+		
 		// Connect to the BackEnd
 		try {
 			myBackEnd = new BackEndWrapper(this, configProperties);
@@ -198,6 +201,27 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		configProperties.remove(MicroRuntime.AGENTS_KEY);
 		
 		notifyStarted();
+	}
+	
+	private void manageProtoOption(Properties pp) {
+		String proto = pp.getProperty(MicroRuntime.PROTO_KEY);
+		if (proto != null) {
+			// This option assumes the single-connection approach in case of SOCKET and SSL and usage of NIO back-end side 
+			if (CaseInsensitiveString.equalsIgnoreCase(MicroRuntime.SOCKET_PROTOCOL, proto)) {
+				pp.setProperty(MicroRuntime.CONN_MGR_CLASS_KEY, "jade.imtp.leap.JICP.FrontEndDispatcher");
+			}
+			else if (CaseInsensitiveString.equalsIgnoreCase(MicroRuntime.SSL_PROTOCOL, proto)) {
+				pp.setProperty(MicroRuntime.CONN_MGR_CLASS_KEY, "jade.imtp.leap.JICP.FrontEndSDispatcher");
+			}
+			else if (CaseInsensitiveString.equalsIgnoreCase(MicroRuntime.HTTP_PROTOCOL, proto)) {
+				pp.setProperty(MicroRuntime.CONN_MGR_CLASS_KEY, "jade.imtp.leap.http.HTTPFEDispatcher");
+				pp.setProperty(JICPProtocol.MEDIATOR_CLASS_KEY, "jade.imtp.leap.nio.NIOHTTPBEDispatcher");
+			}
+			else if (CaseInsensitiveString.equalsIgnoreCase(MicroRuntime.HTTPS_PROTOCOL, proto)) {
+				pp.setProperty(MicroRuntime.CONN_MGR_CLASS_KEY, "jade.imtp.leap.http.HTTPFESDispatcher");
+				pp.setProperty(JICPProtocol.MEDIATOR_CLASS_KEY, "jade.imtp.leap.nio.NIOHTTPBEDispatcher");
+			}
+		}
 	}
 	
 	void detach() {

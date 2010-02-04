@@ -87,8 +87,12 @@
 
 
 	<!-- COMPILE -->
-	<target name="do-compile" depends="do-setup, do-parsers"
-	        description="Compile sources">
+	<target name="do-compile" depends="do-setup, do-parsers, do-compile-only" description="Compile sources (preprocess them before)">
+	</target>
+
+	
+	<!-- COMPILE ONLY (NO PREPROCESSING) -->
+	<target name="do-compile-only" depends="do-init" description="Compile sources (no preprocessing)">
 		<javac srcdir="${src}"
 		       destdir="${classes}"
 		       classpath="${lib}/commons-codec/commons-codec-1.3.jar"

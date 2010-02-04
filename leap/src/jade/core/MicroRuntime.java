@@ -67,9 +67,20 @@ public class MicroRuntime {
 	 */
 	public static final String PORT_KEY = "port";	
 
+	/**
+	 The configuration property key that maps to the protocol that must be used to connect to
+	 the JADE mediator. Possible values are: <code>socket, ssl, http, https</code>
+	 */
+	public static final String PROTO_KEY = "proto";
+		
+    public static final String SOCKET_PROTOCOL = "socket";
+    public static final String SSL_PROTOCOL = "ssl";
+    public static final String HTTP_PROTOCOL = "http";
+    public static final String HTTPS_PROTOCOL = "https";
+    
+	//#APIDOC_EXCLUDE_BEGIN
 	public static final String CONN_MGR_CLASS_KEY = "connection-manager";	
 
-	//#APIDOC_EXCLUDE_BEGIN
 	public static final String CONTAINER_NAME_KEY = "container-name";
 	public static final String PLATFORM_KEY = "platform-id";
 	public static final String PLATFORM_ADDRESSES_KEY = "addresses";

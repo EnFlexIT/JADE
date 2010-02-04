@@ -276,6 +276,10 @@
 		<ant antfile="${buildfiles}/dotnet.xml" target="do-dll" dir="."/>
 	</target>
 
+	<target name="j2se-compile-only" description="Compile sources for J2SE starting from already pre-processed files">
+		<ant antfile="${buildfiles}/j2se.xml" target="do-compile-only" dir="."/>
+	</target>	
+	
 	
   <!-- Create jade-leap LIBRARY (jar files) for the selected java environments -->
 	<target name="lib" depends="init, lib-j2se, lib-pjava, lib-midp"

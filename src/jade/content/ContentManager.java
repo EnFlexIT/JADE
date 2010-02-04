@@ -365,5 +365,21 @@ public class ContentManager implements Serializable {
 		sb.append(")");
 		return sb.toString();
 	}
+        public String[] getLanguageNames() {
+            String[] langs = new String[languages.size()];
+            int i = 0;
+            for (Iterator it = languages.keySet().iterator(); it.hasNext(); i++) {
+                langs[i] = it.next().toString();
+            }
+            return langs;
+        }
+        public String[] getOntologyNames() {
+            String[] onts = new String[ontologies.size()];
+            int i = 0;
+            for (Iterator it = ontologies.keySet().iterator(); it.hasNext(); i++) {
+                onts[i] = it.next().toString();
+            }
+            return onts;
+        }
 }
 

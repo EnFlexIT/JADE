@@ -31,11 +31,5 @@ public interface BufferTransformer {
      */
     public ByteBuffer preprocessBufferToWrite(ByteBuffer dataToSend) throws IOException;
 
-    /**
-     * When {@link MoreDataNotifier#notifyMoreDataAvailable() } is called, the return value of this function can be used to actually call
-     * {@link MoreDataHandler#handleExtraData()}
-     * @return true when more data should be read from the socket before a successful transformation can be achieved
-     */
-    public boolean needSocketData();
 
 }
