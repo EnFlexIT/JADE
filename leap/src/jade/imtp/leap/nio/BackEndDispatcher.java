@@ -330,10 +330,6 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		return inpManager.getStub();
 	}
 	
-	// FIXME: to be removed
-	public void activateReplica(String addr, Properties props) throws IMTPException {
-	}
-	
 	/**
 	   Make this BackEndDispatcher terminate.
 	 */

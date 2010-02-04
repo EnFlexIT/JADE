@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.core;
 
@@ -30,7 +30,7 @@ import jade.util.leap.Properties;
 
 /**
 @author Giovanni Caire - TILAB
-*/
+ */
 
 public interface BEConnectionManager {
 	/**
@@ -41,14 +41,11 @@ public interface BEConnectionManager {
 	   configuration properties.
 	   @return A stub of the remote FrontEnd. 
 	 */
-  FrontEnd getFrontEnd(BackEnd be, Properties props) throws IMTPException;
+	FrontEnd getFrontEnd(BackEnd be, Properties props) throws IMTPException;
 
-  void activateReplica(String addr, Properties props) throws IMTPException;
-
-
-  /**
+	/**
 	   Shut down the permanent connection to the remote FrontEnd
 	 */
-  void shutdown();  
+	void shutdown();  
 }
 

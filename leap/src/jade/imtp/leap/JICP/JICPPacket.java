@@ -346,7 +346,7 @@ public class JICPPacket {
     	cnt += (1 + recipientID.getBytes().length);
     }
     if ((info & JICPProtocol.DATA_PRESENT_INFO) != 0) {
-    	cnt += (2 + data.length);
+    	cnt += (4 + data.length);
     }
     return cnt;
   }

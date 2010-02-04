@@ -176,7 +176,8 @@ public class BEManagementService extends BaseService {
 						proto.equalsIgnoreCase(MicroRuntime.SSL_PROTOCOL) ||	
 						proto.equalsIgnoreCase(MicroRuntime.HTTP_PROTOCOL) ||	
 						proto.equalsIgnoreCase(MicroRuntime.HTTPS_PROTOCOL)) {	
-					serverIDs = serverIDs + manageAcceptedProtocol(s, proto.toLowerCase(), p)+';';
+					String semicolon = ((i+1) == acceptedProtocols.size() ? "" : ";");
+					serverIDs = serverIDs + manageAcceptedProtocol(s, proto.toLowerCase(), p)+semicolon;
 				}
 				else {
 					myLogger.log(Logger.WARNING, "Unsupported protocol "+proto+". Permitted values are socket, ssl, http and https!!!!");
@@ -205,7 +206,7 @@ public class BEManagementService extends BaseService {
 		// Get IDs of servers to install
 		String defaultServerIDs = PREFIX.substring(0, PREFIX.length() - 1);
 		String serverIDs = p.getParameter(SERVERS, defaultServerIDs);
-		Vector v = parseStringList(serverIDs, ';'); // FIXME: this method should go in Specifier and should be used in parseSpecifierList()
+		Vector v = Specifier.parseList(serverIDs, ';'); 
 
 		// Activate all servers
 		Enumeration e = v.elements();
@@ -377,16 +378,12 @@ public class BEManagementService extends BaseService {
 		 */
 		public synchronized void activate() throws Throwable {
 			// Create the ServerSocketChannel
-			if (myLogger.isLoggable(Logger.CONFIG)) {
-				myLogger.log(Logger.CONFIG, myLogPrefix + "Opening server socket channel.");
-			}
+			myLogger.log(Logger.CONFIG, myLogPrefix + "Opening server socket channel.");
 			mySSChannel = ServerSocketChannel.open();
 			mySSChannel.configureBlocking(false);
 
 			// Bind the server socket to the proper host and port
-			if (myLogger.isLoggable(Logger.CONFIG)) {
-				myLogger.log(Logger.CONFIG, myLogPrefix + "Binding server socket to." + host + ":" + port);
-			}
+			myLogger.log(Logger.CONFIG, myLogPrefix + "Binding server socket to." + host + ":" + port);
 			ServerSocket ss = mySSChannel.socket();
 			InetSocketAddress addr = null;
 			if (host != null) {
@@ -398,9 +395,7 @@ public class BEManagementService extends BaseService {
 			ss.bind(addr);
 
 			// Register for asynchronous IO events
-			if (myLogger.isLoggable(Logger.CONFIG)) {
-				myLogger.log(Logger.CONFIG, myLogPrefix + "Registering for asynchronous IO events.");
-			}
+			myLogger.log(Logger.CONFIG, myLogPrefix + "Registering for asynchronous IO events.");
 
 			// Register with the selector
 			mySSChannel.register(getLooper().getSelector(), SelectionKey.OP_ACCEPT);
@@ -430,9 +425,7 @@ public class BEManagementService extends BaseService {
         Make this IOEventServer terminate
 		 */
 		public synchronized void shutdown() {
-			if (myLogger.isLoggable(Logger.CONFIG)) {
-				myLogger.log(Logger.CONFIG, myLogPrefix + "Shutting down...");
-			}
+			myLogger.log(Logger.CONFIG, myLogPrefix + "Shutting down...");
 
 			try {
 				// Close the server socket
@@ -529,18 +522,14 @@ public class BEManagementService extends BaseService {
 				switch (type) {
 				case JICPProtocol.GET_ADDRESS_TYPE: {
 					// Respond sending back the caller address
-					if (myLogger.isLoggable(Logger.INFO)) {
-						myLogger.log(Logger.INFO, myLogPrefix + "GET_ADDRESS request received from " + address + ":" + port);
-					}
+					myLogger.log(Logger.INFO, myLogPrefix + "GET_ADDRESS request received from " + address + ":" + port);
 					reply = new JICPPacket(JICPProtocol.GET_ADDRESS_TYPE, JICPProtocol.DEFAULT_INFO, address.getHostAddress().getBytes());
 					break;
 				}
 				case JICPProtocol.CREATE_MEDIATOR_TYPE: {
 					if (mediator == null) {
 						// Create a new Mediator
-						if (myLogger.isLoggable(Logger.INFO)) {
-							myLogger.log(Logger.INFO, myLogPrefix + "CREATE_MEDIATOR request received from " + address + ":" + port);
-						}
+						myLogger.log(Logger.INFO, myLogPrefix + "CREATE_MEDIATOR request received from " + address + ":" + port);
 
 						Properties p = FrontEndStub.parseCreateMediatorRequest(new String(pkt.getData()));
 
@@ -555,9 +544,7 @@ public class BEManagementService extends BaseService {
 						p.setProperty(BEManagementHelper.FRONT_END_HOST, address.getHostAddress());
 
 						String owner = p.getProperty(JICPProtocol.OWNER_KEY);
-						if (myLogger.isLoggable(Logger.CONFIG)) {
-							myLogger.log(Logger.CONFIG, myLogPrefix + "Owner = " + owner);
-						}
+						myLogger.log(Logger.CONFIG, myLogPrefix + "Owner = " + owner);
 						try {
 							Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(address, owner);
 							mergeProperties(p, pdpContextInfo);
@@ -627,9 +614,7 @@ public class BEManagementService extends BaseService {
 				}
 				case JICPProtocol.CONNECT_MEDIATOR_TYPE: {
 					if (mediator == null) {
-						if (myLogger.isLoggable(Logger.INFO)) {
-							myLogger.log(Logger.INFO, myLogPrefix + "CONNECT_MEDIATOR request received from " + address + ":" + port + ". ID=" + recipientID);
-						}
+						myLogger.log(Logger.INFO, myLogPrefix + "CONNECT_MEDIATOR request received from " + address + ":" + port + ". ID=" + recipientID);
 
 						// FIXME: If there is a PDPContextManager  check that the recipientID is the MSISDN.
 						// Where should we get the owner from? It should likely be replicated in each
@@ -695,8 +680,7 @@ public class BEManagementService extends BaseService {
 				} // END of switch
 			} catch (Exception e) {
 				// Error handling the received packet
-				myLogger.log(Logger.WARNING, myLogPrefix + "Error handling incoming packet. " + e);
-				e.printStackTrace();
+				myLogger.log(Logger.WARNING, myLogPrefix + "Error handling incoming packet. ", e);
 				// If the incoming packet was a request, send back a generic error response
 				if (type == JICPProtocol.COMMAND_TYPE ||
 						type == JICPProtocol.CREATE_MEDIATOR_TYPE ||
@@ -728,9 +712,7 @@ public class BEManagementService extends BaseService {
 					}
 					connection.close();
 				} catch (IOException io) {
-					if (myLogger.isLoggable(Logger.WARNING)) {
-						myLogger.log(Logger.WARNING, myLogPrefix + "I/O error while closing connection with " + address + ":" + port);
-					}
+					myLogger.log(Logger.WARNING, myLogPrefix + "I/O error while closing connection with " + address + ":" + port);
 					io.printStackTrace();
 				}
 			}
@@ -758,18 +740,18 @@ public class BEManagementService extends BaseService {
 			// is associated to a mediator, let it process the exception.
 			// Otherwise print a warning.
 			NIOJICPConnection connection = mgr.getConnection();
-			NIOMediator mediator = mgr.getMediator();
-			if (mediator != null) {
-				mediator.handleConnectionError(connection, e);
-			} else {
-				// If we are closing the connection do not even print the warning
-				if (!connection.isClosed()) {
+			// If we are closing the connection do not even print the warning
+			if (!connection.isClosed()) {
+				NIOMediator mediator = mgr.getMediator();
+				if (mediator != null) {
+					mediator.handleConnectionError(connection, e);
+				} else {
 					SelectionKey key = mgr.getKey();
 					SocketChannel sc = (SocketChannel) key.channel();
 					Socket s = sc.socket();
 					InetAddress address = s.getInetAddress();
 					int port = s.getPort();
-					myLogger.log(Logger.WARNING, myLogPrefix + "Exception reading incoming packet from " + address + ":" + port + " [" + e + "]",e);
+					myLogger.log(Logger.WARNING, myLogPrefix + "Exception reading incoming packet from " + address + ":" + port + " [" + e + "]");
 				}
 			}
 
@@ -797,9 +779,7 @@ public class BEManagementService extends BaseService {
         way.
 		 */
 		public void deregisterMediator(String id) {
-			if (myLogger.isLoggable(Logger.CONFIG)) {
-				myLogger.log(Logger.CONFIG, myLogPrefix + "Deregistering mediator " + id);
-			}
+			myLogger.log(Logger.CONFIG, myLogPrefix + "Deregistering mediator " + id);
 			deregisteredMediators.add(id);
 		}
 
@@ -845,30 +825,20 @@ public class BEManagementService extends BaseService {
 			cmd.addParam(owner);
 
 			try {
-				if (myLogger.isLoggable(Logger.FINE)) {
-					myLogger.log(Logger.FINE, myLogPrefix + "Issuing command " + INCOMING_CONNECTION);
-				}
+				myLogger.log(Logger.CONFIG, myLogPrefix + "Issuing V-Command " + INCOMING_CONNECTION);
 				Object ret = submit(cmd);
 				if (ret != null) {
 					if (ret instanceof Properties) {
-						if (myLogger.isLoggable(Logger.FINER)) {
-							myLogger.log(Logger.FINER, myLogPrefix + "PDPContextProperties for address " + addr + " owner " + owner + " = " + ret);
-						}
 						// PDP Context properties detected
+						myLogger.log(Logger.FINER, myLogPrefix + "PDPContextProperties for address " + addr + " owner " + owner + " = " + ret);
 						return (Properties) ret;
 					} else if (ret instanceof JADESecurityException) {
-						if (myLogger.isLoggable(Logger.FINER)) {
-							myLogger.log(Logger.FINER, myLogPrefix + "Address " + addr + " owner " + owner + " not authenticated.");
-						}
 						// Incoming connection from non-authorized device
+						myLogger.log(Logger.WARNING, myLogPrefix + "Address " + addr + " owner " + owner + " not authenticated.");
 						throw ((JADESecurityException) ret);
 					} else if (ret instanceof Throwable) {
-						if (myLogger.isLoggable(Logger.FINER)) {
-							myLogger.log(Logger.FINER, myLogPrefix + "Error retrieving PDPContextPropert for address " + addr + " owner " + owner + ". " + ret);
-						}
 						// Unexpected exception
-						//FIXME: devo lasciare la stampa ?
-						((Throwable) ret).printStackTrace();
+						myLogger.log(Logger.WARNING, myLogPrefix + "Error retrieving PDPContextPropert for address " + addr + " owner " + owner, (Throwable) ret);
 						throw new JADESecurityException(((Throwable) ret).getMessage());
 					}
 				}
@@ -910,9 +880,7 @@ public class BEManagementService extends BaseService {
 			}
 			NIOMediator m = (NIOMediator) Class.forName(className).newInstance();
 			mergeProperties(p, leapProps);
-			if (myLogger.isLoggable(Logger.CONFIG)) {
-				myLogger.log(Logger.CONFIG, myLogPrefix + "Initializing mediator " + id + " with properties " + p);
-			}
+			myLogger.log(Logger.CONFIG, myLogPrefix + "Initializing mediator " + id + " with properties " + p);
 			m.init(this, id, p);
 			return m;
 		}
@@ -973,6 +941,7 @@ public class BEManagementService extends BaseService {
 			 }
 		 }
 
+		 // TO BE REMOVED
 		 public void handleExtraData() {
 			 System.out.println("####### handleExtraData()");
 			 //final Exception e = new Exception("DUMMY!!!!!!!!!!!");
@@ -987,8 +956,10 @@ public class BEManagementService extends BaseService {
 			 t.start();
 		 }
 	} // END of inner class KeyManager
+	
+	
 	/**
-    Inner class LoopManager
+	 * Inner class LoopManager
 	 */
 	private class LoopManager implements Runnable {
 
@@ -1037,7 +1008,6 @@ public class BEManagementService extends BaseService {
 				int n = 0;
 				try {
 					// Wait for the next IO events
-					//System.out.println(Thread.currentThread().getName()+": Selecting on "+mySelector);
 					n = mySelector.select();
 				} catch (NullPointerException npe) {
 					// There seems to be a bug in java.nio (http://www.limewire.org/techdocs/nio2.html).
@@ -1046,9 +1016,7 @@ public class BEManagementService extends BaseService {
 					continue;
 				} catch (Exception e) {
 					if (state == ACTIVE_STATE) {
-						myLogger.log(Logger.WARNING, myServer.getLogPrefix() + "Error selecting next IO event. " + e);
-						e.printStackTrace();
-
+						myLogger.log(Logger.WARNING, myServer.getLogPrefix() + "Error selecting next IO event. ", e);
 						// Abort
 						state = ERROR_STATE;
 					}
@@ -1061,12 +1029,17 @@ public class BEManagementService extends BaseService {
 							SelectionKey key = (SelectionKey) it.next();
 							if (key.isValid()) {
 								if ((key.readyOps() & SelectionKey.OP_ACCEPT) != 0) {
-									// This is an incoming connection. The channel must be
-									// the SerevrSocketChannel server
+									// This is an incoming connection. The channel must be the SerevrSocketChannel server
+									if (myLogger.isLoggable(Logger.FINER)) {
+										myLogger.log(Logger.FINER, myServer.getLogPrefix() + "------------------ ACCEPT_OP on key "+key);
+									}
 									handleAcceptOp(key);
 								} else if ((key.readyOps() & SelectionKey.OP_READ) != 0) {
 									try {
 										// This is some incoming data for one of the BE
+										if (myLogger.isLoggable(Logger.FINER)) {
+											myLogger.log(Logger.FINER, myServer.getLogPrefix() + "READ_OP on key "+key);
+										}
 										handleReadOp(key);
 									} catch (ICPException ex) {
 										myLogger.log(Level.SEVERE, "failed to read from socket", ex);
@@ -1143,7 +1116,7 @@ public class BEManagementService extends BaseService {
 	} // END of inner class LoopManager
 
 	/**
-    Inner class Ticker
+	 * Inner class Ticker
 	 */
 	private class Ticker extends Thread {
 
@@ -1185,8 +1158,8 @@ public class BEManagementService extends BaseService {
 	} // END of inner class Ticker
 
 	/**
-    Inner class BEManagementHelperImpl.
-    Implementation class for the BEManagementHelper.
+	 * Inner class BEManagementHelperImpl.
+	 * Implementation class for the BEManagementHelper.
 	 */
 	private class BEManagementHelperImpl implements BEManagementHelper {
 
@@ -1234,44 +1207,6 @@ public class BEManagementService extends BaseService {
 			Thread.sleep(t);
 		} catch (InterruptedException ie) {
 		}
-	}
-
-	// FIXME: This method should be moved to jade.core.Specifier
-	private Vector parseStringList(String strList, char separator) {
-		Vector elements = new Vector();
-		if (strList != null && !strList.equals("") && !strList.equals(Specifier.NULL_SPECIFIER_LIST)) {
-			// Copy the string into an array of char
-			char[] chars = new char[strList.length()];
-			strList.getChars(0, strList.length(), chars, 0);
-			String tmp = null;
-
-			StringBuffer sb = new StringBuffer();
-			int i = 0;
-			while (i < chars.length) {
-				char c = chars[i];
-
-				if (c != separator) {
-					sb.append(c);
-				} else {
-					// The element is terminated
-					tmp = sb.toString().trim();
-					if (tmp.length() > 0) {
-						elements.addElement(tmp);
-					}
-
-					// Renew the string buffer
-					sb = new StringBuffer();
-				}
-				++i;
-			}
-
-			// Handle the last element
-			tmp = sb.toString().trim();
-			if (tmp.length() > 0) {
-				elements.addElement(tmp);
-			}
-		}
-		return elements;
 	}
 
 	/**

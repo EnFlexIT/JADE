@@ -128,10 +128,6 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 		}
 	}
 
-	// To be removed
-	public void activateReplica(String addr, Properties props) throws IMTPException {
-	}
-
 	/**
     Shutdown self initiated or forced by the MediatorManager this
     BackEndContainer is attached to.
@@ -333,7 +329,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 
 		public OutgoingsHandler(long maxDisconnectionTime, long keepAliveTime) {
 			this.maxDisconnectionTime = maxDisconnectionTime;
-			this.keepAliveTime = keepAliveTime;
+			this.keepAliveTime = (keepAliveTime >= 0 ? keepAliveTime : 0);
 		}
 
 		/**

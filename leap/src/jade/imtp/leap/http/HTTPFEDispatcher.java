@@ -54,7 +54,7 @@ import javax.microedition.io.*;
    FrontEnd-side dispatcher class using JICP over HTTP as transport protocol
    @author Giovanni Caire - TILAB
  */
-public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dispatcher, TimerListener {
+public class HTTPFEDispatcher implements FEConnectionManager, Dispatcher, TimerListener {
 
 	private MicroSkeleton mySkel;
 	private BackEndStub myStub;
@@ -192,13 +192,14 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
      since it has been killed, terminates.
 	 */
 	public void shutdown() {
-		myInputManager.kill();
 		terminator = Thread.currentThread();
-		if (terminator != this) {
-			// This is a self-initiated shut down --> If connected, we must explicitly notify the BackEnd. 
+		myLogger.log(Logger.INFO, "Dispatcher shutting down. Self-initiated = "+(terminator != myInputManager));
+		if (terminator != myInputManager) {
+			// Self-initiated shut down
+			// If connected, explicitly notify the BackEnd. 
 			if (myDisconnectionManager.isReachable()) {
 				JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, (byte) (JICPProtocol.DEFAULT_INFO), null);
-				myLogger.log(Logger.FINE, "Pushing termination notification");
+				myLogger.log(Logger.INFO, "Pushing termination notification");
 				try {
 					deliver(pkt);
 				}
@@ -208,6 +209,8 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 					myLogger.log(Logger.FINE, "BackEnd closed");
 				}
 			}
+			// Kill the InputManager 
+			myInputManager.kill();
 		} 		
 	}
 
@@ -352,6 +355,12 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 					
 					myDisconnectionManager.waitUntilReachable();
 					// Deliver the response to the previous incoming command and wait for the next one 
+					// If we are delivering the response to an exit command, set active to false to avoid an annoying stack trace 
+					// (due to the fact that the back-end will close the connection instead of sending further commands) and exit
+					if (this == terminator) {
+						active = false;
+					}
+					System.out.println("##### calling deliver()...");
 					JICPPacket cmd = deliver(rsp, myConnection);
 					myKeepAliveManager.update();
 					if (cmd.getType() == JICPProtocol.KEEP_ALIVE_TYPE) {
@@ -435,8 +444,10 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 	 * Deliver a packet over a given connection and get back a response
 	 */
 	private JICPPacket deliver(JICPPacket pkt, Connection c) throws IOException {
+		boolean lastPacket = false;
 		if (Thread.currentThread() == terminator) {
 			pkt.setTerminatedInfo(true);
+			lastPacket = true;
 		}
 		pkt.setRecipientID(mediatorTA.getFile());
 		byte type = pkt.getType();
@@ -445,7 +456,6 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 		try {
 			c.writePacket(pkt);
 			status = 1;
-
 			/*#MIDP_INCLUDE_BEGIN
 			lock();
 			if (type == JICPProtocol.RESPONSE_TYPE) {
@@ -453,7 +463,15 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 			}
 			#MIDP_INCLUDE_END*/
 			pkt = c.readPacket();
+			
 			status = 2;
+			if (lastPacket && (pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
+				// When we send a packet marked with the terminated-info, the back-end may either close 
+				// the connection (in this case we would have got an Exception) or reply with another 
+				// packet marked with the terminated-info --> throws an Exception to expose a uniform behaviour
+				myLogger.log(Logger.INFO, "Termination notification ACK received");
+				throw new IOException("Terminated-info");
+			}
 			return pkt;
 		}
 		catch (IOException ioe) {
@@ -622,11 +640,13 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
      and detect problems when they miss.
 	 */
 	private class KeepAliveManager implements TimerListener {
-		private long kaTimeout;
+		private long kaTimeout = -1;
 		private Timer kaTimer;
 
 		private KeepAliveManager(long keepAliveTime) {
-			kaTimeout = keepAliveTime*2;
+			if (keepAliveTime > 0) {
+				kaTimeout = keepAliveTime*2;
+			}
 		}
 
 		public synchronized void doTimeOut(Timer t) {
@@ -638,11 +658,13 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 		}
 
 		private synchronized void update() {
-			TimerDispatcher td = TimerDispatcher.getTimerDispatcher();
-			if (kaTimer != null) {
-				td.remove(kaTimer);
+			if (kaTimeout > 0) {
+				TimerDispatcher td = TimerDispatcher.getTimerDispatcher();
+				if (kaTimer != null) {
+					td.remove(kaTimer);
+				}
+				kaTimer = td.add(new Timer(System.currentTimeMillis() + kaTimeout, this));
 			}
-			kaTimer = td.add(new Timer(System.currentTimeMillis() + kaTimeout, this));
 		}
 	} // END of inner class KeepAliveManager
 

@@ -49,48 +49,48 @@ public interface JICPMediator {
 	   Retrieve the ID of this mediator
 	 */
 	String getID();
-	
-  /**
-     Initialize this JICPMediator
-   */
-  void init(JICPMediatorManager mgr, String id, Properties props) throws ICPException;
-  
-  /**
-     Kill this JICPMediator 
-   */
-  void kill(); 
 
-  /**
-   * Passes to this JICPMediator the connection opened by the mediated 
-   * entity.
-   * This is called by the JICPServer this Mediator is attached to
-   * as soon as the mediated entity (re)connects.
-   * @param c the connection to the mediated entity
-   * @param pkt the packet that was sent by the mediated entity when 
-   * opening this connection
-   * @param addr the address of the mediated entity
-   * @param port the local port used by the mediated entity
-   * @return an indication to the JICPMediatorManager to keep the 
-   * connection open.
-   */
-  boolean handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port);
-  
-  /**
-   * Passes to this JICPMediator a JICP packet.
-   * This is called by the JICPServer this Mediator is attached to
-   * when a JICPPacket is received having the recipient-ID field
-   * set to the ID of this JICPMediator.
-   * @param p the JICPPacket
-   * @param addr the address of the mediated entity
-   * @param port the local port used by the mediated entity
-   */
-   JICPPacket handleJICPPacket(JICPPacket p, InetAddress addr, int port) throws ICPException;
-   
-   /**
+	/**
+     Initialize this JICPMediator
+	 */
+	void init(JICPMediatorManager mgr, String id, Properties props) throws ICPException;
+
+	/**
+     Kill this JICPMediator 
+	 */
+	void kill(); 
+
+	/**
+	 * Passes to this JICPMediator the connection opened by the mediated 
+	 * entity.
+	 * This is called by the JICPServer this Mediator is attached to
+	 * as soon as the mediated entity (re)connects.
+	 * @param c the connection to the mediated entity
+	 * @param pkt the packet that was sent by the mediated entity when 
+	 * opening this connection
+	 * @param addr the address of the mediated entity
+	 * @param port the local port used by the mediated entity
+	 * @return an indication to the JICPMediatorManager to keep the 
+	 * connection open.
+	 */
+	boolean handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port);
+
+	/**
+	 * Passes to this JICPMediator a JICP packet.
+	 * This is called by the JICPServer this Mediator is attached to
+	 * when a JICPPacket is received having the recipient-ID field
+	 * set to the ID of this JICPMediator.
+	 * @param p the JICPPacket
+	 * @param addr the address of the mediated entity
+	 * @param port the local port used by the mediated entity
+	 */
+	JICPPacket handleJICPPacket(JICPPacket p, InetAddress addr, int port) throws ICPException;
+
+	/**
       This is periodically called by the JICPMediatorManager and should
       be used by a JICPMediator to evaluate the elapsed time without
       the need of a dedicated thread or timer.
-    */
-   void tick(long time);
+	 */
+	void tick(long time);
 }
 

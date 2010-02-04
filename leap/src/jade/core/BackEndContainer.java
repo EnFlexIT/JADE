@@ -57,8 +57,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	
 	public static final String USE_BACKEND_MANAGER = "jade_core_BackEndContainer_usebemanager";
 	public static final String RESYNCH = "jade_core_BackEndContainer_resynch";
-	public static final String BE_REPLICAS_SIZE = "be-replicas-size";
-	public static final Long REPLICA_CHECK_DELAY = new Long(5000); // new Long(5*60*1000); // 5 Minutes
 	
 	
 	private static final String ADDR_LIST_DELIMITERS = ", \n\t\r";
@@ -79,8 +77,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	private Map agentImages = new HashMap(1);
 	
 	private Map serviceBECodecs = null; // Lazy initialization
-	
-	private String[] replicasAddresses;
 	
 	private Map principals = new HashMap(1);
 	
@@ -129,12 +125,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 			// Initialize the BackEndManager if required
 			if (myProfile.getBooleanProperty(USE_BACKEND_MANAGER, false)) {
 				theBEManager = initBEManager();
-			}
-			
-			String beAddrs = myProfile.getParameter(FrontEnd.REMOTE_BACK_END_ADDRESSES, null);
-			if(beAddrs != null) {
-				replicasAddresses = parseAddressList(beAddrs);
-				myProfile.setParameter(BE_REPLICAS_SIZE, Integer.toString(replicasAddresses.length));
 			}
 			
 			Vector agentSpecs = Specifier.parseSpecifierList(myProfile.getParameter(Profile.AGENTS, null));
@@ -381,18 +371,10 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	// Methods called by the BEManagementService
 	///////////////////////////////////////////////
 	public void createAgentOnFE(String name, String className, String[] args) throws IMTPException {
-		if(!isMaster()) {
-			throw new IMTPException("This is not the active back-end replica.");
-		}
-		
 		myFrontEnd.createAgent(name, className, args);
 	}
 	
 	public void killAgentOnFE(String name) throws IMTPException, NotFoundException {
-		if(!isMaster()) {
-			throw new IMTPException("This is not the active back-end replica.");
-		}
-		
 		try {
 			myFrontEnd.killAgent(name);
 		}
@@ -403,10 +385,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	}
 	
 	public void suspendAgentOnFE(String name) throws IMTPException, NotFoundException {
-		if(!isMaster()) {
-			throw new IMTPException("This is not the active back-end replica.");
-		}
-		
 		try {
 			myFrontEnd.suspendAgent(name);
 		}
@@ -417,10 +395,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	}
 	
 	public void resumeAgentOnFE(String name) throws IMTPException, NotFoundException {
-		if(!isMaster()) {
-			throw new IMTPException("This is not the active back-end replica.");
-		}
-		
 		try {
 			myFrontEnd.resumeAgent(name);
 		}
@@ -463,15 +437,9 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 				
 				try {
 					// Forward the message to the FrontEnd
-					if(isMaster()) {
-						myFrontEnd.messageIn(msg, receiverID.getLocalName());
-						handlePosted(receiverID, msg);
-						return true;
-					}
-					else {
-						System.out.println("WARNING: Trying to deliver a message through a replica");
-						return false;
-					}
+					myFrontEnd.messageIn(msg, receiverID.getLocalName());
+					handlePosted(receiverID, msg);
+					return true;
 				}
 				catch(NotFoundException nfe) {
 					System.out.println("WARNING: Missing agent in FrontEnd");
@@ -550,14 +518,9 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 			}
 		}
 		
-		// Stop monitoring replicas, if active
-		stopReplicaMonitor();
-		
-		// Forward the exit command to the FrontEnd only if this is the master replica
+		// Forward the exit command to the FrontEnd
 		try {
-			if(isMaster()) {
-				myFrontEnd.exit(false);
-			}
+			myFrontEnd.exit(false);
 		}
 		catch (IMTPException imtpe) {
 			// The FrontEnd is disconnected. Force the shutdown of the connection
@@ -585,115 +548,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 		}
 	}
 	
-	
-	//////////////////////////////////////////////////////////
-	// Methods related to the back-end replication mechanism
-	//////////////////////////////////////////////////////////
-	public void activateReplicas() {
-		creationProperties.setProperty(Profile.BE_BASE_NAME, getID().getName());
-		Properties newProps = (Properties)creationProperties.clone();
-		newProps.setProperty(Profile.MASTER_NODE_NAME, getID().getName());
-		if(replicasAddresses != null) {
-			for(int i = 0; i < replicasAddresses.length; i++) {
-				try {
-					newProps.setProperty(Profile.CONTAINER_NAME, getID().getName() + "-Replica-" + (i + 1));
-					newProps.setProperty(Profile.BE_REPLICA_INDEX, Integer.toString(i + 1));
-					myConnectionManager.activateReplica(replicasAddresses[i], newProps);
-				}
-				catch(IMTPException imtpe) {
-					System.out.println("--- Replica activation failed [" + replicasAddresses[i] + "] ---");
-				}
-			}
-		}
-	}
-	
-	public void restartReplica(int index) throws IMTPException {
-		Properties newProps = (Properties)creationProperties.clone();
-		
-		String baseName = creationProperties.getProperty(Profile.BE_BASE_NAME);
-		String masterNodeName = getMasterName();
-		if(masterNodeName == null) {
-			masterNodeName = getID().getName();
-		}
-		
-		// Set the master node property anyway
-		newProps.setProperty(Profile.MASTER_NODE_NAME, masterNodeName);
-		
-		if(index == 0) {
-			// Original master replica, at array index zero
-			String replicaZeroAddr = creationProperties.getProperty(Profile.BE_REPLICA_ZERO_ADDRESS);
-			newProps.setProperty(Profile.CONTAINER_NAME, baseName);
-			newProps.setProperty(Profile.BE_REPLICA_INDEX, "0");
-			
-			myConnectionManager.activateReplica(replicaZeroAddr, newProps);
-		}
-		else {
-			// One of the other replicas
-			newProps.setProperty(Profile.CONTAINER_NAME, baseName + "-Replica-" + index);
-			newProps.setProperty(Profile.BE_REPLICA_INDEX, Integer.toString(index));
-			
-			myConnectionManager.activateReplica(replicasAddresses[index - 1], newProps);
-		}
-	}
-	
-	public void becomeMaster() {
-		
-		// Do nothing if already a master back-end container
-		if(isMaster()) {
-			return;
-		}
-		
-		GenericCommand cmd1 = new GenericCommand(jade.core.replication.BEReplicationSlice.BECOME_MASTER, jade.core.replication.BEReplicationSlice.NAME, null);
-		myCommandProcessor.processOutgoing(cmd1);
-		
-		// Make all agent images known to the rest of the platform
-		AID[] imgs = getAgentImages();
-		for(int i = 0; i < imgs.length; i++) {
-			String name = imgs[i].getLocalName();
-			try {
-				bornAgent(name);
-			}
-			catch(Exception e) {
-				// Ignore it and try the next agent...
-				e.printStackTrace();
-			}
-		}
-		
-	}
-	
-	public boolean isMaster() {
-		GenericCommand cmd = new GenericCommand(jade.core.replication.BEReplicationSlice.IS_MASTER, jade.core.replication.BEReplicationSlice.NAME, null);
-		myCommandProcessor.processOutgoing(cmd);
-		Object result = cmd.getReturnValue();
-		if (result instanceof Boolean) {
-			return ((Boolean)result).booleanValue();
-		}
-		else if (result == null) { 
-			// The replication service is not installed --> behave as if it were a master
-			return true;
-		}
-		else {
-			// Some exception was thrown
-			return false;
-		}
-	}
-	
-	public String getMasterName() {
-		GenericCommand cmd = new GenericCommand(jade.core.replication.BEReplicationSlice.GET_MASTER_NAME, jade.core.replication.BEReplicationSlice.NAME, null);
-		myCommandProcessor.processOutgoing(cmd);
-		Object result = cmd.getReturnValue();
-		if(result instanceof String) {
-			return (String)result;
-		}
-		else {
-			return null;
-		}
-	}
-	
-	private void stopReplicaMonitor() {
-		GenericCommand cmd = new GenericCommand(jade.core.replication.BEReplicationSlice.STOP_MONITOR, jade.core.replication.BEReplicationSlice.NAME, null);
-		myCommandProcessor.processOutgoing(cmd);
-	}
 	
 	
 	private String[] parseAddressList(String toParse) {

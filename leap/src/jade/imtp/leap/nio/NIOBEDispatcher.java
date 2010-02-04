@@ -358,10 +358,6 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
         return inpManager.getStub();
     }
 
-    // FIXME: to be removed
-    public void activateReplica(String addr, Properties props) throws IMTPException {
-    }
-
     /**
     Make this NIOBEDispatcher terminate.
      */

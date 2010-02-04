@@ -58,78 +58,78 @@ class HTTPClientConnection extends Connection {
 	private static final int WRITTEN = 1;
 	private static final int CLOSED = -1;
 
-    //#MIDP_EXCLUDE_BEGIN
-    private HttpURLConnection hc;
-    //#MIDP_EXCLUDE_END
+	//#MIDP_EXCLUDE_BEGIN
+	private HttpURLConnection hc;
+	//#MIDP_EXCLUDE_END
 	/*#MIDP_INCLUDE_BEGIN
     private HttpConnection hc;
     #MIDP_INCLUDE_END*/
-    private String url;
-    private InputStream is;
-    private OutputStream os;
-    private int state;
+	private String url;
+	private InputStream is;
+	private OutputStream os;
+	private int state;
 
-    /**
-     * Constructor declaration
-     */
-    public HTTPClientConnection(TransportAddress ta) {
-        url = getProtocol() + ta.getHost() + ":" + ta.getPort() + "/jade";
-        state = READY;
-        //#MIDP_EXCLUDE_BEGIN
-        //#PJAVA_EXCLUDE_BEGIN
-        // If the HTTP connection must go through an authenticated proxy
-        // set the proper authenticator
-        Authenticator.setDefault(new Authenticator() {
-            private String username = null;
-            private String password = null;
+	/**
+	 * Constructor declaration
+	 */
+	public HTTPClientConnection(TransportAddress ta) {
+		url = getProtocol() + ta.getHost() + ":" + ta.getPort() + "/jade";
+		state = READY;
+		//#MIDP_EXCLUDE_BEGIN
+		//#PJAVA_EXCLUDE_BEGIN
+		// If the HTTP connection must go through an authenticated proxy
+		// set the proper authenticator
+		Authenticator.setDefault(new Authenticator() {
+			private String username = null;
+			private String password = null;
 
-            protected PasswordAuthentication getPasswordAuthentication() {
-                if (username == null) {
-                    // Try as system properties first
-                    username = System.getProperty("http.username");
-                    password = System.getProperty("http.password");
-                    if (username == null) {
-                        JTextField usrTF = new JTextField();
-                        JPasswordField pwdTF = new JPasswordField();
-                        Object[] message = new Object[]{"Insert username and password", usrTF, pwdTF};
-                        int ret = JOptionPane.showConfirmDialog(null, message, null, JOptionPane.OK_CANCEL_OPTION);
-                        if (ret == 0) {
-                            username = usrTF.getText();
-                            password = pwdTF.getText();
-                        }
-                    }
-                }
+			protected PasswordAuthentication getPasswordAuthentication() {
+				if (username == null) {
+					// Try as system properties first
+					username = System.getProperty("http.username");
+					password = System.getProperty("http.password");
+					if (username == null) {
+						JTextField usrTF = new JTextField();
+						JPasswordField pwdTF = new JPasswordField();
+						Object[] message = new Object[]{"Insert username and password", usrTF, pwdTF};
+						int ret = JOptionPane.showConfirmDialog(null, message, null, JOptionPane.OK_CANCEL_OPTION);
+						if (ret == 0) {
+							username = usrTF.getText();
+							password = pwdTF.getText();
+						}
+					}
+				}
 
-                return new PasswordAuthentication(username, password.toCharArray());
-            }
-        });
-        //#PJAVA_EXCLUDE_END
-        //#MIDP_EXCLUDE_END
-    }
+				return new PasswordAuthentication(username, password.toCharArray());
+			}
+		});
+		//#PJAVA_EXCLUDE_END
+		//#MIDP_EXCLUDE_END
+	}
 
-    protected String getProtocol() {
-        return "http://";
-    }
+	protected String getProtocol() {
+		return "http://";
+	}
 
-    //#MIDP_EXCLUDE_BEGIN
-    protected HttpURLConnection open(String url) throws MalformedURLException, IOException {
-        return (HttpURLConnection) (new URL(url)).openConnection();
-    }
-    //#MIDP_EXCLUDE_END
+	//#MIDP_EXCLUDE_BEGIN
+	protected HttpURLConnection open(String url) throws MalformedURLException, IOException {
+		return (HttpURLConnection) (new URL(url)).openConnection();
+	}
+	//#MIDP_EXCLUDE_END
 
-    public int writePacket(JICPPacket pkt) throws IOException {
-        if (state == READY) {
-            int ret = 0;
-            //#MIDP_EXCLUDE_BEGIN
-            hc = open(url);
-            hc.setDoOutput(true);
-            hc.setRequestMethod("POST");
-            hc.connect();
-            os = hc.getOutputStream();
-            ret = pkt.writeTo(os);
-            //#MIDP_EXCLUDE_END
+	public int writePacket(JICPPacket pkt) throws IOException {
+		if (state == READY) {
+			int ret = 0;
+			//#MIDP_EXCLUDE_BEGIN
+			hc = open(url);
+			hc.setDoOutput(true);
+			hc.setRequestMethod("POST");
+			hc.connect();
+			os = hc.getOutputStream();
+			ret = pkt.writeTo(os);
+			//#MIDP_EXCLUDE_END
 
-            /*#MIDP_INCLUDE_BEGIN
+			/*#MIDP_INCLUDE_BEGIN
             hc = (HttpConnection) Connector.open(url, Connector.READ_WRITE, false);
             if (pkt.getType() == JICPProtocol.CONNECT_MEDIATOR_TYPE) {
             hc.setRequestMethod(HttpConnection.GET);
@@ -142,67 +142,67 @@ class HTTPClientConnection extends Connection {
             }
             #MIDP_INCLUDE_END*/
 
-            state = WRITTEN;
-            return ret;
-        } else {
-            throw new IOException("Write not available");
-        }
-    }
+			state = WRITTEN;
+			return ret;
+		} else {
+			throw new IOException("Write not available");
+		}
+	}
 
-    public JICPPacket readPacket() throws IOException {
-        if (state == WRITTEN) {
-            try {
-                //#MIDP_EXCLUDE_BEGIN
-                is = hc.getInputStream();
-                //#MIDP_EXCLUDE_END
-		    /*#MIDP_INCLUDE_BEGIN
+	public JICPPacket readPacket() throws IOException {
+		if (state == WRITTEN) {
+			try {
+				//#MIDP_EXCLUDE_BEGIN
+				is = hc.getInputStream();
+				//#MIDP_EXCLUDE_END
+				/*#MIDP_INCLUDE_BEGIN
                 is = hc.openInputStream();
                 #MIDP_INCLUDE_END*/
 
-                return JICPPacket.readFrom(is);
-            } finally {
-                try {
-                    close();
-                } catch (Exception e) {
-                }
-            }
-        } else {
-            throw new IOException("Wrong connection state "+state);
-        }
-    }
+				return JICPPacket.readFrom(is);
+			} finally {
+				try {
+					close();
+				} catch (Exception e) {
+				}
+			}
+		} else {
+			throw new IOException("Wrong connection state "+state);
+		}
+	}
 
-    /**
-     */
-    public void close() throws IOException {
-    	state = CLOSED;
-        try {
-            is.close();
-        } catch (Exception e) {
-        }
-        is = null;
-        try {
-            os.close();
-        } catch (Exception e) {
-        }
-        os = null;
-        try {
-            //#MIDP_EXCLUDE_BEGIN
-            hc.disconnect();
-            //#MIDP_EXCLUDE_END
-    	/*#MIDP_INCLUDE_BEGIN
+	/**
+	 */
+	public void close() throws IOException {
+		state = CLOSED;
+		try {
+			is.close();
+		} catch (Exception e) {
+		}
+		is = null;
+		try {
+			os.close();
+		} catch (Exception e) {
+		}
+		os = null;
+		try {
+			//#MIDP_EXCLUDE_BEGIN
+			hc.disconnect();
+			//#MIDP_EXCLUDE_END
+			/*#MIDP_INCLUDE_BEGIN
             hc.close();
             #MIDP_INCLUDE_END*/
-        } catch (Exception e) {
-        }
-        hc = null;
-    }
+		} catch (Exception e) {
+		}
+		hc = null;
+	}
 
-    //#MIDP_EXCLUDE_BEGIN
-    /**
-     */
-    public String getRemoteHost() throws Exception {
-        throw new Exception("Unsupported operation");
-    }
-    //#MIDP_EXCLUDE_END
+	//#MIDP_EXCLUDE_BEGIN
+	/**
+	 */
+	public String getRemoteHost() throws Exception {
+		throw new Exception("Unsupported operation");
+	}
+	//#MIDP_EXCLUDE_END
 }
 
