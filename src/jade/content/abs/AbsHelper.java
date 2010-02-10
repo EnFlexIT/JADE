@@ -548,7 +548,7 @@ public class AbsHelper {
 	 * @throws Exception
 	 */
 	public static AbsObject createAbsTemplate(ObjectSchema schema) throws OntologyException {
-		return createAbsTemplate(schema, null, -1);
+		return createAbsTemplate(schema, null, 0);
 	}
 	
 	/**
@@ -560,7 +560,7 @@ public class AbsHelper {
 	 * @throws Exception
 	 */
 	public static AbsObject createAbsTemplate(ObjectSchema schema, String prefix) throws OntologyException {
-		return createAbsTemplate(schema, prefix, -1);
+		return createAbsTemplate(schema, prefix, 0);
 	}
 
 	private static AbsObject createAbsTemplate(ObjectSchema schema, String prefix, int index) throws OntologyException {
