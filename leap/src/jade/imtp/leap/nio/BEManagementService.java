@@ -335,6 +335,7 @@ public class BEManagementService extends BaseService {
 			String fileName = p.getParameter(id + '_' + LEAP_PROPERTY_FILE, LEAP_PROPERTY_FILE_DEFAULT);
 			try {
 				leapProps.load(fileName);
+				myLogger.log(Logger.INFO, myLogPrefix + "Applying properties from file " + fileName + " to all back-ends");
 			} catch (Exception e) {
 				myLogger.log(Logger.CONFIG, myLogPrefix + "Can't read LEAP property file " + fileName + ". Keep default. [" + e + "]");
 				// Ignore: no back end properties specified

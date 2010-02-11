@@ -23,6 +23,8 @@ import jade.imtp.leap.JICP.JICPProtocol;
 import jade.imtp.leap.JICP.JICPPacket;
 import jade.util.Logger;
 import jade.util.leap.Properties;
+
+import java.io.IOException;
 import java.net.InetAddress;
 
 /**
@@ -30,7 +32,7 @@ import java.net.InetAddress;
  * @author Eduard Drenth: Logica, 11-jul-2009
  * 
  */
-public class NIOHTTPBEDispatcher implements NIOMediator, Dispatcher, BEConnectionManager, TimerListener {
+public class NIOHTTPBEDispatcher implements NIOMediator, Dispatcher, BEConnectionManager {
 	// Local statuses
 	private static final int ACTIVE = 0;
 	private static final int NOT_ACTIVE = 1;
@@ -59,14 +61,15 @@ public class NIOHTTPBEDispatcher implements NIOMediator, Dispatcher, BEConnectio
 	private long maxDisconnectionTime;
 	private Timer maxDisconnectionTimer = null;
 	private long keepAliveTime;
+	private Timer keepAliveTimer = null;
 
 	private JICPPacket lastResponse = null;
-	private byte lastIncomingCommandSid = 0x10;
+	private byte lastIncomingCommandSid;
 
 	private boolean waitingForFlush = false;	
 	private Connection outgoingCommandsConnection = null;
 	private Object outgoingCommandsConnectionLock = new Object();
-	private int outCnt = 0;
+	private int nextOutgoingCommandSid;
 	private JICPPacket responseToLastOutgoingCommand = null;
 	private Object responseToLastOutgoingCommandLock = new Object();
 
@@ -103,7 +106,28 @@ public class NIOHTTPBEDispatcher implements NIOMediator, Dispatcher, BEConnectio
 			// Keep default
 		}
 
+		// Counter to assign the SID to the next command to be delivered to the FE (only present if this is a back-end re-creation)
+		nextOutgoingCommandSid = 0;
+		try {
+			// The FE indicates the SID of the last command it received --> Increment it by 1
+			nextOutgoingCommandSid = increment(Integer.parseInt(props.getProperty("lastsid")));
+		}
+		catch (Exception e) {
+			// Keep default
+		}
+		
+		// SID of last command received from the FE (only present if this is a back-end re-creation)
+		lastIncomingCommandSid = 0x10;
+		try {
+			// The FE indicates the SID of the next command it will send us --> Decrement it by 1
+			lastIncomingCommandSid = (byte) decrement(Integer.parseInt(props.getProperty("outcnt")));
+		}
+		catch (Exception e) {
+			// Keep default
+		}
+		
 		myLogger.log(Logger.INFO, "Created NIOHTTPBEDispatcher V1.0. ID = " + myID + "\n- Max-disconnection-time = " + maxDisconnectionTime+ "\n- Keep-alive-time = " + keepAliveTime);
+		myLogger.log(Logger.CONFIG, myID+" - Next outgoing command SID = " + nextOutgoingCommandSid + ", Last incoming command SID = " + lastIncomingCommandSid);
 
 		myStub = new FrontEndStub(this);
 		mySkel = startBackEndContainer(props);
@@ -294,30 +318,41 @@ public class NIOHTTPBEDispatcher implements NIOMediator, Dispatcher, BEConnectio
 	
 				// Send the command to the front-end
 				JICPPacket cmd = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
-				int sid = outCnt;
-				outCnt = increment(outCnt);
+				int sid = nextOutgoingCommandSid;
+				nextOutgoingCommandSid = increment(nextOutgoingCommandSid);
 				if (myLogger.isLoggable(Logger.FINE)) {
 					myLogger.log(Logger.FINE, myID+" - Delivering outgoing command to front-end. SID = " + sid);
 				}
 				cmd.setSessionID((byte) sid);
+				boolean deliverOK = false;
 				try {
 					c.writePacket(cmd);
 					close(c);
+					// Wait for the response 
+					JICPPacket response = getResponse(RESPONSE_TIMEOUT + RESPONSE_TIMEOUT_INCREMENT * (cmd.getLength() / 1024));
+					deliverOK = true;
+					if (myLogger.isLoggable(Logger.FINE)) {
+						myLogger.log(Logger.FINE, myID+" - Response got. SID = " + sid);
+					}
+					if (response.getType() == JICPProtocol.ERROR_TYPE) {
+						// Communication OK, but there was a JICP error on the peer
+						throw new ICPException(new String(response.getData()));
+					}
+					return response.getData();
 				}
-				catch (Exception e) {
-					throw new ICPException("Error delivering outgoing command to front-end. ", e);
+				catch (IOException ioe) {
+					setFrontEndDisconnected();
+					throw new ICPException("Error delivering outgoing command to front-end. ", ioe);
 				}
-	
-				// Wait for the response 
-				JICPPacket response = getResponse(RESPONSE_TIMEOUT + RESPONSE_TIMEOUT_INCREMENT * (cmd.getLength() / 1024));
-				if (myLogger.isLoggable(Logger.FINE)) {
-					myLogger.log(Logger.FINE, myID+" - Response got. SID = " + sid);
+				catch (ICPException icpe) {
+					// Note that in this case setFrontEndDisconnected() is already called within getResponse() or getOutgoingCommandsConnection()
+					throw icpe;
 				}
-				if (response.getType() == JICPProtocol.ERROR_TYPE) {
-					// Communication OK, but there was a JICP error on the peer
-					throw new ICPException(new String(response.getData()));
+				finally {
+					if (!deliverOK) {
+						nextOutgoingCommandSid = decrement(nextOutgoingCommandSid);
+					}
 				}
-				return response.getData();
 			}
 			else {
 				throw new ICPException("Front-end not connected");
@@ -325,6 +360,46 @@ public class NIOHTTPBEDispatcher implements NIOMediator, Dispatcher, BEConnectio
 		}
 		else {
 			throw new ICPException("Not-active");
+		}
+	}
+	
+	private synchronized void dispatchKeepAlive() {
+		if (status == ACTIVE) {
+			if (frontEndStatus == CONNECTED) {
+				try {
+					// Wait for the connection to deliver outgoing commands to be ready 
+					Connection c = getOutgoingCommandsConnection();
+		
+					// Send the command to the front-end
+					if (myLogger.isLoggable(Logger.FINER)) {
+						myLogger.log(Logger.FINER, myID+" - Delivering keep-alive to front-end");
+					}
+					JICPPacket cmd = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
+					c.writePacket(cmd);
+					close(c);
+					// Wait for the response 
+					JICPPacket response = getResponse(RESPONSE_TIMEOUT + RESPONSE_TIMEOUT_INCREMENT * (cmd.getLength() / 1024));
+					if (isKeepAliveResponse(response)) {
+						if (myLogger.isLoggable(Logger.FINER)) {
+							myLogger.log(Logger.FINER, myID+" - Keep-alive response got");
+						}
+					}
+					else {
+						// Should never happen
+						myLogger.log(Logger.WARNING, "Unexpected response received while waiting for Keep-alive response");
+					}
+				}
+				catch (IOException ioe) {
+					myLogger.log(Logger.WARNING, myID+" - Error delivering keep-alive packet to the front-end", ioe);
+					setFrontEndDisconnected();
+				}
+				catch (ICPException icpe) {
+					// Note that in this case setFrontEndDisconnected() is already called within getResponse() or getOutgoingCommandsConnection()
+					if (frontEndStatus != TERMINATED) {
+						myLogger.log(Logger.WARNING, myID+" - Keep-alive error. "+icpe.getMessage());
+					}
+				}
+			}
 		}
 	}
 
@@ -405,8 +480,15 @@ public class NIOHTTPBEDispatcher implements NIOMediator, Dispatcher, BEConnectio
 		}
 		else {
 			// Normal response: pass it to the thread that dispatched the command
-			if (myLogger.isLoggable(Logger.FINE)) {
-				myLogger.log(Logger.FINE, myID+" - Response received. SID = " + response.getSessionID());
+			if (isKeepAliveResponse(response)) {
+				if (myLogger.isLoggable(Logger.FINER)) {
+					myLogger.log(Logger.FINER, myID+" - Keep-alive response received");
+				}
+			}
+			else {
+				if (myLogger.isLoggable(Logger.FINE)) {
+					myLogger.log(Logger.FINE, myID+" - Response received. SID = " + response.getSessionID());
+				}
 			}
 			synchronized (responseToLastOutgoingCommandLock) {
 				responseToLastOutgoingCommand = response;
@@ -419,6 +501,8 @@ public class NIOHTTPBEDispatcher implements NIOMediator, Dispatcher, BEConnectio
 			outgoingCommandsConnection = c;
 			outgoingCommandsConnectionLock.notifyAll();
 		}
+		
+		updateKeepAliveTimer();
 	}
 
 
@@ -433,6 +517,19 @@ public class NIOHTTPBEDispatcher implements NIOMediator, Dispatcher, BEConnectio
 
 	private int increment(int val) {
 		return (val + 1) & MAX_SID;
+	}
+	
+	private int decrement(int val) {
+		val--;
+		if (val < 0) {
+			val = MAX_SID;
+		}
+		return val;
+	}
+	
+	private boolean isKeepAliveResponse(JICPPacket response) {
+		// The OK_INFO bit is set only on KEEP-ALIVE responses
+		return (response.getInfo() & JICPProtocol.OK_INFO) != 0;
 	}
 	
 	private void setFrontEndConnecting() {
@@ -457,10 +554,40 @@ public class NIOHTTPBEDispatcher implements NIOMediator, Dispatcher, BEConnectio
 		frontEndStatus = TERMINATED;
 	}
 	
+	private synchronized void updateKeepAliveTimer() {
+		if (keepAliveTime > 0) {
+			// Update the timer that triggers the delivery of a KEEP-ALIVE packet
+			if (keepAliveTimer != null) {
+				Runtime.instance().getTimerDispatcher().remove(keepAliveTimer);
+			}
+			long now = System.currentTimeMillis();
+			keepAliveTimer = new Timer(now + keepAliveTime, new TimerListener() {
+				public void doTimeOut(Timer t) {
+					dispatchKeepAlive();
+				}
+			});
+			keepAliveTimer = Runtime.instance().getTimerDispatcher().add(keepAliveTimer);
+			if (myLogger.isLoggable(Logger.FINEST)) {
+				myLogger.log(Logger.FINEST, myID+" - Keep-alive timer activated.");
+			}
+		}
+	}
+	
+	// No need for synchronization as this is always executed within a synchronized block
 	private void activateMaxDisconnectionTimer() {
 		// Set the disconnection timer
 		long now = System.currentTimeMillis();
-		maxDisconnectionTimer = new Timer(now + maxDisconnectionTime, this);
+		maxDisconnectionTimer = new Timer(now + maxDisconnectionTime, new TimerListener() {
+			public void doTimeOut(Timer t) {
+				synchronized (NIOHTTPBEDispatcher.this) {
+					if (frontEndStatus != CONNECTED) {
+						myLogger.log(Logger.WARNING, myID+" - Max disconnection timeout expired.");
+						// The remote FrontEnd is probably down --> notify up.
+						handlePeerSelfTermination();
+					}
+				}
+			}
+		});
 		maxDisconnectionTimer = Runtime.instance().getTimerDispatcher().add(maxDisconnectionTimer);
 		myLogger.log(Logger.INFO, myID+" - Max-disconnection-timer activated.");
 	}
@@ -489,16 +616,4 @@ public class NIOHTTPBEDispatcher implements NIOMediator, Dispatcher, BEConnectio
 	private JICPPacket createTerminationNotificationAck() {
 		return new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.TERMINATED_INFO, null);
 	}
-
-	//////////////////////////////////////////
-	// TimerListener interface implementation
-	//////////////////////////////////////////
-	public synchronized void doTimeOut(Timer t) {
-		if (frontEndStatus != CONNECTED) {
-			myLogger.log(Logger.WARNING, myID+" - Max disconnection timeout expired.");
-			// The remote FrontEnd is probably down --> notify up.
-			handlePeerSelfTermination();
-		}
-	}
-
 }

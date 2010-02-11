@@ -217,12 +217,19 @@ public class HTTPFEDispatcher implements FEConnectionManager, Dispatcher, TimerL
 	/**
      Send the CREATE_MEDIATOR command with the necessary parameter
      in order to create the BackEnd in the fixed network.
-     Executed at bootstrap time by the thread that creates the 
-     FrontEndContainer.
+	   Executed 
+	   - at bootstrap time by the thread that creates the FrontEndContainer. 
+	   - To re-attach to the platform after a fault of the BackEnd
 	 */
 	private synchronized void createBackEnd() throws IMTPException {
-		String createMediatorRequest = new String(BackEndStub.encodeCreateMediatorRequest(props)); 
-		JICPPacket pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, createMediatorRequest.getBytes());
+		StringBuffer sb = BackEndStub.encodeCreateMediatorRequest(props);
+		if (myMediatorID != null) {
+			// This is a request to re-create my expired back-end
+			BackEndStub.appendProp(sb, JICPProtocol.MEDIATOR_ID_KEY, myMediatorID);
+			BackEndStub.appendProp(sb, "outcnt", String.valueOf(outCnt));
+			BackEndStub.appendProp(sb, "lastsid", String.valueOf(lastSid));
+		}
+		JICPPacket pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
 
 		// Try first with the current transport address, then with the various backup addresses
 		for(int i = -1; i < backEndAddresses.length; i++) {
@@ -360,12 +367,13 @@ public class HTTPFEDispatcher implements FEConnectionManager, Dispatcher, TimerL
 					if (this == terminator) {
 						active = false;
 					}
-					System.out.println("##### calling deliver()...");
 					JICPPacket cmd = deliver(rsp, myConnection);
 					myKeepAliveManager.update();
 					if (cmd.getType() == JICPProtocol.KEEP_ALIVE_TYPE) {
 						// Keep-alive 
-						myLogger.log(Logger.INFO, "Keep-alive received");
+						if (myLogger.isLoggable(Logger.FINER)) {
+							myLogger.log(Logger.FINER, "Keep-alive received");
+						}
 						rsp = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.OK_INFO, null);
 					}
 					else {
@@ -689,8 +697,27 @@ public class HTTPFEDispatcher implements FEConnectionManager, Dispatcher, TimerL
 				JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null);
 				pkt = deliver(pkt);
 				if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
-					// The JICPServer didn't find my Mediator.  
-					throw new ICPException("Mediator expired.");
+					// Communication OK, but there was a JICP error.
+					String errorMsg = new String(pkt.getData());
+					if (errorMsg.equals(JICPProtocol.NOT_FOUND_ERROR)) {
+						// Back-end not found: either the max disconnection time expired server side or there was a fault and restart
+						// --> Try to recreate the Back-end
+						myLogger.log(Logger.WARNING, "Communication OK, but Back-end no longer present. Try to recreate it");
+						if (myConnectionListener != null) {
+							myConnectionListener.handleConnectionEvent(ConnectionListener.BE_NOT_FOUND, null);
+						}
+						try {
+							createBackEnd();
+						}
+						catch (IMTPException imtpe) {
+							myLogger.log(Logger.WARNING, "Error re-creating the Back-end.");
+							return false;
+						}
+					}
+					else {
+						// Generic JICP error. No need to go on 
+						throw new ICPException("JICP error. "+errorMsg);
+					}
 				}
 				return true;
 			}

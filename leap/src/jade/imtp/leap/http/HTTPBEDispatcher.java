@@ -91,6 +91,8 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 			// Keep default
 		}
 
+		// FIXME: Properly manage SID of next outgoing command and last incoming command in case of BE re-creation
+		
 		myOutgoingsHandler = new OutgoingsHandler(maxDisconnectionTime, keepAliveTime);
 
 		if (myLogger.isLoggable(Logger.INFO)) {

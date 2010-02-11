@@ -570,7 +570,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 						c.close();
 						if (errorMsg.equals(JICPProtocol.NOT_FOUND_ERROR)) {
 							// The JICPMediatorManager didn't find my Mediator anymore. Either 
-							// there was a fault our max disconnection time expired. 
+							// there was a fault or max disconnection time expired. 
 							// Try to recreate the BackEnd
 							handleBENotFound();
 							backEndExists = false;
