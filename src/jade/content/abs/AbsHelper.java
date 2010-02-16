@@ -531,10 +531,12 @@ public class AbsHelper {
 			return new AbsAggregate(BasicOntology.SET);
 		}
 		
-		// Primitive type
+		// Primitive type or unknown class
 		ObjectSchema schema = onto.getSchema(clazz);
-		if (schema instanceof PrimitiveSchema) {
-			return new AbsVariable(null, schema.getTypeName());
+		if (schema == null) {
+			return new AbsVariable(createVariableName(null, VarIndexWrapper.ZERO), TermSchema.getBaseSchema().getTypeName());
+		} else if (schema instanceof PrimitiveSchema) {
+			return new AbsVariable(createVariableName(null, VarIndexWrapper.ZERO), schema.getTypeName());
 		}
 		
 		// Complex type
@@ -548,7 +550,7 @@ public class AbsHelper {
 	 * @throws Exception
 	 */
 	public static AbsObject createAbsTemplate(ObjectSchema schema) throws OntologyException {
-		return createAbsTemplate(schema, null, 0);
+		return createAbsTemplate(schema, null, VarIndexWrapper.ZERO);
 	}
 	
 	/**
@@ -560,18 +562,16 @@ public class AbsHelper {
 	 * @throws Exception
 	 */
 	public static AbsObject createAbsTemplate(ObjectSchema schema, String prefix) throws OntologyException {
-		return createAbsTemplate(schema, prefix, 0);
+		return createAbsTemplate(schema, prefix, VarIndexWrapper.ZERO);
 	}
 
-	private static AbsObject createAbsTemplate(ObjectSchema schema, String prefix, int index) throws OntologyException {
+	private static AbsObject createAbsTemplate(ObjectSchema schema, String prefix, VarIndexWrapper viw) throws OntologyException {
 		
-		if (schema instanceof PrimitiveSchema) {
-			PrimitiveSchema primitiveSchema = (PrimitiveSchema)schema;
-			String varName = (prefix!=null ? prefix : "") + index;
-			index++;
-			return new AbsVariable(varName, primitiveSchema.getTypeName());
+		// For primitive schemas and TermSchema (bean object type) 
+		if (schema instanceof PrimitiveSchema || schema.getClass() == TermSchema.class) {
+			return new AbsVariable(createVariableName(prefix, viw), schema.getTypeName());
 		}
-		
+
 		if (schema instanceof AggregateSchema) {
 			AggregateSchema aggregateSchema = (AggregateSchema)schema; 
 			AbsAggregate aggregate = new AbsAggregate(aggregateSchema.getTypeName());
@@ -579,7 +579,7 @@ public class AbsHelper {
 			// If is present the element schema add to aggregate one element of correct type
 			ObjectSchema elementsSchema = aggregateSchema.getElementsSchema();
 			if (elementsSchema != null) {
-				aggregate.add((AbsTerm)createAbsTemplate(elementsSchema, prefix, index));
+				aggregate.add((AbsTerm)createAbsTemplate(elementsSchema, prefix, viw));
 			}
 			return aggregate;
 		}
@@ -587,10 +587,28 @@ public class AbsHelper {
 		AbsObject abs = schema.newInstance();
 		for (String slotName : schema.getNames()) {
 			ObjectSchema slotSchema = schema.getSchema(slotName);
-			setAttribute(abs, slotName, createAbsTemplate(slotSchema, prefix, index));
+			setAttribute(abs, slotName, createAbsTemplate(slotSchema, prefix, viw));
 		}
 		return abs;
 	}
 
+	private static String createVariableName(final String prefix, VarIndexWrapper viw) {
+		String varName = (prefix!=null ? prefix : "") + "v#" + viw.index;
+		viw.index++;
+		return varName;
+	}
+
+	
+	/**
+	 * Inner class used to manage variable name generation 
+	 */
+	static class VarIndexWrapper {
+		static VarIndexWrapper ZERO = new VarIndexWrapper(0); 
+		int index;
+		public VarIndexWrapper(int index) {
+			this.index = index;
+		}
+	}
 }
+
 
