@@ -180,8 +180,11 @@ class ObjectSchemaImpl extends ObjectSchema {
 			}
 			
 			add(name, schema, optionality);
+			
 			// Add proper facets
-			addFacet(name, new TypedAggregateFacet(elementsSchema));
+			if (elementsSchema != null) {
+				addFacet(name, new TypedAggregateFacet(elementsSchema));
+			}
 			addFacet(name, new CardinalityFacet(cardMin, cardMax));
 		}
 		catch (OntologyException oe) {

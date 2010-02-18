@@ -486,11 +486,7 @@ class BeanOntologyBuilder {
 					// try to get a schema for the contained type
 					ats = supplySchemaForClassFlat(sad.aggregateClass, skipClassChecking);
 				}
-				if (ats == null) {
-					schema.add(slotName, tryToGetAggregateSchema(sad.type), sad.cardMin > 0 ? ObjectSchema.MANDATORY : ObjectSchema.OPTIONAL);
-				} else {
-					schema.add(slotName, ats, sad.cardMin, sad.cardMax, getAggregateSchemaName(sad.type));
-				}
+				schema.add(slotName, ats, sad.cardMin, sad.cardMax, getAggregateSchemaName(sad.type));
 			}
 		} catch (BeanOntologyException bobe) {
 			throw new BeanOntologyException("error adding slot "+slotName+" to schema "+schemaName, bobe);
