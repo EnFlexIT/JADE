@@ -26,6 +26,8 @@ package jade.content.onto;
 //#J2ME_EXCLUDE_FILE
 //#APIDOC_EXCLUDE_FILE
 
+import jade.content.Term;
+
 import java.lang.reflect.Method;
 
 class SlotAccessData {
@@ -57,6 +59,10 @@ class SlotAccessData {
 		this.documentation = documentation;
 	}
 
+	boolean isTypized() {
+		return type != null && type != Object.class && type != Term.class;
+	}
+	
 	static boolean isAggregate(Class clazz) {
 		return clazz.isArray() || java.util.Collection.class.isAssignableFrom(clazz) || jade.util.leap.Collection.class.isAssignableFrom(clazz);
 	}

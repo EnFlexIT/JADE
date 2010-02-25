@@ -150,8 +150,23 @@ class BeanIntrospector implements Introspector {
 	
 	public AbsAggregate externalizeAggregate(String slotName, Object slotValue, ObjectSchema schema, Ontology referenceOnto) throws OntologyException {
 		AbsAggregate absAggregate = null;
-		Class slotClass = slotValue.getClass();
-		if (slotClass.isArray()) {
+		Class valueClass = slotValue.getClass();
+		
+		// Check if slot is typized
+		boolean slotTypized = false;
+		if (schema != null) {
+			SlotAccessData slotAccessData = accessors.get(new SlotKey(schema.getTypeName(), slotName));
+			slotTypized = slotAccessData.isTypized();
+		}
+
+		// Try to manage as array
+		if (valueClass.isArray()) {
+			// In the case of array and slot not typized --> throw exception
+			// (Only java collection are permitted)
+			if (!slotTypized) {
+				throw new OntologyException("Impossible manage array into a not typized slot");
+			}
+			
 			absAggregate = new AbsAggregate(BasicOntology.SEQUENCE);
 			for (int i = 0; i < Array.getLength(slotValue); i++) {
 				Object object = Array.get(slotValue, i);
@@ -168,6 +183,12 @@ class BeanIntrospector implements Introspector {
 					aggregateType = BasicOntology.SET;
 				}
 			} else if (slotValue instanceof jade.util.leap.Collection) {
+				// In the case of array and slot not typized --> throw exception
+				// (Only java collection are permitted)
+				if (!slotTypized) {
+					throw new OntologyException("Impossible manage jade collection into a not typized slot");
+				}
+
 				iter = ((jade.util.leap.Collection)slotValue).iterator();
 				if (slotValue instanceof jade.util.leap.List) {
 					aggregateType = BasicOntology.SEQUENCE;

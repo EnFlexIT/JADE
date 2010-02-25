@@ -472,9 +472,8 @@ public class AbsHelper {
 	 * @param abs to nullify
 	 * @param removeEmptyAggregate if true remove all empty aggregates  
 	 * @return abs without variables and empty aggregates
-	 * @throws OntologyException
 	 */
-	public static AbsObject nullifyVariables(AbsObject abs, boolean removeEmptyAggregate) throws OntologyException {
+	public static AbsObject nullifyVariables(AbsObject abs, boolean removeEmptyAggregate) {
 		// Remove AbsVariable
 		if (abs instanceof AbsVariable) {
 			return null;
@@ -488,59 +487,56 @@ public class AbsHelper {
 		}
 		// If not grounded -> check all slots
 		if (!abs.isGrounded()) {
-			for (String slotName : abs.getNames()) {
-				AbsObject slotValue = abs.getAbsObject(slotName);
-				AbsObject nullifiedSlotValue = nullifyVariables(slotValue, removeEmptyAggregate);
+			
+			// Aggregate
+			if (abs instanceof AbsAggregate) {
+				AbsAggregate absAggregate = (AbsAggregate)abs;
+				for (int i=0; i<absAggregate.size(); i++) {
+					AbsObject slotValue = absAggregate.get(i);
+					
+					AbsObject nullifiedSlotValue = nullifyVariables(slotValue, removeEmptyAggregate);
+					if (nullifiedSlotValue == null) {
+						// Remove null slot
+						absAggregate.remove((AbsTerm)slotValue);
+					}
+				}
+				if (removeEmptyAggregate && abs.getCount() == 0) {
+					return null;
+				}
 				
-				if (abs instanceof AbsAggregate && nullifiedSlotValue == null) {
-					// Only in aggregate remove null slot
-					((AbsAggregate)abs).remove((AbsTerm)slotValue);
-				} else {
+			} 
+			// Concept
+			else {
+				for (String slotName : abs.getNames()) {
+					AbsObject slotValue = abs.getAbsObject(slotName);
+					AbsObject nullifiedSlotValue = nullifyVariables(slotValue, removeEmptyAggregate);
+					
 					// Replace nullified value into the slot
 					((AbsConcept)abs).set(slotName, nullifiedSlotValue);
 				}
 			}
-			if (removeEmptyAggregate && abs.getCount() == 0) {
-				return null;
-			}
 		}
 		return abs;
 	}
-	
+
 	/**
-	 * Generate an AbsObject consistently with class structure. 
-	 * The class must be described in the ontology.     
-	 * @param clazz to convert
+	 * Generate an AbsObject consistently with class. 
+	 * @param clazz class to convert
 	 * @param onto reference ontology
 	 * @return abs-object
-	 * @throws Exception
+	 * @throws OntologyException
 	 */
-	public static AbsObject createAbsTemplate(Class clazz, Ontology onto) throws Exception {
-
-		// Sequence type
-		if (java.util.List.class.isAssignableFrom(clazz) ||
-			jade.util.leap.List.class.isAssignableFrom(clazz)) {
-
-			return new AbsAggregate(BasicOntology.SEQUENCE);
-		}
-
-		// Set type
-		if (java.util.Set.class.isAssignableFrom(clazz) ||
-			jade.util.leap.Set.class.isAssignableFrom(clazz)) {
-			
-			return new AbsAggregate(BasicOntology.SET);
-		}
-		
-		// Primitive type or unknown class
+	public static AbsObject createAbsTemplate(Class clazz, Ontology onto) throws OntologyException {
+		// Convert class into schema
+		// Try to get associated schema from ontology
 		ObjectSchema schema = onto.getSchema(clazz);
+		
+		// If no schema found is as aggregate 
 		if (schema == null) {
-			return new AbsVariable(createVariableName(null, VarIndexWrapper.ZERO), TermSchema.getBaseSchema().getTypeName());
-		} else if (schema instanceof PrimitiveSchema) {
-			return new AbsVariable(createVariableName(null, VarIndexWrapper.ZERO), schema.getTypeName());
+			schema = AggregateHelper.getSchema(clazz, null);
 		}
 		
-		// Complex type
-		return createAbsTemplate(schema);
+		return createAbsTemplate(schema, null, VarIndexWrapper.ZERO);
 	}
 	
 	/**
@@ -576,10 +572,10 @@ public class AbsHelper {
 			AggregateSchema aggregateSchema = (AggregateSchema)schema; 
 			AbsAggregate aggregate = new AbsAggregate(aggregateSchema.getTypeName());
 			
-			// If is present the element schema add to aggregate one element of correct type
+			// If is present the element schema add this information in aggregate
 			ObjectSchema elementsSchema = aggregateSchema.getElementsSchema();
 			if (elementsSchema != null) {
-				aggregate.add((AbsTerm)createAbsTemplate(elementsSchema, prefix, viw));
+				aggregate.setElementTemplate((AbsTerm)createAbsTemplate(elementsSchema, prefix, viw));
 			}
 			return aggregate;
 		}

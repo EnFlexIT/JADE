@@ -39,7 +39,8 @@ import jade.content.lang.Codec;
 public class AbsAggregate extends AbsConcept {
 	private static final int UNNAMEDPREFIX_LENGTH = Codec.UNNAMEDPREFIX.length();
 	private List elements = new ArrayList();
-
+	private AbsTerm elementTemplate;
+	
 	/**
 	 * Construct an Abstract descriptor to hold an aggregate of
 	 * the proper type (i.e. SET, SEQUENCE...).
@@ -47,7 +48,6 @@ public class AbsAggregate extends AbsConcept {
 	 * this abstract descriptor.
 	 */
 	public AbsAggregate(String typeName) {
-		//this.typeName = typeName;
 		super(typeName);
 	}
 
@@ -217,6 +217,24 @@ public class AbsAggregate extends AbsConcept {
 		return elements.size();
 	}
 
+    public int getAbsType() {
+    	return ABS_AGGREGATE;
+    }
+
+    /**
+     * Get the abstract template of aggregate element
+     */
+	public AbsTerm getElementTemplate() {
+		return elementTemplate;
+	}
+
+	/**
+	 * Set the abstract template of aggregate element
+	 */
+	public void setElementTemplate(AbsTerm elementTemplate) {
+		this.elementTemplate = elementTemplate;
+	}
+
 	/**
 	 * This method is here just for debugging. Notice that it is highly innefficient.
 	 * The method StringCodec.encode() should be used instead.
@@ -235,8 +253,5 @@ public class AbsAggregate extends AbsConcept {
 		return sb.toString();
 	}
 	
-    public int getAbsType() {
-    	return ABS_AGGREGATE;
-    }
 }
 
