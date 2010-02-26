@@ -491,19 +491,20 @@ public class AbsHelper {
 			// Aggregate
 			if (abs instanceof AbsAggregate) {
 				AbsAggregate absAggregate = (AbsAggregate)abs;
-				for (int i=0; i<absAggregate.size(); i++) {
-					AbsObject slotValue = absAggregate.get(i);
+				
+				Iterator it = absAggregate.iterator();
+				while (it.hasNext()) {
+					AbsObject slotValue = (AbsObject)it.next();
 					
 					AbsObject nullifiedSlotValue = nullifyVariables(slotValue, removeEmptyAggregate);
 					if (nullifiedSlotValue == null) {
 						// Remove null slot
-						absAggregate.remove((AbsTerm)slotValue);
+						it.remove();
 					}
 				}
 				if (removeEmptyAggregate && abs.getCount() == 0) {
 					return null;
 				}
-				
 			} 
 			// Concept
 			else {

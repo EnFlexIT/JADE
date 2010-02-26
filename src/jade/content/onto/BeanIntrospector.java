@@ -43,9 +43,6 @@ import java.util.Map;
 class BeanIntrospector implements Introspector {
 	private static final long serialVersionUID = 1L;
 
-	private static final int ACC_ABSTRACT = 0x0400;
-	private static final int ACC_INTERFACE = 0x0200;
-
 	private static final String ENUM_SLOT_NAME = BeanOntologyBuilder.ENUM_SLOT_NAME;
 	
 	private Map<SlotKey, SlotAccessData> accessors;
@@ -90,40 +87,6 @@ class BeanIntrospector implements Introspector {
 		} catch (Exception e) {
 			throw new OntologyException("Error invoking setter method "+method.getName()+" on object "+obj+" with parameter "+value, e);
 		}
-	}
-	
-	private java.util.Collection createConcreteJavaCollection(Class clazz) throws InstantiationException, IllegalAccessException {
-		int modifiers = clazz.getModifiers();
-		java.util.Collection result = null;
-		if ((modifiers & ACC_ABSTRACT) == 0 && (modifiers & ACC_INTERFACE) == 0) {
-			// class is concrete, we can instantiate it directly
-			result = (java.util.Collection) clazz.newInstance();
-		} else {
-			// class is either abstract or an interface, we have to somehow choose a concrete collection :-(
-			if (java.util.List.class.isAssignableFrom(clazz)) {
-				result = new java.util.ArrayList(); 
-			} else if (java.util.Set.class.isAssignableFrom(clazz)) {
-				result = new java.util.HashSet();
-			}
-		}
-		return result;
-	}
-
-	private jade.util.leap.Collection createConcreteJadeCollection(Class clazz) throws InstantiationException, IllegalAccessException {
-		int modifiers = clazz.getModifiers();
-		jade.util.leap.Collection result = null;
-		if ((modifiers & ACC_ABSTRACT) == 0 && (modifiers & ACC_INTERFACE) == 0) {
-			// class is concrete, we can instantiate it directly
-			result = (jade.util.leap.Collection) clazz.newInstance();
-		} else {
-			// class is either abstract or an interface, we have to somehow choose a concrete collection :-(
-			if (jade.util.leap.List.class.isAssignableFrom(clazz)) {
-				result = new jade.util.leap.ArrayList(); 
-			} else if (jade.util.leap.Set.class.isAssignableFrom(clazz)) {
-				result = new jade.util.leap.HashSet();
-			}
-		}
-		return result;
 	}
 
 	public void checkClass(ObjectSchema schema, Class javaClass, Ontology onto) throws OntologyException {
@@ -250,7 +213,7 @@ class BeanIntrospector implements Introspector {
 					index++;
 				}
 			} else if (java.util.Collection.class.isAssignableFrom(aggregateClass)) {
-				java.util.Collection javaCollection = createConcreteJavaCollection(aggregateClass);
+				java.util.Collection javaCollection = AggregateHelper.createConcreteJavaCollection(aggregateClass);
 				if (javaCollection == null) {
 					throw new OntologyException("cannot create a concrete collection for class "+aggregateClass.getName());
 				}
@@ -259,7 +222,7 @@ class BeanIntrospector implements Introspector {
 					javaCollection.add(Ontology.internalizeSlotValue((AbsTerm)iterator.next(), this, referenceOnto));
 				}
 			} else if (jade.util.leap.Collection.class.isAssignableFrom(aggregateClass)) {
-				jade.util.leap.Collection jadeCollection = createConcreteJadeCollection(aggregateClass);
+				jade.util.leap.Collection jadeCollection = AggregateHelper.createConcreteJadeCollection(aggregateClass);
 				result = jadeCollection;
 				while (iterator.hasNext()) {
 					jadeCollection.add(Ontology.internalizeSlotValue((AbsTerm)iterator.next(), this, referenceOnto));

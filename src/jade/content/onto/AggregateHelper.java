@@ -32,6 +32,9 @@ import jade.content.schema.TermSchema;
 
 public class AggregateHelper {
 
+	private static final int ACC_ABSTRACT = 0x0400;
+	private static final int ACC_INTERFACE = 0x0200;
+
 	/**
 	 * Get ontology schema associated to class
 	 * Try to manage as aggregate
@@ -99,7 +102,7 @@ public class AggregateHelper {
 
 					// Source is an array
 					if (srcClass.isArray()) {
-						java.util.Collection javaCollection = (java.util.Collection)destClass.newInstance();
+						java.util.Collection javaCollection = createConcreteJavaCollection(destClass);
 						int size = Array.getLength(srcValue);
 						for (int index=0; index<size; index++) {
 							javaCollection.add(Array.get(srcValue, index));
@@ -109,7 +112,7 @@ public class AggregateHelper {
 					
 					// Source is a jade collection
 					else if (jade.util.leap.Collection.class.isAssignableFrom(srcClass)) {
-						java.util.Collection javaCollection = (java.util.Collection)destClass.newInstance();
+						java.util.Collection javaCollection = createConcreteJavaCollection(destClass);
 						jade.util.leap.Collection jadeCollection = (jade.util.leap.Collection)srcValue;
 						Iterator it = jadeCollection.iterator();
 						while(it.hasNext()) {
@@ -124,7 +127,7 @@ public class AggregateHelper {
 
 					// Source is an array
 					if (srcClass.isArray()) {
-						jade.util.leap.Collection jadeCollection = (jade.util.leap.Collection)destClass.newInstance();
+						jade.util.leap.Collection jadeCollection = createConcreteJadeCollection(destClass);
 						int size = Array.getLength(srcValue);
 						for (int index=0; index<size; index++) {
 							jadeCollection.add(Array.get(srcValue, index));
@@ -134,7 +137,7 @@ public class AggregateHelper {
 					
 					// Source is a java collection
 					else if (java.util.Collection.class.isAssignableFrom(srcClass)) {
-						jade.util.leap.Collection jadeCollection = (jade.util.leap.Collection)destClass.newInstance();
+						jade.util.leap.Collection jadeCollection = createConcreteJadeCollection(destClass);
 						java.util.Collection javaCollection = (java.util.Collection)srcValue;
 						Iterator it = javaCollection.iterator();
 						while(it.hasNext()) {
@@ -160,5 +163,39 @@ public class AggregateHelper {
 			index++;
 		}
 		return array;
+	}
+	
+	static java.util.Collection createConcreteJavaCollection(Class clazz) throws InstantiationException, IllegalAccessException {
+		int modifiers = clazz.getModifiers();
+		java.util.Collection result = null;
+		if ((modifiers & ACC_ABSTRACT) == 0 && (modifiers & ACC_INTERFACE) == 0) {
+			// class is concrete, we can instantiate it directly
+			result = (java.util.Collection) clazz.newInstance();
+		} else {
+			// class is either abstract or an interface, we have to somehow choose a concrete collection :-(
+			if (java.util.List.class.isAssignableFrom(clazz)) {
+				result = new java.util.ArrayList(); 
+			} else if (java.util.Set.class.isAssignableFrom(clazz)) {
+				result = new java.util.HashSet();
+			}
+		}
+		return result;
+	}
+
+	static jade.util.leap.Collection createConcreteJadeCollection(Class clazz) throws InstantiationException, IllegalAccessException {
+		int modifiers = clazz.getModifiers();
+		jade.util.leap.Collection result = null;
+		if ((modifiers & ACC_ABSTRACT) == 0 && (modifiers & ACC_INTERFACE) == 0) {
+			// class is concrete, we can instantiate it directly
+			result = (jade.util.leap.Collection) clazz.newInstance();
+		} else {
+			// class is either abstract or an interface, we have to somehow choose a concrete collection :-(
+			if (jade.util.leap.List.class.isAssignableFrom(clazz)) {
+				result = new jade.util.leap.ArrayList(); 
+			} else if (jade.util.leap.Set.class.isAssignableFrom(clazz)) {
+				result = new jade.util.leap.HashSet();
+			}
+		}
+		return result;
 	}
 }
