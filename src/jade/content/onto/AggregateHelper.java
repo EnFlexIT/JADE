@@ -81,19 +81,13 @@ public class AggregateHelper {
 					// Source is a java collection
 					if (java.util.Collection.class.isAssignableFrom(srcClass)) {
 						java.util.Collection javaCollection = (java.util.Collection)srcValue;
-						Object array = collectionToArray(javaCollection.iterator(), javaCollection.size());
-						if (array != null) {
-							destValue = array;
-						}
+						destValue = collectionToArray(javaCollection.iterator(), destClass.getComponentType(), javaCollection.size());
 					}
 					
 					// Source is a jade collection
 					else if (jade.util.leap.Collection.class.isAssignableFrom(srcClass)) {
 						jade.util.leap.Collection jadeCollection = (jade.util.leap.Collection)srcValue;
-						Object array = collectionToArray(jadeCollection.iterator(), jadeCollection.size());
-						if (array != null) {
-							destValue = array;
-						}
+						destValue = collectionToArray(jadeCollection.iterator(), destClass.getComponentType(), jadeCollection.size());
 					}
 				}
 				
@@ -151,14 +145,11 @@ public class AggregateHelper {
 		return destValue;
 	}
 	
-	private static Object collectionToArray(Iterator it, int size) {
+	private static Object collectionToArray(Iterator it, Class componentTypeClass, int size) {
 		int index = 0;
-		Object array = null;
+		Object array = Array.newInstance(componentTypeClass, size);
 		while(it.hasNext()) {
 			Object item = it.next();
-			if (index == 0) {
-				array = Array.newInstance(item.getClass(), size);
-			}
 			Array.set(array, index, item);
 			index++;
 		}
