@@ -368,48 +368,10 @@ public abstract class Profile {
 	//#MIDP_EXCLUDE_BEGIN
 	public static boolean isLocalHost(String host) {
 		return compareHostNames(host, LOCALHOST_CONSTANT);
-	    /* Check that the local-host is actually local
-		if (LOCALHOST_CONSTANT.equalsIgnoreCase(host)) {
-			return true;
-		}
-		
-	    try {
-	        InetAddress localHostAddrs[] = InetAddress.getAllByName(InetAddress.getLocalHost().getHostName());
-	        InetAddress hostAddrs[] = InetAddress.getAllByName(host);
-	
-	        // The trick here is to compare the InetAddress
-	        // objects, not the strings since the one string might be a
-	        // fully qualified Internet domain name for the host and the 
-	        // other might be a simple name.  
-	        // Example: myHost.hpl.hp.com and myHost might
-	        // acutally be the same host even though the hostname strings do
-	        // not match.  When the InetAddress objects are compared, the IP
-	        // addresses will be compared.
-	        int i = 0;
-	        boolean isLocal = false;
-	
-	        while ((!isLocal) && (i < localHostAddrs.length)) {
-	            int j = 0;
-	
-	            while ((!isLocal) && (j < hostAddrs.length)) {
-	                isLocal = localHostAddrs[i].equals(hostAddrs[j]);
-	
-	                j++;
-	            }
-	
-	            i++;
-	        }
-	        return isLocal;
-	    } 
-	    catch (UnknownHostException uhe) {
-	    	// An unknown host is certainly false
-	    	return false;
-	    }*/
 	}
 	
 	/**
 	 * Compares two host names regardless of whether they include domain or not.
-	 * Note: this method does not work if "localhost" is used as host name.
 	 */
 	public static boolean compareHostNames(String host1, String host2) {
 		if (host1.equalsIgnoreCase(host2)) {
