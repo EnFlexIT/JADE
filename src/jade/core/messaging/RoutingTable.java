@@ -221,15 +221,6 @@ class RoutingTable {
 		
 		// The new MTP is a valid address for the platform
 		platformAddresses.add(url);
-		
-		/*
-		 java.util.Iterator it = outPorts.keySet().iterator();
-		 while(it.hasNext()) {
-		 String name = (String)it.next();
-		 OutPortList l = (OutPortList)outPorts.get(name);
-		 System.out.println("<" + name + "> ==> " + l.size());
-		 }
-		 */
 	}
 	
 	/**

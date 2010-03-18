@@ -75,9 +75,8 @@ public class MessageTransportProtocol implements MTP {
 	private boolean policy;
 	private boolean keepAlive  = false;
 	private boolean useProxy   = false;
-	private boolean useHttps   = false;
 	
-	private String[] protocols = {"http", "https"};
+	private String[] protocols = {};
 	private String FIPA_NAME = "fipa.mts.mtp.http.std";
 	private Hashtable addr2srv = new Hashtable();
 	
@@ -165,8 +164,7 @@ public class MessageTransportProtocol implements MTP {
 		activateServer(disp, ta, p);
 	}
 	
-	private TransportAddress activateServer(InChannel.Dispatcher disp, TransportAddress ta, Profile p)
-	throws MTPException {
+	private TransportAddress activateServer(InChannel.Dispatcher disp, TransportAddress ta, Profile p) throws MTPException {
 		//Comprobation of correct HTTPAddress
 		int port = -1;
 		boolean changePortIfBusy = false;
@@ -187,10 +185,10 @@ public class MessageTransportProtocol implements MTP {
 						changePortIfBusy = true;
 					}
 					//#DOTNET_EXCLUDE_BEGIN
-					hta = new HTTPAddress(InetAddress.getLocalHost().getCanonicalHostName(),port, useHttps);
+					hta = new HTTPAddress(InetAddress.getLocalHost().getCanonicalHostName(),port, false);
 					//#DOTNET_EXCLUDE_END
 					/*#DOTNET_INCLUDE_BEGIN
-					hta = new HTTPAddress(InetAddress.getLocalHost().getHostName(),port, useHttps);
+					hta = new HTTPAddress(InetAddress.getLocalHost().getHostName(),port, false);
 					#DOTNET_INCLUDE_END*/
 				} catch( UnknownHostException ukhexc ) {
 					throw new MTPException("Cannot activate MTP on default address: Unknown Host");
@@ -227,16 +225,14 @@ public class MessageTransportProtocol implements MTP {
 				throw new MTPException("Error configuring Socket Factory", e);
 			}
 			//#PJAVA_EXCLUDE_END
-	  /*
-		System.out.println("Parameters set:");
-		System.out.println("- KA "+numKA);
-		System.out.println("- Policy "+policy);
-		System.out.println("- Out port "+outPort);
-		System.out.println("- Proxy host "+proxyHost);
-		System.out.println("- Proxy port "+proxyPort);
-		System.out.println("- Parser "+saxClass);
-		System.out.println("- Timeout "+timeout);
-	   */
+			// System.out.println("Parameters set:");
+			// System.out.println("- KA "+numKA);
+			// System.out.println("- Policy "+policy);
+			// System.out.println("- Out port "+outPort);
+			// System.out.println("- Proxy host "+proxyHost);
+			// System.out.println("- Proxy port "+proxyPort);
+			// System.out.println("- Parser "+saxClass);
+			// System.out.println("- Timeout "+timeout);
 		} catch (ClassCastException cce) {
 			throw new MTPException("User supplied transport address not supported.");
 		} catch( NumberFormatException nexc ) {
@@ -249,17 +245,20 @@ public class MessageTransportProtocol implements MTP {
 			HTTPServer srv = new HTTPServer(port,disp,numKA,saxClass,timeout, changePortIfBusy);
 			int actualPort = srv.getLocalPort();
 			if (actualPort != port) {
+				// The selected port is busy and a new one was selected --> Update the transport address
+				boolean useHttps = "https".equalsIgnoreCase(hta.getProto());
 				//#DOTNET_EXCLUDE_BEGIN
-					hta = new HTTPAddress(InetAddress.getLocalHost().getCanonicalHostName(),actualPort, useHttps);
-					//#DOTNET_EXCLUDE_END
-					/*#DOTNET_INCLUDE_BEGIN
-					hta = new HTTPAddress(InetAddress.getLocalHost().getHostName(),actualPort, useHttps);
-					#DOTNET_INCLUDE_END*/
+				hta = new HTTPAddress(InetAddress.getLocalHost().getCanonicalHostName(),actualPort, useHttps);
+				//#DOTNET_EXCLUDE_END
+				/*#DOTNET_INCLUDE_BEGIN
+				hta = new HTTPAddress(InetAddress.getLocalHost().getHostName(),actualPort, useHttps);
+				#DOTNET_INCLUDE_END*/
 			}
 			//Save the reference to HTTPServer
 			addr2srv.put(hta.toString(),srv);
 			//Execute server
 			srv.start();
+			protocols = new String[]{hta.getProto()};
 			return hta;
 		} catch( Exception e ) {
 			throw new MTPException("While activating MTP got exception "+e);
