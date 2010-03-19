@@ -64,11 +64,11 @@ class SlotAccessData {
 	}
 	
 	static boolean isAggregate(Class clazz) {
-		return clazz.isArray() || java.util.Collection.class.isAssignableFrom(clazz) || jade.util.leap.Collection.class.isAssignableFrom(clazz);
+		return (clazz.isArray() && clazz != byte[].class) || java.util.Collection.class.isAssignableFrom(clazz) || jade.util.leap.Collection.class.isAssignableFrom(clazz);
 	}
 
 	static boolean isSequence(Class clazz) {
-		return clazz.isArray() || java.util.List.class.isAssignableFrom(clazz) || jade.util.leap.List.class.isAssignableFrom(clazz);
+		return (clazz.isArray() && clazz != byte[].class) || java.util.List.class.isAssignableFrom(clazz) || jade.util.leap.List.class.isAssignableFrom(clazz);
 	}
 
 	static boolean isSet(Class clazz) {

@@ -49,7 +49,7 @@ public class AggregateHelper {
 		// Sequence type
 		if (java.util.List.class.isAssignableFrom(clazz) ||
 			jade.util.leap.List.class.isAssignableFrom(clazz) ||
-			clazz.isArray()) {
+			(clazz.isArray() && clazz != byte[].class)) {
 
 			schema = new AggregateSchema(BasicOntology.SEQUENCE, elementSchema);
 		}

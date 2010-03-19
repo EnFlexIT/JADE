@@ -123,7 +123,7 @@ class BeanIntrospector implements Introspector {
 		}
 
 		// Try to manage as array
-		if (valueClass.isArray()) {
+		if (valueClass.isArray() && valueClass != byte[].class) {
 			// In the case of array and slot not typized --> throw exception
 			// (Only java collection are permitted)
 			if (!slotTypized) {
