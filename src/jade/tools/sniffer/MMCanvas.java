@@ -899,9 +899,12 @@ public class MMCanvas
     MMCanvas c2 = panCan.canvMess;
 
     //#DOTNET_EXCLUDE_BEGIN
-    panCan.setPreferredSize(new Dimension(horDim,vertDim+50));
+    panCan.setPreferredSize(new Dimension(horDim,c2.getVertDim()+50));
     c1.setPreferredSize(new Dimension(horDim,50));
-    c2.setPreferredSize(new Dimension(horDim,vertDim));
+    c2.setPreferredSize(new Dimension(horDim,c2.getVertDim()));
+    /*panCan.setPreferredSize(new Dimension(horDim,vertDim+50));
+    c1.setPreferredSize(new Dimension(horDim,50));
+    c2.setPreferredSize(new Dimension(horDim,vertDim));*/
     panCan.revalidate();
     //#DOTNET_EXCLUDE_END
     /*#DOTNET_INCLUDE_BEGIN
@@ -911,6 +914,9 @@ public class MMCanvas
     c2.repaint();
   }
 
+  public int getVertDim(){
+	  return vertDim;
+  }
 
   /**
    * Adds an agent to canvas agent then repaints it
