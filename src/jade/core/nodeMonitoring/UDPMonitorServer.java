@@ -28,7 +28,6 @@ package jade.core.nodeMonitoring;
 //#J2ME_EXCLUDE_FILE
 
 import jade.core.IMTPException;
-import jade.core.Profile;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -43,9 +42,10 @@ import java.net.BindException;
 //#DOTNET_EXCLUDE_END
 
 /*#DOTNET_INCLUDE_BEGIN
- import System.Net.*;
- import System.Net.Sockets.*;
- #DOTNET_INCLUDE_END*/
+import jade.core.Profile;
+import System.Net.*;
+import System.Net.Sockets.*;
+#DOTNET_INCLUDE_END*/
 
 import java.util.Calendar;
 import java.util.Hashtable;
@@ -82,6 +82,8 @@ class UDPMonitorServer {
 	private int pingDelay;
 	private int pingDelayLimit;
 	private int unreachLimit;
+	
+	private NetworkChecker checker;
 
 	//#DOTNET_EXCLUDE_BEGIN
 	private DatagramChannel server;
@@ -250,7 +252,7 @@ class UDPMonitorServer {
 	/**
 	 * Constructs a new UDPMonitorServer object
 	 */
-	UDPMonitorServer(UDPNodeMonitoringService s, String h, int p, int pd, int pdl, int ul, int onpc, int mtup) {
+	UDPMonitorServer(UDPNodeMonitoringService s, String h, int p, int pd, int pdl, int ul, int onpc, int mtup, NetworkChecker ch) {
 		myService = s;
 		host = h;
 		port = p;
@@ -259,6 +261,7 @@ class UDPMonitorServer {
 		unreachLimit = ul;
 		orphanNodePingsCnt = onpc;
 		maxTracedUnknownPings = mtup;
+		checker = ch;
 
 		logger = Logger.getMyLogger(UDPNodeMonitoringService.NAME);
 		try {
@@ -509,7 +512,16 @@ class UDPMonitorServer {
 				addDeadline(nodeID, unreachLimit);
 			}
 		} else if (oldState == UDPNodeFailureMonitor.STATE_UNREACHABLE) {
-			newState = UDPNodeFailureMonitor.STATE_FINAL;
+			if (checker == null || checker.isNetworkUp()) {
+				// Unreachable-limit Expired! If no NetworkChecker is specified or the NetworkChecker says
+				// that the network is properly working, consider the monitored node DEAD.
+				newState = UDPNodeFailureMonitor.STATE_FINAL;
+			}
+			else {
+				// Network down --> do not consider the node dead
+				logger.log(Logger.WARNING, "Unreachable limit exceeded for node "+nodeID+", however the network appears to be down --> Give the node another chance");
+				addDeadline(nodeID, unreachLimit);
+			}
 		}
 		
 		if (newState != oldState)

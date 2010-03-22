@@ -112,6 +112,19 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 	public static final String MAX_TRACED_UNKNOWN_PINGS = PREFIX + "maxtracedunknownpings";
 	
 	/**
+	 * This constants is the name of the property whose value contains the fully qualified 
+	 * class name of a concrete implementation of the <code>NetworkChecker</code> interface.
+	 * If this property is set, before considering dead a monitored node that remains
+	 * unreachable for more than the <code>unreachable-limit</code>, the specified 
+	 * <code>NetworkChecker</code> is activated to check if the lack of UDP ping packets depends
+	 * on a network disconnection. If this is the case the node is kept in the <code>UNREACHABLE</code>
+	 * state and is not removed.<br>
+	 * This property is only meaningful on a main container.
+	 * @see NetworkChecker  
+	 */
+	public static final String NETWORK_CHECKER = PREFIX + "networkchecker";
+	
+	/**
 	 * Default port on which the server is waiting for ping messages
 	 */
 	public static final int DEFAULT_PORT = 28000;
@@ -176,8 +189,10 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 			int orphanNodePingsCnt = getPosIntValue(p, ORPHAN_NODE_PINGS_CNT, 10);
 			int maxTracedUnknownPings = getPosIntValue(p, MAX_TRACED_UNKNOWN_PINGS, 100);
 			
+			NetworkChecker checker = initNetworkChecker(p);
+			
 			try {
-				myServer = new UDPMonitorServer(this, host, port, pingDelay, pingDelayLimit, unreachLimit, orphanNodePingsCnt, maxTracedUnknownPings);
+				myServer = new UDPMonitorServer(this, host, port, pingDelay, pingDelayLimit, unreachLimit, orphanNodePingsCnt, maxTracedUnknownPings, checker);
 				myServer.start();
                 //port can be changed if it is already binded to
                 port = myServer.getPort();
@@ -188,6 +203,21 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 				throw new ProfileException(s, e);
 			}
 		} 
+	}
+
+	private NetworkChecker initNetworkChecker(Profile p) {
+		NetworkChecker checker = null;
+		String networkCheckerClass = p.getParameter(NETWORK_CHECKER, null);
+		if (networkCheckerClass != null) {
+			try {
+				checker = (NetworkChecker) Class.forName(networkCheckerClass).newInstance();
+				checker.initialize(p);
+			}
+			catch (Exception e) {
+				myLogger.log(Logger.WARNING, "NetworkChecker "+networkCheckerClass+" cannot be created, instantiated or initialized.", e);
+			}
+		}
+		return checker;
 	}
 
 	public NodeFailureMonitor getFailureMonitor() {
