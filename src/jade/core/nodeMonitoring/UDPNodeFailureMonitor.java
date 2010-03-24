@@ -64,7 +64,7 @@ class UDPNodeFailureMonitor extends NodeFailureMonitor {
 	public static final int STATE_FINAL = 2;
 
 
-	private long deadline = -1;
+	private long deadlineId = -1;
 	private long lastPing = -1;
 	private int state = -1;
 	private long key = 0;
@@ -120,15 +120,12 @@ class UDPNodeFailureMonitor extends NodeFailureMonitor {
 		return lastPing;
 	}
 
-	/**
-	 * Returns the deadline until which the monitor will 
-	 * wait for a new ping message.
-	 * 
-	 * @return the difference, measured in milliseconds, 
-	 * between the current time and midnight, January 1, 1970 UTC.
-	 */
-	public long getDeadline() {
-		return deadline;
+	public long getDeadlineID() {
+		return deadlineId;
+	}
+
+	void setDeadlineID(long time) {
+		deadlineId = time;
 	}
 
 	/**
@@ -179,16 +176,4 @@ class UDPNodeFailureMonitor extends NodeFailureMonitor {
 	void setLastPing(long time) {
 		lastPing = time;
 	}
-
-	/**
-	 * Sets the time until which the monitor will 
-	 * wait for a new ping message.
-	 * 
-	 * @param time the difference, measured in milliseconds, 
-	 * between the current time and midnight, January 1, 1970 UTC.
-	 */
-	void setDeadline(long time) {
-		deadline = time;
-	}
-
 }

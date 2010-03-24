@@ -47,7 +47,6 @@ import System.Net.*;
 import System.Net.Sockets.*;
 #DOTNET_INCLUDE_END*/
 
-import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Set;
@@ -103,6 +102,12 @@ class UDPMonitorServer {
 	 private Socket server;
 	 #DOTNET_INCLUDE_END*/
 
+	private static long currentId = 0;
+
+	private synchronized static long getUniqueId() {
+		return currentId++;
+	}
+
 	/**
 	 * Class to store a deadline for the next ping
 	 * of a targeted node
@@ -111,19 +116,15 @@ class UDPMonitorServer {
 
 		private String nodeID;
 
-		private long time;
+		private long id;
 
 		public Deadline(String nodeID) {
 			this.nodeID = nodeID;
-			this.time = System.currentTimeMillis();
+			this.id = getUniqueId();
 		}
 
-		public long getTime() {
-			return time;
-		}
-
-		public String getNodeID() {
-			return nodeID;
+		public long getID() {
+			return id;
 		}
 
 		public void run() {
@@ -132,11 +133,17 @@ class UDPMonitorServer {
 			// node is still supervised and there are no new deadlines
 			if (mon != null) {
 				synchronized (mon) { // Mutual exclusion with pingReceived()
-					if (mon.getDeadline() == time) {
+					if (mon.getDeadlineID() == id) {
 						timeout(nodeID, mon);
+					} else {
+						logger.log(Logger.WARNING, "expired Deadline "+id+" for node "+nodeID+" is not the same as monitor Deadline "+mon.getDeadlineID());
 					}
 				}
 			}
+		}
+
+		public String toString() {
+			return "Deadline{nodeID="+nodeID+" id="+id+"}";
 		}
 	}
 
@@ -408,7 +415,7 @@ class UDPMonitorServer {
 	}
 
 	/**
-	 * This method is invoced by a PingHandler thread when a 
+	 * This method is invoked by a PingHandler thread when a 
 	 * new ping message has been received
 	 * @param nodeID identification of the sender node
 	 * @param isTerminating true if the sender is currently shutting down
@@ -429,19 +436,17 @@ class UDPMonitorServer {
 			unknownPingCounters.remove(nodeID);
 			synchronized (mon) { // Mutual exclusion with Timer expiration
 				mon.setLastPing(System.currentTimeMillis()); // update time for last ping
-				addDeadline(nodeID, pingDelayLimit);
+
 				int state = mon.getState();
-	
-				// state transitions
-				if (state == UDPNodeFailureMonitor.STATE_CONNECTED && isTerminating) {
+
+				if (isTerminating) {
 					mon.setState(UDPNodeFailureMonitor.STATE_FINAL);
-	
-				} else if (state == UDPNodeFailureMonitor.STATE_UNREACHABLE && !isTerminating) {
-					mon.setState(UDPNodeFailureMonitor.STATE_CONNECTED);
+				}
+				else {
+					if (state == UDPNodeFailureMonitor.STATE_UNREACHABLE) {
+						mon.setState(UDPNodeFailureMonitor.STATE_CONNECTED);
+					}
 					addDeadline(nodeID, pingDelayLimit);
-	
-				} else if (state == UDPNodeFailureMonitor.STATE_UNREACHABLE && isTerminating) {
-					mon.setState(UDPNodeFailureMonitor.STATE_FINAL);
 				}
 			}
 		} 
@@ -529,15 +534,14 @@ class UDPMonitorServer {
 	}
 
 	private void addDeadline(String nodeID, int delay) {
-		Calendar now = Calendar.getInstance();
-		now.add(Calendar.MILLISECOND, delay);
-
 		Deadline deadline = new Deadline(nodeID);
 		UDPNodeFailureMonitor mon = (UDPNodeFailureMonitor) targets.get(nodeID);
 		if (mon != null) {
-			mon.setDeadline(deadline.getTime());
-			deadlines.put(nodeID, deadline);
-			timer.schedule(deadline, delay);
+			synchronized (mon) {
+				mon.setDeadlineID(deadline.getID());
+				deadlines.put(nodeID, deadline);
+				timer.schedule(deadline, delay);
+			}
 		}
 	}
 }
