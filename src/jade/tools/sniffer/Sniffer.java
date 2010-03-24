@@ -343,6 +343,7 @@ public class Sniffer extends ToolAgent {
 				public void handle(Event ev) {
 					ResetEvents re = (ResetEvents)ev;
 					myGUI.resetTree();
+					allAgents.clear();
 				}
 			});
 
@@ -378,6 +379,7 @@ public class Sniffer extends ToolAgent {
 					String container = cid.getName();
 					AID agent = ba.getAgent();
 					myGUI.addAgent(container, agent);
+					allAgents.add(agent);
 					if(agent.equals(getAID()))
 						myContainerName = container;
 					// Here we check to see if the agent is one that we automatically will
@@ -401,6 +403,7 @@ public class Sniffer extends ToolAgent {
 					String container = cid.getName();
 					AID agent = da.getAgent();
 					myGUI.removeAgent(container, agent);
+					allAgents.remove(agent);
 
 				}
 			});
