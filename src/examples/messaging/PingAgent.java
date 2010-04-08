@@ -33,7 +33,7 @@ import jade.lang.acl.MessageTemplate;
    to know if it is alive. More in details we use a 
    <code>CyclicBehaviour</code> that receives only messages of type 
    <code>QUERY_IF</code> and using the <code>presence</code> ontology.
-   All other messages are ignored. This is acheved by specifying a 
+   All other messages are ignored. This is achieved by specifying a 
    proper <code>MessageTemplate</code>. Whenever such a message is 
    received an <code>INFORM</code> message is sent back as reply.
    @author Giovanni Caire - TILAB

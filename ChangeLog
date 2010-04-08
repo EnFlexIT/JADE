@@ -1,3 +1,64 @@
+MAJOR CHANGES in JADE 4.0 (xx 04 2010)
+==========================================================================
+GENERAL IMPROVEMENTS:
+Kernel
+- Added support for checking if an UNREACHABLE node appears to be dead due to a long network disconnection by means of the NetworkChecker interface
+- Added property Profile.NO_DISPLAY to avoid initializing AWT stuff when JADE is launched without the display 
+- Added support for NO_CLONE and SYNCH_DELIVERY (ACLMessage user defined properties) in ACL Message delivery system.
+- Added support for "local" services i.e. services that do not require their class to be in the classpath of the Main Container
+- Modified LEAP IMTP to support having containers belonging to different platforms in the same JVM (see the jade.enable.multiple.platforms System property)
+
+Behaviours
+- Added OntologyServer class to handle REQUESTs refering  to a given ontology in a simplified way 
+
+Content Language and Ontologies
+- Properly managed fields of type byte[] (array of bytes) as ontological primitive types
+- Added Facets for Permitted-Values, Default-Value, Documentation, Regexp
+
+DF
+
+Interaction Protocols
+
+Others
+- Added support for registering connection/disconnection listeners to the JadeGateway
+
+
+BUG-FIXES:
+- Fixed bug in Sniffer Agent: it did not serve correctly requests to start sniffing agents received as ACLMessages. Bug reported by  Hanno Felix Wagner (University of Duisburg-Essen)
+- Fixed bug in Sniffer Agent: the scrollbar disappeared when starting to sniff a new agent. Fix by Hanno Felix Wagner (University Of Duisburg-Essen)
+- Fixed bug in HTTP MTP: when installing both an HTTP MTP and an HTTPS MTP in the same platform (different containers), messages were not properly routed to the right MTP. Fix by Libor Svehlak (Siemens)  
+- Fixed bug in IteratedAchieveREInitiator: there was an Inconsistent FSM error introduced by a previous modification on FSMBehaviour.deregisterState(). Bug reported by José Miguel Benedicto Ruiz
+- Fixed bug in AgentMobilityService: An exception occurred when a migrated agent terminated and its home container was no longer there. Bug reported by sawal xp
+
+JADE-OSGi (NEW): 
+
+
+ADD-ONS:
+- Misc Add-On: 
+
+- Web Service Integration Gateway - WSIG Add-On:
+
+- Web Service Dynamic Client - WSDC Add-On (NEW):
+
+- Test Suite Add-On:
+
+- Semantic Framework Add-On
+
+- XMLCodec Add-On
+
+EXAMPLES:
+- Fixed problem in examples.bookTrading.BookSellerGui (fix by Doru Kaytar)
+- Simplified examples.PingAgent.PingAgent and aligned with the revisited JADE Administration Tutorial
+
+DOCUMENTATION:
+- Fully revisited the JADE Administration Tutorial according to the evolutions in JADE 4.0
+- NEW Jade tutorial in Portuguese by Andre Filipe
+
+POSSIBLE BACKWARD INCOMPATIBILITIES:
+
+
+
+
 MAJOR CHANGES in JADE 3.7 (01 07 2009)
 ==========================================================================
 GENERAL IMPROVEMENTS:
