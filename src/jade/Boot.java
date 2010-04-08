@@ -42,7 +42,7 @@ import jade.util.Logger;
  * @author Giovanni Caire - TILAB
  * @author Nicolas Lhuillier - Motorola
  * @author Jerome Picault - Motorola
- * @version $Date$ $Revision$
+ * @version $Date: 2010-03-26 11:34:04 +0100 (ven, 26 mar 2010) $ $Revision: 6291 $
  *
  */
 public class Boot {
@@ -62,7 +62,14 @@ public class Boot {
 			if (args.length > 0) {
 				if (args[0].startsWith("-")) {
 					// Settings specified as command line arguments
-					p = new ProfileImpl(parseCmdLineArgs(args));
+					Properties pp = parseCmdLineArgs(args);
+					if (pp != null) {
+						p = new ProfileImpl(pp);
+					}
+					else {
+						// One of the "exit-immediately" options was specified!
+						return;
+					}
 				}
 				else {
 					// Settings specified in a property file
@@ -121,6 +128,14 @@ public class Boot {
 				// Parse next option
 
 				// Switch options require special handling
+				if (args[i].equalsIgnoreCase("-version")) {
+					logger.log(Logger.INFO, "----------------------------------\n"+Runtime.getCopyrightNotice()+"----------------------------------------");
+					return null;
+				}
+				if (args[i].equalsIgnoreCase("-help")) {
+					printUsage();
+					return null;
+				}
 				if (args[i].equalsIgnoreCase("-container")) {
 					props.setProperty(Profile.MAIN, "false");
 				}
