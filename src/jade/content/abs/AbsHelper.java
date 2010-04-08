@@ -467,6 +467,8 @@ public class AbsHelper {
 		throw new OntologyException("Type incompatibility: value of attribute "+attrName+" of "+abs+" is "+attrValue); 
 	}
 
+	
+	//#J2ME_EXCLUDE_BEGIN
 	/**
 	 * Remove all variables and empty aggregates (only if specified)
 	 * @param abs to nullify
@@ -606,6 +608,7 @@ public class AbsHelper {
 			this.index = index;
 		}
 	}
+	//#J2ME_EXCLUDE_END
 }
 
 

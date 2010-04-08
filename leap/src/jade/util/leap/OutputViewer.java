@@ -30,7 +30,6 @@
  */
 package jade.util.leap;
 
-//#J2SE_EXCLUDE_FILE
 //#PJAVA_EXCLUDE_FILE
 
 import javax.microedition.midlet.*;

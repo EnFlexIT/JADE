@@ -36,9 +36,6 @@ import jade.wrapper.ControllerException;
  JADE supports split containers on all Java editions, the split
  container deployment is better suited for small, resource
  constrained devices (MIDP and PJava).
- <br>
- <b>Requires the LEAP add-on</b>
- <br>
  @author Giovanni Caire - TILAB
  */
 public class MicroRuntime {

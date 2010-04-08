@@ -1,197 +1,85 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project name="JADE-LEAP for J2SE" default="do-lib">
+<!-- Note that targets in this ANT build file are always invoked by other targets in the 
+     main LEAP build file. In some cases they refer to properties that are not set locally -->        
+<project name="JADE-LEAP for J2SE" default="do-demo">
 	<!-- PROPERTIES specific for J2SE -->
-	<property name="src" value="${j2se-root}/src"/>
-	<property name="classes" value="${j2se-root}/classes"/>
-	<property name="lib" value="${j2se-root}/lib"/>
 	<property name="doc" value="${j2se-root}/doc"/>
-	<property name="j2se-title" value="${title} v${version} for J2SE"/>
+	<property name="filtered.src" location="${j2se-root}/filtered/src"/>
 	<property name="apidoc-title" value="JADE v${version} API"/>
 	<property name="apidoc-footer" value="&lt;center>These are the official &lt;i>&lt;a href=&quot;http://jade.tilab.com&quot; target=top>JADE&lt;/a>&lt;/i> API. For these API backward compatibility is guaranteed accross JADE versions&lt;/center>"/>
 
-        <!--Filtered src directory property--> 
-        <property name="filtered.src" location="${j2se-root}/filtered/src"/>
-
 	<!-- INIT -->
-	<target name="do-init"  
-	        description="Create the appropriate directories">
+	<target name="do-init"  description="Create the appropriate directories">
 		<mkdir dir="${j2se-root}"/>
-		<mkdir dir="${src}"/>
-		<mkdir dir="${classes}"/>
-		<mkdir dir="${lib}"/>
 		<mkdir dir="${doc}"/>
 	</target>
 
 	
-	<!-- SETUP -->
-	<target name="do-setup" depends="do-init"
-	        description="Setup the build environment">
-	  <!-- 1) Copy JADE sources -->
-	  <copy todir="${src}">
-			<fileset dir="${jade-src}">
-				<include name="**/FIPA/**"/>
-				<include name="**/starlight/**"/>
-				<include name="**/jade/**"/>
-				<exclude name="**/jade/imtp/**"/>
-			</fileset>
-		</copy>
-	  <!-- 2) Copy LEAP sources -->
-	  <copy todir="${src}" overwrite="yes">
-			<fileset dir="${leap-src}">
-			  <exclude name="**/jade/mtp/http/**"/>
-			  <exclude name="**/jade/gui/**"/>
-				<exclude name="**/*.java@"/>
-				<exclude name="**/*.java#"/>
-				<exclude name="**/jade/util/leap/**"/>
-			</fileset>
-		</copy>
-	  <!-- 3) Preprocess the whole -->
-	  <pproc basedir="${src}" type="j2se"/>
-	  <!-- 4) Copy the lib commons-codec -->
-	  <copy todir="${lib}/commons-codec" overwrite="yes">
-		<fileset dir="../lib/commons-codec"/>
-	  </copy>
-	</target>
-
-	
 	<!-- RESET -->
-	<target name="do-reset"
-	        description="Reset the build environment">
+	<target name="do-reset" description="Reset the build environment">
 		<delete dir = "${j2se-root}"/>
 	</target>
 
 	
 	<!-- CLEAN -->
-	<target name="do-clean"
-	        description="Clean class files">
-		<delete dir = "${classes}"/>
+	<target name="do-clean" description="Clean class files">
 		<delete dir = "${doc}"/>
-		<delete dir = "${lib}"/>
-		<mkdir dir="${classes}"/>
-		<mkdir dir="${lib}"/>
-		<mkdir dir="${doc}"/>
+		<mkdir dir="${doc}"/> 
 	</target>
-
 	
-	<!-- PARSERS -->
-	<target name="do-parsers" if="javacc-home"
-	        description="Generate ACL and SL parsers from .jj files">
-  	<!-- ACL Parser -->
-		<javacc target="${src}/jade/lang/acl/ACLParser.jj"
-		        javacchome="${javacc-home}"/>
-  	<!-- SL Parser -->
-		<javacc target="${src}/jade/content/lang/sl/SLParser.jj"
-		        javacchome="${javacc-home}"/>
-	</target>
 
+	<!-- APIDOC -->
+	<target name="do-apidoc" description="Generate javadoc for JADE official API only">
+		<!-- 1) Create filtered src directory -->
+		<mkdir dir="${filtered.src}"/>
+      
+		<!-- 2) Copy JADE sources -->
+		<copy todir="${filtered.src}" overwrite="yes">
+			<fileset dir="${jade-src}">
+				<!-- Explicitly exclude all files that cannot include preprocessor directives -->
+				<exclude name="**/jade/content/lang/sl/SLParserConstants.java"/>
+				<exclude name="**/jade/content/lang/sl/ASCII_CharStream.java"/>
+				<exclude name="**/jade/content/lang/sl/SimpleCharStream.java"/>
+				<exclude name="**/jade/content/lang/sl/SLParserTokenManager.java"/>
+				<exclude name="**/jade/content/lang/sl/Token.java"/>
+				<exclude name="**/jade/content/lang/sl/ParseException.java"/>
+				<exclude name="**/jade/content/lang/sl/TokenMgrError.java"/>
 
-	<!-- COMPILE -->
-	<target name="do-compile" depends="do-setup, do-parsers, do-compile-only" description="Compile sources (preprocess them before)">
-	</target>
-
-	
-	<!-- COMPILE ONLY (NO PREPROCESSING) -->
-	<target name="do-compile-only" depends="do-init" description="Compile sources (no preprocessing)">
-		<javac srcdir="${src}"
-		       destdir="${classes}"
-		       classpath="${lib}/commons-codec/commons-codec-1.3.jar"
-		       source="1.5"
-		       debug="${debug-build}"
-		       debuglevel="vars,lines,source"
-		       optimize="${optimised-build}"
-		       deprecation="off">
-                           <!--<compilerarg value="-Xlint:deprecation"/>
-                           <compilerarg value="-Xlint:unchecked"/>-->
-               </javac>
-		<!-- Ensure the images for the tools are also copied -->
-		<mkdir dir="${classes}/jade/tools/dfgui/images"/>
-		<mkdir dir="${classes}/jade/tools/DummyAgent/images"/>
-		<mkdir dir="${classes}/jade/tools/introspector/gui/images"/>
-		<mkdir dir="${classes}/jade/tools/sniffer/images"/>
-		<mkdir dir="${classes}/jade/tools/rma/images"/>
-		<mkdir dir="${classes}/jade/gui/images"/>
-		<copy todir="${classes}">
-			<fileset dir="${src}">
-				<include name="**/*.png"/>
-				<include name="**/*.gif"/>
-				<include name="**/*.jpg"/>
+				<exclude name="**/jade/content/lang/sl/ExtendedSLParserConstants.java"/>
+				<exclude name="**/jade/content/lang/sl/ExtendedSLParserTokenManager.java"/>
+				
+				<exclude name="**/jade/lang/acl/ACLParserConstants.java"/>
+				<exclude name="**/jade/lang/acl/ASCII_CharStream.java"/>
+				<exclude name="**/jade/lang/acl/SimpleCharStream.java"/>
+				<exclude name="**/jade/lang/acl/ACLParserTokenManager.java"/>
+				<exclude name="**/jade/lang/acl/Token.java"/>
+				<exclude name="**/jade/lang/acl/ParseException.java"/>
+				<exclude name="**/jade/lang/acl/TokenMgrError.java"/>
 			</fileset>
 		</copy>
-	</target>
-
-	
-	<!-- LIB -->
-	<target name="do-lib" depends="do-compile"
-	        description="Create Jade-leap jar file">
-		<delete file="${lib}/JadeLeap.jar" quiet="true"/>
-		<jar jarfile="${lib}/JadeLeap.jar" basedir="${classes}"/>
-	</target>
-
-
-	<!-- JAVADOC -->
-	<target name="do-javadoc" depends="do-setup"
-	        description="Generate javadoc">
-		<javadoc sourcepath="${src}"
-		         destdir="${doc}"
-		         classpath="${classes}"
-		         doctitle="&lt;h1>${j2se-title}&lt;/h1>"
-		         bottom="${javadoc-footer}"
-		         verbose="false"
-		         windowtitle="${j2se-title}"
-		         packagenames="jade.*, FIPA, starlight.*"/>
-	</target>
-
-        <target name="do-apidoc" depends="do-setup"
-            description="Generate filtered javadoc">
-            
-            <!-- 1) Create filtered src directory -->
-            <mkdir dir="${filtered.src}"/>
-            
-            <!-- 2) Copy JADE sources -->
-            <copy todir="${filtered.src}" overwrite="yes">
-                    <fileset dir="${src}">
-                    	<exclude name="**/jade/content/lang/sl/SLParserConstants.java"/>
-                    	<exclude name="**/jade/content/lang/sl/ASCII_CharStream.java"/>
-                    	<exclude name="**/jade/content/lang/sl/SLParserTokenManager.java"/>
-                    	<exclude name="**/jade/content/lang/sl/Token.java"/>
-                    	<exclude name="**/jade/content/lang/sl/ParseException.java"/>
-                    	<exclude name="**/jade/content/lang/sl/TokenMgrError.java"/>
-
-                    	<exclude name="**/jade/lang/acl/ACLParserConstants.java"/>
-                    	<exclude name="**/jade/lang/acl/ASCII_CharStream.java"/>
-                    	<exclude name="**/jade/lang/acl/ACLParserTokenManager.java"/>
-                    	<exclude name="**/jade/lang/acl/Token.java"/>
-                    	<exclude name="**/jade/lang/acl/ParseException.java"/>
-                    	<exclude name="**/jade/lang/acl/TokenMgrError.java"/>
-                    </fileset>
-            </copy>
            
-            <!-- 3) Preprocess-->
-            <pproc basedir="${filtered.src}" type="apidoc"/>
+		<!-- 3) Preprocess-->
+		<pproc basedir="${filtered.src}" type="apidoc"/>
         
-            <!-- 4) Generates javadoc-->
-            <javadoc sourcepath="${filtered.src}"
-                     destdir="${doc}"
-                     classpath="${classes}"
-                     doctitle="&lt;h1>${apidoc-title}&lt;/h1>"
-                     bottom="${apidoc-footer}"
-                     verbose="false"
-                     windowtitle="${apidoc-title}"
-                     use="true"
-                     packagenames="jade.*"
-                     excludepackagenames="jade.content.frame, jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.core.nodeMonitoring, jade.core.faultRecovery, jade.domain.DFGUIManagement, jade.domain.KBManagement, jade.domain.persistence, jade.gui, jade.imtp.*, jade.mtp.*, jade.security.*, jade.tools.*"/>
-                     <!--
-                     Reacher documentation: Need to remove APIDOC exclude from AgentState, BehaviourID and Agent state-value constants
-                     excludepackagenames="jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.domain.DFGUIManagement, jade.domain.KBManagement, jade.imtp.*, jade.mtp.*, jade.security.*, jade.tools.applet, jade.tools.dfgui, jade.tools.DummyAgent, jade.tools.introspector.*, jade.tools.gui, jade.tools.rma, jade.tools.sniffer, jade.tools.testagent.*"/>
-                     -->
-            <!-- 5) Remove filtered src -->
-            <delete dir="${filtered.src}"/>
-        </target>
+		<!-- 4) Generates javadoc-->
+		<javadoc sourcepath="${filtered.src}"
+		         destdir="${doc}"
+		         doctitle="&lt;h1>${apidoc-title}&lt;/h1>"
+		         bottom="${apidoc-footer}"
+		         verbose="false"
+		         windowtitle="${apidoc-title}"
+		         use="true"
+		         packagenames="jade.*"
+		         excludepackagenames="jade.content.frame, jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.core.nodeMonitoring, jade.core.faultRecovery, jade.domain.DFGUIManagement, jade.domain.KBManagement, jade.domain.persistence, jade.gui, jade.imtp.*, jade.mtp.*, jade.security.*, jade.tools.*"/>
+
+		<!-- 5) Remove filtered src -->
+		<delete dir="${filtered.src}"/>
+	</target>
 
 
 	<!-- DEMO -->
-	<target name="do-demo" depends="do-init, check-resources" description="Build the demo">
+	<target name="do-demo" depends="do-init, check-resources" description="Build the demo for the J2SE environment">
 		<delete dir = "${demo-preprocessed}" quiet="true"/>
 		<delete dir = "${demo-classes}" quiet="true"/>
 		<mkdir dir="${demo-preprocessed}"/>
@@ -206,7 +94,7 @@
 	  
 		<javac srcdir="${demo-preprocessed}"
 		       destdir="${demo-classes}"
-		       classpath="${lib}/JadeLeap.jar"
+		       classpath="${jade-home}/lib/jade.jar"
 		       debug="${debug-build}"
 		       optimize="${optimised-build}"
 		       deprecation="off"/>
@@ -215,27 +103,32 @@
 		<jar jarfile="${root}/demo/demoJ2se.jar" basedir="${demo-classes}"/>
 	</target>
 
+	
+	<!-- The following targets are there to ensure that the jade.jar file is available
+	     as it is necessary for the compilation of the demo. More in details:
+	     - If the jar file is already there, just do nothing
+	     - else if the JADE sources are available, create the jar 
+	     - else ask the user to insert the location of the jar file --> 
 	<target name="check-resources">
-		<available file="${lib}/JadeLeap.jar" property="JadeLeap" value="${lib}/JadeLeap.jar"/>
+		<available file="${jade-home}/lib/jade.jar" property="Jade" value="${jade-home}/lib/jade.jar"/>
 		<available file="${jade-home}/src/jade/Boot.java" property="jade-sources-available" value="true"/>
 
-		<antcall target="get-leap-jar"/>
+		<antcall target="get-jade-jar"/>
 	</target>
 
-	<target name="get-leap-jar" unless="JadeLeap">
-		<antcall target="create-leap-jar"/>
-		<antcall target="input-leap-jar"/>
+	<target name="get-jade-jar" unless="Jade">
+		<antcall target="create-jade-jar"/>
+		<antcall target="input-jade-jar"/>
 	</target>
 
-	<target name="create-leap-jar" if="jade-sources-available">
-		<antcall target="do-lib"/>
+	<target name="create-jade-jar" if="jade-sources-available">
+		<ant dir="${jade-home}" antfile="build.xml" target="lib" inheritAll="false"/>
 	</target>
 
-	<target name="input-leap-jar" unless="jade-sources-available">
-		<input message="Insert the pathname of the JADE-LEAP jar file for J2SE -->" addProperty="JadeLeap"/>
-		<mkdir dir="${lib}"/>
-		<copy file="${JadeLeap}" tofile="${lib}/JadeLeap.jar"/>
+	<target name="input-jade-jar" unless="jade-sources-available">
+		<input message="Insert the pathname of the JADE jar file -->" addProperty="Jade"/>
+		<mkdir dir="${jade-home}/lib"/>
+		<copy file="${Jade}" tofile="${jade-home}/lib/jade.jar"/>
 	</target>
-
 
 </project>

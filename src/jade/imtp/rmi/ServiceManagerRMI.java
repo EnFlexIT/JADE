@@ -19,10 +19,11 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.imtp.rmi;
 
+//#J2ME_EXCLUDE_FILE
 //#APIDOC_EXCLUDE_FILE
 
 import java.rmi.Remote;
@@ -47,18 +48,18 @@ import java.util.Vector;
 // the program jade.misc.JADEPlatformTest
 public interface ServiceManagerRMI extends Remote {
 
-    // Proper ServiceManager-like methods
-    public String getPlatformName() throws RemoteException;
-    String addNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws RemoteException, ServiceException, JADESecurityException;
-    void removeNode(NodeDescriptor dsc, boolean propagated) throws RemoteException, ServiceException;
-    void addSlice(ServiceDescriptor service, NodeDescriptor dsc, boolean propagated)  throws RemoteException, ServiceException;
-    void removeSlice(String serviceKey, String sliceKey, boolean propagated)  throws RemoteException, ServiceException;
-    void addReplica(String newAddr, boolean propagated)  throws RemoteException, ServiceException;
-    void removeReplica(String address, boolean propagated)  throws RemoteException, ServiceException;
+	// Proper ServiceManager-like methods
+	public String getPlatformName() throws RemoteException;
+	String addNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws RemoteException, ServiceException, JADESecurityException;
+	void removeNode(NodeDescriptor dsc, boolean propagated) throws RemoteException, ServiceException;
+	void addSlice(ServiceDescriptor service, NodeDescriptor dsc, boolean propagated)  throws RemoteException, ServiceException;
+	void removeSlice(String serviceKey, String sliceKey, boolean propagated)  throws RemoteException, ServiceException;
+	void addReplica(String newAddr, boolean propagated)  throws RemoteException, ServiceException;
+	void removeReplica(String address, boolean propagated)  throws RemoteException, ServiceException;
 
-    Service.Slice findSlice(String serviceKey, String sliceKey) throws RemoteException, ServiceException;
-    Vector findAllSlices(String serviceKey) throws RemoteException, ServiceException;
-   
-    void adopt(Node n, Node[] children) throws RemoteException;
-    void ping() throws RemoteException;    
+	Service.Slice findSlice(String serviceKey, String sliceKey) throws RemoteException, ServiceException;
+	Vector findAllSlices(String serviceKey) throws RemoteException, ServiceException;
+
+	void adopt(Node n, Node[] children) throws RemoteException;
+	void ping() throws RemoteException;    
 }

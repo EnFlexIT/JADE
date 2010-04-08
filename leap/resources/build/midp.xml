@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!-- Note that targets in this ANT build file are always invoked by other targets in the 
+     main LEAP build file. In some cases they refer to properties that are not set locally -->        
 <project name="JADE-LEAP for MIDP" default="do-lib">
 	<!-- PROPERTIES specific for MIDP -->
 	<property name="src" value="${midp-root}/src"/>
@@ -11,8 +13,7 @@
 
 
 	<!-- INIT -->
-	<target name="do-init"  
-	        description="Create the appropriate directories">
+	<target name="do-init"  description="Create the appropriate directories">
 		<mkdir dir="${midp-root}"/>
 		<mkdir dir="${src}"/>
 		<mkdir dir="${classes}"/>
@@ -23,8 +24,7 @@
 
 	
 	<!-- SETUP SMS -->
-	<target name="do-setup-sms" depends="do-init" if="wma-classes"
-	        description="Copy the files that require the WMA to be compiled">
+	<target name="do-setup-sms" depends="do-init" if="wma-classes" description="Copy the files that require the WMA to be compiled">
 	  <copy todir="${src}">
 			<fileset dir="${leap-src}">
 				<include name="**/jade/imtp/leap/sms/*"/>
@@ -33,22 +33,18 @@
 	</target>
 	
 	<!-- SETUP -->
-	<target name="do-setup" depends="do-setup-sms"
-	        description="Setup the build environment">
+	<target name="do-setup" depends="do-setup-sms" description="Setup the build environment">
 	  <!-- 1) Copy JADE sources -->
 	  <copy todir="${src}">
 			<fileset dir="${jade-src}">
-				<include name="**/starlight/**"/>
 				<include name="**/jade/**"/>
 				
-				<exclude name="**/jade/content/acl/**"/>
-				<exclude name="**/jade/content/lang/j/**"/>
 				<exclude name="**/jade/core/mobility/**"/>
 				<exclude name="**/jade/core/event/**"/>
 				<exclude name="**/jade/domain/introspection/**"/>
 				<exclude name="**/jade/domain/mobility/**"/>
 				<exclude name="**/jade/domain/DFGUIManagement/**"/>
-				<exclude name="**/jade/imtp/**"/>
+				<exclude name="**/jade/imtp/rmi/**"/>
 				<exclude name="**/jade/mtp/iiop/**"/>
 				<exclude name="**/jade/mtp/http/**"/>
 				<exclude name="**/jade/gui/**"/>
@@ -74,33 +70,32 @@
 				<exclude name="**/jade/content/lang/sl/TokenMgrError.java"/>
 			</fileset>
 		</copy>
-	  <!-- 2) Copy LEAP sources -->
-	  <copy todir="${src}" overwrite="yes">
+		<!-- 2) Copy LEAP sources -->
+		<copy todir="${src}" overwrite="yes">
 			<fileset dir="${leap-src}">
-			  <exclude name="**/jade/mtp/http/**"/>
+				<exclude name="**/jade/mtp/http/**"/>
+				<exclude name="**/jade/imtp/leap/sms/*"/>
+				<exclude name="**/jade/gui/*"/>
 				<exclude name="**/*.java@"/>
 				<exclude name="**/*.java#"/>
-				<exclude name="**/jade/imtp/leap/sms/*"/>
 			</fileset>
 		</copy>
-	  <!-- 3) Preprocess the whole for MIDP -->
-	  <pproc basedir="${src}" type="midp"/>
+		<!-- 3) Preprocess the whole for MIDP -->
+		<pproc basedir="${src}" type="midp"/>
 	  
-	  <!-- 4) Preprocess the whole for CUSTOM directives -->
-	  <pproc basedir="${src}" type="${additional-pproc-type}"/>
+		<!-- 4) Preprocess the whole for CUSTOM directives -->
+		<pproc basedir="${src}" type="${additional-pproc-type}"/>
 	</target>
 
 	
 	<!-- RESET -->
-	<target name="do-reset" 
-	        description="Reset the build environment">
+	<target name="do-reset" description="Reset the build environment">
 		<delete dir = "${midp-root}"/>
 	</target>
 
 	
 	<!-- CLEAN -->
-	<target name="do-clean"
-	        description="Clean class files">
+	<target name="do-clean" description="Clean class files">
 		<delete dir = "${classes}"/>
 		<delete dir = "${unverified}"/>
 		<delete dir = "${doc}"/>
@@ -151,8 +146,7 @@
 
 	
 	<!-- JAVADOC -->
-	<target name="do-javadoc" depends="do-setup"
-	        description="Generate javadoc">
+	<target name="do-javadoc" depends="do-setup" description="Generate javadoc">
 		<javadoc sourcepath="${src}"
 		         destdir="${doc}"
 		         classpath="${classes};${boot-midp-classes}"
@@ -212,6 +206,11 @@
 		<updatejad jad="${demo}/demo.jad" />
 	</target>
 
+	<!-- The following targets are there to ensure that the JadeLeap.jar file for MIDP is available
+	     as it is necessary for the compilation of the demo. More in details:
+	     - If the jar file is already there, just do nothing
+	     - else if the JADE sources are available, create the jar 
+	     - else ask the user to insert the location of the jar file --> 
 	<target name="check-resources">
 		<available file="${lib}/JadeLeap.jar" property="JadeLeap" value="${lib}/JadeLeap.jar"/>
 		<available file="${jade-home}/src/jade/Boot.java" property="jade-sources-available" value="true"/>

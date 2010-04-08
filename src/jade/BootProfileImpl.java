@@ -25,7 +25,8 @@
  */
 package jade;
 
-//#ALL_EXCLUDE_FILE
+//#APIDOC_EXCLUDE_FILE
+//#J2ME_EXCLUDE_FILE
 
 import java.net.InetAddress;
 
@@ -36,7 +37,6 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
 import jade.util.BasicProperties;
-import jade.util.ExpandedProperties;
 import jade.util.PropertiesException;
 
 import jade.core.ProfileImpl;
@@ -74,7 +74,7 @@ public class BootProfileImpl extends ProfileImpl {
 
 
 
-	ExpandedProperties argProp = null;
+	BasicProperties argProp = null;
 	BootHelper helper = new BootHelper();
 
 	/**
@@ -83,7 +83,7 @@ public class BootProfileImpl extends ProfileImpl {
 	public BootProfileImpl() {
 		// creates the default profile
 		super(true); 
-		argProp = new ExpandedProperties();
+		argProp = new BasicProperties();
 	}
 
 	/**
@@ -92,7 +92,7 @@ public class BootProfileImpl extends ProfileImpl {
 	 */
 	public BootProfileImpl(String[] args) throws PropertiesException {
 		this();
-		ExpandedProperties properties = new ExpandedProperties(args);
+		BasicProperties properties = new BasicProperties(args);
 		bootProps = (Properties)properties.clone();
 		setArgProperties(properties);
 	}        

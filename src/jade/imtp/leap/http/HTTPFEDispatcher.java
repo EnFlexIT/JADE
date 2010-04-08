@@ -47,7 +47,7 @@ import java.util.Vector;
 import java.io.*;
 
 /*#MIDP_INCLUDE_BEGIN
-import javax.microedition.io.*;
+//import javax.microedition.io.*;
 #MIDP_INCLUDE_END*/
 
 /**
@@ -402,7 +402,7 @@ public class HTTPFEDispatcher implements FEConnectionManager, Dispatcher, TimerL
 					}
 				}
 			}
-			myLogger.log(Logger.INFO, "IM-"+myId+" terminated", 1);
+			myLogger.log(Logger.INFO, "IM-"+myId+" terminated");
 		}
 
 		private synchronized void refreshConnection() throws IOException {

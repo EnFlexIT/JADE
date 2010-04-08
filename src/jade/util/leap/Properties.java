@@ -105,7 +105,7 @@ public class Properties extends Hashtable {
     try {
       // Search the file system
       InputStream in = new FileInputStream(storage); 
-      super.load(in);
+      load(in);
       in.close();
     }
     catch(IOException ioe) {
@@ -114,7 +114,7 @@ public class Properties extends Hashtable {
     	if (in == null) {
     		throw new IOException("Cannot find file "+storage);
     	}
-    	super.load(in); 
+    	load(in); 
       in.close();
     }
     //#MIDP_EXCLUDE_END

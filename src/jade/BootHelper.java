@@ -25,7 +25,6 @@
 package jade;
 
 //#APIDOC_EXCLUDE_FILE
-
 //#J2ME_EXCLUDE_FILE
 
 

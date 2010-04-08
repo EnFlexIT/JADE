@@ -69,10 +69,19 @@ public abstract class WrapperException extends Exception {
 	}
 
 	/**
-       Prints the stack trace of this exception on the standard output
-       stream. If a nested exception is present, its stack trace is
+       Prints the stack trace of this exception. If a nested exception is present, its stack trace is
        also printed.
 	 */
+	//#MIDP_EXCLUDE_BEGIN
+	public void printStackTrace(java.io.PrintWriter pw) {
+		super.printStackTrace(pw);
+		if(nested != null) {
+			pw.println("Nested Exception:");
+			nested.printStackTrace(pw);
+		}
+	}
+	//#MIDP_EXCLUDE_END
+	/*#MIDP_INCLUDE_BEGIN
 	public void printStackTrace() {
 		super.printStackTrace();
 		if(nested != null) {
@@ -80,6 +89,7 @@ public abstract class WrapperException extends Exception {
 			nested.printStackTrace();
 		}
 	}
+	#MIDP_INCLUDE_END*/
 
 	/**
        Reads the exception wrapped by this object.

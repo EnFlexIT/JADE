@@ -73,7 +73,7 @@ public class TestAgent extends Agent {
   public static void main(String[] args) {
     String host = "cross.hq.acklin.nl";
     String argsv[] = {"-host", host, "-container", "ruurd:jade.tools.testagent.TestAgent"};
-    jade.Boot.main(argsv);
+    jade.Boot3.main(argsv);
   }
 
 

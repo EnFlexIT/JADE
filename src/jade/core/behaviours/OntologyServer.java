@@ -1,5 +1,7 @@
 package jade.core.behaviours;
 
+//#J2ME_EXCLUDE_FILE
+
 import jade.core.behaviours.CyclicBehaviour;
 
 import java.lang.reflect.InvocationTargetException;

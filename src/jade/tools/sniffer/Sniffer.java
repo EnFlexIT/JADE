@@ -63,7 +63,7 @@ import jade.proto.SimpleAchieveREInitiator;
 
 import jade.tools.ToolAgent;
 
-import jade.util.ExpandedProperties;
+import jade.util.BasicProperties;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -147,7 +147,7 @@ public class Sniffer extends ToolAgent {
 
 	private Set allAgents = null;
 	private Hashtable preload = null;
-	private ExpandedProperties properties = null;
+	private BasicProperties properties = null;
 
 	private ArrayList agentsUnderSniff = new ArrayList();
 
@@ -428,7 +428,7 @@ public class Sniffer extends ToolAgent {
 	 */
 	public void toolSetup() {
 
-		properties = new ExpandedProperties();
+		properties = new BasicProperties();
 
 		/*
 		 * preload agents from argument array if arguments present, otherwise load
@@ -447,7 +447,7 @@ public class Sniffer extends ToolAgent {
 			String fileName = locateFile("sniffer.properties");
 			if (fileName != null) {
 				try {
-					properties.addFromFile(fileName);
+					properties.load(new FileInputStream(fileName));
 				} catch (IOException ioe) {
 					// ignore - Properties not processed
 				}
@@ -549,7 +549,7 @@ public class Sniffer extends ToolAgent {
 	 * such as INFORM, QUERY, etc.
 	 * @deprecated Use sniffer.properties file instead.
 	 */
-	private void loadSnifferConfigurationFile (String aFileName, ExpandedProperties theProperties) {
+	private void loadSnifferConfigurationFile (String aFileName, BasicProperties theProperties) {
 		StringBuffer sb = new StringBuffer();
 		BufferedReader in = null;
 		try {

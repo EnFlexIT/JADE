@@ -47,7 +47,7 @@ package jade.content.onto;
  *         try {
  *             add("com.acme.rocket.ontology");
  *             add(C1.class);
- *             add(C2.class, false);
+ *             add(C2.class);
  *         } catch (OntologyException e) {
  *             e.printStackTrace();
  *         }
@@ -88,8 +88,8 @@ package jade.content.onto;
  * A set of annotatons allow to customize the ontological properties of the slots.
  *
  * @author Paolo Cancedda
- * @see jade.content.Concept;
- * @see jade.content.Predicate;
+ * @see jade.content.Concept
+ * @see jade.content.Predicate
  * @see jade.content.onto.annotations.Element
  * @see jade.content.onto.annotations.Slot
  * @see jade.content.onto.annotations.SuppressSlot

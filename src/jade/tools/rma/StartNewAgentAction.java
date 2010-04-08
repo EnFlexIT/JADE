@@ -27,6 +27,7 @@ import java.awt.Frame;
 
 import jade.gui.AgentTree;
 import jade.BootHelper;
+import jade.core.Profile;
 import jade.core.Specifier;
 
 import java.util.StringTokenizer;
@@ -67,17 +68,14 @@ class StartNewAgentAction extends ContainerAction {
 			String agentUser = StartDialog.getAgentUser ();
 			String arguments = StartDialog.getArguments();
 
-			if((agentName.trim().length() > 0) && (className.trim().length() >0))
-			{
-				String agentSpecifier = agentName + ":" + className + "(" + arguments +")";
-				//not remove '"'and '\'
-				BootHelper helperParser = new BootHelper();
-				Vector al = helperParser.T2(agentSpecifier,true);
-
-				//return a list of lists in the form [[agentName1, class, arg1...argN]....[agentNameN, class, arg1, ...argM]]
-				Enumeration it = helperParser.getCommandLineAgentSpecifiers(al);
-				Object[] arg = (it.hasMoreElements()?((Specifier)it.nextElement()).getArgs():new Object[0]);
-				myRMA.newAgent(agentName, className, arg, agentUser, container);
+			if((agentName.trim().length() > 0) && (className.trim().length() >0)) {
+				char argsDelimiter = ',';
+				if ("true".equals(myRMA.getProperty(Profile.STYLE_3_X, "false"))) {
+					argsDelimiter = ' ';
+				}
+				Vector v = Specifier.parseList(arguments, argsDelimiter);
+				Object[] args = v.toArray();				
+				myRMA.newAgent(agentName, className, args, agentUser, container);
 			}
 		}
 		return result;

@@ -474,19 +474,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	
 	boolean joinPlatform() {
 		//#J2ME_EXCLUDE_BEGIN
-		// Redirect output if the -output option is specified
-		String output = myProfile.getParameter("output", null);
-		if (output != null) {
-			try {
-				jade.util.PerDayFileLogger fl = new jade.util.PerDayFileLogger(output);
-				jade.util.PrintStreamSplitter pss = new jade.util.PrintStreamSplitter(System.out, fl);
-				System.setOut(pss);
-				System.setErr(pss);
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
+		checkLocalHostAddress();
 		//#J2ME_EXCLUDE_END
 
 		try {
@@ -523,6 +511,13 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 		myLogger.log(Logger.INFO, "--------------------------------------\nAgent container " + myID + " is ready.\n--------------------------------------------");
 		return true;
+	}
+	
+	private void checkLocalHostAddress() {
+		String address = Profile.getDefaultNetworkName();
+		if (address.equals(Profile.LOCALHOST_CONSTANT) || address.equals(Profile.LOOPBACK_ADDRESS)) {
+			myLogger.log(Logger.WARNING, "\n***************************************************************\nJAVA is not able to detect the local host address.\nIf this container is part of a distributed platform, use the\n-local-host option to explicitly specify the local host address\n***************************************************************\n");
+		}
 	}
 
 	private void cleanIMTPManager() {

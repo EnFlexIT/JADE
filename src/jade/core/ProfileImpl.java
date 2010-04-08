@@ -37,7 +37,6 @@ import java.net.*;
 
 import java.io.IOException;
 import java.util.Vector;
-import java.util.Enumeration;
 
 /**
  * This class allows the JADE core to retrieve configuration-dependent classes
@@ -63,17 +62,6 @@ public class ProfileImpl extends Profile {
 	// Keys to retrieve the implementation classes for configurable
 	// functionalities among the bootstrap properties.
 	private static final String RESOURCE = "resource";
-	
-	//#APIDOC_EXCLUDE_BEGIN
-	public static final int DEFAULT_PORT = 1099;
-	//#APIDOC_EXCLUDE_END
-	
-	//#ALL_EXCLUDE_BEGIN
-	private static final String DEFAULT_IMTPMANAGER_CLASS = "jade.imtp.rmi.RMIIMTPManager";
-	//#ALL_EXCLUDE_END
-	/*#ALL_INCLUDE_BEGIN
-	 private static final String DEFAULT_IMTPMANAGER_CLASS = "jade.imtp.leap.LEAPIMTPManager";
-	 #ALL_INCLUDE_END*/
 	
 	//#MIDP_EXCLUDE_BEGIN
 	private MainContainerImpl myMain = null;
@@ -380,34 +368,6 @@ public class ProfileImpl extends Profile {
 	}
 	
 	/**
-	 * Retrieve a boolean value for a configuration property.  If no
-	 * corresponding property is found or if its string value cannot
-	 * be converted to a boolean one, a default value is returned.
-	 * @param key The key identifying the parameter to be retrieved
-	 * among the configuration properties.
-	 * @param aDefault The value to return when there is no property
-	 * set for the given key, or its value cannot be converted to a
-	 * boolean value.
-	 *
-	 public boolean getParameter(String key, boolean aDefault) {
-	 String v = props.getProperty(key);
-	 if(v == null) {
-	 return aDefault;
-	 }
-	 else {
-	 if(CaseInsensitiveString.equalsIgnoreCase(v, "true")) {
-	 return true;
-	 }
-	 else if(CaseInsensitiveString.equalsIgnoreCase(v, "false")) {
-	 return false;
-	 }
-	 else {
-	 return aDefault;
-	 }
-	 }
-	 }*/
-	
-	/**
 	 * Retrieve a list of Specifiers from the configuration properties.
 	 * Agents, MTPs and other items are specified among the configuration
 	 * properties in this way.
@@ -578,12 +538,19 @@ public class ProfileImpl extends Profile {
 	
 	
 	private void createIMTPManager() throws ProfileException {
-		String className = getParameter(IMTP, DEFAULT_IMTPMANAGER_CLASS);
+		String imtp = getParameter(IMTP, LEAP_IMTP);
+		String imtpClass = imtp;
+		if (imtp.equals(LEAP_IMTP)) {
+			imtpClass = "jade.imtp.leap.LEAPIMTPManager";
+		}
+		else if (imtp.equals(RMI_IMTP)) {
+			imtpClass = "jade.imtp.rmi.RMIIMTPManager";
+		}
 		try {
-			myIMTPManager = (IMTPManager) Class.forName(className).newInstance();
+			myIMTPManager = (IMTPManager) Class.forName(imtpClass).newInstance();
 		}
 		catch (Exception e) {
-			throw new ProfileException("Error loading IMTPManager class "+className);
+			throw new ProfileException("Error loading IMTPManager class "+imtpClass);
 		}
 	}
 	

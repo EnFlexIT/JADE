@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.wrapper;
 
+
 /**
    This class is maintained for backward compatibility only. 
    It is not deprecated since, for backward compatibility 

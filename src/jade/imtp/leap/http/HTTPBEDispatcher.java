@@ -108,11 +108,6 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 			String nodeName = myID.replace(':', '_');
 			props.setProperty(Profile.CONTAINER_NAME, nodeName);
 
-			// TO BE REMOVED
-			// Add the mediator ID to the profile (it's used as a token
-			// to keep related replicas together)
-			props.setProperty(Profile.BE_MEDIATOR_ID, myID);
-
 			myContainer = new BackEndContainer(props, this);
 			if (!myContainer.connect()) {
 				throw new ICPException("BackEnd container failed to join the platform");

@@ -26,6 +26,8 @@
  */
 package jade.imtp.rmi;
 
+//#J2ME_EXCLUDE_FILE
+
 import jade.mtp.TransportAddress;
 
 /**
@@ -33,74 +35,74 @@ import jade.mtp.TransportAddress;
  * @author LEAP
  */
 public class RMIAddress implements TransportAddress {
-    protected String host;
-    protected String port;
-    protected String file;
-    protected String anchor;
+	protected String host;
+	protected String port;
+	protected String file;
+	protected String anchor;
 
-    /**
-     * Constructor declaration
-     */
-    public RMIAddress() {}
+	/**
+	 * Constructor declaration
+	 */
+	public RMIAddress() {}
 
-    /**
-     * Constructor declaration
-     * @param host
-     * @param port
-     * @param file
-     * @param anchor
-     */
-    public RMIAddress(String host, String port, String file, String anchor) {
-        this.host = host;
-        this.port = port;
-        this.file = file;
-        this.anchor = anchor;
-    }
+	/**
+	 * Constructor declaration
+	 * @param host
+	 * @param port
+	 * @param file
+	 * @param anchor
+	 */
+	public RMIAddress(String host, String port, String file, String anchor) {
+		this.host = host;
+		this.port = port;
+		this.file = file;
+		this.anchor = anchor;
+	}
 
-    /**
-     * Method declaration
-     * @return
-     * @see
-     */
-    public String getProto() {
-        return "rmi";
-    } 
+	/**
+	 * Method declaration
+	 * @return
+	 * @see
+	 */
+	public String getProto() {
+		return "rmi";
+	} 
 
-    /**
-     * Method declaration
-     * @return
-     * @see
-     */
-    public String getHost() {
-        return host;
-    } 
+	/**
+	 * Method declaration
+	 * @return
+	 * @see
+	 */
+	public String getHost() {
+		return host;
+	} 
 
-    /**
-     * Method declaration
-     * @return
-     * @see
-     */
-    public String getPort() {
-        return port;
-    } 
+	/**
+	 * Method declaration
+	 * @return
+	 * @see
+	 */
+	public String getPort() {
+		return port;
+	} 
 
-    /**
-     * Method declaration
-     * @return
-     * @see
-     */
-    public String getFile() {
-        return file;
-    } 
+	/**
+	 * Method declaration
+	 * @return
+	 * @see
+	 */
+	public String getFile() {
+		return file;
+	} 
 
-    /**
-     * Method declaration
-     * @return
-     * @see
-     */
-    public String getAnchor() {
-        return anchor;
-    } 
+	/**
+	 * Method declaration
+	 * @return
+	 * @see
+	 */
+	public String getAnchor() {
+		return anchor;
+	} 
 
 }
 

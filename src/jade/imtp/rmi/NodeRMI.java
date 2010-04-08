@@ -20,6 +20,7 @@
 
 package jade.imtp.rmi;
 
+//#J2ME_EXCLUDE_FILE
 
 import java.rmi.*;
 
@@ -35,7 +36,7 @@ import jade.core.IMTPException;
  */
 interface NodeRMI extends Remote {
 
-    /**
+	/**
        Accepts a command to be processed (from the implementor point
        of view).
 
@@ -43,10 +44,10 @@ interface NodeRMI extends Remote {
        @return The return value of the remote operation represented by
        this horizontal command.
        @throws RemoteException If a network problem occurs.
-    */
-    Object accept(HorizontalCommand cmd) throws RemoteException, IMTPException;
+	 */
+	Object accept(HorizontalCommand cmd) throws RemoteException, IMTPException;
 
-    /**
+	/**
        Check whether this node is reachable.
 
        @param hang A boolean flag. When <code>false</code>, the method
@@ -56,20 +57,20 @@ interface NodeRMI extends Remote {
        @return If the node is exiting, <code>true</code> is returned,
        and <code>false</code> otherwise.
        @throws RemoteException If a network problem occurs.
-    */
-    boolean ping(boolean hang) throws RemoteException;
+	 */
+	boolean ping(boolean hang) throws RemoteException;
 
-    /**
+	/**
        Shut down this node.
        @throws RemoteException If a network problem occurs.
-    */
-    void exit() throws RemoteException;
+	 */
+	void exit() throws RemoteException;
 
-    /**
+	/**
        Release blocked ping() calls on this node.
        @throws RemoteException If a network problem occurs.       
-    */
-    void interrupt() throws RemoteException;
+	 */
+	void interrupt() throws RemoteException;
 
-    void platformManagerDead(String deadPmAddress, String notifyingPmAddr) throws RemoteException, IMTPException;
+	void platformManagerDead(String deadPmAddress, String notifyingPmAddr) throws RemoteException, IMTPException;
 }

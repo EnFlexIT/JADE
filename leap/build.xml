@@ -2,12 +2,12 @@
 <project name="JADE-LEAP" default="complete" basedir=".">
   
 	<!-- PROPERTIES -->
-  <property environment="env"/>
-  <property file="buildLEAP.properties"/>
-  <property file="../build.properties"/>
-  <property name="java-home" value="${env.JAVA_HOME}"/>
-  <property name="root"      value="."/>
-  <property name="jade-home" value=".."/>
+	<property environment="env"/>
+	<property file="buildLEAP.properties"/>
+	<property file="../build.properties"/>
+	<property name="java-home" value="${env.JAVA_HOME}"/>
+	<property name="root"      value="."/>
+	<property name="jade-home" value=".."/>
 
 	<property name="buildfiles" value="${root}/resources/build"/>
 
@@ -47,42 +47,37 @@
 	</taskdef>
 	<!-- Preverifier -->
 	<taskdef  name="preverify" classname="com.stampysoft.ant.j2me.PreverifyTask">
-  	<classpath path ="resources/antTasks/StampysoftAntTasks.jar" />
+		<classpath path ="resources/antTasks/StampysoftAntTasks.jar" />
 	</taskdef>
-    <!-- Jad Updater -->
-    <taskdef name="updatejad" classname="com.stampysoft.ant.j2me.UpdateJARSizeTask">
-	<classpath path ="resources/antTasks/StampysoftAntTasks.jar" />
+	<!-- Jad Updater -->
+	<taskdef name="updatejad" classname="com.stampysoft.ant.j2me.UpdateJARSizeTask">
+		<classpath path ="resources/antTasks/StampysoftAntTasks.jar" />
 	</taskdef>  
-  <property name="j2mewtk.home" value="${j2me-wtk-home}"/>
+	<property name="j2mewtk.home" value="${j2me-wtk-home}"/>
   
   
   
 	<!-- TARGETS -->
 
-  <target name="help" description="show the usage of the most frequently used targets of this ant file">
-   <echo message="ant all rebuild  (to clean and recompile midp, j2se, and pjava)"/>
-   <echo message="ant midp rebuild  (to clean and recompile only midp)"/>
-  </target>
+	<target name="help" description="show the usage of the most frequently used targets of this ant file">
+		<echo message="ant all rebuild  (to clean and recompile Jade-leap for pjava and midp)"/>
+		<echo message="ant midp rebuild  (to clean and recompile Jade-leap for midp only)"/>
+	</target>
 
 	<!-- ******** JAVA ENVIRONMENTS ********* -->
 	
 	<!-- J2SE -->
-	<target name = "j2se"
-	        description = "Set the j2se property --> j2se.xml will be called">
+	<target name = "j2se" description = "Set the j2se property --> j2se.xml will be called">
 		<property name = "j2se"  value = "true"/>
 	</target>
 	
-	
 	<!-- PJAVA -->
-	<target name = "pjava" 
-	        description = "Set the pjava property --> pjava.xml will be called">
+	<target name = "pjava" description = "Set the pjava property --> pjava.xml will be called">
 		<property name = "pjava"  value = "true"/>
 	</target>
 
-
 	<!-- MIDP (j2me-wtk-home must be set in the buildLEAP.properties file) -->
-	<target name = "midp" depends = "midp-do, midp-dont"
-	        description = "Set the midp property --> midp.xml will be called (unless j2me-wtk-home is not set)"/>
+	<target name = "midp" depends = "midp-do, midp-dont" description = "Set the midp property --> midp.xml will be called (unless j2me-wtk-home is not set)"/>
 	<target name = "midp-do" if = "j2me-wtk-home">
 		<property name = "midp"  value = "true"/>
 	</target>
@@ -90,32 +85,26 @@
 		<echo> WARNING: 'j2me-wtk-home' not specified in buildLEAP.properties. Skipping midp build.</echo>
 	</target>
 
-
 	<!-- DOTNET (vjc must be set in the buildLEAP.properties file) -->
-	<target name = "dotnet" depends = "dotnet-do, dotnet-dont"
-	        description = "Set the dotnet property --> dotnet.xml will be called (unless vjc is not set)"/>
+	<target name = "dotnet" depends = "dotnet-do, dotnet-dont" description = "Set the dotnet property --> dotnet.xml will be called (unless vjc is not set)"/>
 	<target name = "dotnet-do" if = "dotnet-home">
 		<property name = "dotnet"  value = "true"/>
 	</target>
 	<target name = "dotnet-dont" unless = "dotnet-home">
 		<echo> WARNING: 'dotnet directory' not specified in buildLEAP.properties. Skipping dotnet build.</echo>
 	</target>
-
 	
 	<!-- ALL -->
-	<target name = "all" depends = "j2se, pjava, midp, dotnet"
-	        description = "Set the property for all environments"/>
+	<target name = "all" depends = "j2se, pjava, midp, dotnet" description = "Set the property for all environments"/>
 
 
 	<!-- ******* ACTIONS that can be specified for the above java environments ******** -->
 
 	<!-- INIT the whole -->
-	<target name="init"
-	        description="Set time stamp">
+	<target name="init" description="Set time stamp">
 		<tstamp />
 
 		<antcall target="jade-tag" />
-
 
 		<!-- wireless toolkit 1.x -->
 		<condition property="boot-midp-classes-tmp" value="${j2me-wtk-home}/lib/midpapi.zip">
@@ -193,11 +182,7 @@
 	</target>
 	
 	<!-- SETUP the build environment for the selected java environments -->
-	<target name="setup" depends="init, setup-j2se, setup-pjava, setup-midp, setup-dotnet"
-	        description="Setup the build environment using the appropriate {environment}.xml file"/>
-	<target name="setup-j2se" if="j2se">
-		<ant antfile="${buildfiles}/j2se.xml" target="do-setup" dir="."/>
-	</target>	
+	<target name="setup" depends="init, setup-pjava, setup-midp, setup-dotnet" description="Setup the build environment using the appropriate {environment}.xml file"/>
 	<target name="setup-pjava" if="pjava">
 		<ant antfile="${buildfiles}/pjava.xml" target="do-setup" dir="."/>
 	</target>
@@ -210,12 +195,7 @@
 
 	
 	<!-- RESET the jade-leap directory structure for the selected java environments -->
-	<target name="reset" depends="init, reset-j2se, reset-pjava, reset-midp, reset-dotnet"
-	        description="Reset the directory structure using the appropriate {environment}.xml file">
-	</target>
-	<target name="reset-j2se" if="j2se">
-		<ant antfile="${buildfiles}/j2se.xml" target="do-reset" dir="."/>
-	</target>	
+	<target name="reset" depends="init, reset-pjava, reset-midp, reset-dotnet" description="Reset the directory structure using the appropriate {environment}.xml file"/>
 	<target name="reset-pjava" if="pjava">
 		<ant antfile="${buildfiles}/pjava.xml" target="do-reset" dir="."/>
 	</target>
@@ -228,11 +208,7 @@
 
 	
 	<!-- CLEAN class files for the selected java environments -->
-	<target name="clean" depends="init, clean-j2se, clean-pjava, clean-midp, clean-dotnet"
-	        description="Clean class files using the appropriate {environment}.xml file"/>
-	<target name="clean-j2se" if="j2se">
-		<ant antfile="${buildfiles}/j2se.xml" target="do-clean" dir="."/>
-	</target>	
+	<target name="clean" depends="init, clean-pjava, clean-midp, clean-dotnet" description="Clean class files using the appropriate {environment}.xml file"/>
 	<target name="clean-pjava" if="pjava">
 		<ant antfile="${buildfiles}/pjava.xml" target="do-clean" dir="."/>
 	</target>
@@ -246,11 +222,7 @@
 	
 	<!-- Generate ACL and SL PARSERS from jj files for the selected java environments 
 	     Note that there are no parsers in midp -->
-	<target name="parsers" depends="init, parsers-j2se, parsers-pjava, parsers-dotnet"
-	        description="Generate parsers using the appropriate {environment}.xml file"/>
-	<target name="parsers-j2se" if="j2se">
-		<ant antfile="${buildfiles}/j2se.xml" target="do-parsers" dir="."/>
-	</target>	
+	<target name="parsers" depends="init, parsers-pjava, parsers-dotnet" description="Generate parsers using the appropriate {environment}.xml file"/>
 	<target name="parsers-pjava" if="pjava">
 		<ant antfile="${buildfiles}/pjava.xml" target="do-parsers" dir="."/>
 	</target>
@@ -260,11 +232,7 @@
 
 	
 	<!-- COMPILE jade-leap for the selected java environments -->
-	<target name="compile" depends="init, compile-j2se, compile-pjava, compile-midp, compile-dotnet"
-	        description="Compile using the appropriate {environment}.xml file"/>
-	<target name="compile-j2se" if="j2se">
-		<ant antfile="${buildfiles}/j2se.xml" target="do-compile" dir="."/>
-	</target>	
+	<target name="compile" depends="init, compile-pjava, compile-midp, compile-dotnet" description="Compile using the appropriate {environment}.xml file"/>
 	<target name="compile-pjava" if="pjava">
 		<ant antfile="${buildfiles}/pjava.xml" target="do-compile" dir="."/>
 	</target>
@@ -272,21 +240,13 @@
 		<ant antfile="${buildfiles}/midp.xml" target="do-compile" dir="."/>
 	</target>
 	<target name="compile-dotnet" if="dotnet">
-	  <!--fail unless="env.VJSHARPTOOLS" message="In order to compile JADE for .NET you need to set the VJSHARPTOOLS environment variable"/-->
+		<!--fail unless="env.VJSHARPTOOLS" message="In order to compile JADE for .NET you need to set the VJSHARPTOOLS environment variable"/-->
 		<ant antfile="${buildfiles}/dotnet.xml" target="do-dll" dir="."/>
 	</target>
 
-	<target name="j2se-compile-only" description="Compile sources for J2SE starting from already pre-processed files">
-		<ant antfile="${buildfiles}/j2se.xml" target="do-compile-only" dir="."/>
-	</target>	
 	
-	
-  <!-- Create jade-leap LIBRARY (jar files) for the selected java environments -->
-	<target name="lib" depends="init, lib-j2se, lib-pjava, lib-midp"
-	        description="Jar using the appropriate {environment}.xml file"/>
-	<target name="lib-j2se" if="j2se">
-		<ant antfile="${buildfiles}/j2se.xml" target="do-lib" dir="."/>
-	</target>	
+	<!-- Create jade-leap LIBRARY (jar files) for the selected java environments -->
+	<target name="lib" depends="init, lib-pjava, lib-midp" description="Jar using the appropriate {environment}.xml file"/>
 	<target name="lib-pjava" if="pjava">
 		<ant antfile="${buildfiles}/pjava.xml" target="do-lib" dir="."/>
 	</target>
@@ -296,11 +256,7 @@
 
 	
 	<!-- Generate JAVADOC for the selected java environments -->
-	<target name="javadoc" depends="init, javadoc-j2se, javadoc-pjava, javadoc-midp"
-	        description="JavaDoc using the appropriate {environment}.xml file"/>
-	<target name="javadoc-j2se" if="j2se">
-		<ant antfile="${buildfiles}/j2se.xml" target="do-javadoc" dir="."/>
-	</target>	
+	<target name="javadoc" depends="init, javadoc-pjava, javadoc-midp" description="JavaDoc using the appropriate {environment}.xml file"/>
 	<target name="javadoc-pjava" if="pjava">
 		<ant antfile="${buildfiles}/pjava.xml" target="do-javadoc" dir="."/>
 	</target>
@@ -308,24 +264,21 @@
 		<ant antfile="${buildfiles}/midp.xml" target="do-javadoc" dir="."/>
 	</target>
 
+	
 	<!-- Generate filtered JAVADOC -->
-	<target name="apidoc" depends="init"
-	        description="Generate filtered JavaDoc">
+	<target name="apidoc" depends="init" description="Generate filtered JavaDoc">
 		<ant antfile="${buildfiles}/j2se.xml" target="do-apidoc" dir="."/>
 	</target>	
 		
 
 	<!-- ******** The COMPLETE build process ********* -->
-	<target name="rebuild" depends="reset, lib, compile-dotnet"
-	        description="Rebuild from scratch using the appropriate {environment}.xml file"/>
+	<target name="rebuild" depends="reset, lib, compile-dotnet" description="Rebuild from scratch using the appropriate {environment}.xml file"/>
 
-	<target name="complete" depends="all, rebuild, javadoc"
-	        description = "Build everything"/>
+	<target name="complete" depends="all, rebuild, javadoc" description = "Build everything"/>
 
 
 	<!-- ******** The DEMO ********* -->
-	<target name="demo" depends="init, demo-j2se, demo-pjava, demo-midp"
-	        description="Build the demo using the appropriate {environment}.xml file"/>
+	<target name="demo" depends="init, demo-j2se, demo-pjava, demo-midp" description="Build the demo using the appropriate {environment}.xml file"/>
 	<target name="demo-j2se" if="j2se">
 		<ant antfile="${buildfiles}/j2se.xml" target="do-demo" dir="."/>
 	</target>	
@@ -366,61 +319,48 @@
 			<include name="leap/dotnet/**"/>
 			<include name="doc/tutorials/LEAPUserGuide.pdf"/>
 		</jar>
-	<antcall description="Build the binary distribution for j2se,midp,pjava" target="bin-dist"/>   
+		
+		<antcall description="Build the binary distribution for midp and pjava" target="bin-dist"/>   
 	</target>
 
-	<target name="bin-dist" description="Build the binary distribution for j2se,midp,pjava" depends="all, rebuild">
-	    <copy todir="j2se/lib" overwrite="yes">
-		 <fileset dir="${jade-home}">
-			<include name="COPYING"/>
-			<include name="License"/>
-		 </fileset>
-	    </copy>
-		<jar jarfile="${dist}/JadeLeapJ2se-${version}.zip" basedir="${jade-home}/leap/j2se/lib"/>
-
-	    <copy todir="pjava/lib" overwrite="yes">
-		 <fileset dir="${jade-home}">
-			<include name="COPYING"/>
-			<include name="License"/>
-		 </fileset>
-	    </copy>
+	<target name="bin-dist" description="Build the binary distribution for midp and pjava" depends="all, rebuild">
+		<copy todir="pjava/lib" overwrite="yes">
+			<fileset dir="${jade-home}">
+				<include name="COPYING"/>
+				<include name="License"/>
+			</fileset>
+		</copy>
 		<jar jarfile="${dist}/JadeLeapPjava-${version}.zip" basedir="${jade-home}/leap/pjava/lib"/>
 
 		<copy todir="midp/lib" overwrite="yes">
-		 <fileset dir="${jade-home}">
-			<include name="COPYING"/>
-			<include name="License"/>
-		 </fileset>
-	    </copy>
+			<fileset dir="${jade-home}">
+				<include name="COPYING"/>
+				<include name="License"/>
+			</fileset>
+		</copy>
 		<jar jarfile="${dist}/JadeLeapMidp-${version}.zip" basedir="${jade-home}/leap/midp/lib"/>
 	</target>
 
-	<!-- Create the JADE-LEAP snapshot zip files -->
-	<target name="snapshot"
-	        description="Create the LEAP snapshot file">
-		<echo> To be implemented </echo>
-	</target>
 
 	<!-- ******** LEAP ant tasks ******** -->
 
 	<target name = "leapTools">
 		<mkdir dir="${tmp}/leapTools"/>
 
-	  <javac srcdir  = "resources/src"
-	         destdir = "${tmp}/leapTools"/>
+		<javac srcdir  = "resources/src"
+		       destdir = "${tmp}/leapTools"/>
 
 		<delete file="resources/antTasks/leapTools.jar" quiet="true"/>
-	  <jar jarfile = "resources/antTasks/leapTools.jar"
-	       basedir = "${tmp}/leapTools"/>
+		<jar jarfile = "resources/antTasks/leapTools.jar" basedir = "${tmp}/leapTools"/>
 		
-	  <delete dir = "${tmp}/leapTools"/>
-  </target>
+		<delete dir = "${tmp}/leapTools"/>
+	</target>
   
 	
 	<!-- ******** Minimize a jar file ******** -->
 	
-	<target name = "minimize" description = "" depends = "init">
-		<input message="Insert the pathname of the jar file to minimize -->" addproperty="JAR"/>
+	<target name = "minimize" description = "Gets a jar file and create a new one containing only those classes that are referenced from a givern set of classes" depends = "init">
+		<input message="Insert the pathname of the jar file to minimize (use '/' as directory separator) -->" addproperty="JAR"/>
 		<basename property="name" file="${JAR}" suffix=".jar"/>
  		<dirname property="dir" file="${JAR}"/>
  		<property name="base" value="${dir}/${name}"/>
@@ -486,15 +426,15 @@
 	<target name="solution" depends="solution-dotnet"
 	        description="Create Visul Studio 2003 complete solution for .NET version"/>
 	<target name="solution-dotnet" if="dotnet">
-	  <fail unless="dotnet-home" message="It is not possible to create new Visual Studio 2003 solution!"/>
+		<fail unless="dotnet-home" message="It is not possible to create new Visual Studio 2003 solution!"/>
 		<ant antfile="${buildfiles}/dotnet.xml" target="create-solution" dir="."/>
 	</target>
 	
-		<!-- CREATE executable file for .NET version  -->
+	<!-- CREATE executable file for .NET version  -->
 	<target name="executable" depends="executable-dotnet"
 	        description="Create Visul Studio 2003 complete solution for .NET version"/>
 	<target name="executable-dotnet" if="dotnet">
-	  <fail unless="dotnet-home" message="It is not possible to create new executable file!"/>
+		<fail unless="dotnet-home" message="It is not possible to create new executable file!"/>
 		<ant antfile="${buildfiles}/dotnet.xml" target="create-executable" dir="."/>
 	</target>
 	
@@ -502,7 +442,7 @@
 	<target name="all-examples" depends="examples-dotnet"
 	        description="Create .NET examples"/>
 	<target name="examples-dotnet" if="dotnet">
-	  <fail unless="dotnet-home" message="It is not possible to create new executable file!"/>
+		<fail unless="dotnet-home" message="It is not possible to create new executable file!"/>
 		<ant antfile="${buildfiles}/dotnet.xml" target="create-examples-J#" dir="."/>
 		<ant antfile="${buildfiles}/dotnet.xml" target="create-examples-C#" dir="."/>
 	</target>
@@ -511,7 +451,7 @@
 	<target name="J#-examples" depends="examples-dotnet-J#"
 	        description="Create J#.NET examples"/>
 	<target name="examples-dotnet-J#" if="dotnet">
-	  <fail unless="dotnet-home" message="It is not possible to create new executable file!"/>
+		<fail unless="dotnet-home" message="It is not possible to create new executable file!"/>
 		<ant antfile="${buildfiles}/dotnet.xml" target="create-examples-J#" dir="."/>
 	</target>
 	
@@ -519,7 +459,7 @@
 	<target name="C#-examples" depends="examples-dotnet-C#"
 	        description="Create C#.NET examples"/>
 	<target name="examples-dotnet-C#" if="dotnet">
-	  <fail unless="dotnet-home" message="It is not possible to create new executable file!"/>
+		<fail unless="dotnet-home" message="It is not possible to create new executable file!"/>
 		<ant antfile="${buildfiles}/dotnet.xml" target="create-examples-C#" dir="."/>
 	</target>
 	

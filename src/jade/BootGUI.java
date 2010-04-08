@@ -22,7 +22,8 @@
  */
 package jade;
 
-//#ALL_EXCLUDE_FILE
+//#APIDOC_EXCLUDE_FILE
+//#J2ME_EXCLUDE_FILE
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -38,9 +39,7 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Vector;
 
-//import jade.core.BootProfileImpl;
 import jade.util.BasicProperties;
-import jade.util.ExpandedProperties;
 
 
 import jade.gui.TreeHelp;
@@ -65,13 +64,13 @@ public class BootGUI extends JDialog {
     String propertyFileName = null;
     BasicProperties outProp = null;
     BootGUI thisBootGui;
-    Boot booter;
+    Boot3 booter;
 
     /**
      * Constructor - launches the GUI configurator.
      * @param theBooter The Boot class.
      */
-    public BootGUI(Boot theBooter) {
+    public BootGUI(Boot3 theBooter) {
         super();
         thisBootGui = this;
         
@@ -530,9 +529,8 @@ public class BootGUI extends JDialog {
     /**
      * Read the properties from a specific file.
      */
-    BasicProperties readPropertiesFromFile(String fileName)
-            throws FileNotFoundException, IOException {
-        BasicProperties p = new ExpandedProperties();
+    BasicProperties readPropertiesFromFile(String fileName) throws FileNotFoundException, IOException {
+        BasicProperties p = new BasicProperties();
         FileInputStream in = new FileInputStream(fileName);
 
         p.load(in);

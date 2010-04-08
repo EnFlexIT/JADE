@@ -19,20 +19,17 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.imtp.rmi;
 
+//#J2ME_EXCLUDE_FILE
 
-import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 import jade.core.BaseNode;
-import jade.core.Service;
 import jade.core.HorizontalCommand;
-import jade.core.VerticalCommand;
 import jade.core.IMTPException;
-import jade.core.ServiceException;
 
 
 /**
@@ -45,72 +42,72 @@ import jade.core.ServiceException;
  */
 class NodeAdapter extends BaseNode {
 
-    public NodeAdapter(String name, boolean hasSM, int port, RMIIMTPManager mgr) throws RemoteException {
-	super(name, hasSM);
-	try {
-	    adaptee = new NodeRMIImpl(this, port, mgr);
+	public NodeAdapter(String name, boolean hasSM, int port, RMIIMTPManager mgr) throws RemoteException {
+		super(name, hasSM);
+		try {
+			adaptee = new NodeRMIImpl(this, port, mgr);
+		}
+		catch(Exception e) {
+			adaptee = new NodeRMIImpl(this, 0, mgr);
+		}
 	}
-	catch(Exception e) {
-	    adaptee = new NodeRMIImpl(this, 0, mgr);
-	}
-    }
 
-    public Object accept(HorizontalCommand cmd) throws IMTPException {
-	try {
-	    return adaptee.accept(cmd);
+	public Object accept(HorizontalCommand cmd) throws IMTPException {
+		try {
+			return adaptee.accept(cmd);
+		}
+		catch(RemoteException re) {
+			throw new IMTPException("An RMI error occurred", re);
+		}
 	}
-	catch(RemoteException re) {
-	    throw new IMTPException("An RMI error occurred", re);
-	}
-    }
 
-    public NodeRMI getRMIStub() {
-	return adaptee;
-    }
+	public NodeRMI getRMIStub() {
+		return adaptee;
+	}
 
-    public boolean ping(boolean hang) throws IMTPException {
-	try {
-	    return adaptee.ping(hang);
+	public boolean ping(boolean hang) throws IMTPException {
+		try {
+			return adaptee.ping(hang);
+		}
+		catch(RemoteException re) {
+			throw new IMTPException("RMI exception", re);
+		}
 	}
-	catch(RemoteException re) {
-	    throw new IMTPException("RMI exception", re);
-	}
-    }
 
-    public void exit() throws IMTPException {
-	try {
-	    adaptee.exit();
+	public void exit() throws IMTPException {
+		try {
+			adaptee.exit();
+		}
+		catch(RemoteException re) {
+			throw new IMTPException("RMI exception", re);
+		}
 	}
-	catch(RemoteException re) {
-	    throw new IMTPException("RMI exception", re);
-	}
-    }
 
-    public void interrupt() throws IMTPException {
-	try {
-	    adaptee.interrupt();
+	public void interrupt() throws IMTPException {
+		try {
+			adaptee.interrupt();
+		}
+		catch(RemoteException re) {
+			throw new IMTPException("RMI exception", re);
+		}
 	}
-	catch(RemoteException re) {
-	    throw new IMTPException("RMI exception", re);
-	}
-    }
 
-    public void platformManagerDead(String deadPmAddress, String notifyingPmAddr) throws IMTPException {
-    	if (myServiceManager != null) {
-    		// Local call
-    		super.platformManagerDead(deadPmAddress, notifyingPmAddr);
-    	}
-    	else {
-    		// Remote call
-				try {
-				    adaptee.platformManagerDead(deadPmAddress, notifyingPmAddr);
-				}
-				catch(RemoteException re) {
-				    throw new IMTPException("RMI exception", re);
-				}
-    	}
-    }
-    
-    private NodeRMI adaptee;
+	public void platformManagerDead(String deadPmAddress, String notifyingPmAddr) throws IMTPException {
+		if (myServiceManager != null) {
+			// Local call
+			super.platformManagerDead(deadPmAddress, notifyingPmAddr);
+		}
+		else {
+			// Remote call
+			try {
+				adaptee.platformManagerDead(deadPmAddress, notifyingPmAddr);
+			}
+			catch(RemoteException re) {
+				throw new IMTPException("RMI exception", re);
+			}
+		}
+	}
+
+	private NodeRMI adaptee;
 
 }

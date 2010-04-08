@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!-- Note that targets in this ANT build file are always invoked by other targets in the 
+     main LEAP build file. In some cases they refer to properties that are not set locally -->        
 <project name="JADE-LEAP for PJAVA" default="do-lib">
 	<!-- PROPERTIES specific for PJAVA -->
 	<property name="src" value="${pjava-root}/src"/>
@@ -8,12 +10,12 @@
 	<property name="doc" value="${pjava-root}/doc"/>
 	<property name="pjava-title" value="${title} v${version} for PJAVA"/>
 
-        <!--Filtered src directory property--> 
+        <!--Filtered src directory property
         <property name="filtered.src" location="${pjava-root}/filtered/src"/>
+        -->
 
 	<!-- INIT -->
-	<target name="do-init" 
-	        description="Create the appropriate directories">
+	<target name="do-init" description="Create the appropriate directories">
 		<mkdir dir="${pjava-root}"/>
 		<mkdir dir="${src}"/>
 		<mkdir dir="${classes}"/>
@@ -23,45 +25,39 @@
 
 	
 	<!-- SETUP -->
-	<target name="do-setup" depends="do-init"
-	        description="Setup the build environment">
-	  <!-- 1) Copy JADE sources -->
-	  <copy todir="${src}">
+	<target name="do-setup" depends="do-init" description="Setup the build environment">
+		<!-- 1) Copy JADE sources -->
+		<copy todir="${src}">
 			<fileset dir="${jade-src}">
 				<include name="**/jade/**"/>
-				<exclude name="**/jade/imtp/**"/>
+				<exclude name="**/jade/imtp/rmi/**"/>
 				<exclude name="**/jade/mtp/iiop/**"/>
 				<exclude name="**/jade/tools/**"/>
 			</fileset>
 		</copy>
-	  <!-- 2) Copy LEAP sources -->
-	  <copy todir="${src}" overwrite="yes">
+		<!-- 2) Copy LEAP sources -->
+		<copy todir="${src}" overwrite="yes">
 			<fileset dir="${leap-src}">
-			  <exclude name="**/jade/mtp/http/**"/>
-			  <exclude name="**/jade/gui/**"/>
-				<exclude name="**/*.java@"/>
-				<exclude name="**/*.java#"/>
+				<include name="**/jade/util/leap/**"/>
 			</fileset>
 		</copy>
-	  <!-- 3) Preprocess the whole -->
-	  <pproc basedir="${src}" type="pjava"/>
-	  <!-- 4) Copy the lib commons-codec -->
-	  <copy todir="${lib}/commons-codec" overwrite="yes">
+		<!-- 3) Preprocess the whole -->
+		<pproc basedir="${src}" type="pjava"/>
+		<!-- 4) Copy the lib commons-codec -->
+		<copy todir="${lib}/commons-codec" overwrite="yes">
 			<fileset dir="../lib/commons-codec"/>
-	  </copy>
+		</copy>
 	</target>
 
 	
 	<!-- RESET -->
-	<target name="do-reset"
-	        description="Reset the build environment">
+	<target name="do-reset" description="Reset the build environment">
 		<delete dir = "${pjava-root}"/>
 	</target>
 
 	
 	<!-- CLEAN -->
-	<target name="do-clean"
-	        description="Clean class files">
+	<target name="do-clean" description="Clean class files">
 		<delete dir = "${classes}"/>
 		<delete dir = "${doc}"/>
 		<delete dir = "${lib}"/>
@@ -72,14 +68,11 @@
 
 	
 	<!-- PARSERS -->
-	<target name="do-parsers" if="javacc-home"
-	        description="Generate ACL and SL parsers from .jj files">
-  	<!-- ACL Parser -->
-		<javacc target="${src}/jade/lang/acl/ACLParser.jj"
-		        javacchome="${javacc-home}"/>
-  	<!-- SL Parser -->
-		<javacc target="${src}/jade/content/lang/sl/SLParser.jj"
-		        javacchome="${javacc-home}"/>
+	<target name="do-parsers" if="javacc-home" description="Generate ACL and SL parsers from .jj files">
+  		<!-- ACL Parser -->
+		<javacc target="${src}/jade/lang/acl/ACLParser.jj" javacchome="${javacc-home}"/>
+  		<!-- SL Parser -->
+		<javacc target="${src}/jade/content/lang/sl/SLParser.jj" javacchome="${javacc-home}"/>
 	</target>
 
 
@@ -117,16 +110,14 @@
 
 
 	<!-- LIB -->
-	<target name="do-lib" depends="do-compile"
-	        description="Create Jade-leap jar file">
+	<target name="do-lib" depends="do-compile" description="Create Jade-leap jar file">
 		<delete file="${lib}/JadeLeap.jar" quiet="true"/>
 		<jar jarfile="${lib}/JadeLeap.jar" basedir="${classes}"/>
 	</target>
 
 	
 	<!-- JAVADOC -->
-	<target name="do-javadoc" depends="do-setup"
-	        description="Generate javadoc">
+	<target name="do-javadoc" depends="do-setup" description="Generate javadoc">
 		<javadoc sourcepath="${src}"
 		         destdir="${doc}"
 		         classpath="${classes};${boot-java-1.1-classes}"
@@ -134,7 +125,7 @@
 		         bottom="${javadoc-footer}"
 		         verbose="false"
 		         windowtitle="${pjava-title}"
-                         packagenames="jade.*, starlight.* "/>
+                 packagenames="jade.*"/>
 	</target>
 	
 	
@@ -172,6 +163,11 @@
 		<jar jarfile="${root}/demo/demoPjava.jar" basedir="${demo-classes}"/>
 	</target>
 
+	<!-- The following targets are there to ensure that the JadeLeap.jar file for PJAVA is available
+	     as it is necessary for the compilation of the demo. More in details:
+	     - If the jar file is already there, just do nothing
+	     - else if the JADE sources are available, create the jar 
+	     - else ask the user to insert the location of the jar file --> 
 	<target name="check-resources">
 		<available file="${lib}/JadeLeap.jar" property="JadeLeap" value="${lib}/JadeLeap.jar"/>
 		<available file="${jade-home}/src/jade/Boot.java" property="jade-sources-available" value="true"/>

@@ -71,18 +71,35 @@ public class Runtime {
 	//#MIDP_EXCLUDE_BEGIN
 	private ThreadGroup criticalThreads;
 	//#MIDP_EXCLUDE_END
+	private String version = "$UNKNOWN";
+	private String revision = "$UNKNOWN";
+	private String date = "$UNKNOWN";
+	
 	private int activeContainers = 0;
 	private LinkedList terminators = new LinkedList();
 	private AgentContainerImpl theContainer = null;
 	private int mode = UNKNOWN_MODE;
 
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());
-
+	
 	// Private constructor to forbid instantiation outside the class.
 	private Runtime() {
-		// Do nothing
+		//#MIDP_EXCLUDE_BEGIN
+		try {
+			Object versionManager = Class.forName("jade.core.VersionManager").newInstance();
+			Class c = versionManager.getClass();
+			java.lang.reflect.Method m = c.getMethod("getVersion", new Class[0]);
+			version = (String) m.invoke(versionManager, new Object[0]);
+			m = c.getMethod("getRevision", new Class[0]);
+			revision = (String) m.invoke(versionManager, new Object[0]);
+			m = c.getMethod("getDate", new Class[0]);
+			date = (String) m.invoke(versionManager, new Object[0]);
+		}
+		catch (Exception e) {
+			// VersionManager not available: keep defaults
+		}
+		//#MIDP_EXCLUDE_END
 	}
-
 
 	/**
 	 * This method returns the singleton instance of this class
@@ -327,18 +344,18 @@ public class Runtime {
 	}
 	
 	public static String getVersion() {
-		String version = "$Version$"; // The $ surrounded Version keyword is automatically replaced by the target doTag of build.xml
-		return version;
+		//String version = "4.0-beta"; // The $ surrounded Version keyword is automatically replaced by the target doTag of build.xml
+		return theInstance.version;
 	}
 	
 	public static String getRevision() {
-		String revision = "$WCREV$"; // The $ surrounded WCREV keyword is automatically replaced by WCREV with subversion
-		return revision;
+		//String revision = "6278"; // The $ surrounded WCREV keyword is automatically replaced by WCREV with subversion
+		return theInstance.revision;
 	}
 	
 	public static String getDate() {
-		String date = "$WCDATE$"; // The $ surrounded WCDATE keyword is automatically replaced by WCREV with subversion
-		return date;
+		//String date = "2010/03/08 16:19:33"; // The $ surrounded WCDATE keyword is automatically replaced by WCREV with subversion
+		return theInstance.date;
 	}
 }
 

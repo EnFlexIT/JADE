@@ -24,6 +24,8 @@
  */
 package jade.content.onto;
 
+//#APIDOC_EXCLUDE_FILE
+
 import jade.content.abs.AbsObject;
 
 /** 

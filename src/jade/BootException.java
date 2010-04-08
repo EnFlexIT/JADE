@@ -23,7 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade;
 
-//#ALL_EXCLUDE_FILE
+//#APIDOC_EXCLUDE_FILE
+//#J2ME_EXCLUDE_FILE
 
 /**
 This exception is thrown by the method <code>checkProperties</code> 

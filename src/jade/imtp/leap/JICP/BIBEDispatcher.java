@@ -42,7 +42,7 @@ import jade.util.Logger;
 
 import java.io.*;
 import java.net.*;
-import java.util.*;
+//import java.util.*;
 
 /**
  * Class declaration
@@ -141,10 +141,8 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 			// Keep default
 		}
 
-		// Start the embedded thread dealing with outgoing commands only on the master copy
-		if(props.getProperty(Profile.MASTER_NODE_NAME) == null) {
-			start();
-		}
+		// Start the embedded thread dealing with outgoing commands
+		start();
 
 		myStub = new FrontEndStub(this);
 		mySkel = startBackEndContainer(props);
@@ -155,11 +153,6 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 
 			String nodeName = myID.replace(':', '_');
 			props.setProperty(Profile.CONTAINER_NAME, nodeName);
-
-			// TO BE REMOVED
-			// Add the mediator ID to the profile (it's used as a token
-			// to keep related replicas together)
-			props.setProperty(Profile.BE_MEDIATOR_ID, myID);
 
 			myContainer = new BackEndContainer(props, this);
 			// BOOTSTRAP_AGENTS Gestire nuovo valore di ritorno
@@ -235,10 +228,6 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 		// Update keep-alive info
 		lastReceivedTime = System.currentTimeMillis();
 
-		// On reconnections, a back end container becomes the master node
-		if((pkt.getType() == JICPProtocol.CONNECT_MEDIATOR_TYPE)) {
-			start();
-		}
 		return true;
 	}
 
