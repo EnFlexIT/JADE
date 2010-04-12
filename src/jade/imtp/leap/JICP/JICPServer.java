@@ -70,6 +70,7 @@ implements PDPContextManager.Listener, JICPMediatorManager
 	private static final int RESPONSE_SENT = 3;
 	
 	public static final String ACCEPT_LOCAL_HOST_ONLY = "jade_imtp_leap_JICP_JICPServer_acceptlocalhostonly";
+	public static final String UNCHECK_LOCAL_HOST = "jade_imtp_leap_JICP_JICPServer_unchecklocalhost";
 	
 	private static final int LISTENING = 0;
 	private static final int TERMINATING = 1;
@@ -139,15 +140,14 @@ implements PDPContextManager.Listener, JICPMediatorManager
 			}
 		}
 		else {
-			// If a local-host is explicitly set check that it is a valid local address
-			if (Profile.isLocalHost(host)) {
-				// Then if the ACCEPT_LOCAL_HOST_ONLY property is specified,
-				// we will accept connections only on the specified local network address 
-				acceptLocalHostOnly = p.getBooleanProperty(ACCEPT_LOCAL_HOST_ONLY, false);
-			}
-			else {
+			// Unless the UNCKECK_LOCAL_HOST property is set, if a local-host is explicitly specified check 
+			// that it is a valid local address
+			if (!p.getBooleanProperty(UNCHECK_LOCAL_HOST, false) && !Profile.isLocalHost(host)) {
 				throw new ICPException("Error: Not possible to launch JADE on a remote host ("+host+"). Check the -host and -local-host options.");
 			}
+			// Then if the ACCEPT_LOCAL_HOST_ONLY property is specified,
+			// we will accept connections only on the specified local network address 
+			acceptLocalHostOnly = p.getBooleanProperty(ACCEPT_LOCAL_HOST_ONLY, false);
 		}
 		
 		// Local port: a peripheral container can change it if busy...
@@ -368,7 +368,7 @@ implements PDPContextManager.Listener, JICPMediatorManager
 		public void close() {
 			
 			if (status != RESPONSE_SENT) {
-				// We are serving a request --> Predispose to close connection handler
+				// We are serving a request --> Prepare to close connection handler
 				loop = false;
 				closeConnection = true;
 
