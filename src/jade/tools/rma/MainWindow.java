@@ -303,21 +303,21 @@ class MainWindow extends JFrame {
 	}
 
 
-	public void addRemoteAgentsToRemotePlatform(final APDescription platform,final Iterator i){
-
+	public void refreshRemoteAgentsInRemotePlatform(final APDescription platform, final Iterator remoteAgents){
 		// Add an agent to a specified AMS
 		Runnable addIt = new Runnable() {
 			public void run() {
-
-				while(i.hasNext()){
-					AMSAgentDescription agent = (AMSAgentDescription)i.next();
-
+				// Clear all previous agents
+				tree.treeAgent.clearRemotePlatformAgents(platform.getName());
+				
+				// Add new current agents
+				while(remoteAgents.hasNext()){
+					AMSAgentDescription agent = (AMSAgentDescription) remoteAgents.next();
 					tree.treeAgent.addRemoteAgentNode(agent,platform.getName());
 				}
 			}
 		};
 		SwingUtilities.invokeLater(addIt);
-
 	}
 
 	public void removeRemotePlatform(final String platformName){

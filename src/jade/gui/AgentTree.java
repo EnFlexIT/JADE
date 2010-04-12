@@ -29,7 +29,6 @@ package jade.gui;
 import javax.swing.*;
 import javax.swing.tree.TreeSelectionModel;
 import javax.swing.tree.TreePath;
-import javax.swing.event.TreeSelectionListener;
 import java.awt.Font;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.net.InetAddress;
@@ -40,6 +39,7 @@ import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageFilter;
 import java.awt.Image;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.HashMap;
@@ -583,47 +583,47 @@ public class AgentTree extends JPanel {
 		}
 	}
 	
-	private int getPosition(Node node, Node containerNode) {
-		int size = containerNode.getChildCount();
+	private int getPosition(Node node, Node parentNode) {
+		int size = parentNode.getChildCount();
 		if (size == 0) {
 			// This is the first child
 			return 0;
 		}
 		else {
-			int k = node.compareTo((Node) containerNode.getChildAt(0));
+			int k = node.compareTo((Node) parentNode.getChildAt(0));
 			if (k < 0) {
 				// Insert new child at the beginning of the list
 				return 0;
 			}
 			else {
-				k = node.compareTo((Node) containerNode.getChildAt(size-1));
+				k = node.compareTo((Node) parentNode.getChildAt(size-1));
 				if (k >= 0) {
 					// Insert new child at the end of the list
 					return size;
 				}
 				else {
 					// Insert new child "somewhere" in the list
-					return getPosition(node, containerNode, 0, size-1);
+					return getPosition(node, parentNode, 0, size-1);
 				}
 			}
 		}
 	}
 	
-	private int getPosition(Node node, Node containerNode, int down, int up) {
+	private int getPosition(Node node, Node parentNode, int down, int up) {
 		if ((up - down) == 1) {
 			return up;
 		}
 		else {
 			int middle = (up + down) / 2;
-			int k = node.compareTo((Node) containerNode.getChildAt(middle)); 
+			int k = node.compareTo((Node) parentNode.getChildAt(middle)); 
 			if (k == 0) {
 				return middle+1;
 			}
 			else if (k < 0) {
-				return getPosition(node, containerNode, down, middle);
+				return getPosition(node, parentNode, down, middle);
 			}
 			else {
-				return getPosition(node, containerNode, middle, up);
+				return getPosition(node, parentNode, middle, up);
 			}
 		}
 	}
@@ -875,7 +875,8 @@ public class AgentTree extends JPanel {
 						if (!found) {
 							AgentTree.RemoteAgentNode newNode = new AgentTree.RemoteAgentNode(agent.getName().getName());
 							newNode.setAMSDescription(agent);
-							model.insertNodeInto(newNode, platformNode, platformNode.getChildCount());
+							int position = getPosition(newNode, platformNode);
+							model.insertNodeInto(newNode, platformNode, position);
 						}
 					}
 				}
@@ -883,6 +884,43 @@ public class AgentTree extends JPanel {
 		}
 	}
 
+	public void clearRemotePlatformAgents(String HAP) {
+
+		AgentTreeModel model = getModel();
+		MutableTreeNode root = (MutableTreeNode) model.getRoot();
+
+		//Search for the REMOTEPLATFORMS node
+		Enumeration containers = root.children();
+
+		while (containers.hasMoreElements()) { 
+
+			AgentTree.Node container = (AgentTree.Node) containers.nextElement();
+			String contName = container.getName();
+
+			if (contName.equalsIgnoreCase(REMOTE_PLATFORMS_FOLDER_NAME)) { 
+				//search the remotePlatform
+				Enumeration plat_Enum = container.children();
+
+				while (plat_Enum.hasMoreElements()) {
+					AgentTree.Node platformNode = (AgentTree.Node) plat_Enum.nextElement();
+					String platformNodeName = platformNode.getName();
+					
+					if (platformNodeName.equalsIgnoreCase(HAP)) {
+						Enumeration en = platformNode.children();
+						List remoteAgents = new ArrayList();
+						while (en.hasMoreElements()) {
+							remoteAgents.add(en.nextElement());
+						}
+						for (int i = 0; i < remoteAgents.size(); ++i) {
+							AgentTree.Node remoteAgent = (AgentTree.Node) remoteAgents.get(i);
+							model.removeNodeFromParent(remoteAgent);
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	public Node getSelectedNode() {
 		TreePath path = tree.getSelectionPath();
 		if (path != null) {

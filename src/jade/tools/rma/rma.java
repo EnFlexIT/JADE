@@ -152,7 +152,7 @@ public class rma extends ToolAgent {
 				AID sender = msg.getSender();
 				Result r = (Result)getContentManager().extractContent(msg);
 				Iterator i = r.getItems().iterator();
-				myGUI.addRemoteAgentsToRemotePlatform(platform,i);
+				myGUI.refreshRemoteAgentsInRemotePlatform(platform,i);
 			}catch(Exception e){
 				e.printStackTrace();
 			}
