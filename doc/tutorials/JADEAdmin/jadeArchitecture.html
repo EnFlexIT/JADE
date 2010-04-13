@@ -8,6 +8,11 @@
 	</head>
 
 	<body bgcolor="d3d3d3" text="black">
+	
+		<a href="index.html">Table of contents</a><br>
+		<a href="startJade.html">Next</a><br>
+		<hr>
+		
 		<h1>Tutorial 1: JADE Architecture Overview</h1>
 		<p>This tutorial provides an overview of the JADE Architecture introducing the notions of 
 		<ul>
@@ -43,9 +48,29 @@
 		<b>Figure 1. The JADE Architecture</b>
 		
 		<p>It should be noticed that if another main container is started, as in host <i>Host 4</i> in Figure 1, this constitutes a
-		new platform. Agents can communicate transparently regardless of whether they live in the same container (e.g. A2 and A3), 
+		new platform.</p>
+		
+		<h2>Agent communication</h2>
+		<p>Agents can communicate transparently regardless of whether they live in the same container (e.g. A2 and A3), 
 		in different containers (in the same or in different hosts) belonging to the same platform (e.g. A1 and A2) or in different
-		platforms (e.g. A1 and A5).  
+		platforms (e.g. A1 and A5). Communication is based on an asynchronous message passing paradigm. Message format 
+		is defined by the <b>ACL</b> language defined by <a href="http://www.fipa.org">FIPA</a>, an international organization
+		that issued a set of specifications for agent interoperability. An ACL Message contains a number of fields
+		including
+		<ul>
+		<li> the <tt><b>sender</b></tt></li>
+		<li> the <tt><b>receiver(s)</b></tt></li>
+		<li> the <tt><b>communicative act</b></tt> (also called <tt>performative</tt>) that represents
+		the intention of the sender of the message. For instance when an agent sends an <tt>INFORM</tt> message
+		it wishes the receiver(s) to become aware about a fact (e.g. <tt>(INFORM "today it's raining")</tt>). When 
+		an agent sends a <tt>REQUEST</tt> message it wishes the receiver(s) to perform an action. FIPA defined 22
+		communicative acts, each one with a well defined semantics, that ACL gurus assert can cover more than 95% of 
+		all possible situations. Fortunately in 99% of the cases we don't need to care about the formal semantics 
+		behind Communicative acts and we just use them for their intuitive meaning.</li>
+		<li> the <tt><b>content</b></tt> i.e. the actual information conveyed by the message (the fact the receiver
+		should become aware of in case of an <tt>INFORM</tt> message, the action that the receiver is expected to
+		perform in case of a <tt>REQUEST</tt> message)</li>
+		</ul>
 		</p>
 		
 		<hr>
