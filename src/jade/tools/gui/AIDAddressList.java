@@ -116,7 +116,7 @@ public class AIDAddressList extends JPanel {
     AIDAddressDialog theDialog = new AIDAddressDialog();
     theDialog.setTitle("<new address>");
     theDialog.setLocation((int)getLocationOnScreen().getX(), (int)getLocationOnScreen().getY());
-    theDialog.show();
+    theDialog.setVisible(true);
     if (theDialog.getOK()) {
       listModel.addElement(theDialog.getItsAddress());
     }
@@ -140,7 +140,7 @@ public class AIDAddressList extends JPanel {
     theDialog.setEditable(editable);
     theDialog.setTitle(editable ? "Edit address: " + currentAddress : "View address:" + currentAddress);
     theDialog.setItsAddress(editAddress);
-    theDialog.show();
+    theDialog.setVisible(true);
     if (theDialog.getOK()) {
       theDataListener.registerChangedAddress(currentAddress);
       listModel.setElementAt(theDialog.getItsAddress(), index);

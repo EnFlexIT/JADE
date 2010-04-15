@@ -138,7 +138,7 @@ public class ACLAIDDialog extends JDialog {
    */
   void okButton_actionPerformed(ActionEvent e) {
     setUserAction(OK);
-    this.hide();
+    this.setVisible(false);
   }
 
 
@@ -149,7 +149,7 @@ public class ACLAIDDialog extends JDialog {
    */
   void cancelButton_actionPerformed(ActionEvent e) {
     setUserAction(CANCELLED);
-    this.hide();
+    this.setVisible(false);
   }
 
 

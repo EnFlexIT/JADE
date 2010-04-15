@@ -102,7 +102,7 @@ public class ACLContentDialog extends JDialog {
 
 
   void doneButton_actionPerformed(ActionEvent e) {
-    this.hide();
+    this.setVisible(false);
   }
 
 

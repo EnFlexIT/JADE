@@ -292,7 +292,7 @@ public class ACLTracePanel extends JPanel {
    *  show about screen
    */
   public void doShowAbout() {
-    new AboutFrame().show();
+    new AboutFrame().setVisible(true);
   }
 
 

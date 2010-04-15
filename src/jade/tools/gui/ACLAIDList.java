@@ -153,7 +153,7 @@ public class ACLAIDList extends JPanel {
     theDialog.setItsAID(editAID);
     theDialog.setEditable(editable);
     theDialog.setTitle(editable ? "Edit AID of: " + currentAID.getName() : "View AID of:" + currentAID.getName());
-    theDialog.show();
+    theDialog.setVisible(true);
     if (theDialog.getOK()) {
       theDataListener.registerChangedAID(theDialog.getItsAID());
       listModel.setElementAt(editAID, index);
@@ -201,7 +201,7 @@ public class ACLAIDList extends JPanel {
     theGui.setTitle("<new AID>");
     theGui.setLocation((int)getLocationOnScreen().getX(), (int)getLocationOnScreen().getY());
     theGui.localCheckBox.setSelected(false);
-    theGui.show();
+    theGui.setVisible(true);
     if (theGui.getOK()) {
       listModel.addElement(theGui.getItsAID());
     }

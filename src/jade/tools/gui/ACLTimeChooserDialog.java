@@ -197,7 +197,7 @@ public class ACLTimeChooserDialog implements ActionListener {
       int centerY = (int)screenSize.getHeight() / 2;
       dlg.setLocation(centerX - dlg.getWidth() / 2, centerY - dlg.getHeight() / 2);
     }
-    dlg.show();
+    dlg.setVisible(true);
 
     return (retVal);
   }
@@ -260,7 +260,7 @@ public class ACLTimeChooserDialog implements ActionListener {
       int centerY = (int)screenSize.getHeight() / 2;
       dlg.setLocation(centerX - dlg.getWidth() / 2, centerY - dlg.getHeight() / 2);
     }
-    dlg.show();
+    dlg.setVisible(true);
   }
 
 

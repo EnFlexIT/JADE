@@ -117,7 +117,7 @@ public class ACLPropertyList extends JPanel {
     theDialog.setEditable(editable);
     theDialog.setTitle(editable ? "Edit property: " + currentKey : "View property: " + currentKey);
 
-    theDialog.show();
+    theDialog.setVisible(true);
     if (theDialog.getOK()) {
       theDataListener.registerChangedProperty(currentKey, theDialog.getItsvalue());
       listModel.setElementAt(currentKey, index);
@@ -165,7 +165,7 @@ public class ACLPropertyList extends JPanel {
   void doAdd() {
     ACLPropertyDialog theDialog = new ACLPropertyDialog();
     theDialog.setLocation((int)getLocationOnScreen().getX(), (int)getLocationOnScreen().getY());
-    theDialog.show();
+    theDialog.setVisible(true);
     theDialog.setTitle("<new property>");
     if (theDialog.getOK()) {
       theDataListener.registerChangedProperty(theDialog.getItskey(), theDialog.getItsvalue());

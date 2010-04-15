@@ -1698,7 +1698,7 @@ public class AclGui extends JPanel
         locy = 0;
       tempAclDlg.setLocation(locx,locy);
     }
-    tempAclDlg.show();
+    tempAclDlg.setVisible(true);
   }
 
   /**
@@ -1758,7 +1758,7 @@ public class AclGui extends JPanel
         tempAclDlg.setLocation(x > 0 ? x :0, y>0 ? y :0);
       }
       
-    tempAclDlg.show();
+    tempAclDlg.setVisible(true);
      
     ACLMessage m = null;
     if (editedMsg != null)

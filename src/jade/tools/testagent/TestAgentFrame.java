@@ -254,7 +254,7 @@ public class TestAgentFrame extends JFrame {
 
 
   void aboutMenuItem_actionPerformed(ActionEvent e) {
-    new AboutFrame().show();
+    new AboutFrame().setVisible(true);
   }
 
 

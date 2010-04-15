@@ -278,7 +278,7 @@ public class ACLPanel extends JPanel {
     theDialog.setItsContent(this.getItsMsg());
     theDialog.setEditable(editable);
     theDialog.setLocation((int)getLocationOnScreen().getX(), (int)getLocationOnScreen().getY());
-    theDialog.show();
+    theDialog.setVisible(true);
     this.contentTextArea.update();
   }
 
@@ -313,7 +313,7 @@ public class ACLPanel extends JPanel {
     aidGui.setLocation((int)getLocationOnScreen().getX(), (int)getLocationOnScreen().getY());
     aidGui.setTitle(editable ? "edit ACL: " + editAID.getName() : "view ACL: " + editAID.getName());
     aidGui.setEditable(editable);
-    aidGui.show();
+    aidGui.setVisible(true);
     if (aidGui.getOK()) {
       itsMsg.setSender(aidGui.getItsAID());
       senderTextField.setText(itsMsg.getSender().getName());
@@ -330,7 +330,7 @@ public class ACLPanel extends JPanel {
     aidGui.setItsAID(editAID);
     aidGui.setTitle(editable ? "edit ACL: " + editAID.getName() : "view ACL: " + editAID.getName());
     aidGui.setEditable(editable);
-    aidGui.show();
+    aidGui.setVisible(true);
     if (aidGui.getOK()) {
       itsMsg.getEnvelope().setFrom(aidGui.getItsAID());
       this.envFromTextField.setText(itsMsg.getEnvelope().getFrom().getName());

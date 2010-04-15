@@ -180,7 +180,7 @@ public class TimeChooser implements ActionListener
 			#DOTNET_INCLUDE_END*/
 			dlg.setLocation(centerX - dlg.getWidth() / 2, centerY - dlg.getHeight() / 2);
 		}
-		dlg.show();
+		dlg.setVisible(true);
 
 		return(retVal);
 	}
@@ -243,7 +243,7 @@ public class TimeChooser implements ActionListener
 			#DOTNET_INCLUDE_END*/
 			dlg.setLocation(centerX - dlg.getWidth() / 2, centerY - dlg.getHeight() / 2);
 		}
-		dlg.show();
+		dlg.setVisible(true);
 	}
 
 

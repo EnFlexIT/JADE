@@ -172,7 +172,7 @@ public class APServicePanel extends JPanel
 		    locy = 0;
 		  tempDlg.setLocation(locx,locy);
 		}
-		tempDlg.show();
+		tempDlg.setVisible(true);
 
 	}
 

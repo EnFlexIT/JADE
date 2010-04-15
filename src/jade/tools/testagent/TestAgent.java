@@ -318,7 +318,7 @@ public class TestAgent extends Agent {
   protected void setup() {
     super.setup();
     splash = new SplashScreen();
-    splash.show();
+    splash.setVisible(true);
     splash.setProgress(25);
     if(logger.isLoggable(Logger.FINE))
     	logger.log(Logger.FINE,"starting up: " + this.getAID().toString());
@@ -337,7 +337,7 @@ public class TestAgent extends Agent {
     splash.setProgress(75);
     addBehaviour(new ReceiveCyclicBehaviour(this));
     splash.setProgress(100);
-    splash.hide();
+    splash.setVisible(false);
   }
 
 
