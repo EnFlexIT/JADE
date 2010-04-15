@@ -6,14 +6,8 @@
   
   <property environment="env"/>
   <path id="project.class.path">
-    <!-- JADE classes. Comment this to run the TestSuite with LEAP -->
+    <!-- JADE classes  -->
     <fileset dir="lib">
-        <include name="*.jar"/>
-        <include name="commons-codec/*.jar"/>
-    </fileset>
-
-    <!-- LEAP classes. Used to compile split execution related tests and to run all tests with LEAP when JADE classes are commented out -->
-    <fileset dir="leap/j2se/lib/">
         <include name="*.jar"/>
         <include name="commons-codec/*.jar"/>
     </fileset>
@@ -30,9 +24,6 @@
     <!-- Others -->
     <pathelement location="add-ons/benchmark/classes"/>
     <pathelement location="add-ons/XMLCodec/classes"/>
-    <!--
-    <pathelement location="add-ons/misc/classes"/>
-    -->
   </path>
   
 
