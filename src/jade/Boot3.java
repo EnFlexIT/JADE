@@ -83,8 +83,12 @@ public class Boot3 {
             System.exit(-1);
         }
         
-        profile.setParameter(Profile.IMTP, "jade.imtp.rmi.RMIIMTPManager");
-        profile.setParameter(Profile.STYLE_3_X, "true");
+        if (profile.getParameter(Profile.IMTP, null) == null) {
+	        profile.setParameter(Profile.IMTP, "jade.imtp.rmi.RMIIMTPManager");
+        }
+        if (profile.getParameter(Profile.STYLE_3_X, null) == null) {
+            profile.setParameter(Profile.STYLE_3_X, "true");
+        }
         
         properties = profile.getArgProperties();
         if (properties.getBooleanProperty(BootProfileImpl.DUMP_KEY, false)) {
