@@ -128,13 +128,14 @@ name="_Toc78110284">
   <p class=MsoBodyText>The goal of this document is to provide an overview of 
     the key elements of the JADE logging service. The logging service class provides 
     a uniform way to produce logging printouts by hiding to applications the characteristics 
-    of the device (e.g. on J2ME a <span class=SpellE>RecordStore</span> is used). 
-    The J2SE implementation is a pure extension of the <span
-class=SpellE>java.util.logging.Logger</span> class and it provides the whole set 
-    of functionalities of <span class=SpellE>java.util.logging</span>. The implementation 
-    for MIDP and PJAVA environments, instead, provide the same API but a reduced 
-    set of functionalities: please refer the documentation provided for class 
-    <span
+    of the device (e.g. on a MIDP device a <span class=SpellE>RecordStore</span> 
+    is used). The full implementation running in a JAVA5 (or later) environment 
+    is a pure extension of the <span
+class=SpellE>java.util.logging.Logger</span> class and provides the whole set 
+    of functionalities of <span class=SpellE>java.util.logging</span>. When using 
+    the LEAP Add-on, the implementation for MIDP and PJAVA environments, instead, 
+    provide the same API but a reduced set of functionalities: please refer the 
+    documentation provided for class <span
 class=SpellE><i>jade.util.Logger</i></span> for further information about this 
     topic. The class <span class=SpellE>jade.util.Logger</span> <span class=GramE>is,</span> 
     <span class=SpellE>infact</span>, the main class on which applications make 
@@ -331,7 +332,7 @@ name="_Toc78110290"> <span lang=EN-GB>5.2<span style='font:7.0pt "Times New Roma
   <p class=MsoBodyText>After <span class=SpellE>LogManager</span> Agent has been 
     launched the <span class=SpellE><span class=GramE>gui</span></span> shown 
     in Figure 1 will appear.</p>
-  <p class=MsoBodyText> <img width=492 height=348
+  <p class=MsoBodyText> <img 
 src="image001.jpg" v:shapes="_x0000_i1026"> </p>
   <p class=MsoCaption>Figure <span>1 : <span class=SpellE>LogManager</span> Agent 
     user interface</span></p><span>
