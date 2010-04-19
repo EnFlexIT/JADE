@@ -49,7 +49,7 @@ import javax.swing.*;
 
 import jade.gui.AgentTree;
 import jade.core.AID;
-import jade.util.BasicProperties;
+import jade.util.ExtendedProperties;
 
   /**
    Javadoc documentation for the file
@@ -81,7 +81,7 @@ public class MainWindow
   private PopupMenuAgent popA;
   //#DOTNET_EXCLUDE_END
   private Sniffer mySniffer;
-  private BasicProperties myProperties;
+  private ExtendedProperties myProperties;
   private String snifferLogo = "images/sniffer.gif";
   /*#DOTNET_INCLUDE_BEGIN
   private System.Windows.Forms.Panel MainPanelW;
@@ -98,7 +98,7 @@ public class MainWindow
   private Message mess					        = null;
   #DOTNET_INCLUDE_END*/
    
-  public MainWindow(Sniffer mySniffer, BasicProperties myProperties) {
+  public MainWindow(Sniffer mySniffer, ExtendedProperties myProperties) {
      //#DOTNET_EXCLUDE_BEGIN
 	 super(mySniffer.getName() + " - Sniffer Agent");
      //#DOTNET_EXCLUDE_END
@@ -179,7 +179,7 @@ public class MainWindow
   #DOTNET_EXCLUDE_END*/
  }
 
- public BasicProperties getProperties() {
+ public ExtendedProperties getProperties() {
     return myProperties;
  }
 

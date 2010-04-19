@@ -100,7 +100,7 @@ public class ProfileImpl extends Profile {
 	public ProfileImpl(boolean isMain) {
 		
 		//#ALL_EXCLUDE_BEGIN
-		props = new jade.util.BasicProperties();
+		props = new jade.util.ExtendedProperties();
 		//#ALL_EXCLUDE_END
 		
 		/*#ALL_INCLUDE_BEGIN
@@ -169,7 +169,7 @@ public class ProfileImpl extends Profile {
 	public ProfileImpl(String host, int port, String platformID, boolean isMain) {
 		// create the object props
 		//#ALL_EXCLUDE_BEGIN
-		props = new jade.util.BasicProperties();
+		props = new jade.util.ExtendedProperties();
 		//#ALL_EXCLUDE_END
 		/*#ALL_INCLUDE_BEGIN
 		 props = new Properties();

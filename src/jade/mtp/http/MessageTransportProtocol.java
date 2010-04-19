@@ -54,7 +54,7 @@ import jade.mtp.TransportAddress;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
-import jade.util.BasicProperties;
+import jade.util.ExtendedProperties;
 
 public class MessageTransportProtocol implements MTP {
 	
@@ -119,7 +119,7 @@ public class MessageTransportProtocol implements MTP {
 	public TransportAddress activate(InChannel.Dispatcher disp)
 	throws MTPException {
 		try {
-			return activate(disp,new ProfileImpl(new BasicProperties()));
+			return activate(disp,new ProfileImpl(new ExtendedProperties()));
 		} catch(Exception e) {
 			throw new MTPException(e.getMessage());
 		}
@@ -128,7 +128,7 @@ public class MessageTransportProtocol implements MTP {
 	public void activate(InChannel.Dispatcher disp, TransportAddress ta)
 	throws MTPException {
 		try {
-			activate(disp,ta,new ProfileImpl(new BasicProperties()));
+			activate(disp,ta,new ProfileImpl(new ExtendedProperties()));
 		} catch(Exception e) {
 			throw new MTPException(e.getMessage());
 		}

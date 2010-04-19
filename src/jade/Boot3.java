@@ -44,7 +44,7 @@ import java.util.Vector;         // J2ME CLDC OK
 import jade.core.Runtime;
 import jade.core.Profile;
 //import jade.core.BootProfileImpl;
-import jade.util.BasicProperties;
+import jade.util.ExtendedProperties;
 import jade.util.PropertiesException;
 //import jade.security.SecurityFactory;
 
@@ -59,7 +59,7 @@ public class Boot3 {
 
     /** separator between the agent name and the agent class */
     private static final String NAME2CLASS_SEPARATOR = ":";
-    private BasicProperties properties = null;
+    private ExtendedProperties properties = null;
     private BootProfileImpl profile = null;
 
     /**
@@ -433,7 +433,7 @@ public class Boot3 {
      * Get boot properties.
      * @return BasicProperties Boot properties.
      */
-    public BasicProperties getProperties() {
+    public ExtendedProperties getProperties() {
         return properties;
     }
 
@@ -441,7 +441,7 @@ public class Boot3 {
      * Set boot properties. Copies provided properties over existing ones.
      * @param updates Properties to be copied.
      */
-    public void setProperties(BasicProperties updates) throws BootException {
+    public void setProperties(ExtendedProperties updates) throws BootException {
         properties.copyProperties(updates);
         profile.setArgProperties(properties);
     }

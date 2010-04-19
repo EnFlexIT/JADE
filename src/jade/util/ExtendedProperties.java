@@ -66,7 +66,7 @@ import jade.util.leap.Properties;
  * This class is designed to be usable in the restrictive J2ME CDC environment.
  * @author Dick Cowan - HP Labs
  */
-public class BasicProperties extends Properties {
+public class ExtendedProperties extends Properties {
 	public static final String IMPORT_KEY="import";
 
 	boolean CRState = false;
@@ -80,14 +80,14 @@ public class BasicProperties extends Properties {
 	 * all key=value pairs using sorted enumeration.
 	 */
 	public static void main(String[] args) {
-		BasicProperties prop = new BasicProperties(args);
+		ExtendedProperties prop = new ExtendedProperties(args);
 		prop.list(System.out);
 	}
 
 	/**
 	 * Construct empty property collection.
 	 */
-	public BasicProperties() {
+	public ExtendedProperties() {
 	}
 
 	/**
@@ -95,7 +95,7 @@ public class BasicProperties extends Properties {
 	 * <key>=<value>.
 	 * @param propesStr The applications original arguments.
 	 */
-	public BasicProperties(String[] propesStr) {
+	public ExtendedProperties(String[] propesStr) {
 		this();
 		addProperties(propesStr);
 	}
@@ -159,7 +159,7 @@ public class BasicProperties extends Properties {
 			sortVector.insertElementAt(key, i);
 		}
 		return new Enumeration() {
-			Enumeration en = BasicProperties.this.sortVector.elements();
+			Enumeration en = ExtendedProperties.this.sortVector.elements();
 
 			public boolean hasMoreElements() {
 				return en.hasMoreElements();
@@ -251,7 +251,7 @@ public class BasicProperties extends Properties {
 	 * Copy a data from standard Properties.
 	 * @param source The properties to copy from.
 	 */
-	public synchronized void copyProperties(BasicProperties source) {
+	public synchronized void copyProperties(ExtendedProperties source) {
 		for (Enumeration e = source.keys(); e.hasMoreElements(); ) {
 			String key = (String)e.nextElement();
 			super.put(key, source.getRawProperty(key));
@@ -264,8 +264,8 @@ public class BasicProperties extends Properties {
 	 * The prefix is removed from the keys inserted into the extracted Properties object
 	 * @param prefix The prefix string. Ex: "server."
 	 */
-	public synchronized BasicProperties extractSubset(String prefix) {
-		BasicProperties result = new BasicProperties();
+	public synchronized ExtendedProperties extractSubset(String prefix) {
+		ExtendedProperties result = new ExtendedProperties();
 		for (Enumeration e = super.keys(); e.hasMoreElements(); ) {
 			String originalKey = (String) e.nextElement();
 			String newKey = null;

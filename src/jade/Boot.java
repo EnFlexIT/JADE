@@ -32,7 +32,7 @@ import jade.core.ProfileImpl;
 import jade.core.ProfileException;
 
 import jade.util.leap.Properties;
-import jade.util.BasicProperties;
+import jade.util.ExtendedProperties;
 import jade.util.Logger;
 
 /**
@@ -42,7 +42,7 @@ import jade.util.Logger;
  * @author Giovanni Caire - TILAB
  * @author Nicolas Lhuillier - Motorola
  * @author Jerome Picault - Motorola
- * @version $Date: 2010-03-26 11:34:04 +0100 (ven, 26 mar 2010) $ $Revision: 6291 $
+ * @version $Date$ $Revision$
  *
  */
 public class Boot {
@@ -120,7 +120,7 @@ public class Boot {
 
 
 	public static Properties parseCmdLineArgs(String[] args) throws IllegalArgumentException {
-		Properties props = new BasicProperties();
+		Properties props = new ExtendedProperties();
 
 		int i = 0;
 		while (i < args.length) {

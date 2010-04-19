@@ -36,7 +36,7 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
-import jade.util.BasicProperties;
+import jade.util.ExtendedProperties;
 import jade.util.PropertiesException;
 
 import jade.core.ProfileImpl;
@@ -74,7 +74,7 @@ public class BootProfileImpl extends ProfileImpl {
 
 
 
-	BasicProperties argProp = null;
+	ExtendedProperties argProp = null;
 	BootHelper helper = new BootHelper();
 
 	/**
@@ -83,7 +83,7 @@ public class BootProfileImpl extends ProfileImpl {
 	public BootProfileImpl() {
 		// creates the default profile
 		super(true); 
-		argProp = new BasicProperties();
+		argProp = new ExtendedProperties();
 	}
 
 	/**
@@ -92,7 +92,7 @@ public class BootProfileImpl extends ProfileImpl {
 	 */
 	public BootProfileImpl(String[] args) throws PropertiesException {
 		this();
-		BasicProperties properties = new BasicProperties(args);
+		ExtendedProperties properties = new ExtendedProperties(args);
 		bootProps = (Properties)properties.clone();
 		setArgProperties(properties);
 	}        
@@ -103,7 +103,7 @@ public class BootProfileImpl extends ProfileImpl {
 	 * properties.
 	 * @return BasicProperties The argument property collection.
 	 */
-	public BasicProperties getArgProperties() {
+	public ExtendedProperties getArgProperties() {
 		return argProp;
 	}
 
@@ -116,7 +116,7 @@ public class BootProfileImpl extends ProfileImpl {
 	 * keys to this collection are from the XXX_KEY strings
 	 * defined in this class.
 	 */
-	public void setArgProperties(BasicProperties source) {
+	public void setArgProperties(ExtendedProperties source) {
 		argProp.copyProperties(source);
 		String value = null;
 		boolean flag = false;
@@ -124,7 +124,7 @@ public class BootProfileImpl extends ProfileImpl {
 
 		// Transfer argument properties into profile properties
 
-		BasicProperties profileProp = (BasicProperties)getProperties();
+		ExtendedProperties profileProp = (ExtendedProperties)getProperties();
 
 		boolean isMain = true;
 		if (argProp.getProperty(Profile.MAIN) != null) {

@@ -39,7 +39,7 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Vector;
 
-import jade.util.BasicProperties;
+import jade.util.ExtendedProperties;
 
 
 import jade.gui.TreeHelp;
@@ -62,7 +62,7 @@ public class BootGUI extends JDialog {
     JPanel propertyPanel = new JPanel();
     JPanel buttonPanel = new JPanel();
     String propertyFileName = null;
-    BasicProperties outProp = null;
+    ExtendedProperties outProp = null;
     BootGUI thisBootGui;
     Boot3 booter;
 
@@ -169,7 +169,7 @@ public class BootGUI extends JDialog {
                 String param = (String) e.getActionCommand();
 
                 if (param.equals("Save File")) {
-                    BasicProperties propToSave = extractPropertiesFromGui();
+                    ExtendedProperties propToSave = extractPropertiesFromGui();
 
                     //propToSave.list(System.out);
                     try {
@@ -236,7 +236,7 @@ public class BootGUI extends JDialog {
                 String param = (String) e.getActionCommand();
 
                 if (param.equals("Run")) {
-                    BasicProperties propToSave = extractPropertiesFromGui();
+                    ExtendedProperties propToSave = extractPropertiesFromGui();
 
                     try {
                         booter.setProperties(propToSave);
@@ -248,7 +248,7 @@ public class BootGUI extends JDialog {
                         if (propertyFileName != null) {
 
                             // compares the properties from gui with those in the file
-                            BasicProperties p =
+                            ExtendedProperties p =
                                 readPropertiesFromFile(propertyFileName);
 
                             //p.list(System.out);
@@ -361,8 +361,8 @@ public class BootGUI extends JDialog {
     /**
      * Extract the values of the configuration properties from the GUI.
      */
-    BasicProperties extractPropertiesFromGui() {
-        BasicProperties out = new BasicProperties();
+    ExtendedProperties extractPropertiesFromGui() {
+        ExtendedProperties out = new ExtendedProperties();
         int size = propertyPanel.getComponentCount();
 
         for (Enumeration it = propertiesVector.elements();
@@ -425,8 +425,8 @@ public class BootGUI extends JDialog {
     /**
      * Compare two property collections.
      */ 
-    boolean compareProperties(BasicProperties p1,
-                                      BasicProperties p2) {
+    boolean compareProperties(ExtendedProperties p1,
+                                      ExtendedProperties p2) {
         Enumeration keys = p1.keys();
         boolean modified = false;
 
@@ -503,7 +503,7 @@ public class BootGUI extends JDialog {
      */
     void loadPropertiesFromFile(String fileName)
             throws FileNotFoundException, IOException {
-        BasicProperties p = readPropertiesFromFile(fileName);
+        ExtendedProperties p = readPropertiesFromFile(fileName);
 
         // update the properties in the vector of properties
         // for every property set the value read in the file and set the command line value to null.
@@ -529,8 +529,8 @@ public class BootGUI extends JDialog {
     /**
      * Read the properties from a specific file.
      */
-    BasicProperties readPropertiesFromFile(String fileName) throws FileNotFoundException, IOException {
-        BasicProperties p = new BasicProperties();
+    ExtendedProperties readPropertiesFromFile(String fileName) throws FileNotFoundException, IOException {
+        ExtendedProperties p = new ExtendedProperties();
         FileInputStream in = new FileInputStream(fileName);
 
         p.load(in);
@@ -563,7 +563,7 @@ public class BootGUI extends JDialog {
     /**
      * Returns a list of PropertyType used by the BootGUI to initialize the GUI.
      */
-    Vector createPropertyVector(BasicProperties theProperties) {
+    Vector createPropertyVector(ExtendedProperties theProperties) {
         Vector pv = new Vector();
         String[] loginEnum = {"Simple", "Unix", "NT", "Kerberos"};
         pv.add(new PropertyType(BootProfileImpl.LOGIN_KEY,
