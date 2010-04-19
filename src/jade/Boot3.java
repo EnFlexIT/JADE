@@ -431,7 +431,7 @@ public class Boot3 {
 
     /**
      * Get boot properties.
-     * @return BasicProperties Boot properties.
+     * @return ExtendedProperties Boot properties.
      */
     public ExtendedProperties getProperties() {
         return properties;

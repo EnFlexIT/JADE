@@ -101,7 +101,7 @@ public class BootProfileImpl extends ProfileImpl {
 	 * Return the properties collection which resulted from the arguments.
 	 * This collection is used to create/modify the underlying profile's
 	 * properties.
-	 * @return BasicProperties The argument property collection.
+	 * @return ExtendedProperties The argument property collection.
 	 */
 	public ExtendedProperties getArgProperties() {
 		return argProp;

@@ -2795,12 +2795,7 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "jade\util\BasicProperties.java"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "jade\util\EnhancedProperties.java"
+                    RelPath = "jade\util\ExtendedProperties.java"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -2810,17 +2805,7 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "jade\util\ExpandedProperties.java"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "jade\util\HashCache.java"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "jade\util\ImportableProperties.java"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

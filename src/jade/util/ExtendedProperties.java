@@ -91,7 +91,7 @@ public class ExtendedProperties extends Properties {
 	}
 
 	/**
-	 * Construct a BasicProperties object from an array of stringified properties of the form
+	 * Construct a ExtendedProperties object from an array of stringified properties of the form
 	 * <key>=<value>.
 	 * @param propesStr The applications original arguments.
 	 */
