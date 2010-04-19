@@ -3,7 +3,6 @@
 <project name="JADE-LEAP for Microsoft .NET" default="do-compile">
 	<!-- PROPERTIES specific for .NET -->
 	<property name="src" value="${dotnet-root}/src"/>
-	<property name="lib" value="${dotnet-root}/lib"/>
 	<property name="extralib" value="${dotnet-root}/extralib"/>
 	<property name="bin" value="${dotnet-root}/bin"/>
 	<property name="doc" value="${dotnet-root}/doc"/>
@@ -24,7 +23,6 @@
 	        description="Create the appropriate directories">
 		<!-- <mkdir dir="${dotnet-root}"/> -->
 		<mkdir dir="${src}"/>
-		<mkdir dir="${lib}"/>
 		<mkdir dir="${bin}"/>
 	</target>
 
@@ -36,7 +34,6 @@
 	  	    <copy todir="${src}">
 			<fileset dir="${jade-src}">
 				<include name="**/jade/**"/>
-				<exclude name="**/jade/imtp/**"/>
 				<exclude name="**/jade/mtp/iiop/**"/>
 				<exclude name="**/jade/mtp/http/**"/>
 				<exclude name="**/jade/tools/**"/>
@@ -47,6 +44,8 @@
 			<fileset dir="${leap-src}">
 				<exclude name="**/*.java@"/>
 				<exclude name="**/*.java#"/>
+				<exclude name="**/Boot.java"/>
+				<exclude name="**/MicroBoot.java"/>
 				<exclude name="**/jade/gui/**"/>
 			</fileset>
 		    </copy>
@@ -103,16 +102,11 @@
 				<include name="**/jade/tools/sniffer/WriteLogFileAction.java"/>
 				<include name="**/jade/tools/sniffer/WriteMessageListAction.java"/>
 				-->
-				<include name="**/jade/util/EnhancedProperties.java"/>
-				<include name="**/jade/util/ExpandedProperties.java"/>
-				<include name="**/jade/util/ImportableProperties.java"/>
 				<include name="**/jade/core/event/NotificationService.java"/>
 				<include name="**/jade/core/event/NotificationProxy.java"/>
 				<include name="**/jade/domain/introspection/AMSSubscriber.java"/>
 
 				<include name="**/jade/wrapper/gateway/*.java"/>
-
-				<include name="**/jade/core/nodeMonitoring/*.java"/>
 
 				<include name="**/jade/mtp/http/BasicFipaDateTime.java"/>
 				<include name="**/jade/mtp/http/HTTPAddress.java"/>
@@ -161,7 +155,6 @@
 	        description="Reset the build environment">
 		<!-- <delete dir = "${dotnet-root}"/> -->
 		<delete dir = "${src}"/>
-		<delete dir = "${lib}"/>
 		<delete dir = "${bin}"/>
 	</target>
 
@@ -169,8 +162,6 @@
 	<!-- CLEAN -->
 	<target name="do-clean"
 	        description="Clean class files">
-		<delete dir = "${lib}"/>
-		<mkdir dir="${lib}"/>
 	</target>
 
 	
@@ -204,7 +195,7 @@
 	    <arg line="/r:VJSSupUILib.dll" />
 		<arg line="/r:${extralib}/Commons-Codec.dll" />
 	    <!-- arg line="/main:jade.Boot" /-->
-	    <arg line="/out:${lib}/${vs2003Sol}.dll" />
+	    <arg line="/out:${bin}/${vs2003Sol}.dll" />
 	  </exec>
 	</target>
 	  
@@ -212,16 +203,8 @@
 	<target name="do-dll" depends="do-setup, do-parsers, do-compile"
 	  description="Install JADELEAP.NET dll">
 	  <!-- TEST IF DLL FILE EXISTS -->
-	  <available file="${lib}/${vs2003Sol}.dll" property="dll.NET.exist"/>
+	  <available file="${bin}/${vs2003Sol}.dll" property="dll.NET.exist"/>
 	  <fail unless="dll.NET.exist" message="${vs2003Sol}.dll hasn't been previously created. Impossible to register it into GAC!"/>
-	  <!-- ADD DLL INTO GAC -->
-	  <echo>Installing ${vs2003Sol}.dll into GAC...</echo>
-	  <exec executable="${gacutil}">
-	    <arg line="/u ${vs2003Sol}" /> 
-	  </exec>
-	  <exec executable="${gacutil}">
-	    <arg line="/i ${lib}/${vs2003Sol}.dll" /> 
-	  </exec>
 	  <!-- CREATE EXECUTABLE FILE -->
 	  <echo>Create ${exeFileName}.exe in directory ${bin}</echo>
 	  <delete file="${bin}/*.exe" />
@@ -232,7 +215,7 @@
  	    <arg line="/r:System.Windows.Forms.dll" />
 	    <arg line="/r:System.Drawing.dll" />
 	    <arg line="/r:${vs2003Sol}.dll" />
-	    <arg line="/libpath:${lib}" />
+		<arg line="/libpath:${bin}" />
 	    <!-- arg line="/main:jade.Boot" /-->
 	    <arg line="/out:${bin}/${exeFileName}.exe" />
 	  </exec>
@@ -282,7 +265,7 @@
 	    <arg line="/t:exe" />
 	    <arg line="/r:System.Xml.dll" />
 	    <arg line="/r:${vs2003Sol}.dll" />
-	    <arg line="/libpath:${lib}" />
+		<arg line="/libpath:${bin}" />
 	    <!-- arg line="/main:jade.Boot" /-->
 	    <arg line="/out:${bin}/${exeFileName}.exe" />
 	  </exec>
@@ -334,7 +317,7 @@
 	  <echo>Compiling examples for J#.NET</echo>
 	  <exec executable="${vs2003}/compileAllExamplesJSharpDotNET.bat">
 	    <arg line="${vs2003}/AgentBooterJSharp.java" />	    
-	    <arg line="${lib}" />
+	    <arg line="${bin}" />
 	    <arg line="${examples}" />
 	    <arg line="${root}" />	    
 	    <arg line="${vjc}" />	    
@@ -354,7 +337,7 @@
 		<delete file="${examples}/dummy/*.exe" />		
 	  <exec executable="${vs2003}/compileCSharpDotNET.bat">
 	    <arg line="${examples}/dummy" />
-	    <arg line="${lib}" />
+	    <arg line="${bin}" />
 	    <arg line="Dummy" />
 	    <arg line="AgentBooterCSharp.cs" />	    
 	    <arg line="${csc}" />	    
@@ -367,7 +350,7 @@
 	        description="Create the DotNet distribution file">
 		<delete file="${dist}/JadeLeapDotNet-${version}.zip" quiet="true"/>
     <jar jarfile="${dist}/JadeLeapDotNet-${version}.zip" basedir="${dist}">
-    	<include name="add-ons/leap/dotnet/lib/**"/>
+    	<include name="add-ons/leap/dotnet/bin/**"/>
     </jar>
 	</target>
 	

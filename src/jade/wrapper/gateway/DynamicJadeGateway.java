@@ -33,8 +33,10 @@ public class DynamicJadeGateway {
 	private Object[] agentArguments;
 	
 	private int gatewayAgentState = UNKNOWN;
+	//#DOTNET_EXCLUDE_BEGIN
 	private List<GatewayListener> listeners = new ArrayList<GatewayListener>();
 	private volatile GatewayListener[] listenersArray = new GatewayListener[0];
+	//#DOTNET_EXCLUDE_END
 	
 	private static Logger myLogger = Logger.getMyLogger(DynamicJadeGateway.class.getName());
 	
@@ -116,7 +118,10 @@ public class DynamicJadeGateway {
 			try {
 				Agent a = (Agent) Class.forName(agentType).newInstance();
 				if (a instanceof GatewayAgent) {
+					//#DOTNET_EXCLUDE_BEGIN
 					((GatewayAgent) a).setListener(new GatewayListenerImpl());
+					//#DOTNET_EXCLUDE_END
+					
 					// We are able to detect the GatewayAgent state only if the internal agent is a GatewayAgent instance
 					gatewayAgentState = NOT_ACTIVE;
 				}
@@ -218,6 +223,7 @@ public class DynamicJadeGateway {
 		return new AID(localName+'@'+myContainer.getPlatformName(), AID.ISGUID);
 	}
 	
+	//#DOTNET_EXCLUDE_BEGIN
 	public void addListener(GatewayListener l) {
 		listeners.add(l);
 		listenersArray = listeners.toArray(new GatewayListener[0]);
@@ -271,4 +277,5 @@ public class DynamicJadeGateway {
 			t.start();
 		}
 	} // END of inner class GatewayListenerImpl
+	//#DOTNET_EXCLUDE_END
 }

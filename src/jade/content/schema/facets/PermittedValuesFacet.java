@@ -25,6 +25,7 @@
 package jade.content.schema.facets;
 
 //#MIDP_EXCLUDE_FILE
+//#DOTNET_EXCLUDE_FILE
 
 import jade.content.abs.AbsObject;
 import jade.content.abs.AbsPrimitive;

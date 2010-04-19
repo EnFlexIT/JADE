@@ -144,6 +144,7 @@ public class JadeGateway {
 		return defaultGateway.isGatewayActive();
 	}
 	
+	//#DOTNET_EXCLUDE_BEGIN
 	public static void addListener(GatewayListener l) {
 		defaultGateway.addListener(l);
 	}
@@ -151,6 +152,7 @@ public class JadeGateway {
 	public void removeListener(GatewayListener l) {
 		defaultGateway.removeListener(l);
 	}
+	//#DOTNET_EXCLUDE_END
 	
 	public static final DynamicJadeGateway getDefaultGateway() {
 		return defaultGateway;
