@@ -168,7 +168,10 @@ public class JICPPeer implements ICP, ProtocolManager {
 		try {
 			return new ServerSocket(port, 50, (host != null ? InetAddress.getByName(host) : null));
 		} 
-		catch (BindException be) {
+		catch (SocketException be) {
+			// HACK! We should do this only in case of a BindException. However some implementations 
+			// of the JVM (particularly that for Windows 7 64 bits) seem to have a bug and throw a 
+			// generic SocketException also in the case that the port is busy.
 			if (changePortIfBusy) {
 				// The specified port is busy. Let the system find a free one
 				try {
