@@ -94,7 +94,8 @@ ant dist - to create the distribution files
 	      _______________________________________________ -->
 	<target name="doTag" depends="SubWCRev" if="tagThisVersion.is.true" description="Set the JADE version number in jade.core.Runtime.">
 		<echo>tagging new release: JADE-${version}</echo>
-		<replace file="src/jade/core/Runtime.java" token="$Version$" value="${version}" summary="yes"/>
+		<replace file="src/jade/core/VersionManager.java" token="$Version$" value="${version}" summary="yes"/>
+		<!-- <replace file="src/jade/core/Runtime.java" token="$Version$" value="${version}" summary="yes"/> -->
 	</target>
 
 	<!--  _______________________________________________
@@ -243,6 +244,7 @@ ant dist - to create the distribution files
 				<include name="build.xml"/>
 				<include name="build.properties"/>
 				<include name="classes/*.mf"/>
+				<include name="lib/commons-codec/**"/>
 			</zipfileset>
 			<!--
 			<fileset dir="${dist}" includes="jade/src/FIPA/**"/>
@@ -265,13 +267,11 @@ ant dist - to create the distribution files
 			<zipfileset dir="." prefix="jade">
 				<include name="src/examples/**"/>
 				<include name="src/demo/**"/>
+				<include name="demo/**"/>
 				<include name="README"/>
 				<include name="COPYNG"/>
 				<include name="License"/>
 				<include name="ChangeLog"/>
-				<include name="build.xml"/>
-				<include name="build.properties"/>
-				<include name="classes/*.mf"/>
 			</zipfileset>
 			<!--
 			<fileset dir="${dist}" includes="jade/src/examples/**"/>
