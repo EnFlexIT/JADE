@@ -24,9 +24,11 @@
  */
 package jade.content.onto;
 
+import java.io.PrintStream;
 import java.util.Hashtable;
 import java.util.Enumeration;
 //#J2ME_EXCLUDE_BEGIN
+import java.util.Iterator;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
@@ -38,10 +40,15 @@ import jade.content.abs.AbsAggregate;
 import jade.content.abs.AbsHelper;
 import jade.content.abs.AbsObject;
 import jade.content.schema.ConceptSlotFunctionSchema;
+import jade.content.schema.Facet;
 import jade.content.schema.ObjectSchema;
 import jade.content.schema.AgentActionSchema;
 import jade.content.schema.ConceptSchema;
 import jade.content.schema.PredicateSchema;
+import jade.content.schema.facets.CardinalityFacet;
+import jade.content.schema.facets.DefaultValueFacet;
+import jade.content.schema.facets.PermittedValuesFacet;
+import jade.content.schema.facets.RegexFacet;
 
 import jade.util.leap.Serializable;
 import jade.util.Logger;
@@ -1027,5 +1034,100 @@ public class Ontology implements Serializable {
 		} 
 		
 		return referenceOnto.toObject(abs);
+	}
+	
+	/**
+	 * Dump ontology to default output stream
+	 */
+	public void dump() {
+		dump(System.out);
+	}
+	
+	/**
+	 * Dump ontology to specified PrintStream 
+	 */
+	public void dump(PrintStream ps) {
+		try {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Ontology "+name+"\n");
+			
+			dump(getConceptNames(), "concept", sb);
+			dump(getPredicateNames(), "predicate", sb);
+			dump(getActionNames(), "action", sb);
+
+			ps.println(sb.toString());
+
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void dump(List schemaNames, String label, StringBuilder sb) throws Exception {
+	
+		Iterator iter = schemaNames.iterator();
+		String conceptName;
+		ObjectSchema os;
+		while (iter.hasNext()) {
+			conceptName = (String)iter.next();
+			os = getSchema(conceptName);
+			
+			StringBuilder sbsc = new StringBuilder();
+			for(ObjectSchema osc : os.getSuperSchemas()) {
+				sbsc.append(osc.getTypeName());
+				sbsc.append(" ");
+			}
+			
+			sb.append("  "+label+" "+conceptName+" ("+sbsc.toString()+") {\n");
+			String[] names = os.getNames();
+			for (int i = 0; i < names.length; i++) {
+				sb.append("    "+names[i]+": ");
+				boolean mandatory = os.isMandatory(names[i]);
+				ObjectSchema schema = os.getSchema(names[i]);
+				if (schema == null) {
+					sb.append("ERROR: no schema!\n");
+				} else {
+					Object defaultValue = null;
+					Object regex = null;
+					String pValues = null;
+					Integer cardMin = null;
+					Integer cardMax = null;
+					Facet[] facets = os.getFacets(names[i]);
+					if (facets != null) {
+						for (Facet facet : facets) {
+							if (facet instanceof DefaultValueFacet) {
+								DefaultValueFacet dvf = (DefaultValueFacet)facet;
+								defaultValue = dvf.getDefaultValue();
+							} else if (facet instanceof RegexFacet) {
+								RegexFacet rf = (RegexFacet)facet;
+								regex = rf.getRegex();
+							} else if (facet instanceof PermittedValuesFacet) {
+								PermittedValuesFacet pvf = (PermittedValuesFacet)facet;
+								pValues = pvf.getPermittedValuesAsString();
+							} else if (facet instanceof CardinalityFacet) {
+								CardinalityFacet cf = (CardinalityFacet)facet;
+								cardMin = cf.getCardMin();
+								cardMax = cf.getCardMax();
+							}
+						}
+					}
+					
+					sb.append(schema.getTypeName()+ (!mandatory ? " (OPTIONAL)":""));
+					if (defaultValue != null) {
+						sb.append(" (DEFAULT="+defaultValue+")");
+					}
+					if (regex != null) {
+						sb.append(" (REGEX="+regex+")");
+					}
+					if (pValues != null && pValues.length() > 0) {
+						sb.append(" (VALUES="+pValues+")");
+					}
+					if (cardMin != null && cardMax != null) {
+						sb.append(" (["+cardMin+","+(cardMax!=-1?cardMax:"unbounded")+"])");
+					}
+					sb.append("\n");
+				}
+			}
+			sb.append("  } -> "+getClassForElement(os.getTypeName()).getName()+"\n\n");
+		}
 	}
 }
