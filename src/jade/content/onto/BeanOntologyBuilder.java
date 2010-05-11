@@ -519,12 +519,20 @@ class BeanOntologyBuilder {
 	}
 
 	private ObjectSchema doAddFlatSchema(Class clazz, boolean skipClassChecking) throws BeanOntologyException {
+		ObjectSchema schema;
+		try {
+			schema = ontology.getSchema(clazz);
+			if (schema != null) {
+				return schema;
+			}
+		} catch (OntologyException e1) {
+			throw new BeanOntologyException("error getting schema for class "+clazz);
+		}
 
 		String schemaName = getSchemaNameFromClass(clazz);
 		if (logger.isLoggable(Logger.FINE)) {
 			logger.log(Logger.FINE, "building concept "+schemaName);
 		}
-		ObjectSchema schema;
 		boolean isAction = AgentAction.class.isAssignableFrom(clazz); 
 		if (isAction) {
 			schema = new AgentActionSchema(schemaName);
@@ -583,6 +591,16 @@ class BeanOntologyBuilder {
 	}
 
 	private ObjectSchema doAddHierarchicalSchema(Class clazz, boolean skipClassChecking) throws BeanOntologyException {
+		ObjectSchema schema;
+		try {
+			schema = ontology.getSchema(clazz);
+			if (schema != null) {
+				return schema;
+			}
+		} catch (OntologyException e1) {
+			throw new BeanOntologyException("error getting schema for class "+clazz);
+		}
+		
 		Class superClazz = clazz.getSuperclass();
 		ObjectSchema superSchema = null;
 		if (superClazz != null) {
@@ -590,12 +608,7 @@ class BeanOntologyBuilder {
 				int scms = superClazz.getModifiers();
 				if (!Modifier.isPrivate(scms)) {
 					// classes referenced as slots do not need to be Concept, Predicate or AgentAction
-					doAddHierarchicalSchema(superClazz, true);
-					try {
-						superSchema = ontology.getSchema(superClazz);
-					} catch (OntologyException oe) {
-						throw new BeanOntologyException("error getting schema for superclass "+superClazz);
-					}
+					superSchema = doAddHierarchicalSchema(superClazz, true);
 				}
 			}
 		}
@@ -619,7 +632,6 @@ class BeanOntologyBuilder {
 		if (logger.isLoggable(Logger.FINE)) {
 			logger.log(Logger.FINE, "building concept "+schemaName);
 		}
-		ObjectSchema schema;
 		boolean isAction = AgentAction.class.isAssignableFrom(clazz); 
 		if (isAction) {
 			schema = new AgentActionSchema(schemaName);
