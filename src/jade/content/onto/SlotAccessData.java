@@ -28,12 +28,15 @@ package jade.content.onto;
 
 import jade.content.Term;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.lang.reflect.Method;
 
-class SlotAccessData {
+class SlotAccessData implements Serializable{
 	Class type;
-	Method getter;
-	Method setter;
+	transient Method getter;
+	transient Method setter;
 	boolean aggregate;
 	boolean mandatory;
 	Class aggregateClass;
@@ -43,6 +46,11 @@ class SlotAccessData {
 	String regex;
 	String[] permittedValues;
 	String documentation;
+	
+	// Used only for the serialization
+	Class declaringClass;
+	String getterName;
+	String setterName;
 
 	SlotAccessData(Class type, Method getter, Method setter, boolean mandatory, Class aggregateClass, int cardMin, int cardMax, Object defaultValue, String regex, String[] permittedValues, String documentation) {
 		this.type = type;
@@ -57,6 +65,10 @@ class SlotAccessData {
 		this.regex = regex;
 		this.permittedValues = permittedValues;
 		this.documentation = documentation;
+		
+		declaringClass = getter.getDeclaringClass();
+		getterName = getter.getName(); 
+		setterName = setter.getName();
 	}
 
 	boolean isTypized() {
@@ -108,5 +120,18 @@ class SlotAccessData {
 		}
 		sb.append('}');
 		return sb.toString();
+	}
+	
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+
+		try {
+			getter = declaringClass.getMethod(getterName, null);
+			setter = declaringClass.getMethod(setterName, type);
+		} catch (Exception e) {
+			// Should never happen
+			e.printStackTrace();
+			throw new IOException("Error deserializing ontology associated to class "+declaringClass);
+		}	
 	}
 }

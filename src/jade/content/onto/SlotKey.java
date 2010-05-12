@@ -23,10 +23,12 @@ Boston, MA  02111-1307, USA.
 
 package jade.content.onto;
 
+import java.io.Serializable;
+
 //#J2ME_EXCLUDE_FILE
 //#APIDOC_EXCLUDE_FILE
 
-class SlotKey implements Comparable<SlotKey> {
+class SlotKey implements Comparable<SlotKey>, Serializable {
 	String schemaName;
 	String slotName;
 	int position;

@@ -41,7 +41,8 @@ import java.util.Iterator;
 import java.util.Map;
 
 class BeanIntrospector implements Introspector {
-	private static final long serialVersionUID = 1L;
+
+	private static final long serialVersionUID = 6896919407513408002L;
 
 	private static final String ENUM_SLOT_NAME = BeanOntologyBuilder.ENUM_SLOT_NAME;
 	
@@ -257,5 +258,4 @@ class BeanIntrospector implements Introspector {
 		String strEnumValue = absEnumValue.getString();
 		return Enum.valueOf(javaClass, strEnumValue);
 	}
-
 }

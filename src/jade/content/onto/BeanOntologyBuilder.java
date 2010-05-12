@@ -36,7 +36,6 @@ import jade.content.onto.annotations.Result;
 import jade.content.onto.annotations.Slot;
 import jade.content.onto.annotations.SuppressSlot;
 import jade.content.schema.AgentActionSchema;
-import jade.content.schema.AggregateSchema;
 import jade.content.schema.ConceptSchema;
 import jade.content.schema.ObjectSchema;
 import jade.content.schema.PredicateSchema;
@@ -386,368 +385,284 @@ class BeanOntologyBuilder {
 		return result;
 	}
 
-	private static AggregateSchema tryToGetAggregateSchema(Class clazz) {
-		AggregateSchema result = null;
-
-		try {
-			String schemaName = getAggregateSchemaName(clazz);
-			if (schemaName != null) {
-				result = (AggregateSchema)BasicOntology.getInstance().getSchema(schemaName);
-			}
-		} catch (OntologyException oe) {
-			// we should never arrive here
-			oe.printStackTrace();
-		}
-		return result;
-	}
-
-	private TermSchema supplySchemaForClassFlat(Class clazz, boolean skipClassChecking) throws OntologyException, BeanOntologyException {
-		TermSchema ts;
+	private ObjectSchema getSchema(Class clazz) throws OntologyException {
 		ObjectSchema os;
+		// Manage classes that require special handling:
+		// Calendar --> Date
 		if (java.util.Calendar.class.isAssignableFrom(clazz)) {
-			// ontologically, Calendar is translated into a Date
 			os = ontology.getSchema(java.util.Date.class);
 		} else if (clazz == Object.class) {
+			// Object results in a generic TermSchema
 			os = TermSchema.getBaseSchema();
 		} else {
+			// If a schema is already associated to clazz, avoid overriding it
 			os = ontology.getSchema(clazz);
 		}
-		if (os == null) {
-			if (!skipClassChecking && !Concept.class.isAssignableFrom(clazz)) {
-				throw new BeanOntologyException("cannot add a slot of class "+clazz.getName()+" since it does not implement Concept");
-			}
-			os = doAddFlatSchema(clazz, skipClassChecking);
-		}
-		if (os != null && os instanceof TermSchema) {
-			ts = (TermSchema)os;
-		} else {
-			throw new BeanOntologyException("cannot add a slot of class "+clazz.getName()+" since it does not extend TermSchema");
-		}
-		return ts;
-	}
 
-	private TermSchema supplySchemaForClassRecursive(Class clazz, boolean skipClassChecking) throws OntologyException, BeanOntologyException {
-		TermSchema ts;
-		ObjectSchema os;
-		if (java.util.Calendar.class.isAssignableFrom(clazz)) {
-			// ontologically, Calendar is translated into a Date
-			os = ontology.getSchema(java.util.Date.class);
-		} else if (clazz == Object.class) {
-			os = TermSchema.getBaseSchema();
-		} else {
-			os = ontology.getSchema(clazz);
-		}
-		if (os == null) {
-			if (!skipClassChecking && !Concept.class.isAssignableFrom(clazz)) {
-				throw new BeanOntologyException("cannot add a slot of class "+clazz.getName()+" since it does not implement Concept");
-			}
-			ts = (ConceptSchema)doAddHierarchicalSchema(clazz, skipClassChecking);
-		}
-		if (os != null && os instanceof TermSchema) {
-			ts = (TermSchema)os;
-		} else {
-			throw new BeanOntologyException("cannot add a slot of class "+clazz.getName()+" since it does not extend TermSchema");
-		}
-		return ts;
+		return os;
 	}
-
-	private void addTermSlotToConcept(ConceptSchema schema, String slotName, String schemaName, SlotAccessData sad, boolean skipClassChecking) throws OntologyException {
-		if (logger.isLoggable(Logger.FINE)) {
-			logger.log(Logger.FINE, "concept "+schemaName+": adding slot "+slotName);
-		}
+	
+	private ObjectSchema doAddSchema(Class clazz, boolean buildHierarchy) throws BeanOntologyException {
 		try {
-			if (!sad.aggregate) {
-				TermSchema ts = supplySchemaForClassFlat(sad.type, skipClassChecking);
-				schema.add(slotName, ts, sad.mandatory ? ObjectSchema.MANDATORY : ObjectSchema.OPTIONAL);
-				
-				if (sad.defaultValue != null) {
-					schema.addFacet(slotName, new DefaultValueFacet(sad.defaultValue));
-				}
-				if (sad.regex != null) {
-					schema.addFacet(slotName, new RegexFacet(sad.regex));
-				}
-				if (sad.documentation != null) {
-					schema.addFacet(slotName, new DocumentationFacet(sad.documentation));
-				}
-				if (sad.permittedValues != null) {
-					// Adjust permitted values in correct class type 
-					// This is necessary because in the annotation the permitted values are string
-					Object[] typizedPermittedValues = new Object[sad.permittedValues.length]; 
-					if (sad.type != null) {
-						for(int i=0; i<sad.permittedValues.length; i++) {
-							typizedPermittedValues[i] = BasicOntology.adjustPrimitiveValue(sad.permittedValues[i], sad.type);
-						}
-					}
-					schema.addFacet(slotName, new PermittedValuesFacet(typizedPermittedValues));
-				}
+			if (buildHierarchy) {
+				return doAddHierarchicalSchema(clazz);
 			} else {
-				TermSchema ats = null;
-				if (sad.aggregateClass != null) {
-					// try to get a schema for the contained type
-					ats = supplySchemaForClassFlat(sad.aggregateClass, skipClassChecking);
-				}
-				schema.add(slotName, ats, sad.cardMin, sad.cardMax, getAggregateSchemaName(sad.type));
+				return doAddFlatSchema(clazz);
 			}
-		} catch (BeanOntologyException bobe) {
-			throw new BeanOntologyException("error adding slot "+slotName+" to schema "+schemaName, bobe);
+		} catch(BeanOntologyException boe) {
+			throw boe;
+			
+		} catch(Exception oe) {
+			throw new BeanOntologyException("Error addind schema for class "+clazz, oe);
 		}
 	}
 
-	private void addTermSlotToPredicate(PredicateSchema schema, String slotName, String schemaName, SlotAccessData sad, boolean skipClassChecking) throws OntologyException, BeanOntologyException {
-		if (logger.isLoggable(Logger.FINE)) {
-			logger.log(Logger.FINE, "predicate "+schemaName+": adding slot "+slotName);
-		}
-		try {
-			if (!sad.aggregate) {
-				TermSchema ts = supplySchemaForClassFlat(sad.type, skipClassChecking);
-				schema.add(slotName, ts, sad.mandatory ? ObjectSchema.MANDATORY : ObjectSchema.OPTIONAL);
-			} else {
-				TermSchema ats = null;
-				if (sad.aggregateClass != null) {
-					// try to get a schema for the contained type
-					ats = supplySchemaForClassFlat(sad.aggregateClass, skipClassChecking);
-				}
-				if (ats == null) {
-					schema.add(slotName, tryToGetAggregateSchema(sad.type), sad.cardMin > 0 ? ObjectSchema.MANDATORY : ObjectSchema.OPTIONAL);
-				} else {
-					schema.add(slotName, ats, sad.cardMin, sad.cardMax, getAggregateSchemaName(sad.type));
-				}
-			}
-		} catch (BeanOntologyException bobe) {
-			throw new BeanOntologyException("error adding slot "+slotName+" to predicate "+schemaName, bobe);
-		}
-	}
-
-	private ObjectSchema doAddFlatSchema(Class clazz, boolean skipClassChecking) throws BeanOntologyException {
-		ObjectSchema schema;
-		try {
-			schema = ontology.getSchema(clazz);
-			if (schema != null) {
-				return schema;
-			}
-		} catch (OntologyException e1) {
-			throw new BeanOntologyException("error getting schema for class "+clazz);
+	private ObjectSchema doAddHierarchicalSchema(Class clazz) throws OntologyException {
+		ObjectSchema schema = getSchema(clazz);
+		if (schema != null) {
+			return schema;
 		}
 
-		String schemaName = getSchemaNameFromClass(clazz);
-		if (logger.isLoggable(Logger.FINE)) {
-			logger.log(Logger.FINE, "building concept "+schemaName);
-		}
-		boolean isAction = AgentAction.class.isAssignableFrom(clazz); 
-		if (isAction) {
-			schema = new AgentActionSchema(schemaName);
+		schema = createEmptySchema(clazz);
+		ontology.add(schema, clazz);
+
+		if (clazz.isEnum()) {
+			manageEnum(clazz, schema);
 		} else {
-			if (Predicate.class.isAssignableFrom(clazz)) {
-				schema = new PredicateSchema(schemaName);
-			} else {
-				schema = new ConceptSchema(schemaName);
-				
-				// If the class is a enum type add a string slot for the enum value 
-				if (clazz.isEnum()) {
-					doAddEnumSlotSchema(clazz, schema, schemaName);
-				}
-			}
-		}
+			manageSuperClass(clazz, schema);
+			
+			manageInterfaces(clazz, schema);
 
-		try {
-			ontology.add(schema, clazz);
-		} catch (OntologyException oe) {
-			throw new BeanOntologyException("error adding empty schema for class "+clazz);
-		}
-
-		// If the class is a enum type skip the accessors-map building (emun not have fields)
-		if (!clazz.isEnum()) {
-			Map<SlotKey, SlotAccessData> slotAccessorsMap = buildAccessorsMap(schemaName, clazz, clazz.getMethods());
-			String slotName = null;
-			SlotAccessData sad;
-			try {
-				for (Entry<SlotKey, SlotAccessData> entry: slotAccessorsMap.entrySet()) {
-					slotName = entry.getKey().slotName;
-					sad = entry.getValue();
-					if (schema instanceof ConceptSchema) {
-						addTermSlotToConcept((ConceptSchema)schema, slotName, schemaName, sad, true);
-					} else {
-						addTermSlotToPredicate((PredicateSchema)schema, slotName, schemaName, sad, true);
-					}
-				}
-				introspector.addAccessors(slotAccessorsMap);
-				if (isAction) {
-					Annotation annotation;
-					if ((annotation = clazz.getAnnotation(Result.class)) != null) {
-						TermSchema ts = supplySchemaForClassFlat(((Result)annotation).type(), true);
-						((AgentActionSchema)schema).setResult(ts);
-					} else if ((annotation = clazz.getAnnotation(AggregateResult.class)) != null) {
-						AggregateResult ar = (AggregateResult)annotation;
-						TermSchema ts = supplySchemaForClassFlat(ar.type(), true);
-						((AgentActionSchema)schema).setResult(ts, ar.cardMin(), ar.cardMax());
-					}
-				}
-			} catch (OntologyException e) {
-				throw new BeanOntologyException("error getting schema for slot "+slotName);
+			manageSlots(clazz, schema, true);
+			
+			if (schema instanceof AgentActionSchema) {
+				manageActionResult(clazz, schema, true);
 			}
 		}
 		
 		return schema;
 	}
+	
+	private ObjectSchema doAddFlatSchema(Class clazz) throws OntologyException {
+		ObjectSchema schema = getSchema(clazz);
+		if (schema != null) {
+			return schema;
+		}
 
-	private ObjectSchema doAddHierarchicalSchema(Class clazz, boolean skipClassChecking) throws BeanOntologyException {
-		ObjectSchema schema;
-		try {
-			schema = ontology.getSchema(clazz);
-			if (schema != null) {
-				return schema;
+		schema = createEmptySchema(clazz);
+		ontology.add(schema, clazz);
+
+		if (clazz.isEnum()) {
+			manageEnum(clazz, schema);
+		} else {
+			manageSlots(clazz, schema, false);
+			
+			if (schema instanceof AgentActionSchema) {
+				manageActionResult(clazz, schema, false);
 			}
-		} catch (OntologyException e1) {
-			throw new BeanOntologyException("error getting schema for class "+clazz);
 		}
 		
+		return schema;
+	}
+	
+	private void manageSuperClass(Class clazz, ObjectSchema schema) throws OntologyException {
 		Class superClazz = clazz.getSuperclass();
-		ObjectSchema superSchema = null;
 		if (superClazz != null) {
-			if ((skipClassChecking && !Object.class.equals(superClazz)) || Concept.class.isAssignableFrom(superClazz) || Predicate.class.isAssignableFrom(superClazz)) {
-				int scms = superClazz.getModifiers();
-				if (!Modifier.isPrivate(scms)) {
-					// classes referenced as slots do not need to be Concept, Predicate or AgentAction
-					superSchema = doAddHierarchicalSchema(superClazz, true);
-				}
-			}
-		}
-
-		Method[] declaredMethods = clazz.getDeclaredMethods();
-		List<Method> publicDeclaredMethodsList = new ArrayList<Method>();
-		int modifiers;
-		for (Method m: declaredMethods) {
-			modifiers = m.getModifiers();
-			if (Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers) && !Modifier.isAbstract(modifiers)) {
-				publicDeclaredMethodsList.add(m);
-			}
-		}
-
-		Method[] publicDeclaredMethods = new Method[publicDeclaredMethodsList.size()];
-		for (int i = 0; i < publicDeclaredMethods.length; i++) {
-			publicDeclaredMethods[i] = publicDeclaredMethodsList.get(i);
-		}
-
-		String schemaName = getSchemaNameFromClass(clazz);
-		if (logger.isLoggable(Logger.FINE)) {
-			logger.log(Logger.FINE, "building concept "+schemaName);
-		}
-		boolean isAction = AgentAction.class.isAssignableFrom(clazz); 
-		if (isAction) {
-			schema = new AgentActionSchema(schemaName);
-		} else {
-			if (Predicate.class.isAssignableFrom(clazz)) {
-				schema = new PredicateSchema(schemaName);
-			} else {
-				schema = new ConceptSchema(schemaName);
-				
-				// If the class is a enum type add a string slot for the enum value 
-				if (clazz.isEnum()) {
-					doAddEnumSlotSchema(clazz, schema, schemaName);
-				}
-			}
-		}
-		if (superSchema != null) {
-			if (logger.isLoggable(Logger.FINE)) {
-				logger.log(Logger.FINE, "adding superschema from class "+superClazz);
-			}
-			if (schema instanceof ConceptSchema) {
-				((ConceptSchema)schema).addSuperSchema((ConceptSchema)superSchema);
-			} else {
-				((PredicateSchema)schema).addSuperSchema((PredicateSchema)superSchema);
-			}
-		}
-
-		try {
-			ontology.add(schema, clazz);
-		} catch (OntologyException oe) {
-			throw new BeanOntologyException("error adding empty schema for class "+clazz);
-		}
-
-		
-		// If the class is a enum type skip the accessors-map building (emun not have fields)
-		if (!clazz.isEnum()) {
-			Map<SlotKey, SlotAccessData> slotAccessorsMap = buildAccessorsMap(schemaName, clazz, publicDeclaredMethods);
-			String slotName = null;
-			SlotAccessData sad;
-			try {
-				for (Entry<SlotKey, SlotAccessData> entry: slotAccessorsMap.entrySet()) {
-					slotName = entry.getKey().slotName;
+			if (!Object.class.equals(superClazz)) {
+				if (!isPrivate(superClazz)) {
+					// Superclasses do not need to be Concept, Predicate or AgentAction
+					ObjectSchema superSchema = doAddHierarchicalSchema(superClazz);
 					
-					if (!schema.containsSlot(slotName)) {
-						sad = entry.getValue();
-						if (schema instanceof ConceptSchema) {
-							addTermSlotToConcept((ConceptSchema)schema, slotName, schemaName, sad, true);
-						} else {
-							addTermSlotToPredicate((PredicateSchema)schema, slotName, schemaName, sad, true);
-						}
+					if (schema instanceof ConceptSchema) {
+						((ConceptSchema)schema).addSuperSchema((ConceptSchema)superSchema);
+					} else {
+						((PredicateSchema)schema).addSuperSchema((PredicateSchema)superSchema);
 					}
 				}
-				introspector.addAccessors(slotAccessorsMap);
-				if (isAction) {
-					Annotation annotation;
-					if ((annotation = clazz.getAnnotation(Result.class)) != null) {
-						TermSchema ts = supplySchemaForClassRecursive(((Result)annotation).type(), true);
-						((AgentActionSchema)schema).setResult(ts);
-					} else if ((annotation = clazz.getAnnotation(AggregateResult.class)) != null) {
-						AggregateResult ar = (AggregateResult)annotation;
-						TermSchema ts = supplySchemaForClassRecursive(ar.type(), true);
-						((AgentActionSchema)schema).setResult(ts, ar.cardMin(), ar.cardMax());
-					}
-				}
-			} catch (OntologyException e) {
-				throw new BeanOntologyException("error getting schema for slot "+slotName, e);
 			}
 		}
-		
-		return schema;
 	}
 
-	private void doAddEnumSlotSchema(Class clazz, ObjectSchema schema, String schemaName) throws BeanOntologyException {
-		try {
-			ConceptSchema cs = (ConceptSchema)schema;
-			
-			cs.add(ENUM_SLOT_NAME, (TermSchema)ontology.getSchema(String.class));
-
-			// Add enum permitted values
-			Enum[] enumValues = ((Class<? extends Enum>)clazz).getEnumConstants();
-			String[] enumStrValues = new String[enumValues.length]; 
-			for(int i=0; i<enumValues.length; i++) {
-				enumStrValues[i] = enumValues[i].toString(); 
+	private void manageInterfaces(Class clazz, ObjectSchema schema) throws OntologyException {
+		Class[] interfaces = clazz.getInterfaces();
+		if (interfaces != null) {
+			for (Class interfaceClass : interfaces) {
+				if (!isPrivate(interfaceClass)) {
+					// We add a new schema only for interfaces that extends Concept (if we are dealing with a Concept)
+					// or Predicate (if we are dealing with a Predicate). This is to avoid adding schemas for interfaces
+					// like Serializable, Cloanable....
+					if (schema instanceof ConceptSchema && Concept.class.isAssignableFrom(interfaceClass) && interfaceClass != Concept.class) {
+						ObjectSchema superSchema = doAddHierarchicalSchema(interfaceClass);
+						((ConceptSchema)schema).addSuperSchema((ConceptSchema)superSchema);
+					}
+					else if (schema instanceof PredicateSchema && Predicate.class.isAssignableFrom(interfaceClass) && interfaceClass != Predicate.class) {
+						ObjectSchema superSchema = doAddHierarchicalSchema(interfaceClass);
+						((PredicateSchema)schema).addSuperSchema((PredicateSchema)superSchema);
+					}
+				}
 			}
-			cs.addFacet(ENUM_SLOT_NAME, new PermittedValuesFacet(enumStrValues));
-			
-		} catch (OntologyException e) {
-			throw new BeanOntologyException("error adding slot value to enum-schema "+schemaName, e);
 		}
 	}
 	
-	private void doAddSchema(Class clazz, boolean buildHierarchy, boolean skipClassChecking) throws BeanOntologyException {
-		// Skip all interfaces
-		if (!clazz.isInterface()) {
-			boolean classIsValid = skipClassChecking || (Concept.class.isAssignableFrom(clazz) || Predicate.class.isAssignableFrom(clazz));
-			if (classIsValid) {
-				ObjectSchema schema = null;
-				try {
-					schema = BasicOntology.getInstance().getSchema(clazz);
-				} catch (OntologyException oe) {
-					// this should never happen
-					oe.printStackTrace();
-				}
-				if (schema != null) {
-					throw new BeanOntologyException("cannot add schema for class "+clazz+" since it is included in BasicOntology");
-				}
-				if (buildHierarchy) {
-					doAddHierarchicalSchema(clazz, skipClassChecking);
+	private void manageEnum(Class clazz, ObjectSchema schema) throws OntologyException {
+		ConceptSchema cs = (ConceptSchema)schema;
+		
+		cs.add(ENUM_SLOT_NAME, (TermSchema)ontology.getSchema(String.class));
+
+		// Add enum permitted values
+		Enum[] enumValues = ((Class<? extends Enum>)clazz).getEnumConstants();
+		String[] enumStrValues = new String[enumValues.length]; 
+		for(int i=0; i<enumValues.length; i++) {
+			enumStrValues[i] = enumValues[i].toString(); 
+		}
+		cs.addFacet(ENUM_SLOT_NAME, new PermittedValuesFacet(enumStrValues));
+	}
+	
+	private void manageActionResult(Class clazz, ObjectSchema schema, boolean buildHierarchy) throws OntologyException {
+		Annotation annotation;
+		if ((annotation = clazz.getAnnotation(Result.class)) != null) {
+			Result r = (Result)annotation;
+			TermSchema ts = (TermSchema)doAddSchema(r.type(), buildHierarchy);
+			((AgentActionSchema)schema).setResult(ts);
+		} else if ((annotation = clazz.getAnnotation(AggregateResult.class)) != null) {
+			AggregateResult ar = (AggregateResult)annotation;
+			TermSchema ts = (TermSchema)doAddSchema(ar.type(), buildHierarchy);
+			((AgentActionSchema)schema).setResult(ts, ar.cardMin(), ar.cardMax());
+		}
+
+	}
+	
+	private void manageSlots(Class clazz, ObjectSchema schema, boolean buildHierarchy) throws OntologyException {
+		Method[] methods = clazz.getMethods();
+		List<Method> concreteMethodsList = new ArrayList<Method>();
+		int modifiers;
+		for (Method m: methods) {
+			modifiers = m.getModifiers();
+			if (!Modifier.isStatic(modifiers) && !Modifier.isAbstract(modifiers)) {
+				concreteMethodsList.add(m);
+			}
+		}
+
+		Map<SlotKey, SlotAccessData> slotAccessorsMap = buildAccessorsMap(schema.getTypeName(), clazz, (Method[])concreteMethodsList.toArray(new Method[0]));
+		introspector.addAccessors(slotAccessorsMap);
+
+		for (Entry<SlotKey, SlotAccessData> entry: slotAccessorsMap.entrySet()) {
+			String slotName = entry.getKey().slotName;
+			// Avoid overriding slots defined in super-schemas
+			if (!schema.containsSlot(slotName)) {
+				if (schema instanceof ConceptSchema) {
+					addSlot((ConceptSchema)schema, slotName, entry.getValue(), buildHierarchy);
 				} else {
-					doAddFlatSchema(clazz, skipClassChecking);
+					addSlot((PredicateSchema)schema, slotName, entry.getValue(), buildHierarchy);
 				}
 			}
 		}
 	}
+	
+	private void addSlot(ConceptSchema schema, String slotName, SlotAccessData sad, boolean buildHierarchy) throws OntologyException {
+		if (logger.isLoggable(Logger.FINE)) {
+			logger.log(Logger.FINE, "concept "+schema.getTypeName()+": adding slot "+slotName);
+		}
+		
+		if (!sad.aggregate) {
+			TermSchema ts = (TermSchema)doAddSchema(sad.type, buildHierarchy);
+			schema.add(slotName, ts, sad.mandatory ? ObjectSchema.MANDATORY : ObjectSchema.OPTIONAL);
+			
+			if (sad.defaultValue != null) {
+				schema.addFacet(slotName, new DefaultValueFacet(sad.defaultValue));
+			}
+			if (sad.regex != null) {
+				schema.addFacet(slotName, new RegexFacet(sad.regex));
+			}
+			if (sad.documentation != null) {
+				schema.addFacet(slotName, new DocumentationFacet(sad.documentation));
+			}
+			if (sad.permittedValues != null) {
+				// Adjust permitted values in correct class type 
+				// This is necessary because in the annotation the permitted values are string
+				Object[] typizedPermittedValues = new Object[sad.permittedValues.length]; 
+				if (sad.type != null) {
+					for(int i=0; i<sad.permittedValues.length; i++) {
+						typizedPermittedValues[i] = BasicOntology.adjustPrimitiveValue(sad.permittedValues[i], sad.type);
+					}
+				}
+				schema.addFacet(slotName, new PermittedValuesFacet(typizedPermittedValues));
+			}
+		} else {
+			TermSchema ats = null;
+			if (sad.aggregateClass != null) {
+				// try to get a schema for the contained type
+				ats = (TermSchema)doAddSchema(sad.aggregateClass, buildHierarchy);
+			}
+			schema.add(slotName, ats, sad.cardMin, sad.cardMax, getAggregateSchemaName(sad.type));
+		}
+	}
 
+	private void addSlot(PredicateSchema schema, String slotName, SlotAccessData sad, boolean buildHierarchy) throws OntologyException {
+		if (logger.isLoggable(Logger.FINE)) {
+			logger.log(Logger.FINE, "concept "+schema.getTypeName()+": adding slot "+slotName);
+		}
+		
+		if (!sad.aggregate) {
+			ObjectSchema os = doAddSchema(sad.type, buildHierarchy);
+			schema.add(slotName, os, sad.mandatory ? ObjectSchema.MANDATORY : ObjectSchema.OPTIONAL);
+			
+			if (sad.defaultValue != null) {
+				schema.addFacet(slotName, new DefaultValueFacet(sad.defaultValue));
+			}
+			if (sad.regex != null) {
+				schema.addFacet(slotName, new RegexFacet(sad.regex));
+			}
+			if (sad.documentation != null) {
+				schema.addFacet(slotName, new DocumentationFacet(sad.documentation));
+			}
+			if (sad.permittedValues != null) {
+				// Adjust permitted values in correct class type 
+				// This is necessary because in the annotation the permitted values are string
+				Object[] typizedPermittedValues = new Object[sad.permittedValues.length]; 
+				if (sad.type != null) {
+					for(int i=0; i<sad.permittedValues.length; i++) {
+						typizedPermittedValues[i] = BasicOntology.adjustPrimitiveValue(sad.permittedValues[i], sad.type);
+					}
+				}
+				schema.addFacet(slotName, new PermittedValuesFacet(typizedPermittedValues));
+			}
+		} else {
+			TermSchema ats = null;
+			if (sad.aggregateClass != null) {
+				// try to get a schema for the contained type
+				ats = (TermSchema)doAddSchema(sad.aggregateClass, buildHierarchy);
+			}
+			schema.add(slotName, ats, sad.cardMin, sad.cardMax, getAggregateSchemaName(sad.type));
+		}
+	}
+	
+	private boolean isPrivate(Class clazz) {
+		int scms = clazz.getModifiers();
+		return Modifier.isPrivate(scms);
+	}
+
+	private ObjectSchema createEmptySchema(Class clazz) {
+		ObjectSchema schema;
+		String schemaName = getSchemaNameFromClass(clazz);
+		if (logger.isLoggable(Logger.FINE)) {
+			logger.log(Logger.FINE, "building concept "+schemaName);
+		}
+		if (AgentAction.class.isAssignableFrom(clazz)) {
+			schema = new AgentActionSchema(schemaName);
+		} 
+		else if (Predicate.class.isAssignableFrom(clazz)) {
+			schema = new PredicateSchema(schemaName);
+		} 
+		else {
+			schema = new ConceptSchema(schemaName);
+		}
+
+		return schema;
+	}
+	
 	void addSchema(Class clazz, boolean buildHierarchy) throws BeanOntologyException {
-		doAddSchema(clazz, buildHierarchy, true);
+		doAddSchema(clazz, buildHierarchy);
 	}
 
 	void addSchemas(String pkgname, boolean buildHierarchy) throws BeanOntologyException {
@@ -757,7 +672,9 @@ class BeanOntologyBuilder {
 				throw new BeanOntologyException("no suitable classes found");
 			}
 			for (Class clazz: classesForPackage) {
-				doAddSchema(clazz, buildHierarchy, false);
+				if (Concept.class.isAssignableFrom(clazz) || Predicate.class.isAssignableFrom(clazz)) {
+					doAddSchema(clazz, buildHierarchy);
+				}
 			}
 		} catch (ClassNotFoundException cnfe) {
 			throw new BeanOntologyException("Class not found", cnfe);

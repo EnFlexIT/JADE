@@ -19,9 +19,12 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.content.onto;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
 
 //#J2ME_EXCLUDE_FILE
 
@@ -100,8 +103,9 @@ package jade.content.onto;
  * @see jade.content.onto.BasicOntology
  */
 public class BeanOntology extends Ontology {
-	private static final long serialVersionUID = 1L;
 
+	private static final long serialVersionUID = -2007125499000302494L;
+	
 	private transient BeanOntologyBuilder bob;
 
 	/**
@@ -193,5 +197,12 @@ public class BeanOntology extends Ontology {
 	 */
 	public void add(String pkgname, boolean buildHierarchy) throws BeanOntologyException {
 		bob.addSchemas(pkgname, buildHierarchy);
+	}
+	
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+
+		// Create a new instance of BOB
+		bob = new BeanOntologyBuilder(this);
 	}
 }

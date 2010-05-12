@@ -200,10 +200,12 @@ class ObjectSchemaImpl extends ObjectSchema {
 	 * @param superSchema the super schema.
 	 */
 	protected void addSuperSchema(ObjectSchema superSchema) {
-		if (superSchemas == null) {
-			superSchemas = new Vector();
+		if (superSchema != null) {
+			if (superSchemas == null) {
+				superSchemas = new Vector();
+			}
+			superSchemas.addElement(superSchema);
 		}
-		superSchemas.addElement(superSchema);
 	}
 
 	/**

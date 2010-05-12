@@ -936,12 +936,10 @@ public class Ontology implements Serializable {
 		// We use a Set to avoid duplicating names in case an element is overridden
 		Set names = new HashSet();
 		names.addAll(getOwnElementNames(c));
-		Ontology basicOnto = BasicOntology.getInstance();
-		Ontology serializableOnto = SerializableOntology.getInstance();
 		for (int i = 0; i < base.length; ++i) {
 			Ontology o = base[i];
 			// Do not consider elements defined in the BasicOntology and in the SerializableOntology
-			if ((o != null) && (o != basicOnto) && (o != serializableOnto)) {
+			if ((o != null) && (o.getClass() != BasicOntology.class) && (o.getClass() != SerializableOntology.class)) {
 				names.addAll(o.getElementNames(c));
 			}
 		}
@@ -1072,13 +1070,17 @@ public class Ontology implements Serializable {
 			os = getSchema(conceptName);
 			
 			StringBuilder sbsc = new StringBuilder();
+			boolean first = true;
 			for(ObjectSchema osc : os.getSuperSchemas()) {
+				if (!first) {
+					sbsc.append(" ");
+				}
 				sbsc.append(osc.getTypeName());
-				sbsc.append(" ");
+				first = false;
 			}
 			
 			sb.append("  "+label+" "+conceptName+" ("+sbsc.toString()+") {\n");
-			String[] names = os.getNames();
+			String[] names = os.getOwnNames();
 			for (int i = 0; i < names.length; i++) {
 				sb.append("    "+names[i]+": ");
 				boolean mandatory = os.isMandatory(names[i]);
