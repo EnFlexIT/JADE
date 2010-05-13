@@ -62,7 +62,12 @@
          _______________________________________________ -->
   <target name="compileTests" depends="init" description="compile the tests">
     <echo message="-------------- Compiling Tests ----------------" />
-    <javac srcdir="src" destdir="classes" optimize="on" deprecation="off">
+    <javac srcdir="src" 
+           destdir="classes" 
+           deprecation="on"
+           optimize="off" 
+           debug="on" 
+           debuglevel="lines,vars,source">
       <classpath refid="project.class.path"/>
       <include name="test/**"/>
       <exclude name="test/TestAgent.java"/>

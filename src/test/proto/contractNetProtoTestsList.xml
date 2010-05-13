@@ -57,4 +57,14 @@
 			<WhenTestPass>The test passes if all protocols are successfully completed as expected.
 			</WhenTestPass>
 		</Test>		
+
+		<Test name="Iterated Contract Net" skip="false">
+			<TestClassName>test.proto.tests.contractNet.TestSSIteratedContractNetResponder</TestClassName>
+			<WhatTest>Test the usage of the ContractNetInitiator and SSIteratedContractNetResponder classes to implement an iterated-contract-net protocol 
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>		
 	</TestsList>
