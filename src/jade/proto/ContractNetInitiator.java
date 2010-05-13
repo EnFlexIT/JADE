@@ -40,11 +40,9 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.Serializable;
 
 /**
- * This class implements the Fipa-Contract-Net interaction protocol
- * with an API similar and homogeneous to <code>AchieveREInitiator</code>.
- * <br>
- * This implementation works both for 1:1 and 1:N conversation and, of course,
- * implements the role of the initiator of the protocol.
+ * This class implements the initiator role in a Fipa-Contract-Net or Iterated-Fipa-Contract-Net 
+ * interaction protocol.<br>
+ * This implementation works both for 1:1 and 1:N conversation.
  * <p>
  * The following is a brief description of the protocol. The programmer
  * should however refer to the 
@@ -54,7 +52,7 @@ import jade.util.leap.Serializable;
  * The initiator solicits proposals from other agents by sending
  * a <code>CFP</code> message that specifies the action to be performed
  * and, if needed, conditions upon its execution. The implementation of
- * the callback method <code>prepareCfps</code> must return the vector of
+ * the callback method <code>prepareCfps</code> must return the Vector of
  * messages to be sent (eventually a single message with multiple receivers).
  * <p>
  * The responders can then reply by sending a <code>PROPOSE</code> message
@@ -64,28 +62,28 @@ import jade.util.leap.Serializable;
  * the proposal or, eventually, a <code>NOT-UNDERSTOOD</code> to communicate
  * communication problems.
  * This first category of reply messages has been here identified as a 
- * response and can be handled via the <code>handleAllResponses</code>
+ * responses and can be handled via the <code>handleAllResponses()</code>
  * callback method.
  * Specific handle callback methods for each type of communicative act are also
  * available when the programmer wishes to handle them separately:
- * <code>handleRefuse, handlePropose, handleNotUnderstood</code>.
+ * <code>handlePropose(), handleRefuse(), handleNotUnderstood()</code>.
  * <p> 
  * The initiator can evaluate all the received proposals
  * and make its choice of which agent proposals will be accepted and
  * which will be rejected. 
  * This class provides two ways for this evaluation. It can be done
  * progressively each time a new <code>PROPOSE</code> message is
- * received and a new call to the <code>handlePropose</code> callback 
+ * received and a new call to the <code>handlePropose()</code> callback 
  * method is executed
  * or,
  * in alternative, it can be done just once when all the <code>PROPOSE</code>
  * messages have been collected (or the <code>reply-by</code> deadline has
- * elapsed) and a single call to the 
- * <code>handleAllResponses</code> callback method is executed. 
+ * expired) and a single call to the 
+ * <code>handleAllResponses()</code> callback method is executed. 
  * In both cases, the second parameter of the method, i.e. the Vector
  * <code>acceptances</code>, must be filled with the appropriate
  * <code>ACCEPT/REJECT-PROPOSAL</code> messages.
- * Notice that, for the first case, the method <code>skipNextResponses</code>
+ * Notice that, for the first case, the method <code>skipNextResponses()</code>
  * has been provided that, if called by the programmer
  * when waiting for <code>PROPOSE</code>
  * messages, allows to skip to the next state and ignore all the 
@@ -98,16 +96,16 @@ import jade.util.leap.Serializable;
  * <code>INFORM</code> of the result of the action (eventually just that the 
  * action has been done) or with a <code>FAILURE</code> if anything went wrong.
  * This second category of reply messages has been here identified as a
- * result notification and can be handled via the 
- * <code>handleAllResultNotification</code> callback method.
+ * result notifications and can be handled via the 
+ * <code>handleAllResultNotifications()</code> callback method.
  * Again, specific handle callback
  * methods for each type of communicative act are also
  * available when the programmer wishes to handle them separately:
- * <code>handleRefuse, handleInform</code>.
+ * <code>handleInform(), handleFailure()</code>.
  * <p>
  * If a message were received, with the same value of this 
  * <code>conversation-id</code>, but that does not comply with the FIPA 
- * protocol, than the method <code>handleOutOfSequence</code> would be called.
+ * protocol, than the method <code>handleOutOfSequence()</code> would be called.
  * <p>
  * This class can be extended by the programmer by overriding all the needed
  * handle methods or, in alternative, appropriate behaviours can be
@@ -117,10 +115,10 @@ import jade.util.leap.Serializable;
  * <code>Behaviour</code> as a shared memory mechanism with the
  * registered behaviour.
  * <p>
- * Read carefully the section of the 
- * <a href="..\..\..\programmersguide.pdf"> JADE programmer's guide </a>
- * that describes
- * the usage of this class.
+ * When needed this class can also be used to play the initiator role in an
+ * Iterated-Fipa-Contract-Net protocol. To activate a new CFP-PROPOSE iteration it is 
+ * sufficient to invoke the <code>newIteration()</code> method from within the 
+ * <code>handleAllResponses()</code> method.
 
  * @author Giovanni Caire - TILab
  * @author Fabio Bellifemine - TILab
@@ -181,7 +179,7 @@ public class ContractNetInitiator extends Initiator {
 
 	// When step == 1 we deal with CFP and responses
 	// When step == 2 we deal with ACCEPT/REJECT_PROPOSAL and result notifications
-	private int step = 1;;
+	private int step = 1;
 	// If set to true all responses not yet received are skipped
 	private boolean skipNextRespFlag = false;
 
@@ -297,66 +295,6 @@ public class ContractNetInitiator extends Initiator {
 
 		super.sendInitiations(initiations);
 	}
-
-	/**
-     Create and initialize the Sessions and sends the initiation messages
-	 *    
-  protected void sendInitiations(Vector initiations) {
-		long currentTime = System.currentTimeMillis();
-		long minTimeout = -1;
-		long deadline = -1;
-
-		// By default the initiations parameter points to the Vector of the CFPs. 
-		// However at step 2 we need to deal with the acceptances
-		if (step == 2) {
-			initiations = (Vector) getDataStore().get(ALL_ACCEPTANCES_KEY);
-		}
-
-		String conversationID = createConvId(initiations);
-		replyTemplate = MessageTemplate.MatchConversationId(conversationID);
-	  int cnt = 0; // counter of sessions
-	  for (Enumeration e=initiations.elements(); e.hasMoreElements(); ) {
-			ACLMessage msg = (ACLMessage) e.nextElement();
-			if (msg != null) {
-		    // Update the list of sessions on the basis of the receivers
-		    // FIXME: Maybe this should take the envelope into account first
-
-		    ACLMessage toSend = (ACLMessage)msg.clone();
-		    toSend.setConversationId(conversationID);
-		    for (Iterator receivers = msg.getAllReceiver(); receivers.hasNext(); ) {
-					toSend.clearAllReceiver();
-					AID r = (AID)receivers.next();
-					toSend.addReceiver(r);
-					if (step == 1 || toSend.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
-						String sessionKey = "R" + hashCode()+  "_" + Integer.toString(cnt);
-						toSend.setReplyWith(sessionKey);
-						sessions.put(sessionKey, new Session(step));
-						adjustReplyTemplate(toSend);
-						cnt++;
-					}
-					myAgent.send(toSend);
-		    }
-
-	    	// Update the timeout (if any) used to wait for replies according
-	    	// to the reply-by field
-	    	// Get the miminum (if we are in step 2 only consider ACCEPT_PROPOSALs) 
-				if (step == 1 || toSend.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
-	    		Date d = msg.getReplyByDate();
-	    		if (d != null) {
-						long timeout = d.getTime()- currentTime;
-						if (timeout > 0 && (timeout < minTimeout || minTimeout <= 0)) {
-		    			minTimeout = timeout;
-		    			deadline = d.getTime();
-						}
-	    		}
-				}
-			}
-	  }
-	  // Finally set the MessageTemplate and timeout used in the RECEIVE_REPLY 
-	  // state to accept replies
-	  replyReceiver.setTemplate(replyTemplate);
-	  replyReceiver.setDeadline(deadline);
-  }*/
 
 	/**
      Check whether a reply is in-sequence and update the appropriate Session
@@ -633,6 +571,20 @@ public class ContractNetInitiator extends Initiator {
 	 */
 	public void skipNextResponses() {
 		skipNextRespFlag = true;
+	}
+	
+	/**
+	 * This method can be called (typically within the handleAllResponses() method) to 
+	 * activate a new iteration (this means we are implementing an Iterated-Contract-Net
+	 * protocol).
+	 * @param nextMessages The messages to be sent to responders at next iteration. Such messages
+	 * can be CFPs (for responders actually involved in the next iteration) or REJECT_PROPOSALs
+	 * (for responders no longer involved in the next iteration).
+	 * @see SSIteratedContractNetResponder 
+	 */
+	public void newIteration(Vector nextMessages) {
+		reset();
+		getDataStore().put(ALL_CFPS_KEY, nextMessages);
 	}
 
 	protected void reinit() {

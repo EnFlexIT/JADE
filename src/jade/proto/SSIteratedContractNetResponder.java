@@ -22,7 +22,14 @@ public class SSIteratedContractNetResponder extends SSContractNetResponder {
 	}
 	
 	protected boolean checkInSequence(ACLMessage received) {
-		return (super.checkInSequence(received) || (received.getPerformative() == ACLMessage.CFP));
+		if (received.getPerformative() == ACLMessage.CFP) {
+			// New iteration --> Move the received message to the CFP_KEY and return true
+			getDataStore().put(this.CFP_KEY, received);
+			return true;
+		}
+		else {
+			return super.checkInSequence(received);
+		}
 	}
 	
 	protected void beforeReply(ACLMessage reply) {

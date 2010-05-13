@@ -47,8 +47,8 @@ public abstract class SSResponderDispatcher extends CyclicBehaviour {
 					}
 				};
 				sb.setBehaviourName(convId+"-Responder");
-				sb.addSubBehaviour(createResponder(msg));
-				myAgent.addBehaviour(sb);
+				sb.addSubBehaviour(ssResponder);
+				addBehaviour(sb);
 			}
 		}
 		else {
@@ -63,6 +63,10 @@ public abstract class SSResponderDispatcher extends CyclicBehaviour {
 	 * @return
 	 */
 	protected abstract Behaviour createResponder(ACLMessage initiationMsg); 
+	
+	protected void addBehaviour(Behaviour b) {
+		myAgent.addBehaviour(b);
+	}
 	
 	private static long cnt = 0;
 	private synchronized static String createConversationId(String name) {

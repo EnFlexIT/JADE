@@ -115,14 +115,14 @@ public class SSContractNetResponder extends SSResponder {
 	 Programmers have to override it to react to this event.
 	 @param  cfp the initial CFP message to handle.
 	 @return the reply message to be sent back to the initiator. Returning 
-	 a message defferent from PROPOSE (or returning null) terminates the protocol. 
+	 a message different than PROPOSE (or returning null) terminates the protocol. 
 	 @exception RefuseException if the CFP is refused. Throwing a 
 	 RefuseException has the same effect as returning a REFUSE message, 
 	 but automatically manages the <code>:content</code> slot.
 	 @exception FailureException if there is an error serving the CFP.
 	 Throwing a FailureException has the same effect as returning a FAILURE
 	 message, but automatically manages the <code>:content</code> slot.
-	 @exception NotUnderstoodException if the CFP content is not undrerstood.
+	 @exception NotUnderstoodException if the CFP content is not understood.
 	 Throwing a NotUnderstoodException has the same effect as returning a NOT_UNDERSTOOD
 	 message, but automatically manages the <code>:content</code> slot.
 	 */
