@@ -491,7 +491,7 @@ class BeanOntologyBuilder {
 					// We add a new schema only for interfaces that extends Concept (if we are dealing with a Concept)
 					// or Predicate (if we are dealing with a Predicate). This is to avoid adding schemas for interfaces
 					// like Serializable, Cloanable....
-					if (schema instanceof ConceptSchema && Concept.class.isAssignableFrom(interfaceClass) && interfaceClass != Concept.class) {
+					if (schema instanceof ConceptSchema && Concept.class.isAssignableFrom(interfaceClass) && interfaceClass != Concept.class && interfaceClass != AgentAction.class) {
 						ObjectSchema superSchema = doAddHierarchicalSchema(interfaceClass);
 						((ConceptSchema)schema).addSuperSchema((ConceptSchema)superSchema);
 					}
