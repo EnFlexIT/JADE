@@ -123,9 +123,18 @@ public class FIPAService {
 	 * the protocol succeeded, otherwise it throws an Exception
 	 */
 	public static ACLMessage doFipaRequestClient(Agent a, ACLMessage request, long timeout) throws FIPAException {
-		// If the request message does not have a ':reply-with' slot set
-		if (request.getReplyWith() == null) 
-			request.setReplyWith("rw-"+a.getLocalName()+System.currentTimeMillis()+'-'+getNextInt());
+		String key = null;
+		// If the request message does not have a ':reply-with' and :conversation-id slots set them		
+		if (request.getReplyWith() == null) {
+			key = a.getLocalName()+System.currentTimeMillis()+'-'+getNextInt();
+			request.setReplyWith("rw-"+key);
+		}
+		if (request.getConversationId() == null) {
+			if (key == null) {
+				key = a.getLocalName()+System.currentTimeMillis()+'-'+getNextInt();
+			}
+			request.setConversationId("cid-"+key);
+		}
 		
 		long sendTime = System.currentTimeMillis();
 		a.send(request);
