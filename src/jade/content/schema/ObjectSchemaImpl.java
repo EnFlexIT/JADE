@@ -674,8 +674,8 @@ class ObjectSchemaImpl extends ObjectSchema {
 		// e.g. 
 		// - source schema = LivingBeing
 		// - destination = Person and Person has a super-schema called LivingBeing 
-		if (!s.isCompatibleWith(this)) {
-			return false;
+		if (s.isCompatibleWith(this)) {
+			return true;
 		}
 		
 		try {
@@ -700,18 +700,6 @@ class ObjectSchemaImpl extends ObjectSchema {
 					if (isMandatory(destSlotName)) {
 						return false;
 					}
-				}
-			}
-			
-			// All slots of the source schema must be present in the destination schema too.
-			String[] srcSlotNames = s.getNames();
-			for (int i = 0; i < srcSlotNames.length; i++) {
-				String srcSlotName = srcSlotNames[i];
-				
-				try {
-					getSchema(srcSlotName);
-				} catch(OntologyException e) {
-					return false;
 				}
 			}
 			
