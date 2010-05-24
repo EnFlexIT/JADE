@@ -43,6 +43,7 @@ public @interface Slot {
 	String documentation() default NULL;
 	int position() default -1;
 	boolean mandatory() default false;
+	boolean manageAsSerializable() default false;
 	String defaultValue() default NULL; 
 	String regex() default NULL;
 	String[] permittedValues() default {};

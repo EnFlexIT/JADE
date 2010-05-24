@@ -39,6 +39,7 @@ class SlotAccessData implements Serializable{
 	transient Method setter;
 	boolean aggregate;
 	boolean mandatory;
+	boolean manageAsSerializable;
 	Class aggregateClass;
 	int cardMin;
 	int cardMax;
@@ -52,12 +53,13 @@ class SlotAccessData implements Serializable{
 	String getterName;
 	String setterName;
 
-	SlotAccessData(Class type, Method getter, Method setter, boolean mandatory, Class aggregateClass, int cardMin, int cardMax, Object defaultValue, String regex, String[] permittedValues, String documentation) {
+	SlotAccessData(Class type, Method getter, Method setter, boolean mandatory, Class aggregateClass, int cardMin, int cardMax, Object defaultValue, String regex, String[] permittedValues, String documentation, boolean manageAsSerializable) {
 		this.type = type;
 		this.getter = getter;
 		this.setter = setter;
 		aggregate = isAggregate(type);
 		this.mandatory = mandatory;
+		this.manageAsSerializable = manageAsSerializable;
 		this.aggregateClass = aggregateClass;
 		this.cardMin = cardMin;
 		this.cardMax = cardMax;

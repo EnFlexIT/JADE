@@ -227,6 +227,7 @@ class BeanOntologyBuilder {
 		Class aggregateType;
 		AggregateSlot aggregateSlotAnnotation;
 		boolean mandatory;
+		boolean manageAsSerializable;
 		int cardMin;
 		int cardMax;
 		String defaultValue;
@@ -240,6 +241,7 @@ class BeanOntologyBuilder {
 			getter = gettersIter.next();
 			slotClazz = getter.getReturnType();
 			mandatory = false;
+			manageAsSerializable = false;
 			cardMin = 0;
 			cardMax = ObjectSchema.UNLIMITED;
 			defaultValue = null;
@@ -287,7 +289,7 @@ class BeanOntologyBuilder {
 						if (!Slot.NULL.equals(slotAnnotation.documentation())) {
 							documentation = slotAnnotation.documentation();
 						}
-						
+						manageAsSerializable = slotAnnotation.manageAsSerializable(); 
 						mandatory = slotAnnotation.mandatory();
 					}
 					// if present, use getter @AggregateSlot annotation data
@@ -317,7 +319,19 @@ class BeanOntologyBuilder {
 							}
 						}
 					}
-					sad = new SlotAccessData(slotClazz, getter, setter, mandatory, aggregateType, cardMin, cardMax, defaultValue, regex, permittedValues, documentation);
+					sad = new SlotAccessData(	slotClazz, 
+												getter, 
+												setter, 
+												mandatory, 
+												aggregateType, 
+												cardMin, 
+												cardMax, 
+												defaultValue, 
+												regex, 
+												permittedValues, 
+												documentation, 
+												manageAsSerializable);
+					
 					result.put(new SlotKey(schemaName, slotName, position), sad);
 				} else {
 					// TODO it's not a bean property, maybe we could generate a warning...
@@ -400,6 +414,25 @@ class BeanOntologyBuilder {
 		}
 
 		return os;
+	}
+	
+	private ObjectSchema doAddSchema(Class clazz, boolean buildHierarchy, boolean manageAsSerializable) throws BeanOntologyException {
+		// If slot is marked 'manageAsSerializable' and is present the SerializableOntology use
+		// serializable-schema to manage the slot
+		if (manageAsSerializable) {
+			ObjectSchema serializableSchema = null;
+			try {
+				serializableSchema = ontology.getSchema(SerializableOntology.SERIALIZABLE);
+			} catch(OntologyException oe) {
+				throw new BeanOntologyException("Error getting SerializableOntology schema", oe);
+			}
+			if (serializableSchema != null) {
+				return serializableSchema;
+			}
+		}
+		
+		// Normal schema managing
+		return doAddSchema(clazz, buildHierarchy);
 	}
 	
 	private ObjectSchema doAddSchema(Class clazz, boolean buildHierarchy) throws BeanOntologyException {
@@ -565,7 +598,7 @@ class BeanOntologyBuilder {
 		}
 		
 		if (!sad.aggregate) {
-			TermSchema ts = (TermSchema)doAddSchema(sad.type, buildHierarchy);
+			TermSchema ts = (TermSchema)doAddSchema(sad.type, buildHierarchy, sad.manageAsSerializable);
 			schema.add(slotName, ts, sad.mandatory ? ObjectSchema.MANDATORY : ObjectSchema.OPTIONAL);
 			
 			if (sad.defaultValue != null) {
@@ -592,7 +625,7 @@ class BeanOntologyBuilder {
 			TermSchema ats = null;
 			if (sad.aggregateClass != null) {
 				// try to get a schema for the contained type
-				ats = (TermSchema)doAddSchema(sad.aggregateClass, buildHierarchy);
+				ats = (TermSchema)doAddSchema(sad.aggregateClass, buildHierarchy, sad.manageAsSerializable);
 			}
 			schema.add(slotName, ats, sad.cardMin, sad.cardMax, getAggregateSchemaName(sad.type));
 		}
@@ -604,7 +637,7 @@ class BeanOntologyBuilder {
 		}
 		
 		if (!sad.aggregate) {
-			ObjectSchema os = doAddSchema(sad.type, buildHierarchy);
+			ObjectSchema os = doAddSchema(sad.type, buildHierarchy, sad.manageAsSerializable);
 			schema.add(slotName, os, sad.mandatory ? ObjectSchema.MANDATORY : ObjectSchema.OPTIONAL);
 			
 			if (sad.defaultValue != null) {
@@ -631,7 +664,7 @@ class BeanOntologyBuilder {
 			TermSchema ats = null;
 			if (sad.aggregateClass != null) {
 				// try to get a schema for the contained type
-				ats = (TermSchema)doAddSchema(sad.aggregateClass, buildHierarchy);
+				ats = (TermSchema)doAddSchema(sad.aggregateClass, buildHierarchy, sad.manageAsSerializable);
 			}
 			schema.add(slotName, ats, sad.cardMin, sad.cardMax, getAggregateSchemaName(sad.type));
 		}

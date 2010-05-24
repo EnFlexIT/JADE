@@ -46,8 +46,8 @@ public class SerializableOntology extends Ontology {
 	// The singleton instance of this ontology
 	private static final SerializableOntology theInstance = new SerializableOntology();
 	
-	private static final String SERIALIZABLE = "serializable";
-	private static final String SERIALIZABLE_VALUE = "value";
+	public static final String SERIALIZABLE = "serializable";
+	public static final String SERIALIZABLE_VALUE = "value";
 	
 	/**
 	 * Returns the singleton instance of the <code>SerializableOntology</code>.
