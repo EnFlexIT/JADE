@@ -169,8 +169,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		MessagingSlice.UNINSTALL_MTP,
 		MessagingSlice.NEW_MTP,
 		MessagingSlice.DEAD_MTP,
-		MessagingSlice.NEW_MTP,
-		MessagingSlice.DEAD_MTP,
 		MessagingSlice.SET_PLATFORM_ADDRESSES
 	};
 	
