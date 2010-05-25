@@ -26,21 +26,28 @@ package jade.core.messaging;
 //#MIDP_EXCLUDE_FILE
 
 import java.util.Date;
+import java.util.Hashtable;
 
 import jade.domain.FIPAAgentManagement.Envelope;
 
+import jade.core.ContainerID;
+import jade.core.IMTPException;
+import jade.core.Location;
 import jade.core.VerticalCommand;
 import jade.core.AgentContainer;
 import jade.core.Filter;
 
 import jade.core.AID;
+import jade.core.management.AgentManagementSlice;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ACLCodec;
 import jade.lang.acl.StringACLCodec;
 import jade.lang.acl.LEAPACLCodec;
 
+import jade.util.Logger;
 import jade.util.leap.Iterator;
+import jade.util.leap.List;
 import jade.util.leap.Map;
 
 
@@ -80,12 +87,11 @@ public class OutgoingEncodingFilter extends Filter {
 	 */ 
 	public boolean accept(VerticalCommand cmd) {
 		String name = cmd.getName();
-		Object[] params = cmd.getParams();
 		
 		if (name.equals(MessagingSlice.SEND_MESSAGE)) {
-			GenericMessage gmsg = (GenericMessage)params[1];
-			AID sender = (AID) params[0];
-			AID receiver = (AID) params[2];
+			GenericMessage gmsg = (GenericMessage) cmd.getParam(1);
+			AID sender = (AID) cmd.getParam(0);
+			AID receiver = (AID) cmd.getParam(2);
 			ACLMessage msg = gmsg.getACLMessage();
 			
 			// Set the sender unless already set
@@ -123,9 +129,29 @@ public class OutgoingEncodingFilter extends Filter {
 				ee.printStackTrace();
 			}            
 		}
+		else if (name.equals(AgentManagementSlice.INFORM_KILLED)){
+			// A local agent is terminating --> remove its local aliases if any
+			myService.removeLocalAliases((AID)cmd.getParam(0));
+		}
 		return true;
 	}
 	
+	public void postProcess(VerticalCommand cmd) {
+		String name = cmd.getName();
+
+		if (name.equals(jade.core.mobility.AgentMobilityHelper.INFORM_MOVED)) {
+			AID agent = (AID) cmd.getParam(0);
+			Location destination = (Location) cmd.getParam(1);
+			if (!myAgentContainer.isLocalAgent(agent)) {
+				// The agent actually moved elsewhere 
+				if (destination instanceof ContainerID) {
+					// The agent moved to a container inside the platform --> transfer its local aliases there
+					myService.transferLocalAliases(agent, (ContainerID) destination);
+				}
+			}
+		}
+	}
+
 	
 	/**
 	 * This method puts into the envelope the missing information if required
@@ -230,7 +256,6 @@ public class OutgoingEncodingFilter extends Filter {
 			throw new MessagingService.UnknownACLEncodingException("No ACL encoding set.");
 		}
 	}
-	
 	
 } // End of EncodingOutgoingFilter class
 

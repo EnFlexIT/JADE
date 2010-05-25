@@ -132,6 +132,12 @@
 			</Description>
 			<TestsListRif>test/topic/topicTestsList.xml</TestsListRif>
 		</Tester>
+		<Tester name="Aliases" skip="false">
+			<ClassName>test.alias.AliasTesterAgent</ClassName>
+			<Description> This item includes tests about the alias management mechanism implemented by the Messaging Service.
+			</Description>
+			<TestsListRif>test/alias/aliasTestsList.xml</TestsListRif>
+		</Tester>
 		<Tester name="Stream content messages" skip="true">
 			<ClassName>test.streaming.StreamingTesterAgent</ClassName>
 			<Description> This item includes tests about the exchange of messages with stream content.

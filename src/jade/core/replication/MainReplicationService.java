@@ -25,6 +25,8 @@ package jade.core.replication;
 
 //#MIDP_EXCLUDE_FILE
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Vector;
 
 import jade.core.HorizontalCommand;
@@ -50,6 +52,8 @@ import jade.core.NameClashException;
 
 import jade.core.AID;
 import jade.core.ContainerID;
+import jade.core.messaging.MessagingService;
+import jade.core.messaging.MessagingSlice;
 
 import jade.domain.AMSEventQueueFeeder;
 import jade.domain.FIPAAgentManagement.AMSAgentDescription;
@@ -63,6 +67,8 @@ import jade.security.JADESecurityException;
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
 import jade.util.leap.Iterator;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
 import jade.util.InputQueue;
 import jade.util.Logger;
 
@@ -281,7 +287,7 @@ public class MainReplicationService extends BaseService {
 					handleNewMTP(cmd);
 				} else if (name.equals(jade.core.messaging.MessagingSlice.DEAD_MTP)) {
 					handleDeadMTP(cmd);
-				}
+				} 
 			} 
 			catch (Throwable t) {
 				cmd.setReturnValue(t);
@@ -422,6 +428,11 @@ public class MainReplicationService extends BaseService {
 				if (cmdName.equals(MainReplicationSlice.H_GETLABEL)) {
 					Integer i = new Integer(getLabel());
 					cmd.setReturnValue(i);
+				} else if (cmdName.equals(MainReplicationSlice.H_INVOKESERVICEMETHOD)) { 
+					String serviceName = (String) params[0];
+					String methodName = (String) params[1];
+					Object[] methodParams = (Object[]) params[2];
+					invokeServiceMethod(serviceName, methodName, methodParams);
 				} else if (cmdName.equals(MainReplicationSlice.H_GETPLATFORMMANAGERADDRESS)) {
 					cmd.setReturnValue(getPlatformManagerAddress());
 				} else if (cmdName.equals(MainReplicationSlice.H_ADDREPLICA)) {
@@ -477,6 +488,37 @@ public class MainReplicationService extends BaseService {
 			return myLabel;
 		}
 
+		private void invokeServiceMethod(String serviceName, String methodName, Object[] args) throws Throwable {
+			Service svc = myContainer.getServiceFinder().findService(serviceName);
+			Method m = getMethod(svc, methodName);
+			try {
+				myLogger.log(Logger.INFO, "Invoking replicated method "+methodName+" on service "+serviceName);
+				m.invoke(svc, args);
+			}
+			catch (InvocationTargetException ite) {
+				throw ite.getCause();
+			}
+		}
+		
+		private Method getMethod(Service svc, String methodName) throws Exception {
+			String key = svc.getName()+'#'+methodName;
+			Method m = (Method) cachedServiceMethods.get(key);
+			if (m == null) {
+				Method[] mm = svc.getClass().getMethods();
+				for (int i = 0; i < mm.length; ++i) {
+					if (mm[i].getName().equals(methodName)) {
+						m = mm[i];
+						cachedServiceMethods.put(key, m);
+						break;
+					}
+				}
+			}
+			if (m == null) {
+				throw new NoSuchMethodException("Method "+methodName+" not found is service "+svc.getName());
+			}
+			return m;
+		}
+		
 		private String getPlatformManagerAddress() throws IMTPException {
 			return myPlatformManager.getLocalAddress();
 		}
@@ -812,8 +854,10 @@ public class MainReplicationService extends BaseService {
 	// Owned copies of Main Container and Service Manager
 	private MainContainerImpl myMain;
 	private PlatformManagerImpl myPlatformManager;
+	
+	private Map cachedServiceMethods = new HashMap();
 
-	private void broadcastToReplicas(HorizontalCommand cmd, boolean includeSelf) throws IMTPException, ServiceException {
+	void broadcastToReplicas(HorizontalCommand cmd, boolean includeSelf) throws IMTPException, ServiceException {
 		Object[] slices = replicas.toArray();
 
 		String localNodeName = getLocalNode().getName();
@@ -828,8 +872,7 @@ public class MainReplicationService extends BaseService {
 					// FIXME: This may happen due to the fact that the replica is terminating. E.g. a tool running on 
 					// the terminating replica that deregisters from the AMS: the DeadTool event may be processed
 					// when the replica is already dead. In these cases we should find a way to hide the exception
-					myLogger.log(Logger.SEVERE, "Error propagating H-command " + cmd.getName() + " to slice " + sliceName);
-					((Throwable) ret).printStackTrace();
+					myLogger.log(Logger.SEVERE, "Error propagating H-command " + cmd.getName() + " to slice " + sliceName, (Throwable) ret);
 				}
 			}
 		}

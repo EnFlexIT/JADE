@@ -48,12 +48,14 @@ import jade.core.Agent;
 import jade.core.AID;
 import jade.core.ContainerID;
 import jade.core.Profile;
+import jade.core.ServiceHelper;
 import jade.core.SliceProxy;
 import jade.core.Specifier;
 import jade.core.ProfileException;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.core.Service.Slice;
+import jade.core.replication.MainReplicationHandle;
 
 import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.InternalError;
@@ -123,16 +125,24 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	private final CommandTargetSink receiverSink = new CommandTargetSink();
 	
 	// The filter for incoming commands related to ACL encoding
-	private Filter encOutFilter;
+	private OutgoingEncodingFilter encOutFilter;
 	
 	// The filter for outgoing commands related to ACL encoding
-	private Filter encInFilter;
+	private IncomingEncodingFilter encInFilter;
 	
 	// The cached AID -> MessagingSlice associations
 	private Map cachedSlices; 
 	
 	// The routing table mapping MTP addresses to their hosting slice
 	private RoutingTable routes;
+	
+	// The map of local and global (used in the Main Container) aliases
+	private Map localAliases = new HashMap();
+	private Map globalAliases;
+	
+	// The handle to the MainReplicationService to keep global aliases info in synch
+	MainReplicationHandle replicationHandle;
+	
 	
 	private final static int EXPECTED_ACLENCODINGS_SIZE = 3;
 	// The table of the locally installed ACL message encodings
@@ -157,6 +167,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		MessagingSlice.NOTIFY_FAILURE,
 		MessagingSlice.INSTALL_MTP,
 		MessagingSlice.UNINSTALL_MTP,
+		MessagingSlice.NEW_MTP,
+		MessagingSlice.DEAD_MTP,
 		MessagingSlice.NEW_MTP,
 		MessagingSlice.DEAD_MTP,
 		MessagingSlice.SET_PLATFORM_ADDRESSES
@@ -194,6 +206,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		cachedSlices = new HashCache(size);
 		
 		routes = new RoutingTable(myProfile.getBooleanProperty(ATTACH_PLATFORM_INFO, false));
+
+		if (myContainer.getMain() != null) {
+			globalAliases = new HashMap();
+		}
 		
 		// Look in the profile and check whether we must accept foreign agents
 		acceptForeignAgents = myProfile.getBooleanProperty(Profile.ACCEPT_FOREIGN_AGENTS, false);
@@ -223,6 +239,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		this.myProfile = myProfile;
 		
 		try {
+			// Initialize the MainReplicationHandle
+			replicationHandle = new MainReplicationHandle(this, myContainer.getServiceFinder());
+			
 			// Activate the default ACL String codec anyway
 			ACLCodec stringCodec = new StringACLCodec();
 			messageEncodings.put(stringCodec.getName().toLowerCase(), stringCodec);
@@ -374,6 +393,104 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		}
 	}
 	
+	public ServiceHelper getHelper(Agent a) throws ServiceException {
+		return new MessagingHelper() {
+			private Agent myAgent;	
+			
+			public void init(Agent a) {
+				myAgent = a;
+			}
+			
+			public void createAlias(String alias) throws IMTPException, ServiceException {
+				myLogger.log(Logger.INFO, "Creating Alias "+alias+"-->"+myAgent.getLocalName());
+				AID aliasAID = new AID(alias, AID.ISLOCALNAME);
+				AID id = myAgent.getAID();
+				localAliases.put(aliasAID, id);
+				MessagingSlice mainSlice = (MessagingSlice) getSlice(MAIN_SLICE);
+				try {
+					mainSlice.newAlias(aliasAID, id);
+				} 
+				catch (IMTPException imtpe) {
+					// Try to get a newer slice and repeat...
+					mainSlice = (MessagingSlice) getFreshSlice(MAIN_SLICE);
+					mainSlice.newAlias(aliasAID, id);
+				}
+			}
+			
+			public void deleteAlias(String alias) throws IMTPException, ServiceException {
+				myLogger.log(Logger.INFO, "Deleting Alias "+alias+"-->"+myAgent.getLocalName());
+				AID aliasAID = new AID(alias, AID.ISLOCALNAME);
+				AID id = (AID) localAliases.remove(aliasAID);
+				if (id != null) {
+					if (id.equals(myAgent.getAID())) {
+						// Alias actually removed --> notify the Main
+						MessagingSlice mainSlice = (MessagingSlice) getSlice(MAIN_SLICE);
+						try {
+							mainSlice.deadAlias(aliasAID);
+						} 
+						catch (IMTPException imtpe) {
+							// Try to get a newer slice and repeat...
+							mainSlice = (MessagingSlice) getFreshSlice(MAIN_SLICE);
+							mainSlice.deadAlias(aliasAID);
+						}
+					}
+					else {
+						// An agent can delete its aliases only --> restore the alias
+						localAliases.put(aliasAID, id);
+					}
+				}
+			}
+		};
+	}
+	
+	// Public since it is replicated by the MainReplicationService
+	public void newAlias(AID alias, AID agent) {
+		myLogger.log(Logger.INFO, "Adding global alias entry: "+alias.getLocalName()+"-->"+agent.getLocalName());
+		globalAliases.put(alias, agent);
+	}
+	
+	// Public since it is replicated by the MainReplicationService
+	public void deadAlias(AID alias) {
+		myLogger.log(Logger.INFO, "Removing global alias entry: "+alias.getLocalName());
+		globalAliases.remove(alias);
+	}
+	
+	private AID resolveLocalAlias(AID id) {
+		AID mappedId = (AID) localAliases.get(id);
+		return mappedId != null ? mappedId : id;
+	}
+	
+	private AID resolveGlobalAlias(AID id) {
+		AID mappedId = (AID) globalAliases.get(id);
+		return mappedId != null ? mappedId : id;
+	}
+	
+	List removeLocalAliases(AID agent) {
+		myLogger.log(Logger.INFO, "Removing all local alias entries for agent "+agent.getLocalName());
+		return null;
+		// FIXME: to be implemented
+	}
+	
+	void transferLocalAliases(AID agent, ContainerID dest) {
+		myLogger.log(Logger.INFO, "Transferring all local alias entries for agent "+agent.getLocalName()+" to "+dest.getName());
+		List aliases = removeLocalAliases(agent);
+		if (aliases.size() > 0) {
+			try {
+				MessagingSlice destSlice = (MessagingSlice) getSlice(dest.getName());
+				destSlice.transferLocalAliases(agent, aliases);
+			}
+			catch (Exception e) {
+				myLogger.log(Logger.SEVERE, "Error transferring local aliases for migrated agent "+agent.getName()+" to new location "+dest.getName()); 
+			}
+		}
+	}
+	
+	// Public since it is replicated by the MainReplicationService
+	public void removeGlobalAliases(AID agent) {
+		myLogger.log(Logger.INFO, "Removing all global alias entries for agent "+agent.getLocalName());
+		// FIXME: to be implemented
+	}
+	
 	/**
 	 * Retrieve the locally installed slice of this service.
 	 */
@@ -447,6 +564,18 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			catch (Exception e) {
 				myLogger.log(Logger.WARNING, "Error notifying local MTP "+mtp.getName()+" to Main Container.", e);
 			}
+		}
+	}
+	
+	private ContainerID getAgentLocation(AID agentID) throws IMTPException, NotFoundException {
+		MainContainer impl = myContainer.getMain();
+		if(impl != null) {
+			agentID = resolveGlobalAlias(agentID);
+			return impl.getContainerID(agentID);
+		}
+		else {
+			// Should never happen
+			throw new NotFoundException("getAgentLocation() invoked on a non-main container");
 		}
 	}
 	
@@ -696,6 +825,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			AID senderID = (AID)params[0];
 			GenericMessage msg = (GenericMessage)params[1];
 			AID receiverID = (AID)params[2];
+			receiverID = resolveLocalAlias(receiverID);
 			if (msg.getTraceID() != null) {
 				myLogger.log(Logger.INFO, msg.getTraceID()+" - MessagingService target sink posting message to receiver "+receiverID.getLocalName());
 				
@@ -738,8 +868,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			deadMTP(mtp, cid);
 		}
 		
-		private void handleSetPlatformAddresses(VerticalCommand cmd) {
-			
+		private void handleSetPlatformAddresses(VerticalCommand cmd) {		
 		}
 		
 		private void handleNewSlice(VerticalCommand cmd) {
@@ -769,14 +898,18 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 							nfe.printStackTrace();
 						}
 					}
+					
+					// If the new slice is on a replicated Main Container send it all current aliases
+					if (newSlice.getNode().hasPlatformManager()) {
+						newSlice.currentAliases(globalAliases);
+					}
 				}
 				catch (ServiceException se) {
 					// Should never happen since getSlice() should always work on the Main container
 					se.printStackTrace();
 				}
 				catch (IMTPException imtpe) {
-					// Should never happen since the new slice should be always valid at this time
-					imtpe.printStackTrace();
+					myLogger.log(Logger.WARNING, "Error notifying current information to new Messaging-Slice "+newSliceName, imtpe);
 				}
 			}
 		}
@@ -1033,6 +1166,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 					gCmd.addParam(receiverID);
 					result = gCmd;
 				}
+				else if(cmdName.equals(MessagingSlice.H_GETAGENTLOCATION)) {
+					AID agentID = (AID)params[0];
+					
+					cmd.setReturnValue(getAgentLocation(agentID));
+				}
 				else if(cmdName.equals(MessagingSlice.H_ROUTEOUT)) {
 					Envelope env = (Envelope)params[0];
 					byte[] payload = (byte[])params[1];
@@ -1040,11 +1178,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 					String address = (String)params[3];
 					
 					routeOut(env, payload, receiverID, address);
-				}
-				else if(cmdName.equals(MessagingSlice.H_GETAGENTLOCATION)) {
-					AID agentID = (AID)params[0];
-					
-					cmd.setReturnValue(getAgentLocation(agentID));
 				}
 				else if(cmdName.equals(MessagingSlice.H_INSTALLMTP)) {
 					GenericCommand gCmd = new GenericCommand(MessagingSlice.INSTALL_MTP, MessagingSlice.NAME, null);
@@ -1094,6 +1227,30 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 					
 					removeRoute(mtp, sliceName);
 				}
+				else if (cmdName.equals(MessagingSlice.H_NEWALIAS)) {
+					AID alias = (AID) params[0]; 
+					AID name = (AID) params[1]; 
+					
+					newAlias(alias, name);
+					replicationHandle.invokeReplicatedMethod("newAlias", params);
+				}
+				else if (cmdName.equals(MessagingSlice.H_DEADALIAS)) {
+					AID alias = (AID) params[0]; 
+					
+					deadAlias(alias);
+					replicationHandle.invokeReplicatedMethod("deadAlias", params);
+				}
+				else if (cmdName.equals(MessagingSlice.H_CURRENTALIASES)) {
+					globalAliases = (Map) params[0]; 
+				}
+				else if (cmdName.equals(MessagingSlice.H_TRANSFERLOCALALIASES)) {
+					AID agent = (AID) params[0];
+					List aliases = (List) params[1];
+					Iterator it = aliases.iterator();
+					while (it.hasNext()) {
+						localAliases.put((AID) it.next(), agent);
+					}
+				}
 			}
 			catch(Throwable t) {
 				cmd.setReturnValue(t);
@@ -1112,17 +1269,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				out.route(env, payload, receiverID, address);
 			else
 				throw new MTPException("No suitable route found for address " + address + ".");
-		}
-		
-		private ContainerID getAgentLocation(AID agentID) throws IMTPException, NotFoundException {
-			MainContainer impl = myContainer.getMain();
-			if(impl != null) {
-				return impl.getContainerID(agentID);
-			}
-			else {
-				// Do nothing for now, but could also have a local GADT copy, thus enabling e.g. Main Container replication
-				return null;
-			}
 		}
 		
 		private void addRoute(MTPDescriptor mtp, String sliceName) throws IMTPException, ServiceException {
@@ -1250,9 +1396,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		
 		MainContainer impl = myContainer.getMain();
 		if (impl != null) {
+			// Directly use the GADT on the main container
 			while (true) {
-				// Directly use the GADT on the main container
-				ContainerID cid = impl.getContainerID(receiverID);
+				ContainerID cid = getAgentLocation(receiverID);
 				MessagingSlice targetSlice = oneShotDeliver(cid, msg, receiverID);
 				if (targetSlice != null) {
 					return;
@@ -1496,7 +1642,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 						MainContainer impl = myContainer.getMain();
 						if(impl != null) {
 							// Directly use the GADT on the main container
-							impl.getContainerID(id);
+							getAgentLocation(id);
 						}
 						else {
 							// Use the main slice
@@ -1600,5 +1746,37 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			myLogger.log(Logger.INFO, "Clearing cache");
 		}
 		super.clearCachedSlice(name);
+	}
+	
+	public String dump(String key) {
+		StringBuffer sb = new StringBuffer("LOCAL ALIASES:\n");
+		if (localAliases.size() > 0) {
+			sb.append(stringifyAliasesMap(localAliases));
+		}
+		else {
+			sb.append("---\n");
+		}
+		
+		if (globalAliases != null) {
+			sb.append("GLOBAL ALIASES:\n");
+			if (globalAliases.size() > 0) {
+				sb.append(stringifyAliasesMap(globalAliases));
+			}
+			else {
+				sb.append("---\n");
+			}
+		}
+ 		return sb.toString();
+	}
+	
+	private String stringifyAliasesMap(Map aliases) {
+		StringBuffer sb = new StringBuffer();
+		Iterator it = aliases.keySet().iterator();
+		while (it.hasNext()) {
+			AID alias = (AID) it.next();
+			AID agent = (AID) aliases.get(alias);
+			sb.append("- "+alias.getLocalName()+" --> "+agent.getLocalName()+"\n");
+		}
+		return sb.toString();
 	}
 }

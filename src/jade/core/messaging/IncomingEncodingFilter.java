@@ -29,6 +29,7 @@ import jade.core.Service;
 import jade.core.VerticalCommand;
 import jade.core.Filter;
 import jade.core.AID;
+import jade.core.management.AgentManagementSlice;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ACLCodec;
@@ -107,6 +108,12 @@ public class IncomingEncodingFilter extends Filter {
 					return false;
 				}
 			}
+		}
+		else if (name.equals(AgentManagementSlice.INFORM_KILLED)) {
+			// An agent is terminating --> remove its global aliases if any
+			Object[] params = cmd.getParams();
+			myService.removeGlobalAliases((AID)params[0]);
+			myService.replicationHandle.invokeReplicatedMethod("removeGlobalAliases", params);
 		}
 		return true;
 	}

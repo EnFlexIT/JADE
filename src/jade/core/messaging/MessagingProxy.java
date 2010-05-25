@@ -32,6 +32,8 @@ import jade.core.IMTPException;
 import jade.core.ServiceException;
 import jade.core.NotFoundException;
 import jade.security.JADESecurityException;
+import jade.util.leap.List;
+import jade.util.leap.Map;
 
 import jade.domain.FIPAAgentManagement.Envelope;
 
@@ -294,5 +296,94 @@ public class MessagingProxy extends SliceProxy implements MessagingSlice {
 			throw new IMTPException("Unable to access remote node", se);
 		}
 	}
+
+	public void newAlias(AID alias, AID agent) throws IMTPException {
+		try {
+			GenericCommand cmd = new GenericCommand(H_NEWALIAS, NAME, null);
+			cmd.addParam(alias);
+			cmd.addParam(agent);
+					
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
+		}
+		catch(ServiceException se) {
+			// Should never happen
+			throw new IMTPException("Unable to access remote node stub", se);
+		}
+	}
+
+	public void deadAlias(AID alias) throws IMTPException {
+		try {
+			GenericCommand cmd = new GenericCommand(H_DEADALIAS, NAME, null);
+			cmd.addParam(alias);
+					
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
+		}
+		catch(ServiceException se) {
+			// Should never happen
+			throw new IMTPException("Unable to access remote node stub", se);
+		}
+	}
 	
+	public void currentAliases(Map aliases) throws IMTPException {
+		try {
+			GenericCommand cmd = new GenericCommand(H_CURRENTALIASES, NAME, null);
+			cmd.addParam(aliases);
+					
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
+		}
+		catch(ServiceException se) {
+			// Should never happen
+			throw new IMTPException("Unable to access remote node stub", se);
+		}
+	}
+
+	public void transferLocalAliases(AID agent, List aliases) throws IMTPException {
+		try {
+			GenericCommand cmd = new GenericCommand(H_TRANSFERLOCALALIASES, NAME, null);
+			cmd.addParam(agent);
+			cmd.addParam(aliases);
+					
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
+		}
+		catch(ServiceException se) {
+			// Should never happen
+			throw new IMTPException("Unable to access remote node stub", se);
+		}
+	}
 }

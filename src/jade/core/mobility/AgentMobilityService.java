@@ -1411,6 +1411,7 @@ public class AgentMobilityService extends BaseService {
 		public void execute() throws JADESecurityException, InterruptedException, InterruptedIOException {
 			try {
 				// Call beforeMove() and issue an INFORM_MOVED vertical command
+				System.out.println("-------- TransferLifeCycle.execute()");
 				if (firstTime) {
 					firstTime = false;
 					if (myMovable != null) {
@@ -1418,10 +1419,14 @@ public class AgentMobilityService extends BaseService {
 						myMovable.beforeMove();
 						messageAware = false;
 					}
+					System.out.println("-------- TransferLifeCycle.execute(): calling informMoved()");
 					informMoved(myAgent.getAID(), myDestination);
+					System.out.println("-------- TransferLifeCycle.execute(): informMoved() called");
 				}
 			}
 			catch (Exception e) {
+				System.out.println("-------- TransferLifeCycle.execute(): Exception. ");
+				e.printStackTrace();
 				if (myAgent.getState() == myState) {
 					// Something went wrong during the transfer. Rollback
 					myAgent.restoreBufferedState();

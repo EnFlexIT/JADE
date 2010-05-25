@@ -77,6 +77,8 @@ public interface MainReplicationSlice extends Service.Slice {
     static final String H_DEADMTP = "11";
     static final String H_NEWTOOL = "12";
     static final String H_DEADTOOL = "13";
+    static final String H_INVOKESERVICEMETHOD = "14";
+    
 
     // NOTE that some horizontal command do not have a corresponding
     // method in the SliceProxy since they are always sent in 

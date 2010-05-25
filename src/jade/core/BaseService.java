@@ -25,7 +25,9 @@ package jade.core;
 
 
 import jade.core.behaviours.Behaviour;
+import jade.core.replication.MainReplicationSlice;
 
+import jade.util.Logger;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 import jade.util.leap.Iterator;
@@ -49,6 +51,8 @@ public abstract class BaseService implements Service {
 	
 	public static final String MAIN_SLICE = ServiceFinder.MAIN_SLICE;
 	public static final String THIS_SLICE = ServiceFinder.THIS_SLICE;
+	
+	public static final String ALL_DUMP_KEY = "ALL";
 	
 	public void init(AgentContainer ac, Profile p) throws ProfileException {
 		myFinder = p.getServiceFinder();
@@ -134,7 +138,8 @@ public abstract class BaseService implements Service {
 	/**
 	 The <code>getAllSlices()</code> implementation of this class
 	 directly retrieves the current list of slices from the Service
-	 Manager.
+	 Manager. Note that slices are retrieved directly from the Main and not 
+	 from the cache.
 	 */
 	public Service.Slice[] getAllSlices() throws ServiceException {
 		try {
@@ -142,6 +147,22 @@ public abstract class BaseService implements Service {
 		}
 		catch(IMTPException imtpe) {
 			throw new ServiceException("IMTP Error while using the Service Finder", imtpe);
+		}
+	}
+	
+	public void broadcast(HorizontalCommand cmd, boolean includeMyself) throws IMTPException, ServiceException {
+		Service.Slice[] slices = myFinder.findAllSlices(getName());
+		String localNodeName = getLocalNode().getName();
+		for (int i = 0; i < slices.length; i++) {
+			Service.Slice s = slices[i];
+			String sliceName = s.getNode().getName();
+			if (includeMyself || !sliceName.equals(localNodeName)) {
+				s.serve(cmd);
+				Object ret = cmd.getReturnValue();
+				if (ret instanceof Throwable) {
+					myLogger.log(Logger.WARNING, "Error propagating H-command " + cmd.getName() + " to slice " + sliceName, ((Throwable) ret));
+				}
+			}
 		}
 	}
 	
@@ -290,15 +311,20 @@ public abstract class BaseService implements Service {
 	 * @return A string representation of the service internal data
 	 */
 	public String dump(String key) {
-		StringBuffer sb = new StringBuffer("Local: ").append(isLocal()).append('\n');
-		sb.append("CACHED SLICES:\n");
-		Iterator it = slices.keySet().iterator();
-		while (it.hasNext()) {
-			String name = (String) it.next();
-			sb.append("- ").append(name).append(" --> "+stringifySlice((Slice) slices.get(name))).append("\n");
+		if (key == null || key.equals(ALL_DUMP_KEY)) {
+			StringBuffer sb = new StringBuffer("LOCAL: ").append(isLocal()).append('\n');
+			sb.append("CACHED SLICES:\n");
+			Iterator it = slices.keySet().iterator();
+			while (it.hasNext()) {
+				String name = (String) it.next();
+				sb.append("- ").append(name).append(" --> "+stringifySlice((Slice) slices.get(name))).append("\n");
+			}
+			
+			return sb.toString();
 		}
-		
-		return sb.toString();
+		else {
+			return "";
+		}
 	}
 
 	public static final String stringifySlice(Slice s) {
