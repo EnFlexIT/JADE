@@ -374,7 +374,7 @@ public class LightMessagingService extends BaseService
      * the <code>Slice</code> interface (that extends the
      * <code>Service.Slice</code> interface).
      */
-    private class ServiceComponent extends Filter implements MessagingSlice {
+    private class ServiceComponent extends Filter implements Service.Slice  {
         private String myHelperName;
         private MessagingSlice myHelper;
 
@@ -434,16 +434,16 @@ public class LightMessagingService extends BaseService
             try {
                 String name = cmd.getName();
 
-                if (name.equals(SEND_MESSAGE)) {
+                if (name.equals(MessagingSlice.SEND_MESSAGE)) {
                     handleSendMessage(cmd);
-                } else if (name.equals(NOTIFY_FAILURE)) {
+                } else if (name.equals(MessagingSlice.NOTIFY_FAILURE)) {
                     handleNotifyFailure(cmd);
-                } else if (name.equals(INSTALL_MTP)) {
+                } else if (name.equals(MessagingSlice.INSTALL_MTP)) {
                     Object result = handleInstallMTP(cmd);
                     cmd.setReturnValue(result);
-                } else if (name.equals(UNINSTALL_MTP)) {
+                } else if (name.equals(MessagingSlice.UNINSTALL_MTP)) {
                     handleUninstallMTP(cmd);
-                } else if (name.equals(SET_PLATFORM_ADDRESSES)) {
+                } else if (name.equals(MessagingSlice.SET_PLATFORM_ADDRESSES)) {
                     handleSetPlatformAddresses(cmd);
                 }
             } catch (JADESecurityException ae) {
@@ -497,47 +497,47 @@ public class LightMessagingService extends BaseService
                 String cmdName = cmd.getName();
                 Object[] params = cmd.getParams();
 
-                if (cmdName.equals(H_DISPATCHLOCALLY)) {
+                if (cmdName.equals(MessagingSlice.H_DISPATCHLOCALLY)) {
                     AID senderID = (AID) params[0];
                     GenericMessage msg = (GenericMessage) params[1];
                     AID receiverID = (AID) params[2];
                     dispatchLocally(senderID, msg, receiverID);
-                } else if (cmdName.equals(H_ROUTEOUT)) {
+                } else if (cmdName.equals(MessagingSlice.H_ROUTEOUT)) {
                     Envelope env = (Envelope) params[0];
                     byte[] payload = (byte[]) params[1];
                     AID receiverID = (AID) params[2];
                     String address = (String) params[3];
 
                     routeOut(env, payload, receiverID, address);
-                } else if (cmdName.equals(H_GETAGENTLOCATION)) {
+                } else if (cmdName.equals(MessagingSlice.H_GETAGENTLOCATION)) {
                     AID agentID = (AID) params[0];
 
                     cmd.setReturnValue(getAgentLocation(agentID));
-                } else if (cmdName.equals(H_INSTALLMTP)) {
+                } else if (cmdName.equals(MessagingSlice.H_INSTALLMTP)) {
                     String address = (String) params[0];
                     String className = (String) params[1];
 
                     cmd.setReturnValue(installMTP(address, className));
-                } else if (cmdName.equals(H_UNINSTALLMTP)) {
+                } else if (cmdName.equals(MessagingSlice.H_UNINSTALLMTP)) {
                     String address = (String) params[0];
 
                     uninstallMTP(address);
-                } else if (cmdName.equals(H_NEWMTP)) {
+                } else if (cmdName.equals(MessagingSlice.H_NEWMTP)) {
                     MTPDescriptor mtp = (MTPDescriptor) params[0];
                     ContainerID cid = (ContainerID) params[1];
 
                     newMTP(mtp, cid);
-                } else if (cmdName.equals(H_DEADMTP)) {
+                } else if (cmdName.equals(MessagingSlice.H_DEADMTP)) {
                     MTPDescriptor mtp = (MTPDescriptor) params[0];
                     ContainerID cid = (ContainerID) params[1];
 
                     deadMTP(mtp, cid);
-                } else if (cmdName.equals(H_ADDROUTE)) {
+                } else if (cmdName.equals(MessagingSlice.H_ADDROUTE)) {
                     MTPDescriptor mtp = (MTPDescriptor) params[0];
                     String sliceName = (String) params[1];
 
                     addRoute(mtp, sliceName);
-                } else if (cmdName.equals(H_REMOVEROUTE)) {
+                } else if (cmdName.equals(MessagingSlice.H_REMOVEROUTE)) {
                     MTPDescriptor mtp = (MTPDescriptor) params[0];
                     String sliceName = (String) params[1];
 
