@@ -1071,11 +1071,12 @@ public class Ontology implements Serializable {
 			
 			StringBuilder sbsc = new StringBuilder();
 			boolean first = true;
-			for(ObjectSchema osc : os.getSuperSchemas()) {
+			ObjectSchema[] superSchemas = os.getSuperSchemas();
+			for (int i = 0; i < superSchemas.length; i++) {
 				if (!first) {
 					sbsc.append(" ");
 				}
-				sbsc.append(osc.getTypeName());
+				sbsc.append(superSchemas[i].getTypeName());
 				first = false;
 			}
 			
@@ -1095,7 +1096,8 @@ public class Ontology implements Serializable {
 					Integer cardMax = null;
 					Facet[] facets = os.getFacets(names[i]);
 					if (facets != null) {
-						for (Facet facet : facets) {
+						for (int j = 0; j < facets.length; j++) {
+							Facet facet = facets[j]; 
 							if (facet instanceof DefaultValueFacet) {
 								DefaultValueFacet dvf = (DefaultValueFacet)facet;
 								defaultValue = dvf.getDefaultValue();
