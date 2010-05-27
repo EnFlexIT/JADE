@@ -24,34 +24,37 @@
  */
 package jade.content.onto;
 
-import java.io.PrintStream;
 import java.util.Hashtable;
 import java.util.Enumeration;
-//#J2ME_EXCLUDE_BEGIN
-import java.util.Iterator;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ArrayList;
-//#J2ME_EXCLUDE_END
 
 import jade.content.Concept;
 import jade.content.abs.AbsAggregate;
 import jade.content.abs.AbsHelper;
 import jade.content.abs.AbsObject;
 import jade.content.schema.ConceptSlotFunctionSchema;
-import jade.content.schema.Facet;
 import jade.content.schema.ObjectSchema;
 import jade.content.schema.AgentActionSchema;
 import jade.content.schema.ConceptSchema;
 import jade.content.schema.PredicateSchema;
+
+import jade.util.leap.Serializable;
+import jade.util.Logger;
+
+//#J2ME_EXCLUDE_BEGIN
+import java.io.PrintStream;
+
+import java.util.Iterator;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
+
+import jade.content.schema.Facet;
 import jade.content.schema.facets.CardinalityFacet;
 import jade.content.schema.facets.DefaultValueFacet;
 import jade.content.schema.facets.PermittedValuesFacet;
 import jade.content.schema.facets.RegexFacet;
-
-import jade.util.leap.Serializable;
-import jade.util.Logger;
+//#J2ME_EXCLUDE_END
 
 /**
  * An application-specific ontology describes the elements that agents
@@ -1034,6 +1037,7 @@ public class Ontology implements Serializable {
 		return referenceOnto.toObject(abs);
 	}
 	
+	//#J2ME_EXCLUDE_BEGIN	
 	/**
 	 * Dump ontology to default output stream
 	 */
@@ -1134,4 +1138,5 @@ public class Ontology implements Serializable {
 			sb.append("  } -> "+getClassForElement(os.getTypeName()).getName()+"\n\n");
 		}
 	}
+	//#J2ME_EXCLUDE_END
 }

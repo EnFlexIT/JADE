@@ -115,13 +115,13 @@ ant dist - to create the distribution files
 	      _______________________________________________ -->
 	<target name="parser" depends="init, check_javacc, MakeACLParser, MakeSLParser, MakeExtendedSLParser" description="generate parser with javacc"/>
 	<target name="MakeACLParser" depends="init, check_javacc" if="makeParsers">
-		<javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/lang/acl" target="src/jade/lang/acl/ACLParser.jj"/>
+		<javacc jdkversion="1.4" javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/lang/acl" target="src/jade/lang/acl/ACLParser.jj"/>
 	</target>
 	<target name="MakeSLParser" depends="init, check_javacc" if="makeParsers">
-		<javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/content/lang/sl" target="src/jade/content/lang/sl/SLParser.jj"/>
+		<javacc jdkversion="1.4" javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/content/lang/sl" target="src/jade/content/lang/sl/SLParser.jj"/>
 	</target>
 	<target name="MakeExtendedSLParser" depends="init, check_javacc" if="makeParsers">
-		<javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/content/lang/sl" target="src/jade/content/lang/sl/ExtendedSLParser.jj"/>
+		<javacc jdkversion="1.4" javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/content/lang/sl" target="src/jade/content/lang/sl/ExtendedSLParser.jj"/>
 	</target>
 
 	<!--  _______________________________________________

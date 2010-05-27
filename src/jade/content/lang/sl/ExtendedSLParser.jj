@@ -53,8 +53,11 @@ import jade.content.lang.Codec;
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+
 import java.util.Date;
 
+import org.apache.commons.codec.binary.Base64;
 
 
 /**
@@ -309,7 +312,12 @@ AbsPrimitive Constant() :
                  }
   }
   | t=<PREFIXBYTELENGTHENCODEDSTRING> {
-    val = AbsPrimitive.wrap(t.image.getBytes());
+	try {
+		byte[]byteArray = Base64.decodeBase64(t.image.getBytes("US-ASCII"));
+		val = AbsPrimitive.wrap(byteArray);
+	} catch (UnsupportedEncodingException uee) {
+		throw new ParseException("Error decoding byte-array from Base64 US-ASCII, "+uee.getMessage());
+	}
                                       }
  )
  {return val;}

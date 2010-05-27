@@ -9,15 +9,18 @@ import jade.content.lang.Codec;
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+
 import java.util.Date;
 
+import org.apache.commons.codec.binary.Base64;
 
 
 /**
 * SLParser. This same parser embeds also lower profiles of SL, namely SL-0, SL-1 and SL-2.
 * @author Fabio Bellifemine, TILab S.p.A. (formerly CSELT S.p.A.)
 * @author Nicolas Lhuillier (Motorola) (added support for PREFIXBYTELENGTHENCODEDSTRING)
-* @version $Date: 2005-05-13 18:14:10 +0200 (Fri, 13 May 2005) $ $Revision: 5696 $
+* @version $Date: 2008-08-19 12:09:12 +0200 (mar, 19 ago 2008) $ $Revision: 6041 $
 **/
 class SLParser implements SLParserConstants {
 
@@ -35,8 +38,8 @@ class SLParser implements SLParserConstants {
      private String unescape(String s) {
           StringBuffer result = new StringBuffer(s.length());
           for( int i=1; i<s.length()-1; i++)
-                if( s.charAt(i) == '\\' && s.charAt(i+1) == '\"' ) {
-                  result.append("\"");
+                if( s.charAt(i) == '\u005c\u005c' && s.charAt(i+1) == '\u005c"' ) {
+                  result.append("\u005c"");
                   i++;
                 } else
                   result.append(s.charAt(i));
@@ -109,7 +112,7 @@ class SLParser implements SLParserConstants {
       theParser = new SLParser(System.in);
       theParser.setSLType(Integer.parseInt(args[0]));
     } catch (Exception e) {
-      System.out.println("usage: SLParser SLLevel\n  where SLLevel can be 0 for SL0, 1 for SL1, 2 for SL2, 3 or more for full SL");
+      System.out.println("usage: SLParser SLLevel\u005cn  where SLLevel can be 0 for SL0, 1 for SL1, 2 for SL2, 3 or more for full SL");
       System.exit(0);
     }
     if (theParser.slType < 3)
@@ -125,10 +128,10 @@ class SLParser implements SLParserConstants {
       try {
         AbsContentElementList result = theParser.Content();
   String resultEncoded = codec.encode(result);
-        System.out.println("\n\n RESULT of SLParser.Content()=\n"+resultEncoded);
+        System.out.println("\u005cn\u005cn RESULT of SLParser.Content()=\u005cn"+resultEncoded);
   AbsContentElement result2 = codec.decode(resultEncoded);
-        System.out.println("\n\n RESULT of SLCodec.decode(SLCodec.encode(SLParser.Content()))=\n"+codec.encode(result2));
-        System.out.println("\n\n");
+        System.out.println("\u005cn\u005cn RESULT of SLCodec.decode(SLCodec.encode(SLParser.Content()))=\u005cn"+codec.encode(result2));
+        System.out.println("\u005cn\u005cn");
         //result.dump();
         //System.out.println("AFTER ENCODING: "+codec.encode(result,o));
       }
@@ -364,8 +367,8 @@ class SLParser implements SLParserConstants {
         else if (CaseInsensitiveString.equalsIgnoreCase(s, "false"))
                 val = AbsPrimitive.wrap(false);
         else {
-        if (  (CaseInsensitiveString.equalsIgnoreCase(s,"\"true\""))
-            ||(CaseInsensitiveString.equalsIgnoreCase(s,"\"false\"")) )
+        if (  (CaseInsensitiveString.equalsIgnoreCase(s,"\u005c"true\u005c""))
+            ||(CaseInsensitiveString.equalsIgnoreCase(s,"\u005c"false\u005c"")) )
                   // in this case leading/trailing quotes were added by the
                   // encoder and now they must be removed. 
                   s = unescape(s);
@@ -389,7 +392,12 @@ class SLParser implements SLParserConstants {
       break;
     case PREFIXBYTELENGTHENCODEDSTRING:
       t = jj_consume_token(PREFIXBYTELENGTHENCODEDSTRING);
-    val = AbsPrimitive.wrap(t.image.getBytes());
+        try {
+                byte[]byteArray = Base64.decodeBase64(t.image.getBytes("US-ASCII"));
+                val = AbsPrimitive.wrap(byteArray);
+        } catch (UnsupportedEncodingException uee) {
+                {if (true) throw new ParseException("Error decoding byte-array from Base64 US-ASCII, "+uee.getMessage());}
+        }
       break;
     default:
       jj_la1[7] = jj_gen;
@@ -867,8 +875,8 @@ class SLParser implements SLParserConstants {
       break;
     case STRING_LITERAL2:
       t = jj_consume_token(STRING_LITERAL2);
-                         if (  (CaseInsensitiveString.equalsIgnoreCase(t.image,"\"true\""))
-                             ||(CaseInsensitiveString.equalsIgnoreCase(t.image,"\"false\"")) )
+                         if (  (CaseInsensitiveString.equalsIgnoreCase(t.image,"\u005c"true\u005c""))
+                             ||(CaseInsensitiveString.equalsIgnoreCase(t.image,"\u005c"false\u005c"")) )
                             // in this case leading/trailing quotes must be left
                             // otherwise the value is confused with a boolean
                             {if (true) return t.image;}
@@ -881,8 +889,8 @@ class SLParser implements SLParserConstants {
       break;
     case STRING_LITERAL:
       t = jj_consume_token(STRING_LITERAL);
-                         if (  (CaseInsensitiveString.equalsIgnoreCase(t.image,"\"true\""))
-                             ||(CaseInsensitiveString.equalsIgnoreCase(t.image,"\"false\"")) )
+                         if (  (CaseInsensitiveString.equalsIgnoreCase(t.image,"\u005c"true\u005c""))
+                             ||(CaseInsensitiveString.equalsIgnoreCase(t.image,"\u005c"false\u005c"")) )
                             // in this case leading/trailing quotes must be left
                             // otherwise the value is confused with a boolean
                             {if (true) return t.image;}
@@ -917,30 +925,36 @@ class SLParser implements SLParserConstants {
     throw new Error("Missing return statement in function");
   }
 
+  /** Generated Token Manager. */
   public SLParserTokenManager token_source;
   SimpleCharStream jj_input_stream;
-  public Token token, jj_nt;
+  /** Current token. */
+  public Token token;
+  /** Next token. */
+  public Token jj_nt;
   private int jj_ntk;
   private int jj_gen;
   final private int[] jj_la1 = new int[23];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static {
-      jj_la1_0();
-      jj_la1_1();
+      jj_la1_init_0();
+      jj_la1_init_1();
    }
-   private static void jj_la1_0() {
+   private static void jj_la1_init_0() {
       jj_la1_0 = new int[] {0x843020,0x800020,0x1000040,0x843020,0xee003000,0x56003000,0x873fa0,0x33f00,0x87ffa0,0x10003000,0x873fa0,0xc000,0x87ffa0,0xc000,0x42000000,0x840020,0x843020,0x843020,0x873fa0,0xa8003000,0xf00,0x3000,0x40000,};
    }
-   private static void jj_la1_1() {
+   private static void jj_la1_init_1() {
       jj_la1_1 = new int[] {0x1c,0x0,0x0,0x1c,0xf,0xc,0x1c,0xc,0x1c,0xc,0x1c,0x0,0x1c,0x0,0x0,0x10,0x1c,0x1c,0x1c,0xf,0x0,0xc,0x10,};
    }
 
+  /** Constructor with InputStream. */
   public SLParser(java.io.InputStream stream) {
      this(stream, null);
   }
+  /** Constructor with InputStream and supplied encoding */
   public SLParser(java.io.InputStream stream, String encoding) {
-    try { jj_input_stream = new SimpleCharStream(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e.getMessage(), e); }
+    try { jj_input_stream = new SimpleCharStream(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
     token_source = new SLParserTokenManager(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
@@ -948,11 +962,13 @@ class SLParser implements SLParserConstants {
     for (int i = 0; i < 23; i++) jj_la1[i] = -1;
   }
 
+  /** Reinitialise. */
   public void ReInit(java.io.InputStream stream) {
      ReInit(stream, null);
   }
+  /** Reinitialise. */
   public void ReInit(java.io.InputStream stream, String encoding) {
-    try { jj_input_stream.ReInit(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e.getMessage(), e); }
+    try { jj_input_stream.ReInit(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
     token_source.ReInit(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
@@ -960,6 +976,7 @@ class SLParser implements SLParserConstants {
     for (int i = 0; i < 23; i++) jj_la1[i] = -1;
   }
 
+  /** Constructor. */
   public SLParser(java.io.Reader stream) {
     jj_input_stream = new SimpleCharStream(stream, 1, 1);
     token_source = new SLParserTokenManager(jj_input_stream);
@@ -969,6 +986,7 @@ class SLParser implements SLParserConstants {
     for (int i = 0; i < 23; i++) jj_la1[i] = -1;
   }
 
+  /** Reinitialise. */
   public void ReInit(java.io.Reader stream) {
     jj_input_stream.ReInit(stream, 1, 1);
     token_source.ReInit(jj_input_stream);
@@ -978,6 +996,7 @@ class SLParser implements SLParserConstants {
     for (int i = 0; i < 23; i++) jj_la1[i] = -1;
   }
 
+  /** Constructor with generated Token Manager. */
   public SLParser(SLParserTokenManager tm) {
     token_source = tm;
     token = new Token();
@@ -986,6 +1005,7 @@ class SLParser implements SLParserConstants {
     for (int i = 0; i < 23; i++) jj_la1[i] = -1;
   }
 
+  /** Reinitialise. */
   public void ReInit(SLParserTokenManager tm) {
     token_source = tm;
     token = new Token();
@@ -994,7 +1014,7 @@ class SLParser implements SLParserConstants {
     for (int i = 0; i < 23; i++) jj_la1[i] = -1;
   }
 
-  final private Token jj_consume_token(int kind) throws ParseException {
+  private Token jj_consume_token(int kind) throws ParseException {
     Token oldToken;
     if ((oldToken = token).next != null) token = token.next;
     else token = token.next = token_source.getNextToken();
@@ -1008,6 +1028,8 @@ class SLParser implements SLParserConstants {
     throw generateParseException();
   }
 
+
+/** Get the next Token. */
   final public Token getNextToken() {
     if (token.next != null) token = token.next;
     else token = token.next = token_source.getNextToken();
@@ -1016,6 +1038,7 @@ class SLParser implements SLParserConstants {
     return token;
   }
 
+/** Get the specific Token. */
   final public Token getToken(int index) {
     Token t = token;
     for (int i = 0; i < index; i++) {
@@ -1025,23 +1048,21 @@ class SLParser implements SLParserConstants {
     return t;
   }
 
-  final private int jj_ntk() {
+  private int jj_ntk() {
     if ((jj_nt=token.next) == null)
       return (jj_ntk = (token.next=token_source.getNextToken()).kind);
     else
       return (jj_ntk = jj_nt.kind);
   }
 
-  private java.util.Vector jj_expentries = new java.util.Vector();
+  private java.util.List jj_expentries = new java.util.ArrayList();
   private int[] jj_expentry;
   private int jj_kind = -1;
 
+  /** Generate ParseException. */
   public ParseException generateParseException() {
-    jj_expentries.removeAllElements();
+    jj_expentries.clear();
     boolean[] la1tokens = new boolean[37];
-    for (int i = 0; i < 37; i++) {
-      la1tokens[i] = false;
-    }
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -1062,19 +1083,21 @@ class SLParser implements SLParserConstants {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;
-        jj_expentries.addElement(jj_expentry);
+        jj_expentries.add(jj_expentry);
       }
     }
     int[][] exptokseq = new int[jj_expentries.size()][];
     for (int i = 0; i < jj_expentries.size(); i++) {
-      exptokseq[i] = (int[])jj_expentries.elementAt(i);
+      exptokseq[i] = (int[])jj_expentries.get(i);
     }
     return new ParseException(token, exptokseq, tokenImage);
   }
 
+  /** Enable tracing. */
   final public void enable_tracing() {
   }
 
+  /** Disable tracing. */
   final public void disable_tracing() {
   }
 

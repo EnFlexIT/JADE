@@ -40,7 +40,11 @@ import java.io.StringReader;
 
 import java.io.BufferedReader; // only for debugging purposes in the main
 import java.io.InputStreamReader; // only for debugging purposes in the main
+import java.io.UnsupportedEncodingException;
+
+import org.apache.commons.codec.binary.Base64;
 //#MIDP_EXCLUDE_END
+
 
 /**  
  * The codec class for the <b><i>FIPA-SL</i>n</b> languages. This class
@@ -357,13 +361,18 @@ public class SLCodec extends StringCodec {
 			}
 		}
 		else if (v instanceof byte[]) {
-			// Note: Currently uses Java default charset, may need to use another one 
+			// Note: Use US-ASCII charSet and Base64 encoding 
 			byte[] b = (byte[]) v;
+			b = Base64.encodeBase64(b);
+			
 			buffer.append('#');
 			buffer.append(b.length);
 			buffer.append('"');
-			// FIXME: Should we use base64 encoding?
-			buffer.append(new String(b));
+			try {
+				buffer.append(new String(b, "US-ASCII"));
+			} catch (UnsupportedEncodingException uee) {
+				throw new CodecException("Error encoding byte-array to Base64 US-ASCII", uee);
+			}
 		}
 		else if (v instanceof Boolean) 
 			buffer.append(v.toString());
