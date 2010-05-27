@@ -25,12 +25,10 @@ package jade.core;
 
 
 import jade.core.behaviours.Behaviour;
-import jade.core.replication.MainReplicationSlice;
-
 import jade.util.Logger;
-import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 import jade.util.leap.Iterator;
+import jade.util.leap.Map;
 
 
 
