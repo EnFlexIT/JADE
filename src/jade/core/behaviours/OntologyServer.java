@@ -191,8 +191,8 @@ public class OntologyServer extends CyclicBehaviour {
 						handleServingFailure(ite.getCause(), keyCel, msg);
 					}
 					catch (Exception e) {
-						// Should never happen as we only use public methods with proper arguments
-						e.printStackTrace();
+						// Since we only use public methods with proper arguments this can only happen if the serverDelegate class is not accessible
+						handleServingFailure(e, keyCel, msg);
 					}
 				}
 				else {
