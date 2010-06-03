@@ -25,7 +25,10 @@ package jade.core;
 
 //#MIDP_EXCLUDE_BEGIN
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Enumeration;
 //#MIDP_EXCLUDE_END
 
 import jade.util.leap.List;
@@ -369,8 +372,41 @@ public abstract class Profile {
 	}
 	
 	//#MIDP_EXCLUDE_BEGIN
+	/**
+	 * Check whether or not a given host name or address corresponds to a local network interface
+	 */
 	public static boolean isLocalHost(String host) {
-		return compareHostNames(host, LOCALHOST_CONSTANT);
+		// Fix by Felix Krull:
+		// We cannot use the same approach used in compareHostNames(). This fails in case you set 
+		// local-host in the container config to a local address which is not the address delivered by 
+		// InetAddress.getLocalHost().getHostName(), but the address of another local interface
+		if (LOCALHOST_CONSTANT.equalsIgnoreCase(host)) {
+			return true;
+		}
+		
+		// The trick here is to compare the IP Addresses the host name resolves to.
+		try {
+			InetAddress localHostAddr = InetAddress.getByName(host);				
+			Enumeration interfaces = NetworkInterface.getNetworkInterfaces();
+			while(interfaces.hasMoreElements()) {
+				NetworkInterface nextIface = (NetworkInterface)interfaces.nextElement();
+				Enumeration addresses = nextIface.getInetAddresses();
+				while(addresses.hasMoreElements()) {
+					InetAddress ip = (InetAddress)addresses.nextElement();
+					if(ip.equals(localHostAddr)) {
+						return true;
+					}
+				}
+			}
+		} 
+		catch (SocketException e1) {
+			// We cannot retrieve local network interfaces information --> print a warning and return false
+			e1.printStackTrace();
+		}
+		catch (UnknownHostException uhe) {
+			// An unknown host is certainly not local		
+		}
+		return false;		
 	}
 	
 	/**
@@ -383,10 +419,12 @@ public abstract class Profile {
 
 		try {
 			if (host1.equalsIgnoreCase(LOCALHOST_CONSTANT)) {
-				host1 = InetAddress.getLocalHost().getHostName();
+				//host1 = InetAddress.getLocalHost().getHostName();
+				return isLocalHost(host2);
 			}
 			if (host2 != null && host2.equalsIgnoreCase(LOCALHOST_CONSTANT)) {
-				host2 = InetAddress.getLocalHost().getHostName();
+				//host2 = InetAddress.getLocalHost().getHostName();
+				return isLocalHost(host2);
 			}
 
 			InetAddress host1Addrs[] = InetAddress.getAllByName(host1);
@@ -397,7 +435,7 @@ public abstract class Profile {
 			// fully qualified Internet domain name for the host and the
 			// other might be a simple name.
 			// Example: myHost.hpl.hp.com and myHost might
-			// acutally be the same host even though the hostname strings do
+			// actually be the same host even though the hostname strings do
 			// not match.  When the InetAddress objects are compared, the IP
 			// addresses will be compared.
 			int i = 0;
