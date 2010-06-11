@@ -96,6 +96,14 @@ public class TestSSIteratedContractNetResponder extends Test {
 	@Override
 	public void clean(Agent a) {
 		// Kill the initiator agent;
+		try {
+			if (initiatorAgent != null) {
+				TestUtility.killAgent(a, initiatorAgent);
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	
