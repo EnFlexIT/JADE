@@ -761,11 +761,17 @@ public class NotificationService extends BaseService {
 	}
 	
 	private void firePostedMessage(ACLMessage msg, AID receiver) {
+		// Set the sender explicitly only if different than that included in the message
+		String realSenderName = msg.getUserDefinedParameter(ACLMessage.REAL_SENDER);
+		AID sender = null;
+		if (realSenderName != null) {
+			sender = new AID(realSenderName, AID.ISGUID);
+		}
 		// NOTE: A normal synchronized block could create deadlock problems
 		// as it prevents concurrent scannings of the listeners list.
 		List l = messageListeners.startScanning();
 		if (l != null) {
-			MessageEvent ev = new MessageEvent(MessageEvent.POSTED_MESSAGE, msg, null, receiver, myID());
+			MessageEvent ev = new MessageEvent(MessageEvent.POSTED_MESSAGE, msg, sender, receiver, myID());
 			Iterator it = l.iterator();
 			while (it.hasNext()) {
 				MessageListener ml = (MessageListener) it.next();
@@ -776,11 +782,17 @@ public class NotificationService extends BaseService {
 	}
 	
 	private void fireReceivedMessage(ACLMessage msg, AID receiver) {
+		// Set the sender explicitly only if different than that included in the message
+		String realSenderName = msg.getUserDefinedParameter(ACLMessage.REAL_SENDER);
+		AID sender = null;
+		if (realSenderName != null) {
+			sender = new AID(realSenderName, AID.ISGUID);
+		}
 		// NOTE: A normal synchronized block could create deadlock problems
 		// as it prevents concurrent scannings of the listeners list.
 		List l = messageListeners.startScanning();
 		if (l != null) {
-			MessageEvent ev = new MessageEvent(MessageEvent.RECEIVED_MESSAGE, msg, null, receiver, myID());
+			MessageEvent ev = new MessageEvent(MessageEvent.RECEIVED_MESSAGE, msg, sender, receiver, myID());
 			Iterator it = l.iterator();
 			while (it.hasNext()) {
 				MessageListener ml = (MessageListener) it.next();

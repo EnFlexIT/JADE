@@ -642,6 +642,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			// as a temporary holder for the sender principal and credentials
 			msg.setSenderPrincipal(cmd.getPrincipal());
 			msg.setSenderCredentials(cmd.getCredentials());
+			msg.setSender(sender);
 			checkTracing(msg);
 			if (msg.getTraceID() != null) {
 				myLogger.log(Logger.INFO, "MessagingService source sink handling message "+MessageManager.stringify(msg)+" for receiver "+dest.getName()+". TraceID = "+msg.getTraceID());
@@ -828,7 +829,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				myLogger.log(Logger.INFO, msg.getTraceID()+" - MessagingService target sink posting message to receiver "+receiverID.getLocalName());
 				
 			}
-			postMessage(msg.getACLMessage(), receiverID);
+			postMessage(senderID, msg.getACLMessage(), receiverID);
 			if (msg.getTraceID() != null) {
 				myLogger.log(Logger.INFO, msg.getTraceID()+" - Message posted");
 				
@@ -912,7 +913,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			}
 		}
 		
-		private void postMessage(ACLMessage msg, AID receiverID) throws NotFoundException {
+		private void postMessage(AID senderID, ACLMessage msg, AID receiverID) throws NotFoundException {
+			if (!msg.getSender().equals(senderID)) {
+				myLogger.log(Logger.FINE, "Attaching real-sender user defined parameter: "+senderID.getName());
+				// Sender indicated in the message different than the real sender --> store the latter in the REAL_SENDER user defined param
+				msg.addUserDefinedParameter(ACLMessage.REAL_SENDER, senderID.getName());
+			}
 			boolean found = myContainer.postMessageToLocalAgent(msg, receiverID);
 			if(!found) {
 				throw new NotFoundException("Messaging service slice failed to find " + receiverID);

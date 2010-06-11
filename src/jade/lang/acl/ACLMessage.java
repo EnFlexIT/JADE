@@ -194,6 +194,13 @@ public class ACLMessage implements Serializable {
 	public static final String SYNCH_DELIVERY = "JADE-synch-delivery";
 
 	/**
+	 * User defined parameter key specifying the AID of the real sender of a message. This is automatically 
+	 * set by the MessagingService when posting a message where the sender field is different than the real 
+	 * sender.
+	 */
+	public static final String REAL_SENDER = "JADE-real-sender";
+
+	/**
 	 * AMS failure reasons 
 	 */
 	public static final String AMS_FAILURE_AGENT_NOT_FOUND = "Agent not found";
@@ -1008,7 +1015,7 @@ public class ACLMessage implements Serializable {
 				result.source = (AID)source.clone();
 			}
 			
-			// Deep clone
+			// Deep clone receivers
 			if(dests != null) {
 				result.dests = new ArrayList(dests.size());
 				Iterator it = dests.iterator();
@@ -1018,7 +1025,7 @@ public class ACLMessage implements Serializable {
 				}
 			}
 			
-			// Deep clone
+			// Deep clone reply_to
 			if(reply_to != null) {
 				result.reply_to = new ArrayList(reply_to.size());
 				Iterator it = reply_to.iterator();
@@ -1028,8 +1035,10 @@ public class ACLMessage implements Serializable {
 				}
 			}
 			
+			// Deep clone user-def-properties if present
 			if (userDefProps != null)
-				result.userDefProps = (Properties)userDefProps.clone();	//Deep copy
+				result.userDefProps = (Properties)userDefProps.clone();	
+			// Deep clone envelope if present
 			if(messageEnvelope != null)
 				result.messageEnvelope = (Envelope)messageEnvelope.clone();
 		}
@@ -1114,32 +1123,30 @@ public class ACLMessage implements Serializable {
 	 * @return the ACLMessage to send as a reply
 	 */
 	public ACLMessage createReply() {
-		ACLMessage m = (ACLMessage)clone();
-		m.clearAllReceiver();
+		ACLMessage m = new ACLMessage(getPerformative());
 		Iterator it = getAllReplyTo(); 
 		while (it.hasNext())
 			m.addReceiver((AID)it.next());
 		if ((reply_to == null) || reply_to.isEmpty())
 			m.addReceiver(getSender());
-		m.clearAllReplyTo();
 		m.setLanguage(getLanguage());
 		m.setOntology(getOntology());
 		m.setProtocol(getProtocol());
-		m.setSender(null);
 		m.setInReplyTo(getReplyWith());
 		if (source != null)
 			m.setReplyWith(source.getName() + java.lang.System.currentTimeMillis()); 
 		else
 			m.setReplyWith("X"+java.lang.System.currentTimeMillis()); 
 		m.setConversationId(getConversationId());
-		m.setReplyByDate(null);
-		m.setContent(null);
-		m.setEncoding(null);
+		// Copy only well defined user-def-params
+		String trace = getUserDefinedParameter(TRACE);
+		if (trace != null) {
+			m.addUserDefinedParameter(TRACE, trace);
+		}
 		//#CUSTOM_EXCLUDE_BEGIN
 		//Set the Aclrepresentation of the reply message to the aclrepresentation of the sent message 
-		if (messageEnvelope != null)
-		{
-			m.setDefaultEnvelope(); // reset the envelope after having been cloned
+		if (messageEnvelope != null) {
+			m.setDefaultEnvelope(); 
 			String aclCodec= messageEnvelope.getAclRepresentation();
 			if (aclCodec != null)
 				m.getEnvelope().setAclRepresentation(aclCodec);

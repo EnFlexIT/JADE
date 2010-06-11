@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 
 package jade.tools.sniffer;
@@ -30,7 +30,7 @@ import javax.swing.SwingUtilities;
 import jade.gui.AgentTree;
 import jade.core.AID;
 
- /**
+/**
    Javadoc documentation for the file
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    <Br>
@@ -38,7 +38,7 @@ import jade.core.AID;
    @version $Date$ $Revision$
  */
 
- /**
+/**
  * Adds properties and methods for representing
  * agents on the Agent Canvas as rectangles.
  *
@@ -47,56 +47,56 @@ import jade.core.AID;
 
 public class Agent implements Serializable{
 
-  public static int i = 0;
-  public static final int hRet = 30;
-  public static final int bRet = 50;
-  public static final int yRet = 20;
-  public String agentName;
-  private AID myAID;
+	public static int i = 0;
+	public static final int hRet = 30;
+	public static final int bRet = 50;
+	public static final int yRet = 20;
+	public String agentName;
+	private AID myAID;
 
-  private int pos = 0;
+	private int pos = 0;
 
-  /**
-   * This flag is <em>true</em> for agents on canvas and <em>false</em> for agents
-   * out of the canvas.
-   */
-  public boolean onCanv;
-  private int x;
+	/**
+	 * This flag is <em>true</em> for agents on canvas and <em>false</em> for agents
+	 * out of the canvas.
+	 */
+	public boolean onCanv;
+	private int x;
 
-  /**
-   * Constructor for any named agent to be put on the Agent Canvas
-   */
-  public Agent(AID id){
-   myAID = id;
-   agentName=id.getLocalName();
-   onCanv = true;
- }
+	/**
+	 * Constructor for any named agent to be put on the Agent Canvas
+	 */
+	public Agent(AID id){
+		myAID = id;
+		agentName=id.getLocalName();
+		onCanv = true;
+	}
 
- public Agent(String localName){
- 	this(new AID(localName, AID.ISLOCALNAME));
- }
+	public Agent(String localName){
+		this(new AID(localName, AID.ISLOCALNAME));
+	}
 
-  /**
-   * Constructor for a special agent called <em>Other</em> which represents every agent
-   * not present on the Agent Canvas. It is displayed in color grey when every usual agent
-   * is displayed in color red and is the first on the left.
-   */
+	/**
+	 * Constructor for a special agent called <em>Other</em> which represents every agent
+	 * not present on the Agent Canvas. It is displayed in color grey when every usual agent
+	 * is displayed in color red and is the first on the left.
+	 */
 
- public Agent(){
-  agentName="Other";
-  myAID = new AID(agentName, AID.ISLOCALNAME);
-  onCanv = false;
- }
+	public Agent(){
+		agentName="Other";
+		myAID = new AID(agentName, AID.ISLOCALNAME);
+		onCanv = false;
+	}
 
- public boolean equals(Object o) {
+	public boolean equals(Object o) {
 
-   if(o instanceof Agent) {
-     Agent ag = (Agent)o;
-     return agentName.equalsIgnoreCase(ag.agentName);
-   }
-   else {
-     return myAID.equals(o);
-   }
- }
+		if(o instanceof Agent) {
+			Agent ag = (Agent)o;
+			return agentName.equalsIgnoreCase(ag.agentName);
+		}
+		else {
+			return myAID.equals(o);
+		}
+	}
 
 }  // End of class Agent

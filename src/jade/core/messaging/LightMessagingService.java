@@ -284,6 +284,7 @@ public class LightMessagingService extends BaseService
         // as a temporary holder for the sender principal and credentials to the 
         msg.setSenderPrincipal(cmd.getPrincipal());
         msg.setSenderCredentials(cmd.getCredentials());
+        msg.setSender(sender);
         myMessageManager.deliver(msg, dest, this);
     }
 

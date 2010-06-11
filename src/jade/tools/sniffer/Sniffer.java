@@ -215,19 +215,26 @@ public class Sniffer extends ToolAgent {
 						content = ((PostedMessage)ev).getMessage().getPayload();
 						env = ((PostedMessage)ev).getMessage().getEnvelope();
 						unicastReceiver = ((PostedMessage)ev).getReceiver();
-					} else return;
+						AID sender = ((PostedMessage)ev).getSender();
+						// If the sender is currently under sniff, then the message was already
+						// displayed when the 'sent-message' event occurred --> just skip this message.
+						if(agentsUnderSniff.contains(new Agent(sender))) {
+							return;
+						}
+					} else {
+						return;
+					}
 
 					ACLCodec codec = new StringACLCodec();
 					String charset = null;  
-					if ((env == null) ||
-							((charset = env.getPayloadEncoding()) == null)) {
+					if ((env == null) || ((charset = env.getPayloadEncoding()) == null)) {
 						charset = ACLCodec.DEFAULT_CHARSET;
 					}
 					ACLMessage tmp = codec.decode(content.getBytes(charset),charset);
 					tmp.setEnvelope(env);
 					Message msg = new Message(tmp, unicastReceiver);
 
-					// If this is a 'posted-message' event and the sender is
+					/* If this is a 'posted-message' event and the sender is
 					// currently under sniff, then the message was already
 					// displayed when the 'sent-message' event occurred. In that
 					// case, we simply skip this message.
@@ -235,7 +242,7 @@ public class Sniffer extends ToolAgent {
 						Agent a = new Agent(msg.getSender());
 						if(agentsUnderSniff.contains(a))
 							return;
-					}
+					}*/
 
 
 					// If the message that we just got is one that should be filtered out

@@ -52,6 +52,7 @@ public class GenericMessage implements Serializable {
 	private transient ACLMessage msg;
 	private Envelope env;
 	private byte[] payload;
+	private transient AID sender;
 	private transient JADEPrincipal senderPrincipal;
 	private transient Credentials senderCredentials;
 	private boolean isAMSFailure = false;
@@ -156,10 +157,23 @@ public class GenericMessage implements Serializable {
 	}
 	//#MIDP_EXCLUDE_END
 
+	public final void setSender(AID sender){
+		this.sender = sender;
+	}
+	
 	public final AID getSender(){
-		if (msg!=null) return msg.getSender();
-		else if (env!=null) return env.getFrom();
-		else return null;
+		if (sender != null) {
+			return sender;
+		}
+		else if (msg!=null) {
+			return msg.getSender();
+		}
+		else if (env!=null) {
+			return env.getFrom();
+		}
+		else {
+			return null;
+		}
 	}
 
 	// DEBUG
