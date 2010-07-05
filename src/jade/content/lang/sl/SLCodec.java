@@ -63,6 +63,8 @@ public class SLCodec extends SimpleSLCodec {
 //#MIDP_EXCLUDE_BEGIN
 public class SLCodec extends StringCodec {
 
+	public static final String PRESERVE_JAVA_TYPES = "SL-preserve-java-types";
+	
 	private transient SLParser parser;
 	private transient ExtendedSLParser extendedParser;
 	private SL0Ontology slOnto; // ontology of the content language
@@ -78,7 +80,7 @@ public class SLCodec extends StringCodec {
 	 * Construct a Codec object for the full SL-language (FIPA-SL).
 	 */
 	public SLCodec() {
-		this(3, false);
+		this(3, readPreserveJavaTypesProperty());
 	}
 
 	/**
@@ -97,7 +99,7 @@ public class SLCodec extends StringCodec {
 	 * @param slType specify 0 for FIPA-SL0, 1 for FIPA-SL1, 2 for FIPA-SL2, any other value can be used for full FIPA-SL
 	 */
 	public SLCodec(int slType) {
-		this(slType, false);
+		this(slType, readPreserveJavaTypesProperty());
 	}
 	
 	/**
@@ -120,6 +122,11 @@ public class SLCodec extends StringCodec {
 		initParser();
 	}
 
+	private static boolean readPreserveJavaTypesProperty() {
+		String strPreserveJavaTypes = System.getProperty(PRESERVE_JAVA_TYPES);
+		return "true".equals(strPreserveJavaTypes);
+	}
+	
 	private void initParser() {
 		int	slType	= jade.domain.FIPANames.ContentLanguage.FIPA_SL0.equals(getName()) ? 0
 					: jade.domain.FIPANames.ContentLanguage.FIPA_SL2.equals(getName()) ? 1 
