@@ -121,8 +121,12 @@ public class IncomingEncodingFilter extends Filter {
 	public void postProcess(VerticalCommand cmd) {
 		String name = cmd.getName();
 		if(name.equals(Service.REATTACHED)) {
-			// The Main Container has lost all information about the local container --> Send it again local MTPs information
+			// The Main Container lost all information about the local container --> 
+			// Send it again local MTPs information
 			myService.notifyLocalMTPs();
+			
+			// Send it again local aliases information
+			myService.notifyLocalAliases();
 		}
 	}
 	

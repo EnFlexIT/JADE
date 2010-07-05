@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.messaging;
 
+import java.util.Hashtable;
+
 import jade.core.Service;
 import jade.core.AID;
 import jade.core.ContainerID;
@@ -121,6 +123,6 @@ public interface MessagingSlice extends Service.Slice {
 
 	void newAlias(AID alias, AID agent) throws IMTPException;
 	void deadAlias(AID alias) throws IMTPException;
-	void currentAliases(Map aliases) throws IMTPException;
+	void currentAliases(Hashtable aliases) throws IMTPException;
 	void transferLocalAliases(AID agent, List aliases) throws IMTPException;
 }

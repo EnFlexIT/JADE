@@ -23,6 +23,8 @@
 
 package jade.core.messaging;
 
+import java.util.Hashtable;
+
 import jade.core.Node;
 import jade.core.SliceProxy;
 import jade.core.GenericCommand;
@@ -33,7 +35,6 @@ import jade.core.ServiceException;
 import jade.core.NotFoundException;
 import jade.security.JADESecurityException;
 import jade.util.leap.List;
-import jade.util.leap.Map;
 
 import jade.domain.FIPAAgentManagement.Envelope;
 
@@ -342,7 +343,7 @@ public class MessagingProxy extends SliceProxy implements MessagingSlice {
 		}
 	}
 	
-	public void currentAliases(Map aliases) throws IMTPException {
+	public void currentAliases(Hashtable aliases) throws IMTPException {
 		try {
 			GenericCommand cmd = new GenericCommand(H_CURRENTALIASES, NAME, null);
 			cmd.addParam(aliases);

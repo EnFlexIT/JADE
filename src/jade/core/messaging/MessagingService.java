@@ -30,6 +30,7 @@ import java.io.PrintWriter;
 import java.io.IOException;
 
 import java.util.Date;
+import java.util.Hashtable;
 
 import jade.core.HorizontalCommand;
 import jade.core.VerticalCommand;
@@ -49,12 +50,10 @@ import jade.core.AID;
 import jade.core.ContainerID;
 import jade.core.Profile;
 import jade.core.ServiceHelper;
-import jade.core.SliceProxy;
 import jade.core.Specifier;
 import jade.core.ProfileException;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
-import jade.core.Service.Slice;
 import jade.core.replication.MainReplicationHandle;
 
 import jade.domain.FIPANames;
@@ -76,6 +75,7 @@ import jade.mtp.MTPException;
 import jade.mtp.InChannel;
 import jade.mtp.TransportAddress;
 
+import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
@@ -137,8 +137,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	private RoutingTable routes;
 	
 	// The map of local and global (used in the Main Container) aliases
-	private Map localAliases = new HashMap();
-	private Map globalAliases;
+	private Hashtable localAliases = new Hashtable();
+	private Hashtable globalAliases;
+	private List aliasListeners;
 	
 	// The handle to the MainReplicationService to keep global aliases info in synch
 	MainReplicationHandle replicationHandle;
@@ -206,7 +207,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		routes = new RoutingTable(myProfile.getBooleanProperty(ATTACH_PLATFORM_INFO, false));
 
 		if (myContainer.getMain() != null) {
-			globalAliases = new HashMap();
+			globalAliases = new Hashtable();
+			aliasListeners = new ArrayList();
 		}
 		
 		// Look in the profile and check whether we must accept foreign agents
@@ -404,15 +406,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				AID aliasAID = new AID(alias, AID.ISLOCALNAME);
 				AID id = myAgent.getAID();
 				localAliases.put(aliasAID, id);
-				MessagingSlice mainSlice = (MessagingSlice) getSlice(MAIN_SLICE);
-				try {
-					mainSlice.newAlias(aliasAID, id);
-				} 
-				catch (IMTPException imtpe) {
-					// Try to get a newer slice and repeat...
-					mainSlice = (MessagingSlice) getFreshSlice(MAIN_SLICE);
-					mainSlice.newAlias(aliasAID, id);
-				}
+				notifyNewAlias(aliasAID, id);
 			}
 			
 			public void deleteAlias(String alias) throws IMTPException, ServiceException {
@@ -422,15 +416,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				if (id != null) {
 					if (id.equals(myAgent.getAID())) {
 						// Alias actually removed --> notify the Main
-						MessagingSlice mainSlice = (MessagingSlice) getSlice(MAIN_SLICE);
-						try {
-							mainSlice.deadAlias(aliasAID);
-						} 
-						catch (IMTPException imtpe) {
-							// Try to get a newer slice and repeat...
-							mainSlice = (MessagingSlice) getFreshSlice(MAIN_SLICE);
-							mainSlice.deadAlias(aliasAID);
-						}
+						notifyDeadAlias(aliasAID);
 					}
 					else {
 						// An agent can delete its aliases only --> restore the alias
@@ -438,19 +424,89 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 					}
 				}
 			}
+			
+			public void registerAliasListener(AliasListener l) throws ServiceException {
+				synchronized (aliasListeners) {
+					if (!aliasListeners.contains(l)) {
+						aliasListeners.add(l);
+					}
+				}
+			}
+			
+			public void deregisterAliasListener(AliasListener l) throws ServiceException {
+				synchronized (aliasListeners) {
+					aliasListeners.remove(l);
+				}
+			}
 		};
 	}
 	
+	// Notify the Main Container about a new alias
+	private void notifyNewAlias(AID alias, AID agent) throws ServiceException, IMTPException {
+		MessagingSlice mainSlice = (MessagingSlice) getSlice(MAIN_SLICE);
+		try {
+			mainSlice.newAlias(alias, agent);
+		} 
+		catch (IMTPException imtpe) {
+			// Try to get a newer slice and repeat...
+			mainSlice = (MessagingSlice) getFreshSlice(MAIN_SLICE);
+			mainSlice.newAlias(alias, agent);
+		}
+	}
+	
+	// Notify the Main Container about a dead alias
+	private void notifyDeadAlias(AID alias) throws ServiceException, IMTPException {
+		MessagingSlice mainSlice = (MessagingSlice) getSlice(MAIN_SLICE);
+		try {
+			mainSlice.deadAlias(alias);
+		} 
+		catch (IMTPException imtpe) {
+			// Try to get a newer slice and repeat...
+			mainSlice = (MessagingSlice) getFreshSlice(MAIN_SLICE);
+			mainSlice.deadAlias(alias);
+		}
+	}
+	
+	// Add a new Global Alias entry 
 	// Public since it is replicated by the MainReplicationService
 	public void newAlias(AID alias, AID agent) {
 		myLogger.log(Logger.INFO, "Adding global alias entry: "+alias.getLocalName()+"-->"+agent.getLocalName());
 		globalAliases.put(alias, agent);
+		// Notify listeners
+		notifyAliasListeners(alias, agent, true); 
 	}
 	
+	// Remove a dead Global Alias entry 
 	// Public since it is replicated by the MainReplicationService
 	public void deadAlias(AID alias) {
 		myLogger.log(Logger.INFO, "Removing global alias entry: "+alias.getLocalName());
-		globalAliases.remove(alias);
+		AID agent = (AID) globalAliases.remove(alias);
+		if (agent != null) {
+			// Notify listeners
+			notifyAliasListeners(alias, agent, false); 
+		}
+	}
+	
+	private void notifyAliasListeners(AID alias, AID agent, boolean added) {
+		synchronized (aliasListeners) {
+			Iterator it = aliasListeners.iterator();
+			while (it.hasNext()) {
+				MessagingHelper.AliasListener listener = (MessagingHelper.AliasListener) it.next();
+				try {
+					if (added) {
+						// Alias added
+						listener.handleNewAlias(alias, agent);
+					}
+					else {
+						// Alias removed
+						listener.handleDeadAlias(alias, agent);
+					}
+				}
+				catch (Exception e) {
+					myLogger.log(Logger.WARNING, "Error notifying listener "+listener+" about dead alias "+alias.getLocalName()+"-->"+agent.getLocalName());
+				}
+			}
+		}
 	}
 	
 	private AID resolveLocalAlias(AID id) {
@@ -463,12 +519,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		return mappedId != null ? mappedId : id;
 	}
 	
+	// Remove all local alias entries for a given agent 
 	List removeLocalAliases(AID agent) {
 		myLogger.log(Logger.INFO, "Removing all local alias entries for agent "+agent.getLocalName());
-		return null;
-		// FIXME: to be implemented
+		return removeEntriesFor(localAliases, agent);
 	}
 	
+	// Transfer all local alias entries for a given agent on a remote container
+	// This is executed when an agent moves
 	void transferLocalAliases(AID agent, ContainerID dest) {
 		myLogger.log(Logger.INFO, "Transferring all local alias entries for agent "+agent.getLocalName()+" to "+dest.getName());
 		List aliases = removeLocalAliases(agent);
@@ -483,10 +541,53 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		}
 	}
 	
+	// Remove all global alias entries for a given agent
 	// Public since it is replicated by the MainReplicationService
 	public void removeGlobalAliases(AID agent) {
 		myLogger.log(Logger.INFO, "Removing all global alias entries for agent "+agent.getLocalName());
-		// FIXME: to be implemented
+		List removedAliases = removeEntriesFor(globalAliases, agent);
+		// Notify listeners
+		Iterator it = removedAliases.iterator();
+		while (it.hasNext()) {
+			AID alias = (AID) it.next();
+			notifyAliasListeners(alias, agent, false);
+		}
+	}
+	
+	// Inform the Main Container about all local aliases. This is called after a fault-&-recover 
+	// of the Main Container when using the FaultRecoveryService
+	void notifyLocalAliases() {
+		// We do not scan the localAliases table directly since this would require a potentially long
+		// synchronized block
+		Hashtable cloned = (Hashtable) localAliases.clone();
+		java.util.Iterator it = cloned.entrySet().iterator();	
+		while (it.hasNext()) {
+			java.util.Map.Entry entry = (java.util.Map.Entry) it.next();
+			AID alias = (AID) entry.getKey();
+			AID agent = (AID) entry.getValue();
+			try {
+				notifyNewAlias(alias, agent);
+			}
+			catch (Exception e) {
+				myLogger.log(Logger.SEVERE, "Error informing recovered Main Container about alias "+alias.getLocalName()+"-->"+agent.getLocalName(), e);
+			}
+		}
+	}
+	
+	// Remove all entries that maps to a given target
+	private List removeEntriesFor(Hashtable table, Object target) {
+		List removedKeys = new ArrayList();
+		synchronized (table) {
+			java.util.Iterator it = table.entrySet().iterator();
+			while (it.hasNext()) {
+				java.util.Map.Entry entry = (java.util.Map.Entry) it.next();
+				if (entry.getValue().equals(target)) {
+					removedKeys.add(entry.getKey());
+					it.remove();
+				}
+			}
+		}
+		return removedKeys;
 	}
 	
 	/**
@@ -1245,7 +1346,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 					replicationHandle.invokeReplicatedMethod("deadAlias", params);
 				}
 				else if (cmdName.equals(MessagingSlice.H_CURRENTALIASES)) {
-					globalAliases = (Map) params[0]; 
+					globalAliases = (Hashtable) params[0]; 
 				}
 				else if (cmdName.equals(MessagingSlice.H_TRANSFERLOCALALIASES)) {
 					AID agent = (AID) params[0];
@@ -1773,9 +1874,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
  		return sb.toString();
 	}
 	
-	private String stringifyAliasesMap(Map aliases) {
+	private String stringifyAliasesMap(Hashtable aliases) {
 		StringBuffer sb = new StringBuffer();
-		Iterator it = aliases.keySet().iterator();
+		java.util.Iterator it = aliases.keySet().iterator();
 		while (it.hasNext()) {
 			AID alias = (AID) it.next();
 			AID agent = (AID) aliases.get(alias);
