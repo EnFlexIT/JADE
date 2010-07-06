@@ -370,9 +370,10 @@ public class ThreadedBehaviourFactory {
 							if (suspended) {
 								threadState = SUSPENDED_STATE;
 								myThread = null;
-								// If the Behaviour defined a handleSuspended() method invoke it from within the terminating thread 
-								// to give it a chance to clean up any allocated resources
-								invokeMethod(myBehaviour, "onSuspended");
+								// NODE: We do not invoke the onSuspended() callback method here, but in the finally block 
+								// to avoid giving users the possibility of putting application-specific code inside a section
+								// where we already locked the ThreadedBehaviourFactory-Wrapper. This would open the door to
+								// deadlock conditions.
 								return;
 							}
 							if (!myBehaviour.isRunnable()) {
@@ -398,14 +399,22 @@ public class ThreadedBehaviourFactory {
 				threadState = INTERRUPTED_STATE;
 				myLogger.log(Logger.WARNING, "Threaded behaviour "+myBehaviour.getBehaviourName()+" stopped before termination");
 				// ThreadDeath errors should always be propagated so that the top level handler can perform the necessary clean up
-				terminate();
 				throw td;
 			}
 			catch (Throwable t) {
 				threadState = ERROR_STATE;
 				t.printStackTrace();
 			}
-			terminate();
+			finally {
+				if (threadState == SUSPENDED_STATE) {
+					// If we have just suspended and the Behaviour defined a handleSuspended() method 
+					// invoke it from within the terminating thread 
+					invokeMethod(myBehaviour, "onSuspended");
+				}
+				else {
+					terminate();
+				}
+			}
 		}
 		
 		/**
