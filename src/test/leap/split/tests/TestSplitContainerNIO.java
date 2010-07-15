@@ -21,7 +21,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 import jade.core.Agent;
 import test.common.Test;
@@ -36,9 +36,9 @@ import test.common.JadeController;
  *
  */
 public class TestSplitContainerNIO extends TestSplitContainerBasic{
-	
+
 	JadeController jc1, jc;
-	
+
 	//create a container with BEManagementService
 	//create a split-container using NIOBEDispatcher
 	protected String createSplitContainer() throws TestException{
@@ -47,22 +47,22 @@ public class TestSplitContainerNIO extends TestSplitContainerBasic{
 		log("Launching split-container...");
 		jc = TestUtility.launchSplitJadeInstance("Split-Container-1", null, new String("-host "+TestUtility.getContainerHostName(myAgent, jc1.getContainerName())+" -port 2099" + " -mediator-class jade.imtp.leap.nio.NIOBEDispatcher"));
 		return jc.getContainerName();
-		
+
 	}
-	
+
 	public void clean(Agent a) {
-  	try {
-  		jc1.kill();
-  	}
-  	catch (Exception e) {
-  		e.printStackTrace();
-  	}
-  	try {
-  		jc.kill();
-  	}
-  	catch (Exception e) {
-  		e.printStackTrace();
-  	}
-  }  
+		try {
+			jc1.kill();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		try {
+			jc.kill();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}  
 
 }

@@ -69,7 +69,7 @@ public class TestSplitContainerBasic extends Test{
 					containerName = createSplitContainer();
 				}
 				catch (Exception e) {
-					failed("Error initilizing split-container. " + e);
+					failed("--- Error initilizing split-container. " + e);
 					e.printStackTrace();
 				}
 			}
@@ -79,12 +79,12 @@ public class TestSplitContainerBasic extends Test{
 		sb.addSubBehaviour(new WakerBehaviour(a, 2000){
 			public void onWake(){
 				try{
-					log("Starting ping agent on " + containerName);
+					log("--- Starting ping agent on " + containerName);
 					pingAgent = TestUtility.createAgent(myAgent, PING_NAME, "test.leap.split.tests.TestSplitContainerBasic$PingAgent", null, null, containerName);
-					log("Ping agent correctly started");
+					log("--- Ping agent correctly started");
 				}
 				catch(TestException e){
-					failed("Error starting Ping agent. " + e);
+					failed("--- Error starting Ping agent. " + e);
 					e.printStackTrace();
 				}
 			}
@@ -95,7 +95,7 @@ public class TestSplitContainerBasic extends Test{
 		sb.addSubBehaviour(new MsgReceiver(a, MessageTemplate.MatchConversationId(CONV_ID), -1, null, null) {
 			public void onStart() {
 				setDeadline(System.currentTimeMillis()+10000);
-				log("Sending message to ping agent...");
+				log("--- Sending message to ping agent...");
 				ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
 				msg.addReceiver(pingAgent);
 				msg.setConversationId(CONV_ID);
@@ -105,14 +105,14 @@ public class TestSplitContainerBasic extends Test{
 			protected void handleMessage(ACLMessage msg) {
 				if (msg != null) {
 					if (msg.getPerformative() == ACLMessage.INFORM) {
-						log("Response received from ping agent: " + msg);
+						log("--- Response received from ping agent: " + msg);
 					}
 					else {
-						failed("FAILURE notification received. " + msg);
+						failed("--- FAILURE notification received. " + msg);
 					}
 				}
 				else {
-					failed("No response received from ping agent");
+					failed("--- No response received from ping agent");
 				}
 			}
 		});
@@ -120,11 +120,11 @@ public class TestSplitContainerBasic extends Test{
 		//Step 4: kill ping agent
 		sb.addSubBehaviour(new OneShotBehaviour(){
 			public void action(){
-				log("Killing ping agent...");
+				log("--- Killing ping agent...");
 				try{
 					TestUtility.killAgent(myAgent, pingAgent);
 				}catch(Exception e){
-					failed("Error in killing ping agent. " + e);
+					failed("--- Error in killing ping agent. " + e);
 					e.printStackTrace();
 				}
 			}
@@ -135,7 +135,7 @@ public class TestSplitContainerBasic extends Test{
 		sb.addSubBehaviour(new MsgReceiver(a, MessageTemplate.MatchConversationId(CONV_ID), -1, null, null) {
 			public void onStart() {
 				setDeadline(System.currentTimeMillis()+10000);
-				log("Sending message to ping agent...");
+				log("--- Sending message to ping agent...");
 				ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
 				msg.addReceiver(pingAgent);
 				msg.setConversationId(CONV_ID);
@@ -146,14 +146,14 @@ public class TestSplitContainerBasic extends Test{
 				if (msg != null) {
 					if (msg.getPerformative() == ACLMessage.INFORM) {
 						//the ping agent is dead. No response must be received.
-						failed("Response received from ping agent. The ping agent is not dead as expected. " + msg);
+						failed("--- Response received from ping agent. The ping agent is not dead as expected. " + msg);
 					}
 					else {
-						log("Failure notification received as expected. Ping agent successfully killed.");
+						log("--- Failure notification received as expected. Ping agent successfully killed.");
 					}
 				}
 				else {
-					log("No response received from ping agent");
+					failed("--- No response received from ping agent");
 				}
 			}
 		});
@@ -163,20 +163,20 @@ public class TestSplitContainerBasic extends Test{
 		sb.addSubBehaviour(new OneShotBehaviour(){
 			public void action(){
 				try{
-					log("Killing split-container");
+					log("--- Killing split-container");
 					TestUtility.killContainer(myAgent, containerName);
 				}catch(TestException te){
-					failed("Error in killing split-container.");
+					failed("--- Error in killing split-container.");
 					te.printStackTrace();
 				}
 				//check if the container has been successfully ended.
 				try{
-					log("Retry killing split-container...");
+					log("--- Retry killing split-container to be sure it has been successfully killed...");
 					TestUtility.killContainer(myAgent, containerName);
-					failed("Split-container does not exit successfully the first time.");
+					failed("--- Split-container did not exit successfully when we killed it the first time.");
 				}catch(TestException te){
-					log("Exception occured as expected. " + te);
-					passed("Split-container successfully killed the first time.");
+					log("--- Exception occured as expected. " + te);
+					passed("--- Split-container successfully killed the first time.");
 				}
 			}
 		});

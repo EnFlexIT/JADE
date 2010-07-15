@@ -7,7 +7,7 @@
 	<TestsList>
 		<Test name="Test split-container basic" skip="false">
 			<TestClassName>test.leap.split.tests.TestSplitContainerBasic</TestClassName>
-			<WhatTest>Test the creation of a basic split-container.
+			<WhatTest>Test the creation of a basic split-container (BIFEDispatcher connection-manager; NO BEManagementService).
 			</WhatTest>
 			<HowWorkTest>A new split-container is started and the AMS is asked to start a new agent (ping agent).
 			</HowWorkTest>
@@ -19,7 +19,55 @@
 		</Test> 
 		<Test name="Test split-container NIO" skip="false">
 			<TestClassName>test.leap.split.tests.TestSplitContainerNIO</TestClassName>
-			<WhatTest>Test the creation of split-container using NIOBEDispatcher
+			<WhatTest>Test the creation of split-container using the BIFEDispatcher connection-manager (default) and the NIOBEDispatcher mediator-class
+			</WhatTest>
+			<HowWorkTest>A new split-container is started and the AMS is asked to start a new agent (ping agent).
+			</HowWorkTest>
+			<WhenTestPass> The test passes if:
+			1. the agent is successfully created and replies to messages
+			2. the agent is successfully killed
+			3. the split-container is successfully killed.
+			</WhenTestPass> 
+		</Test> 
+		<Test name="Test split-container NIO 1-connection" skip="false">
+			<TestClassName>test.leap.split.tests.TestSplitContainerNIO1C</TestClassName>
+			<WhatTest>Test the creation of split-container using the FrontEndDispatcher connection-manager (-proto socket)
+			</WhatTest>
+			<HowWorkTest>A new split-container is started and the AMS is asked to start a new agent (ping agent).
+			</HowWorkTest>
+			<WhenTestPass> The test passes if:
+			1. the agent is successfully created and replies to messages
+			2. the agent is successfully killed
+			3. the split-container is successfully killed.
+			</WhenTestPass> 
+		</Test> 
+		<Test name="Test split-container NIO SSL" skip="false">
+			<TestClassName>test.leap.split.tests.TestSplitContainerNIOSSL</TestClassName>
+			<WhatTest>Test the creation of split-container using the FrontEndSDispatcher connection-manager (-proto ssl)
+			</WhatTest>
+			<HowWorkTest>A new split-container is started and the AMS is asked to start a new agent (ping agent).
+			</HowWorkTest>
+			<WhenTestPass> The test passes if:
+			1. the agent is successfully created and replies to messages
+			2. the agent is successfully killed
+			3. the split-container is successfully killed.
+			</WhenTestPass> 
+		</Test> 
+		<Test name="Test split-container NIO HTTP" skip="false">
+			<TestClassName>test.leap.split.tests.TestSplitContainerNIOHTTP</TestClassName>
+			<WhatTest>Test the creation of split-container using the HTTPFEDispatcher connection-manager (-proto http)
+			</WhatTest>
+			<HowWorkTest>A new split-container is started and the AMS is asked to start a new agent (ping agent).
+			</HowWorkTest>
+			<WhenTestPass> The test passes if:
+			1. the agent is successfully created and replies to messages
+			2. the agent is successfully killed
+			3. the split-container is successfully killed.
+			</WhenTestPass> 
+		</Test> 
+		<Test name="Test split-container NIO HTTPS" skip="false">
+			<TestClassName>test.leap.split.tests.TestSplitContainerNIOHTTPS</TestClassName>
+			<WhatTest>Test the creation of split-container using the HTTPFESDispatcher connection-manager (-proto https)
 			</WhatTest>
 			<HowWorkTest>A new split-container is started and the AMS is asked to start a new agent (ping agent).
 			</HowWorkTest>
@@ -168,7 +216,8 @@
 			<WhenTestPass>The test passes if the split-container exits successfully .
 			</WhenTestPass> 
 		</Test>
-		<Test name="Test the ending of a HTTP split-container due to unexpected shut down." skip="false">
+		<!-- The following test is skipped as it fails and will never pass as HTTP communication without the BEManagementService is obsolete -->
+		<Test name="Test the ending of a HTTP split-container due to unexpected shut down." skip="true">
 			<TestClassName>test.leap.split.tests.TestShutDownSplitContainerHTTP</TestClassName>
 			<WhatTest>Test the shut down of a split container started with using the max-disconnection-time bootstrap option.
 			</WhatTest>

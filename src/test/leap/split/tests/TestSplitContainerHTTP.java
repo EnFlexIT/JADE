@@ -39,8 +39,8 @@ public class TestSplitContainerHTTP extends TestSplitContainerBasic{
 	
 	JadeController jc1, jc;
 
-	//create a container with BEManagementService
-	//create a split-container using NIOBEDispatcher
+	//create a container with an HTTPPeer
+	//create a split-container using HTTPFEDispatcher
 	protected String createSplitContainer() throws TestException{
 		
 		log("Launching normal container with HTTPPeer...");
