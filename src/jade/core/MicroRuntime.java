@@ -213,6 +213,34 @@ public class MicroRuntime {
 		} 
 		return new MicroAgentControllerImpl(localName, myFrontEnd);
 	}
+	
+	/**
+	 * Add a listener that will be notified about Front-End relevant events such as 
+	 * BORN_AGENT and DEAD_AGENT
+	 * <br>
+	 * <b>NOT available in MIDP</b>
+	 * <br>
+	 * @param l The listener that will be notified about Front-End relevant events
+	 */
+	public static void addListener(FEListener l) {
+		if (myFrontEnd != null) {
+			myFrontEnd.addListener(l);
+		}
+	}
+
+	/**
+	 * Remove a listener to Front-End relevant events 
+	 * BORN_AGENT and DEAD_AGENT
+	 * <br>
+	 * <b>NOT available in MIDP</b>
+	 * <br>
+	 * @param l The listener to be removed
+	 */
+	public static void removeListener(FEListener l) {
+		if (myFrontEnd != null) {
+			myFrontEnd.removeListener(l);
+		}
+	}
 	//#MIDP_EXCLUDE_END
 
 	public static void detach() {
@@ -220,7 +248,7 @@ public class MicroRuntime {
 			myFrontEnd.detach();
 		}
 	}
-
+	
 	/**
 	 Activate the Java environment terminator when the JADE runtime
 	 has stopped.

@@ -164,7 +164,7 @@ public class BEManagementService extends BaseService {
 		if (acceptOption != null) {
 			// The jade_imtp_leap_nio_BEManagementService_accept option has a form of type
 			// socket;http(8080)
-			// This means that we will accepts plain sockets on the default port and HTTP on port 8080
+			// This means that we will accept plain sockets on the default port and HTTP on port 8080
 			jade.util.leap.List acceptedProtocols = p.getSpecifiers(ACCEPT);
 			// Do not overwrite explicitly specified servers if any
 			String serverIDs = p.getParameter(SERVERS, null);

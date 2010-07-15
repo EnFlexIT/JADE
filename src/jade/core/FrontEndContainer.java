@@ -31,6 +31,8 @@ import jade.util.Logger;
 import jade.security.JADESecurityException;
 //#MIDP_EXCLUDE_BEGIN
 import jade.core.behaviours.Behaviour;
+import jade.core.event.ContainerEvent;
+import jade.core.event.JADEEvent;
 import jade.security.*;
 //#MIDP_EXCLUDE_END
 
@@ -55,6 +57,11 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	
 	// The table of locally installed services
 	private Hashtable localServices = new Hashtable(1);
+	
+	//#MIDP_EXCLUDE_BEGIN
+	// The list of FELister
+	private Vector feListeners = new Vector();
+	//#MIDP_EXCLUDE_END
 	
 	// The ID of this container
 	private ContainerID myId;
@@ -183,9 +190,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 						logger.log(Logger.SEVERE, "Error starting agent " + sp.getName() + ". " + sp.getClassName() + " " + args[0]);
 					}else{
 						String actualName = sp.getClassName();
-						localAgents.put(actualName, a);
-						AID id = new AID(actualName, AID.ISLOCALNAME);
-						a.powerUp(id, new Thread(a));
+						activateAgent(actualName, a);
 					}
 				}else{
 					logger.log(Logger.WARNING, "Agent " + sp.getName() + " not found locally.");
@@ -229,6 +234,25 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	}
 	
 	//#MIDP_EXCLUDE_BEGIN
+	void addListener(FEListener l) {
+		if (!feListeners.contains(l)) {
+			feListeners.add(l);
+		}
+	}
+	
+	void removeListener(FEListener l) {
+		feListeners.remove(l);
+	}
+		
+	private void notifyListeners(JADEEvent ev) {
+		synchronized (feListeners) {
+			for (int i = 0; i < feListeners.size(); ++i) {
+				FEListener l = (FEListener) feListeners.get(i);
+				l.handleEvent(ev);
+			}
+		}
+	}
+	
 	/**
 	 * Request the FrontEnd to return a local agent reference by his local name
 	 */
@@ -250,9 +274,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		try {
 			Agent a = initAgentInstance(name, className, (Object[]) args);
 			String newName = myBackEnd.bornAgent(name);
-			localAgents.put(newName, a);
-			AID id = new AID(newName, AID.ISLOCALNAME);
-			a.powerUp(id, new Thread(a));
+			activateAgent(newName, a);
 		}
 		catch (Exception e) {
 			String msg = "Exception creating new agent. ";
@@ -436,6 +458,11 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			}
 		}
 		
+		//#MIDP_EXCLUDE_BEGIN
+		// NOTIFY DEAD AGENT
+		notifyListeners(new ContainerEvent(ContainerEvent.DEAD_AGENT, agentID, myId));
+		//#MIDP_EXCLUDE_END
+		
 		if (!exiting) {
 			// If this agent is ending because the container is exiting
 			// just do nothing. The BackEnd will notify the main.
@@ -580,6 +607,18 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		agent.initMessageQueue();
 		//#MIDP_EXCLUDE_END
 		return agent;
+	}
+	
+	private void activateAgent(String name, Agent a) {
+		localAgents.put(name, a);
+		AID id = new AID(name, AID.ISLOCALNAME);
+		
+		//#MIDP_EXCLUDE_BEGIN
+		// NOTIFY BORN AGENT once the new agent has been created, inserted in the localTable and notified to the Main, but not yet started
+		notifyListeners(new ContainerEvent(ContainerEvent.BORN_AGENT, id, myId));
+		//#MIDP_EXCLUDE_END
+		
+		a.powerUp(id, new Thread(a));
 	}
 	
 	
