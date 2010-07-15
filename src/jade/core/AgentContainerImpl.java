@@ -419,6 +419,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		ServiceDescriptor dsc = startService("jade.core.management.AgentManagementService", false);
 		dsc.setMandatory(true);
 		services.add(dsc);
+		
 		//#MIDP_EXCLUDE_BEGIN
 		dsc = startService("jade.core.messaging.MessagingService", false);
 		//#MIDP_EXCLUDE_END
@@ -427,6 +428,12 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		 #MIDP_INCLUDE_END*/
 		dsc.setMandatory(true);
 		services.add(dsc);
+		
+		//#MIDP_EXCLUDE_BEGIN
+		dsc = startService("jade.core.resource.ResourceManagementService", false);
+		dsc.setMandatory(true);
+		services.add(dsc);
+		//#MIDP_EXCLUDE_END
 	}
 	
 	void initAdditionalServices(Iterator serviceSpecifiers, List services) throws ServiceException {
