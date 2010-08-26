@@ -31,6 +31,7 @@ import java.net.UnknownHostException;
 import java.util.Enumeration;
 //#MIDP_EXCLUDE_END
 
+import jade.mtp.TransportAddress;
 import jade.util.leap.List;
 import jade.util.leap.Properties;
 
@@ -237,7 +238,7 @@ public abstract class Profile {
 	public static final int DEFAULT_PORT = 1099;
 	
 	public static final String LOCALHOST_CONSTANT = "localhost";
-	public static final String LOOPBACK_ADDRESS = "127.0.0.1";
+	public static final String LOOPBACK_ADDRESS_CONSTANT = "127.0.0.1";
 
 	public static final String LEAP_IMTP = "LEAP";
 	public static final String RMI_IMTP = "RMI";
@@ -360,7 +361,7 @@ public abstract class Profile {
 		try {
 			host = java.net.InetAddress.getLocalHost().getHostAddress(); 
 			
-			if (LOOPBACK_ADDRESS.equals(host)) {
+			if (LOOPBACK_ADDRESS_CONSTANT.equals(host)) {
 				// Try with the name
 				host = java.net.InetAddress.getLocalHost().getHostName();
 			}
@@ -380,7 +381,7 @@ public abstract class Profile {
 		// We cannot use the same approach used in compareHostNames(). This fails in case you set 
 		// local-host in the container config to a local address which is not the address delivered by 
 		// InetAddress.getLocalHost().getHostName(), but the address of another local interface
-		if (LOCALHOST_CONSTANT.equalsIgnoreCase(host)) {
+		if (LOCALHOST_CONSTANT.equalsIgnoreCase(host) || LOOPBACK_ADDRESS_CONSTANT.equals(host)) {
 			return true;
 		}
 		
@@ -410,21 +411,23 @@ public abstract class Profile {
 	}
 	
 	/**
-	 * Compares two host names regardless of whether they include domain or not.
+	 * Compares two host names/addresses regardless of whether they include domain or not.
 	 */
 	public static boolean compareHostNames(String host1, String host2) {
+		if (host1 == null || host2 == null) {
+			return false;
+		}
+		
 		if (host1.equalsIgnoreCase(host2)) {
 			return true;
 		}
 
 		try {
-			if (host1.equalsIgnoreCase(LOCALHOST_CONSTANT)) {
-				//host1 = InetAddress.getLocalHost().getHostName();
+			if (host1.equalsIgnoreCase(LOCALHOST_CONSTANT) || host1.equals(LOOPBACK_ADDRESS_CONSTANT)) {
 				return isLocalHost(host2);
 			}
-			if (host2 != null && host2.equalsIgnoreCase(LOCALHOST_CONSTANT)) {
-				//host2 = InetAddress.getLocalHost().getHostName();
-				return isLocalHost(host2);
+			if (host2.equalsIgnoreCase(LOCALHOST_CONSTANT) || host2.equals(LOOPBACK_ADDRESS_CONSTANT)) {
+				return isLocalHost(host1);
 			}
 
 			InetAddress host1Addrs[] = InetAddress.getAllByName(host1);
@@ -458,6 +461,40 @@ public abstract class Profile {
 			// we have no chance to make a correct comparison --> return false
 			return false;
 		}
+	}
+	
+	/**
+	 * Compares two stringified transport addresses.
+	 * The provided IMTPManager must be able to deal with the protocols (e.g. http) the two transport address 
+	 * refer to.
+	 */
+	public static boolean compareTransportAddresses(String addr1, String addr2, IMTPManager imtpManager) {
+		try {
+			TransportAddress ta1 = imtpManager.stringToAddr(addr1);
+			TransportAddress ta2 = imtpManager.stringToAddr(addr2);
+			return compareTransportAddresses(ta1, ta2);
+		}
+		catch (Exception e) {
+			// If we can't parse the addresses, just compare them as strings
+			return CaseInsensitiveString.equalsIgnoreCase(addr1, addr2);
+		}
+	}
+	
+	public static boolean compareTransportAddresses(TransportAddress ta1, TransportAddress ta2) {
+		String proto1 = ta1.getProto();
+		String proto2 = ta2.getProto();
+		if (((proto1 == null) && (proto2 == null)) || CaseInsensitiveString.equalsIgnoreCase(proto1, proto2)) {
+			// Both protocols not specified or equals --> OK
+			String port1 = ta1.getPort();
+			String port2 = ta2.getPort();
+			if (((port1 == null) && (port2 == null)) || CaseInsensitiveString.equalsIgnoreCase(port1, port2)) {
+				// Both ports not specified or equals --> OK
+				if (Profile.compareHostNames(ta1.getHost(), ta2.getHost())) {
+					return true;
+				}
+			}				
+		}
+		return false;
 	}
 	//#MIDP_EXCLUDE_END
 	

@@ -37,6 +37,7 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import jade.util.Logger;
+import jade.util.TransportAddressWrapper;
 
 import java.util.Vector;
 
@@ -522,8 +523,10 @@ public class PlatformManagerImpl implements PlatformManager {
 			broadcastAddReplica(newAddr);
 		}
 		// Actually add the new replica only after broadcasting
-		replicas.put(newReplica.getLocalAddress(), newReplica);
+		replicas.put(TransportAddressWrapper.getWrapper(newReplica.getLocalAddress(), myIMTPManager), newReplica);
 	}
+	
+	
 
 	// This may throw IMTPException since the new replica must be informed about the platform status
 	private void localAddReplica(PlatformManager newReplica, boolean propagated) throws IMTPException, ServiceException {
@@ -590,7 +593,27 @@ public class PlatformManagerImpl implements PlatformManager {
 		}
 
 		// Remove the old replica
-		replicas.remove(address);
+		try {
+			TransportAddressWrapper key = TransportAddressWrapper.getWrapper(address, myIMTPManager);
+			if (replicas.remove(key) == null) {
+				// The replica to remove is not among the known replicas --> Print a warning since this should never happen 
+				StringBuffer sb = new StringBuffer("Replica "+key.hashCode()+", "+key.getAddress()+"not found! Known replicas are: {");
+				Iterator it = replicas.keySet().iterator();
+				while (it.hasNext()) {
+					TransportAddressWrapper taw = (TransportAddressWrapper) it.next();
+					sb.append(""+taw.hashCode()+", "+taw.getAddress());
+					if (it.hasNext()) {
+						sb.append("; ");
+					}
+				}
+				sb.append("}");
+				myLogger.log(Logger.WARNING, sb.toString());
+			}
+		}
+		catch (IMTPException imtpe) {
+			// This should never happen as our IMTPManager must be able to deal with a replica address
+			throw new ServiceException("Error parsing PlatformManager replica transport address");
+		}
 
 		if (!propagated) {
 			// Notify first all non-child and non-main nodes.
@@ -999,5 +1022,16 @@ public class PlatformManagerImpl implements PlatformManager {
 	Map getServicesMap() {
 		return services;
 	}
+	
+	Map getReplicasMap() {
+		return replicas;
+	}
 
+	Map getNodesMap() {
+		return nodes;
+	}
+
+	Map getMonitorsMap() {
+		return monitors;
+	}
 }

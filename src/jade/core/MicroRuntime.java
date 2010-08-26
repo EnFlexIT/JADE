@@ -243,6 +243,14 @@ public class MicroRuntime {
 	}
 	//#MIDP_EXCLUDE_END
 
+	/**
+	 * Disconnect this front-end container from the platform. That is, though the local
+	 * front-end container and its agent(s) remain active, the back-end is shut down and,
+	 * of course, the FE-2-BE connection is closed --> Therefore the rest of the platform 
+	 * does not see the local container and its agent(s) anymore.
+	 * The local container automatically re-connects to the platform (and local agents are 
+	 * registered with the AMS again) as soon as a message to a remote agent is sent.   
+	 */
 	public static void detach() {
 		if (myFrontEnd != null) {
 			myFrontEnd.detach();

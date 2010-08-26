@@ -522,8 +522,8 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	
 	private void checkLocalHostAddress() {
 		String address = Profile.getDefaultNetworkName();
-		if (address.equals(Profile.LOCALHOST_CONSTANT) || address.equals(Profile.LOOPBACK_ADDRESS)) {
-			myLogger.log(Logger.WARNING, "\n***************************************************************\nJAVA is not able to detect the local host address.\nIf this container is part of a distributed platform, use the\n-local-host option to explicitly specify the local host address\n***************************************************************\n");
+		if (address.equals(Profile.LOCALHOST_CONSTANT) || address.equals(Profile.LOOPBACK_ADDRESS_CONSTANT)) {
+			myLogger.log(Logger.WARNING, "\n***************************************************************\nJAVA is not able to detect the local host address.\nIf this container is part of a distributed platform, use the\n-local-host option to explicitly specify it\n***************************************************************\n");
 		}
 	}
 

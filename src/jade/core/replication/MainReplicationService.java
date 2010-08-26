@@ -829,12 +829,12 @@ public class MainReplicationService extends BaseService {
 		}
 		
 		// The active object monitoring the remote node
-		private NodeFailureMonitor nodeMonitor;
+		NodeFailureMonitor nodeMonitor;
 
 		// The integer label of the monitored slice
-		private int monitoredLabel;
+		int monitoredLabel;
 
-		private String monitoredSvcMgr;
+		String monitoredSvcMgr;
 		private Node toBeMonitored;
 		private boolean monitoredNodeUnreachable = false;
 
@@ -876,5 +876,36 @@ public class MainReplicationService extends BaseService {
 				}
 			}
 		}
+	}
+	
+	public String dump(String key) {
+		StringBuffer sb = new StringBuffer();
+		sb.append("- Replicas:\n");
+		try {
+			Object[] slices = replicas.toArray();
+			String localNodeName = getLocalNode().getName();
+			for (int i = 0; i < slices.length; i++) {
+				MainReplicationSlice slice = (MainReplicationSlice) slices[i];
+				String sliceName = slice.getNode().getName();
+				if (!sliceName.equals(localNodeName)) {
+					sb.append("  - "+sliceName+"\n");
+				}
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			sb.append(e.toString());
+		}
+		sb.append("- Label = "+myLabel+"\n");
+		sb.append("- Monitored Label = ").append(localSlice.monitoredLabel).append("\n");
+		sb.append("- Monitored PlatformManager replica = ").append(localSlice.monitoredSvcMgr).append("\n");
+		String monitoredNodeStr = "UNKNOWN(Monitor null)";
+		if (localSlice.nodeMonitor != null) {
+			Node n = localSlice.nodeMonitor.getNode();
+			monitoredNodeStr = (n != null ? n.getName() : "null");
+		}
+		sb.append("- Monitored Node = ").append(monitoredNodeStr).append("\n");
+		sb.append(super.dump(key));
+		return (sb.toString());
 	}
 }
