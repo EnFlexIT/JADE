@@ -47,7 +47,6 @@ public class TransportAddressWrapper {
 		return myTA;
 	}
 	
-	@Override
 	public int hashCode() {
 		return hashCode;
 	}

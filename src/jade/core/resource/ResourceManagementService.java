@@ -22,7 +22,7 @@
  *****************************************************************/
 package jade.core.resource;
 
-//#MIDP_EXCLUDE_FILE
+//#J2ME_EXCLUDE_FILE
 //#APIDOC_EXCLUDE_FILE
 
 import java.io.File;
@@ -81,14 +81,17 @@ public class ResourceManagementService extends BaseService {
 		return NAME;
 	}
 
+	@Override
 	public Class getHorizontalInterface() {
 		return ResourceManagementSlice.class;
 	}
 	
+	@Override
 	public Service.Slice getLocalSlice() {
 		return localSlice;
 	}
 	
+	@Override
 	public ServiceHelper getHelper(Agent a) {
 		return helper;
 	}

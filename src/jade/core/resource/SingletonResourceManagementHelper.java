@@ -25,7 +25,7 @@ package jade.core.resource;
 import java.util.ArrayList;
 import java.util.List;
 
-//#MIDP_EXCLUDE_FILE
+//#J2ME_EXCLUDE_FILE
 //#APIDOC_EXCLUDE_FILE
 
 class SingletonResourceManagementHelper {

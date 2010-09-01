@@ -28,7 +28,7 @@ import jade.core.Node;
 import jade.core.ServiceException;
 import jade.core.SliceProxy;
 
-//#MIDP_EXCLUDE_FILE
+//#J2ME_EXCLUDE_FILE
 //#APIDOC_EXCLUDE_FILE
 
 /**

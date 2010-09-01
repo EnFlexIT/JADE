@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+
 import jade.util.leap.LinkedList;
 import jade.util.Logger;
 
@@ -48,7 +49,7 @@ import jade.util.Logger;
    It should be noted that the Single-container modality only provides
    a limited control of the JADE runtime system (e.g. it does not allow
    creating and killing agents), but is the only one supported both 
-   in J2SE, PersonalJava and MIDP when using the LEAP add-on. 
+   in J2SE, PJAVA/CDC and MIDP when using the LEAP add-on. 
 
    @author Giovanni Rimassa - Universita' di Parma
    @author Giovanni Caire - TILAB

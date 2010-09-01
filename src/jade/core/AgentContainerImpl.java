@@ -429,11 +429,11 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		dsc.setMandatory(true);
 		services.add(dsc);
 		
-		//#MIDP_EXCLUDE_BEGIN
+		//#J2ME_EXCLUDE_BEGIN
 		dsc = startService("jade.core.resource.ResourceManagementService", false);
 		dsc.setMandatory(true);
 		services.add(dsc);
-		//#MIDP_EXCLUDE_END
+		//#J2ME_EXCLUDE_END
 	}
 	
 	void initAdditionalServices(Iterator serviceSpecifiers, List services) throws ServiceException {

@@ -99,7 +99,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	public synchronized void addAddress(String addr) throws IMTPException {
 		myLogger.log(Logger.INFO, "Adding PlatformManager address " + addr);
 
-		if (invalidPlatformManager || !Profile.compareTransportAddresses(addr, myPlatformManager.getLocalAddress(), myIMTPManager)) {
+		if (invalidPlatformManager || !compareTransportAddresses(addr, myPlatformManager.getLocalAddress())) {
 			backupManagers.put(addr, myIMTPManager.getPlatformManagerProxy(addr));
 			if (invalidPlatformManager) {
 				reconnect();
@@ -111,7 +111,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		myLogger.log(Logger.INFO, "Removing PlatformManager address " + addr);
 
 		backupManagers.remove(addr);
-		if (Profile.compareTransportAddresses(addr, myPlatformManager.getLocalAddress(), myIMTPManager)) {
+		if (compareTransportAddresses(addr, myPlatformManager.getLocalAddress())) {
 			reconnect();
 		}
 	}
@@ -410,7 +410,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	void platformManagerDead(String deadPMAddr, String notifyingPMAddr) throws IMTPException {
 		myLogger.log(Logger.INFO, "PlatformManager at "+deadPMAddr+" no longer valid!");
 		
-		if (Profile.compareTransportAddresses(deadPMAddr, myPlatformManager.getLocalAddress(), myIMTPManager)) {
+		if (compareTransportAddresses(deadPMAddr, myPlatformManager.getLocalAddress())) {
 			// Issue a DEAD_PLATFORM_MANAGER incoming vertical command
 			GenericCommand gCmd = new GenericCommand(Service.DEAD_PLATFORM_MANAGER, null, null);
 			gCmd.addParam(myPlatformManager.getLocalAddress());
@@ -440,7 +440,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		// We reattach to the recovered PM either if it is our PM or if our
 		// PM is invalid (a previous reattach/reconnect attempt failed).
 		// Otherwise we just do nothing
-		if (invalidPlatformManager || Profile.compareTransportAddresses(pmAddr, myPlatformManager.getLocalAddress(), myIMTPManager)) {
+		if (invalidPlatformManager || compareTransportAddresses(pmAddr, myPlatformManager.getLocalAddress())) {
 			invalidPlatformManager = true;
 			try {
 				myPlatformManager = myIMTPManager.getPlatformManagerProxy(pmAddr);
@@ -569,4 +569,13 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		}
 		return slice;
 	}
-}
+	
+	private boolean compareTransportAddresses(String addr1, String addr2) {
+		//#MIDP_EXCLUDE_BEGIN
+		return Profile.compareTransportAddresses(addr1, addr2, myIMTPManager);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+		return addr1.equals(addr2);
+		#MIDP_INCLUDE_END*/
+	}
+ }
