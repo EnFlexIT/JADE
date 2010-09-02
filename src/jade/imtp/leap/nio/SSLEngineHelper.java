@@ -176,14 +176,6 @@ public final class SSLEngineHelper implements BufferTransformer {
 		}
 	}
 
-	/**
-	 * First initialize your {@link SSLEngineHelper} by clearing its buffers and filling {@link SSLEngineHelper#getSocketData() }
-	 * with data from a connection. After this this method possibly recursively deals with handshaking and unwrapping
-	 * application data. The supplied appBuffer argument will be filled remaining unwrapped data will stay in the
-	 * {@link SSLEngineHelper#getUnwrapData() }.
-	 * @return the number of bytes available in the unwrapBuffer
-	 * @throws IOException
-	 */
     /**
      * @return the number of bytes available in the unwrapBuffer
      * @throws IOException
