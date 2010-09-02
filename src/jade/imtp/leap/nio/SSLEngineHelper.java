@@ -184,73 +184,84 @@ public final class SSLEngineHelper implements BufferTransformer {
 	 * @return the number of bytes available in the unwrapBuffer
 	 * @throws IOException
 	 */
-	private synchronized int decrypt(ByteBuffer socketData) throws SSLException, IOException {
-		if (log.isLoggable(Level.FINE))
-			log.fine("Decrypt incoming data: remaining = "+socketData.remaining()+", position = " + socketData.position() + ", limit = " + socketData.limit() + " ["+getRemoteHost()+"]");
-		SSLEngineResult result = unwrapData(socketData);
-		if (log.isLoggable(Level.FINE))
-			log.fine("Checking handshake result ["+getRemoteHost()+"]");
-
-		int n = 0;
-		SSLEngineResult.Status status = result.getStatus();
-		SSLEngineResult.HandshakeStatus handshakeStatus = result.getHandshakeStatus();
-		if (status.equals(Status.OK)) {
-			if (handshakeStatus.equals(HandshakeStatus.FINISHED)) {
-				// Handshake completed
-				if (log.isLoggable(Level.FINE))
-					log.fine("Handshake finished ["+getRemoteHost()+"]");
-			} else if (handshakeStatus.equals(HandshakeStatus.NEED_TASK)) {
-				// The SSLEngine requires one or more "tasks" to be executed before the handshake can proceed --> 
-				// Run them and then go on taking into account the new handshake-status
-				if (log.isLoggable(Level.FINE))
-					log.fine("Activate Handshake task ["+getRemoteHost()+"]");
-				handshakeStatus = runHandshakeTasks();
-				checkStatusAfterHandshakeTasks(handshakeStatus);
-			} else if (handshakeStatus.equals(HandshakeStatus.NEED_UNWRAP)) {
-				// This should never happen since we cannot exit the unwrapData() method with status == OK and handshakeStatus == NEED_UNWRAP
-				throw new SSLException("Unexpected NEED_UNWRAP SSL handshake status! ["+getRemoteHost()+"]");
-			} else if (handshakeStatus.equals(HandshakeStatus.NEED_WRAP)) {
-				// We must send data to the remote side for the handshake to continue
-				if (log.isLoggable(Level.FINE))
-					log.fine("Send back Handshake data ["+getRemoteHost()+"]");
-				wrapAndSend();
-			} else if (handshakeStatus.equals(HandshakeStatus.NOT_HANDSHAKING)) {
-				// Application data
-				n = result.bytesProduced();
-			}
-		} else if (status.equals(Status.CLOSED)) {
-			log.info(" sslengine closed ["+getRemoteHost()+"]");
-			// send ssl close
-			close();
-		} else if (status.equals(Status.BUFFER_UNDERFLOW)) {
-			// There is not enough data in the socketData buffer to unwrap a meaningful SSL block --> 
-			// Wait for next data from the socket
-			if (log.isLoggable(Level.FINE))
-				log.fine("Not enough data to decode a meaningful SSL block. " + socketData.remaining() + " unprocessed bytes. ["+getRemoteHost()+"]");
-			// Avoid entering an infinite recursion trying to continuously decode bytes still present in socketData (that are 
-			// not sufficient to unwrap a meaningful SSL block) 
-			return n;
-		} else if (status.equals(Status.BUFFER_OVERFLOW)) {
-			// The unwrapData buffer is too small to hold all unwrapped data --> Repeat with a larger buffer 
-			if (log.isLoggable(Level.FINE)) {
-				NIOHelper.logBuffer(socketData,"socketData");
-				NIOHelper.logBuffer(unwrapData,"overflow unwrapData");
-				log.fine("enlarging unwrap buffer with" + INCREASE_SIZE);
-			}
-			log.info("Buffer overflow. Enlarge buffer and retry ["+getRemoteHost()+"]");
-			unwrapData.flip();
-			unwrapData = NIOHelper.enlargeAndFillBuffer(unwrapData, INCREASE_SIZE);
-			return decrypt(socketData);
-		}
-
-		// If the socketData buffer contains unprocessed data, manage them
-		if (socketData.hasRemaining()) {
-			n += decrypt(socketData);
-		}
-
-		// Return the number of valid application data
-		return n;
-	}
+    /**
+     * @return the number of bytes available in the unwrapBuffer
+     * @throws IOException
+     */
+    private synchronized int decrypt(ByteBuffer socketData) throws SSLException, IOException {
+        if (log.isLoggable(Level.FINE)) {
+            log.fine("Decrypt incoming data: remaining = " + socketData.remaining() + ", position = " + socketData.position() + ", limit = " + socketData.limit() + " [" + getRemoteHost() + "]");
+        }
+        SSLEngineResult result = unwrapData(socketData);
+        if (log.isLoggable(Level.FINE)) {
+            log.fine("Checking handshake result [" + getRemoteHost() + "]");
+        }
+        int n = 0;
+        SSLEngineResult.Status status = result.getStatus();
+        SSLEngineResult.HandshakeStatus handshakeStatus = result.getHandshakeStatus();
+        boolean recurse = true;
+        if (status.equals(Status.OK)) {
+            if (handshakeStatus.equals(HandshakeStatus.NOT_HANDSHAKING)) {
+                // Application data
+                n = result.bytesProduced();
+            } else if (handshakeStatus.equals(HandshakeStatus.FINISHED)) {
+                // Handshake completed
+                if (log.isLoggable(Level.FINE)) {
+                    log.fine("Handshake finished [" + getRemoteHost() + "]");
+                }
+            } else if (handshakeStatus.equals(HandshakeStatus.NEED_TASK)) {
+                // The SSLEngine requires one or more "tasks" to be executed before the handshake can proceed -->
+                // Run them and then go on taking into account the new handshake-status
+                if (log.isLoggable(Level.FINE)) {
+                    log.fine("Activate Handshake task [" + getRemoteHost() + "]");
+                }
+                handshakeStatus = runHandshakeTasks();
+                checkStatusAfterHandshakeTasks(handshakeStatus);
+            } else if (handshakeStatus.equals(HandshakeStatus.NEED_UNWRAP)) {
+                // This should never happen since we cannot exit the unwrapData() method with status == OK and handshakeStatus == NEED_UNWRAP
+                throw new SSLException("Unexpected NEED_UNWRAP SSL handshake status! [" + getRemoteHost() + "]");
+            } else if (handshakeStatus.equals(HandshakeStatus.NEED_WRAP)) {
+                // We must send data to the remote side for the handshake to continue
+                if (log.isLoggable(Level.FINE)) {
+                    log.fine("Send back Handshake data [" + getRemoteHost() + "]");
+                }
+                wrapAndSend();
+            }
+        } else if (status.equals(Status.CLOSED)) {
+            if (log.isLoggable(Level.FINE)) {
+                log.fine(" sslengine closed [" + getRemoteHost() + "]");
+            }
+            // send ssl close, don't recurse
+            recurse = false;
+            close();
+        } else if (status.equals(Status.BUFFER_UNDERFLOW)) {
+            // There is not enough data in the socketData buffer to unwrap a meaningful SSL block -->
+            // Wait for next data from the socket
+            if (log.isLoggable(Level.FINE)) {
+                log.fine("Not enough data to decode a meaningful SSL block. " + socketData.remaining() + " unprocessed bytes. [" + getRemoteHost() + "]");
+            }
+            // Avoid entering an infinite recursion trying to continuously decode bytes still present in socketData (that are
+            // not sufficient to unwrap a meaningful SSL block)
+            return n;
+        } else if (status.equals(Status.BUFFER_OVERFLOW)) {
+            // The unwrapData buffer is too small to hold all unwrapped data --> Repeat with a larger buffer
+            if (log.isLoggable(Level.FINE)) {
+                NIOHelper.logBuffer(socketData, "socketData");
+                NIOHelper.logBuffer(unwrapData, "overflow unwrapData");
+                log.fine("enlarging unwrap buffer with" + INCREASE_SIZE);
+            }
+            log.info("Buffer overflow. Enlarge buffer and retry [" + getRemoteHost() + "]");
+            unwrapData.flip();
+            unwrapData = NIOHelper.enlargeAndFillBuffer(unwrapData, INCREASE_SIZE);
+            return decrypt(socketData);
+        }
+        // If the socketData buffer contains unprocessed data, manage them
+        if (socketData.hasRemaining() && recurse) {
+            n += decrypt(socketData);
+        }
+        // Return the number of valid application data
+        return n;
+    }
 
 
 	/**
