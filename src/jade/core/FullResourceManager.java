@@ -26,6 +26,12 @@ package jade.core;
 //#J2ME_EXCLUDE_FILE
 
 class FullResourceManager implements ResourceManager {
+
+	public static final String DISABLE_THREAD_GROUP_INTERRUPT = "jade_core_FullResourceManager_disablethreadgroupinterrupt";
+	private static final boolean DEFAULT_DISABLE_THREAD_GROUP_INTERRUPT = false;
+	public static final String THREAD_GROUP_INTERRUPT_TIMEOUT = "jade_core_FullResourceManager_threadgroupinterrupttimeout";
+	private static final String DEFAULT_THREAD_GROUP_INTERRUPT_TIMEOUT = "5000";
+	
 	private static final String USER_AGENTS_GROUP_NAME = "JADE User Agents";
 	private static final String SYSTEM_AGENTS_GROUP_NAME = "JADE System Agents";
 	private static final String CRITICAL_THREADS_GROUP_NAME = "JADE Time-critical Threads";
@@ -37,7 +43,11 @@ class FullResourceManager implements ResourceManager {
 	
 	private boolean terminating = false;
 
+	private Profile myProfile;
+	private boolean disableThreadGroupInterrupt;
+	private int threadGroupInterruptTimeout;
 
+	
 	public FullResourceManager() {
 		parent = new ThreadGroup("JADE") {
 			public void uncaughtException(Thread t, Throwable e) {
@@ -82,28 +92,48 @@ class FullResourceManager implements ResourceManager {
 	public void releaseResources() {
 		terminating = true;
 		
-		if (parent != null) {
-			parent.interrupt();
+		if (!disableThreadGroupInterrupt) {
+			Thread t = new Thread() {
+				public void run() {
+					try {
+						Thread.sleep(threadGroupInterruptTimeout);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					
+					if (parent != null) {
+						parent.interrupt();
+					}
+	
+					agentThreads = null;
+					systemAgentThreads = null;
+					criticalThreads = null;
+					parent = null;
+				}
+			};
+			t.start();
 		}
-
-		agentThreads = null;
-		systemAgentThreads = null;
-		criticalThreads = null;
-		parent = null;
 	}
 
-	public void initGraphicResources() {
-		// Start the AWT-Toolkit outside the JADE Thread Group to avoid annoying InterruptedException-s on termination
-		// when some agent with a Swing or AWT based GUI is used
-		try {
-			Class.forName("java.awt.Frame").newInstance();
-		}
-		catch (Throwable t) {
-			// Ignore failure (e.g. in case we don't have the display)
-		}
+	public void initialize(Profile p) {
+		myProfile = p;
 		
+		disableThreadGroupInterrupt = myProfile.getBooleanProperty(DISABLE_THREAD_GROUP_INTERRUPT, DEFAULT_DISABLE_THREAD_GROUP_INTERRUPT);
+		
+		String tmp = myProfile.getParameter(THREAD_GROUP_INTERRUPT_TIMEOUT, DEFAULT_THREAD_GROUP_INTERRUPT_TIMEOUT);
+		threadGroupInterruptTimeout = Integer.parseInt(tmp);
+		
+		if (!myProfile.getBooleanProperty(Profile.NO_DISPLAY, false)) {
+			// Start the AWT-Toolkit outside the JADE Thread Group to avoid annoying InterruptedException-s on termination
+			// when some agent with a Swing or AWT based GUI is used
+			try {
+				Class.forName("java.awt.Frame").newInstance();
+			}
+			catch (Throwable t) {
+				// Ignore failure (e.g. in case we don't have the display)
+			}
+		}		
 	}
-
 }
 
 

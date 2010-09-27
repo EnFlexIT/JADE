@@ -54,6 +54,7 @@ public interface AgentContainer {
 	String getPlatformID();
 	MainContainer getMain();
 	ServiceFinder getServiceFinder();
+	boolean isJoined();
 	
 	//#APIDOC_EXCLUDE_BEGIN
 	ServiceManager getServiceManager();

@@ -49,7 +49,7 @@ public interface ResourceManager {
 	 */
   public Thread getThread(int type, String name, Runnable r);
   
-  public void initGraphicResources();
+  public void initialize(Profile p);
   
   public void releaseResources();
 }

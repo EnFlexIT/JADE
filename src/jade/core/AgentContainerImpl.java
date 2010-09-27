@@ -109,6 +109,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	private ResourceManager myResourceManager;
 
 	protected ContainerID myID;
+	
 	protected NodeDescriptor myNodeDescriptor;
 
 	// These are only used at bootstrap-time to initialize the local
@@ -124,6 +125,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	// not deregister it.
 	private long creationTime = -1;
 
+	private boolean joined;
 
 	// Default constructor
 	AgentContainerImpl() {
@@ -362,9 +364,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 		// Create the ResourceManager
 		myResourceManager = myProfile.getResourceManager();
-		if (!myProfile.getBooleanProperty(Profile.NO_DISPLAY, false)) {
-			myResourceManager.initGraphicResources();
-		}
+		myResourceManager.initialize(myProfile);
 
 		// Initialize the Container ID
 		TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
@@ -516,6 +516,8 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		// Create and activate agents that must be launched at bootstrap
 		startBootstrapAgents();
 
+		joined = true;
+		
 		myLogger.log(Logger.INFO, "--------------------------------------\nAgent container " + myID + " is ready.\n--------------------------------------------");
 		return true;
 	}
@@ -651,6 +653,8 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 		// Notify the JADE Runtime that the container has terminated execution
 		endContainer();
+		
+		joined = false;
 	}
 
 	private void checkCreationTime() {
@@ -1166,6 +1170,10 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		}
 		localAgents.release(id);
 		//#MIDP_EXCLUDE_END
+	}
+
+	public boolean isJoined() {
+		return joined;
 	}
 
 }

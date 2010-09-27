@@ -55,7 +55,7 @@ class LightResourceManager implements ResourceManager {
 		// Do nothing
 	}
 
-	public void initGraphicResources() {
+	public void initialize(Profile p) {
 		// Do nothing
 	}
 }

@@ -106,7 +106,7 @@ public class DynamicJadeGateway {
 	 * Normally programmers do not need to invoke this method explicitly.
 	 **/
 	public final void checkJADE() throws StaleProxyException,ControllerException {
-		if (myContainer == null) {
+		if (myContainer == null || !myContainer.isJoined()) {
 			initProfile();
 			
 			myContainer = Runtime.instance().createAgentContainer(profile); 
@@ -259,6 +259,7 @@ public class DynamicJadeGateway {
 		
 		public void handleGatewayDisconnected() {
 			gatewayAgentState = NOT_ACTIVE;
+			myAgent = null;
 			
 			// This is executed by the GatewayAgent Thread --> Notify listeners by means of an ad-hoc 
 			// Thread to avoid deadlocks with other threads waiting for the execute() method to complete

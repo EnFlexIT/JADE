@@ -76,7 +76,7 @@ public class ContainerController {
 	/**
 	 * Get agent proxy to local agent given its name.
 	 * @param localAgentName The short local name of the desired agent.
-	 * @throws ControllerException If any probelms occur obtaining this proxy.
+	 * @throws ControllerException If any problems occur obtaining this proxy.
 	 */
 	public AgentController getAgent(String localAgentName) throws ControllerException {
 		if(myImpl == null || myProxy == null) {
@@ -279,4 +279,8 @@ public class ContainerController {
 			}
 		}
 	}  
+	
+	public boolean isJoined() {
+		return myImpl != null && myImpl.isJoined();
+	}
 }
