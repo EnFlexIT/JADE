@@ -2154,6 +2154,10 @@ public class Agent implements Runnable, Serializable
 	}
 
 	//#MIDP_EXCLUDE_BEGIN
+	/**
+	 * Return the configuration properties exactly as they were passed to the Profile before 
+	 * starting the local JADE container.
+	 */
 	public Properties getBootProperties() {
 		return myToolkit.getBootProperties();
 	}
