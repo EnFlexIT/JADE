@@ -161,6 +161,10 @@ class ObjectSchemaImpl extends ObjectSchema {
 	 */
 	protected void add(String name, ObjectSchema elementsSchema, int cardMin, int cardMax, String aggType) {
 		int optionality = (cardMin == 0 ? OPTIONAL : MANDATORY);
+		add(name, elementsSchema, cardMin, cardMax, aggType, optionality);
+	}
+
+	protected void add(String name, ObjectSchema elementsSchema, int cardMin, int cardMax, String aggType, int optionality) {
 		try {
 			// If the aggregate type is not yet present in the BasicOntology, add it (without elements type specification)
 			ObjectSchema aggTypeSchema = BasicOntology.getInstance().getSchema(aggType);
@@ -192,7 +196,6 @@ class ObjectSchemaImpl extends ObjectSchema {
 			oe.printStackTrace();
 		}
 	}
-
 
 	/**
 	 * Add a super schema to this schema, i.e. this schema will
