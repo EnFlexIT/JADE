@@ -164,6 +164,20 @@ class ObjectSchemaImpl extends ObjectSchema {
 		add(name, elementsSchema, cardMin, cardMax, aggType, optionality);
 	}
 
+	/**
+	 * Add a slot with optionality and cardinality between <code>cardMin</code>
+	 * and <code>cardMax</code> to this schema and allow specifying the type
+	 * of Aggregate to be used for this slot.
+	 * @param name The name of the slot.
+	 * @param elementsSchema The schema for the elements of this slot.
+	 * @param cardMin This slot must get at least <code>cardMin</code>
+	 * values
+	 * @param cardMax This slot can get at most <code>cardMax</code>
+	 * values
+	 * @param aggType The type of Aggregate to be used
+	 * @param optionality The optionality, i.e., <code>OPTIONAL</code>
+	 * @see #add(String, ObjectSchema, int, int)
+	 */
 	protected void add(String name, ObjectSchema elementsSchema, int cardMin, int cardMax, String aggType, int optionality) {
 		try {
 			// If the aggregate type is not yet present in the BasicOntology, add it (without elements type specification)

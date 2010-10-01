@@ -627,7 +627,7 @@ class BeanOntologyBuilder {
 				// try to get a schema for the contained type
 				ats = (TermSchema)doAddSchema(sad.aggregateClass, buildHierarchy, sad.manageAsSerializable);
 			}
-			schema.add(slotName, ats, sad.cardMin, sad.cardMax, getAggregateSchemaName(sad.type));
+			schema.add(slotName, ats, sad.cardMin, sad.cardMax, getAggregateSchemaName(sad.type), sad.mandatory?ObjectSchema.MANDATORY:ObjectSchema.OPTIONAL);
 		}
 	}
 
@@ -666,7 +666,7 @@ class BeanOntologyBuilder {
 				// try to get a schema for the contained type
 				ats = (TermSchema)doAddSchema(sad.aggregateClass, buildHierarchy, sad.manageAsSerializable);
 			}
-			schema.add(slotName, ats, sad.cardMin, sad.cardMax, getAggregateSchemaName(sad.type));
+			schema.add(slotName, ats, sad.cardMin, sad.cardMax, getAggregateSchemaName(sad.type), sad.mandatory?ObjectSchema.MANDATORY:ObjectSchema.OPTIONAL);
 		}
 	}
 	
