@@ -29,8 +29,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 
 import jade.core.Agent;
 import jade.core.AgentContainer;
@@ -142,7 +142,7 @@ public class ResourceManagementService extends BaseService {
 			return null;
 		}
 
-		private byte[] getResource(String name, int fetchMode) throws IOException, URISyntaxException, NotFoundException {
+		private byte[] getResource(String name, int fetchMode) throws IOException, NotFoundException {
 
 			// Search in classpath
 			if (fetchMode == ResourceManagementHelper.CLASSPATH_RESOURCES) {
@@ -195,13 +195,19 @@ public class ResourceManagementService extends BaseService {
 			return getResourceFromFile(new File(name));
 		}
 		
-		private byte[] getResourceFromClasspath(String name) throws IOException, URISyntaxException, NotFoundException {
-			URL resourceUrl = getClass().getResource(name);
+		private byte[] getResourceFromClasspath(String name) throws IOException, NotFoundException {
+			// Get resource URL
+			URL resourceUrl = getClass().getClassLoader().getResource(name);
 			if (resourceUrl == null) {
 				throw new NotFoundException("Resource " + name + " not found in class-path");
 			}
+
+			// Get input stream and read the bytes
+			URLConnection uc = (URLConnection)resourceUrl.openConnection();
+			InputStream is = uc.getInputStream();
+			byte[] resource = getResourceFromStream(is);
 			
-			return getResourceFromFile(new File(resourceUrl.toURI()));
+			return resource;
 		}
 
 		private byte[] getResourceFromFile(File file) throws IOException, NotFoundException {
@@ -209,8 +215,11 @@ public class ResourceManagementService extends BaseService {
 				throw new NotFoundException("Resource " + file.getName() + " not found");
 			}
 			
-			InputStream is = new FileInputStream(file);
-	        long length = file.length();
+			return getResourceFromStream(new FileInputStream(file));
+		}
+		
+		private byte[] getResourceFromStream(InputStream is) throws IOException {
+	        long length = is.available();
 	        byte[] bytes = new byte[(int)length];
 	    
 	        int offset = 0;
@@ -221,7 +230,7 @@ public class ResourceManagementService extends BaseService {
 	        }
 	    
 	        if (offset < bytes.length) { 
-	        	throw new IOException("Could not completely read file "+file.getName()); 
+	        	throw new IOException("Could not completely read the resource"); 
 	        }
 	        
 	        is.close();
