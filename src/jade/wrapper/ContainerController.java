@@ -74,26 +74,38 @@ public class ContainerController {
 
 
 	/**
-	 * Get agent proxy to local agent given its name.
-	 * @param localAgentName The short local name of the desired agent.
-	 * @throws ControllerException If any problems occur obtaining this proxy.
+	 * Get a controller (i.e. a proxy) to a local agent given its local-name.
+	 * @param localAgentName The local name of the desired agent.
+	 * @throws ControllerException If any problems occur obtaining this proxy or if no such agent exists in the local container.
 	 */
 	public AgentController getAgent(String localAgentName) throws ControllerException {
+		return getAgent(localAgentName, AID.ISLOCALNAME);
+	}
+
+	/**
+	 * Get a controller (i.e. a proxy) to a local agent given its local-name or GUID.
+	 * @param name The local name or the GUID of the desired agent.
+	 * @param isGuid A flag indicating whether <code>name</code> represents the local-name (<code>AID.ISLOCALNAME</code>)
+	 * or the GUID (<code>AID.ISGUID</code>) of the desired agent. 
+	 * @throws ControllerException If any problems occur obtaining this proxy or if no such agent exists in the local container.
+	 */
+	public AgentController getAgent(String name, boolean isGuid) throws ControllerException {
 		if(myImpl == null || myProxy == null) {
 			throw new StaleProxyException();
 		}
 
-		AID agentID = new AID(localAgentName, AID.ISLOCALNAME);
+		AID agentID = new AID(name, isGuid);
 
 		// Check that the agent exists
 		jade.core.Agent instance = myImpl.acquireLocalAgent(agentID);
 		if (instance == null) {
-			throw new ControllerException("Agent " + localAgentName + " not found.");
+			throw new ControllerException("Agent " + agentID.getName() + " not found.");
 		} 
 		myImpl.releaseLocalAgent(agentID);
 		return new AgentControllerImpl(agentID, myProxy, myImpl);
 	}
 
+	
 
 
 
