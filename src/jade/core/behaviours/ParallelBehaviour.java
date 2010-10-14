@@ -217,6 +217,14 @@ public class ParallelBehaviour extends CompositeBehaviour {
 		return subBehaviours;
 	}
 	
+	/**
+	 Return a Collection view of the children of 
+	 this <code>ParallelBehaviour</code> that have already completed.
+	 */
+	public Collection getTerminatedChildren() {
+		return terminatedChildren;
+	}
+	
 	/** 
 	 Add a sub behaviour to this <code>ParallelBehaviour</code>
 	 */
