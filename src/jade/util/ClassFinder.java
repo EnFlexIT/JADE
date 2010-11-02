@@ -56,27 +56,42 @@ import java.util.jar.JarFile;
  */
 public class ClassFinder {
 	private Class searchClass = null;
-	private Map classpathLocations = new HashMap();
+	private Map locations = new HashMap();
 	private Map results = new HashMap();
 	private List errors = new ArrayList();
 	private boolean working = false;
 	private ClassFinderListener listener;
 	private ClassFinderFilter filter;
+	private boolean useClassPathLocations;
 
 	public boolean isWorking() {
 		return working;
 	}
 
 	public ClassFinder() {
+		useClassPathLocations = true;
 		refreshLocations();
+	}
+	
+	public ClassFinder(String[] jarNames) {
+		useClassPathLocations = false;
+		locations = new HashMap();
+		for(String jarName: jarNames) {
+			File jarFile = new File(jarName);
+			if(jarFile.exists()) {
+				includeJar(jarFile, locations);
+			}
+		}
 	}
 
 	/**
 	 * Rescan the classpath, cacheing all possible file locations.
 	 */
 	public final void refreshLocations() {
-		synchronized (classpathLocations) {
-			classpathLocations = getClasspathLocations();
+		if(useClassPathLocations) {
+			synchronized (locations) {
+				locations = getClasspathLocations();
+			}
 		}
 	}
 
@@ -88,10 +103,10 @@ public class ClassFinder {
 	 *            Name of superclass/interface on which to search
 	 */
 	public final Vector findSubclasses(String fqcn, ClassFinderListener aListener, ClassFinderFilter aFilter) {
-		synchronized (classpathLocations) {
+		synchronized (locations) {
 			synchronized (results) {
-				this.listener = aListener;
-				this.filter = aFilter;
+				listener = aListener;
+				filter = aFilter;
 				try {
 					working = true;
 					searchClass = null;
@@ -116,7 +131,7 @@ public class ClassFinder {
 						return new Vector();
 					}
 
-					return findSubclasses(searchClass, classpathLocations);
+					return findSubclasses(searchClass, locations);
 				} finally {
 					working = false;
 				}
