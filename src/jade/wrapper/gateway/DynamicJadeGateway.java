@@ -26,7 +26,7 @@ public class DynamicJadeGateway {
 	
 	private ContainerController myContainer = null;
 	private AgentController myAgent = null;
-	private String agentType;
+	private String agentType = GatewayAgent.class.getName();
 	// jade profile properties
 	private ProfileImpl profile;
 	private Properties jadeProps;
@@ -164,9 +164,8 @@ public class DynamicJadeGateway {
 	 * If jadeProfile is null, then a JADE container attaching to a main on the local host is launched
 	 **/
 	public final void init(String agentClassName, Object[] agentArgs, Properties jadeProfile) {
-		agentType = agentClassName;
-		if (agentType == null) {
-			agentType = GatewayAgent.class.getName();
+		if (agentClassName != null) {
+			agentType = agentClassName;
 		}
 		
 		jadeProps = jadeProfile;
