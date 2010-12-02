@@ -38,6 +38,7 @@ import jade.content.onto.basic.Result;
 import jade.domain.mobility.*;
 import jade.domain.FIPAAgentManagement.ExceptionVocabulary;
 import jade.util.leap.List;
+import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 
 import java.util.Hashtable;
@@ -134,9 +135,9 @@ public class LoaderBehaviour extends Behaviour {
 							b = loadFromZip(className, zip);
 						}
 						else {
-							// Try using the local loader
+							// Try using the local loader if any. Otherwise load from the classpath
 							if (localLoader != null) {
-								b = (Behaviour) localLoader.loadClass(className).newInstance();
+								b = (Behaviour) Class.forName(className, true, localLoader).newInstance();
 							}
 							else {
 								b = (Behaviour) Class.forName(className).newInstance();
@@ -264,7 +265,7 @@ public class LoaderBehaviour extends Behaviour {
 	private Behaviour load(String className, Hashtable classes) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		ClassLoader loader = new HashClassLoader(classes, getClass().getClassLoader());
 		
-		Class c = loader.loadClass(className);
+		Class c = Class.forName(className, true, loader);
 		return (Behaviour) c.newInstance();
 	}
 	
@@ -324,7 +325,7 @@ public class LoaderBehaviour extends Behaviour {
 	}  // END of inner class HashClassLoader		
 	
 
-	private void setInputParameters(Behaviour b, List params) {
+	protected void setInputParameters(Behaviour b, List params) {
 		DataStore ds = b.getDataStore();
 		if (params != null) {
 			Iterator it = params.iterator();
@@ -337,7 +338,7 @@ public class LoaderBehaviour extends Behaviour {
 		}
 	}
 	
-	private void getOutputParameters(Behaviour b, List params) {
+	protected void getOutputParameters(Behaviour b, List params) {
 		DataStore ds = b.getDataStore();
 		if (params != null) {
 			Iterator it = params.iterator();
@@ -380,6 +381,10 @@ public class LoaderBehaviour extends Behaviour {
 			// Restore output parameters
 			getOutputParameters(myBehaviour, myParams);
 			
+			if (myParams == null) {
+				// Result cannot be null
+				myParams = new ArrayList();
+			}
 			Result r = new Result(actionExpr, myParams);
 			ACLMessage notification = request.createReply();
 			try {
