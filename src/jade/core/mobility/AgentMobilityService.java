@@ -1316,7 +1316,15 @@ public class AgentMobilityService extends BaseService {
 				}
 			}
 			//#J2ME_EXCLUDE_BEGIN
-			Class c = Class.forName(v.getName(), true, cl);
+			Class c;
+			try {
+				c = Class.forName(v.getName(), true, cl);
+			} catch (ClassNotFoundException ex) {
+			    c = (Class) primitiveJavaClasses.get(v.getName());
+			    if (c == null) {
+			    	throw ex;
+			    }
+			}
 			//#J2ME_EXCLUDE_END
 			/*#J2ME_INCLUDE_BEGIN
 			Class c = cl.loadClass(v.getName());
@@ -1330,6 +1338,19 @@ public class AgentMobilityService extends BaseService {
 		
 	}    // END of inner class Deserializer
 	
+	private static final java.util.HashMap primitiveJavaClasses = new java.util.HashMap(8, 1.0F);
+    static {
+    	primitiveJavaClasses.put("boolean", boolean.class);
+    	primitiveJavaClasses.put("byte", byte.class);
+    	primitiveJavaClasses.put("char", char.class);
+    	primitiveJavaClasses.put("short", short.class);
+    	primitiveJavaClasses.put("int", int.class);
+    	primitiveJavaClasses.put("long", long.class);
+    	primitiveJavaClasses.put("float", float.class);
+		primitiveJavaClasses.put("double", double.class);
+		primitiveJavaClasses.put("void", void.class);
+    }
+    
 	// This Map holds the mapping between a container/agent pair and the class loader
 	// that can retrieve agent classes from that container.
 	private final Map loaders = new HashMap();
