@@ -175,36 +175,40 @@ public class OntologyServer extends CyclicBehaviour {
 			if (myLogger.isLoggable(Logger.FINER)) {
 				myLogger.log(Logger.FINER, "Agent "+myAgent.getName()+" - Serving incoming message "+msg);
 			}
-			try {
-				receivedContentElement = myAgent.getContentManager().extractContent(msg);
-				ContentElement keyCel = extractKeyContentElement(receivedContentElement);
-						
-				if (myLogger.isLoggable(Logger.FINE)) {
-					myLogger.log(Logger.FINE, "Agent "+myAgent.getName()+" - Serving "+keyCel.getClass().getName()+" "+ACLMessage.getPerformative(msg.getPerformative()));
-				}
-				Method m = findServerMethod(keyCel, msg.getPerformative());
-				if (m != null) {
-					try {
-						m.invoke(serverDelegate, new Object[]{keyCel, msg});
-					}
-					catch (InvocationTargetException ite) {
-						handleServingFailure(ite.getCause(), keyCel, msg);
-					}
-					catch (Exception e) {
-						// Since we only use public methods with proper arguments this can only happen if the serverDelegate class is not accessible
-						handleServingFailure(e, keyCel, msg);
-					}
-				}
-				else {
-					handleUnsupported(keyCel, msg);
-				}
-			}
-			catch (ContentException ce) {
-				handleNotUnderstood(ce, msg);
-			}
+			handleMessage(msg);
 		}
 		else {
 			block();
+		}
+	}
+	
+	public void handleMessage(ACLMessage msg) {
+		try {
+			receivedContentElement = myAgent.getContentManager().extractContent(msg);
+			ContentElement keyCel = extractKeyContentElement(receivedContentElement);
+					
+			if (myLogger.isLoggable(Logger.FINE)) {
+				myLogger.log(Logger.FINE, "Agent "+myAgent.getName()+" - Serving "+keyCel.getClass().getName()+" "+ACLMessage.getPerformative(msg.getPerformative()));
+			}
+			Method m = findServerMethod(keyCel, msg.getPerformative());
+			if (m != null) {
+				try {
+					m.invoke(serverDelegate, new Object[]{keyCel, msg});
+				}
+				catch (InvocationTargetException ite) {
+					handleServingFailure(ite.getCause(), keyCel, msg);
+				}
+				catch (Exception e) {
+					// Since we only use public methods with proper arguments this can only happen if the serverDelegate class is not accessible
+					handleServingFailure(e, keyCel, msg);
+				}
+			}
+			else {
+				handleUnsupported(keyCel, msg);
+			}
+		}
+		catch (ContentException ce) {
+			handleNotUnderstood(ce, msg);
 		}
 	}
 	
