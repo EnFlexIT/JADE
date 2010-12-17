@@ -182,7 +182,7 @@ public class OntologyServer extends CyclicBehaviour {
 		}
 	}
 	
-	public void handleMessage(ACLMessage msg) {
+	protected void handleMessage(ACLMessage msg) {
 		try {
 			receivedContentElement = myAgent.getContentManager().extractContent(msg);
 			ContentElement keyCel = extractKeyContentElement(receivedContentElement);
