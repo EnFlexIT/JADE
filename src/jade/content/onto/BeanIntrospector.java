@@ -113,6 +113,11 @@ class BeanIntrospector implements Introspector {
 	}
 	
 	public AbsAggregate externalizeAggregate(String slotName, Object slotValue, ObjectSchema schema, Ontology referenceOnto) throws OntologyException {
+		if (slotValue == null) {
+			// This slot isn't an aggregate
+			throw new NotAnAggregate();			
+		}
+		
 		AbsAggregate absAggregate = null;
 		Class valueClass = slotValue.getClass();
 		
