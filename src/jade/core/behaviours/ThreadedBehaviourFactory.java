@@ -370,7 +370,7 @@ public class ThreadedBehaviourFactory {
 							if (suspended) {
 								threadState = SUSPENDED_STATE;
 								myThread = null;
-								// NODE: We do not invoke the onSuspended() callback method here, but in the finally block 
+								// NOTE: We do not invoke the onSuspended() callback method here, but in the finally block 
 								// to avoid giving users the possibility of putting application-specific code inside a section
 								// where we already locked the ThreadedBehaviourFactory-Wrapper. This would open the door to
 								// deadlock conditions.

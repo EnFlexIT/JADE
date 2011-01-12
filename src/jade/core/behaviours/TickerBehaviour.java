@@ -23,8 +23,6 @@
 
 package jade.core.behaviours;
 
-import jade.core.behaviours.*;
-import jade.lang.acl.*;
 import jade.core.*;
 
 /**
@@ -40,6 +38,9 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
 	private long wakeupTime, period;
 	private boolean finished;
 	private int tickCount = 0;
+
+	private boolean fixedPeriod = false;
+	private long startTime;
 	
 	/**
 	 * Construct a <code>TickerBehaviour</code> that call its 
@@ -56,7 +57,8 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
 	}
 	
 	public void onStart() {
-		wakeupTime = System.currentTimeMillis() + period;
+		startTime = System.currentTimeMillis();
+		wakeupTime =  startTime + period;
 	}
 	
 	public final void action() {
@@ -68,11 +70,18 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
 				// re-initialize wakeupTime
 				tickCount++;
 				onTick();
-				wakeupTime = System.currentTimeMillis() + period;
-				blockTime = period;
+				
+				long currentTime = System.currentTimeMillis();
+				if (fixedPeriod) {
+					wakeupTime = startTime + (tickCount + 1) * period;
+				}
+				else {
+					wakeupTime = currentTime + period;
+				}
+				blockTime = wakeupTime - currentTime;
 			}
 			// Maybe this behaviour has been removed within the onTick() method
-			if (myAgent != null && !finished) {
+			if (myAgent != null && !finished && blockTime > 0) {
 				block(blockTime);
 			}
 		}
@@ -89,6 +98,17 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
 	 that must be performed at every tick.
 	 */
 	protected abstract void onTick();
+	
+	/**
+	 * Turn on/off the "fixed period" mode. Given a period P, when fixed period mode is off (default), 
+	 * this behaviour will wait for P milliseconds from the end of the n-th execution of the onTick() method
+	 * to the beginning of the n+1-th execution.   
+	 * When fixed period is on, this behaviour will execute the onTick() method exactly every P milliseconds.
+	 * @param fixedPeriod A boolean value indicating whether the fixed period mode must be turned on or off.
+	 */
+	public void setFixedPeriod(boolean fixedPeriod) {
+		this.fixedPeriod = fixedPeriod;
+	}
 	
 	/**
 	 * This method must be called to reset the behaviour and starts again
