@@ -469,7 +469,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			} 
 			catch(Throwable t) {
 				if ( dsc.isMandatory() ) {
-					throw new ServiceException("An error occurred during service booting", t);
+					throw new ServiceException("Error while booting mandatory service " + dsc.getName(), t);
 				}
 				else {
 					myLogger.log(Logger.WARNING, "Exception booting service " + dsc.getName(), t);
