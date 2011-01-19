@@ -313,6 +313,10 @@ class BeanOntologyBuilder {
 //						}
 						if (aggregateSlotAnnotation != null) {
 							cardMin = aggregateSlotAnnotation.cardMin();
+							if (slotAnnotation == null && cardMin > 0) {
+								mandatory = true;
+							}
+							
 							cardMax = aggregateSlotAnnotation.cardMax();
 							if (!Object.class.equals(aggregateSlotAnnotation.type())) {
 								aggregateType = aggregateSlotAnnotation.type();
