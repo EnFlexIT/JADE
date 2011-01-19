@@ -190,7 +190,7 @@ public class BackEndStub extends MicroStub implements BackEnd {
 		appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY,pp.getProperty(JICPProtocol.MEDIATOR_CLASS_KEY));
 		appendProp(sb, JICPProtocol.MAX_DISCONNECTION_TIME_KEY, pp.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY));
 		appendProp(sb, FrontEnd.REMOTE_BACK_END_ADDRESSES, pp.getProperty(FrontEnd.REMOTE_BACK_END_ADDRESSES));
-		appendProp(sb, JICPProtocol.OWNER_KEY, pp.getProperty(JICPProtocol.OWNER_KEY));
+		appendProp(sb, MicroRuntime.OWNER_KEY, pp.getProperty(JICPProtocol.OWNER_KEY));
 		appendProp(sb, MicroRuntime.AGENTS_KEY, pp.getProperty(MicroRuntime.AGENTS_KEY));
 		appendProp(sb, MicroRuntime.BE_REQUIRED_SERVICES_KEY, pp.getProperty(MicroRuntime.BE_REQUIRED_SERVICES_KEY));
 		appendProp(sb, JICPProtocol.KEEP_ALIVE_TIME_KEY, pp.getProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY));

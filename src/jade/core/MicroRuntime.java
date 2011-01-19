@@ -53,6 +53,20 @@ public class MicroRuntime {
 	public static final String SERVICES_KEY = "services";
 
 	/**
+	   The key to retrieve the owner of the starting container.
+	   This information is the base for using a split container in a JADE platform with some form of security
+	   as it is automatically propagated to the back-end.
+	   For instance to connect a split-container to a platform using JADE-S
+	   Front-End: In the startup peroperties specify 
+	   - owner = <username>:<password>
+	   Back-End: In the leap property file of the JICPMediatorManager
+	   that will host the BackEnd specify
+	   - services = ....<security services>...
+	   - jade_security_authentication_logincallback = cmdline
+	 */
+	public static final String OWNER_KEY = "owner";	
+	
+	/**
 	 The configuration property key that maps to the host where to connect to
 	 the JADE mediator.
 	 */

@@ -35,6 +35,7 @@
 package jade.imtp.leap.JICP;
 
 import jade.mtp.TransportAddress;
+import jade.core.MicroRuntime;
 import jade.imtp.leap.TransportProtocol;
 import jade.imtp.leap.ICPException;
 
@@ -117,17 +118,9 @@ public class JICPProtocol extends TransportProtocol {
 	public static final String MSISDN_KEY = "msisdn";	
 	public static final String VERSION_KEY = "version";	
 	/**
-	   The key to retrieve the owner of the starting container.
-	   This information allows using a split container in a secure
-	   JADE platform as follows:
-	   Front-End: In the startup peroperties specify 
-	   - owner = <username>:<password>
-	   Back-End: In the leap property file of the JICPMediatorManager
-	   that will host the BackEnd specify
-	   - services = ....<security services>...
-	   - jade_security_authentication_logincallback = cmdline
+	 * @deprecated Use <code>MicroRuntime.OWNER_KEY</code>
 	 */
-	public static final String OWNER_KEY = "owner";	
+	public static final String OWNER_KEY = MicroRuntime.OWNER_KEY;	
 
 	public static final String DUMMY_ID = "_UNKNOWN_";
 	

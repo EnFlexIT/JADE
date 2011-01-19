@@ -544,7 +544,7 @@ public class BEManagementService extends BaseService {
 
 						p.setProperty(BEManagementHelper.FRONT_END_HOST, address.getHostAddress());
 
-						String owner = p.getProperty(JICPProtocol.OWNER_KEY);
+						String owner = p.getProperty(Profile.OWNER);
 						myLogger.log(Logger.CONFIG, myLogPrefix + "Owner = " + owner);
 						try {
 							Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(address, owner);

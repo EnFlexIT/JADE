@@ -481,7 +481,7 @@ implements PDPContextManager.Listener, JICPMediatorManager
 							if (myPDPContextManager != null) {
 								try{
 									//FIXME: Get username and password specified among the CREATE_MEDIATOR properties
-									Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(addr, p.getProperty(JICPProtocol.OWNER_KEY));
+									Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(addr, p.getProperty(Profile.OWNER));
 									myLogger.log(Logger.FINE, "PDPContext properties = "+pdpContextInfo);
 									mergeProperties(p, pdpContextInfo);
 								}catch(JADESecurityException jse){

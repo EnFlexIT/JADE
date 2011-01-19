@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.proto.states;
 
@@ -41,44 +41,44 @@ import jade.lang.acl.*;
  **/
 public class MsgReceiver extends SimpleBehaviour {
 
-    /**
+	/**
        A numeric constant to mean that a timeout expired.
-    */
-    public static final int TIMEOUT_EXPIRED = -1001;
+	 */
+	public static final int TIMEOUT_EXPIRED = -1001;
 
-    /**
+	/**
        A numeric constant to mean that the receive operation was
        interrupted.
-    */
-    public static final int INTERRUPTED = -1002;
+	 */
+	public static final int INTERRUPTED = -1002;
 
-    /**
+	/**
        A numeric constant to mean that the deadline for the receive
        operation will never expire.
-    */
-    public static final int INFINITE = -1;
-    
-    protected MessageTemplate template;
-    protected long deadline;
-    protected Object receivedMsgKey;
-    
-    private boolean received;
-    private boolean expired;
-    private boolean interrupted;
-    private int ret;
-	
-    /**
-     *  Constructor.
-     * @param a a reference to the Agent
-     * @param mt the MessageTemplate of the message to be received, if null
-     * the first received message is returned by this behaviour
-     * @param deadline a timeout for waiting until a message arrives. It must
-     * be expressed as an absolute time, as it would be returned by
-     * <code>System.currentTimeMillisec()</code>
-     * @param s the dataStore for this bheaviour
-     * @param msgKey the key where the beahviour must put the received
-     * message into the DataStore.
-     **/
+	 */
+	public static final int INFINITE = -1;
+
+	protected MessageTemplate template;
+	protected long deadline;
+	protected Object receivedMsgKey;
+
+	private boolean received;
+	private boolean expired;
+	private boolean interrupted;
+	private int ret;
+
+	/**
+	 *  Constructor.
+	 * @param a a reference to the Agent
+	 * @param mt the MessageTemplate of the message to be received, if null
+	 * the first received message is returned by this behaviour
+	 * @param deadline a timeout for waiting until a message arrives. It must
+	 * be expressed as an absolute time, as it would be returned by
+	 * <code>System.currentTimeMillisec()</code>
+	 * @param s the dataStore for this bheaviour
+	 * @param msgKey the key where the beahviour must put the received
+	 * message into the DataStore.
+	 **/
 	public MsgReceiver(Agent a, MessageTemplate mt, long deadline, DataStore s, Object msgKey) {
 		super(a);
 		setDataStore(s);
@@ -92,11 +92,11 @@ public class MsgReceiver extends SimpleBehaviour {
 
 
 
-    //#APIDOC_EXCLUDE_BEGIN	
+	//#APIDOC_EXCLUDE_BEGIN	
 
-    // For persistence service
-    protected MsgReceiver() {
-    }
+	// For persistence service
+	protected MsgReceiver() {
+	}
 
 	public void action() {
 		if (interrupted) {
@@ -106,10 +106,10 @@ public class MsgReceiver extends SimpleBehaviour {
 			ret = INTERRUPTED;
 			return;
 		}
-		
+
 		ACLMessage msg = myAgent.receive(template);
 		if (msg != null) {
-			
+
 			if (receivedMsgKey != null) {
 				getDataStore().put(receivedMsgKey, msg);
 			}
@@ -122,15 +122,15 @@ public class MsgReceiver extends SimpleBehaviour {
 				// If a timeout was set, then check if it is expired
 				long blockTime = deadline - System.currentTimeMillis();
 				if(blockTime <=0){
-				    //timeout expired
-						if (receivedMsgKey != null) {
-							getDataStore().put(receivedMsgKey, null);
-						}
-				    expired = true;
-				    ret = TIMEOUT_EXPIRED;
-						handleMessage(null);
+					//timeout expired
+					if (receivedMsgKey != null) {
+						getDataStore().put(receivedMsgKey, null);
+					}
+					expired = true;
+					ret = TIMEOUT_EXPIRED;
+					handleMessage(null);
 				}else{
-				    block(blockTime);
+					block(blockTime);
 				}
 			}
 			else {
@@ -138,24 +138,24 @@ public class MsgReceiver extends SimpleBehaviour {
 			}
 		}
 	}
-	
+
 	public boolean done() {
 		return received || expired || interrupted;
 	}
 
-    /**
-     * @return the performative if a message arrived,
-     * <code>TIMEOUT_EXPIRED</code> if the timeout expired or
-     * <code>INTERRUPTED</code> if this <code>MsgReceiver</code>
-     * was interrupted calling the <code>interrupt()</code> method.
-     **/
+	/**
+	 * @return the performative if a message arrived,
+	 * <code>TIMEOUT_EXPIRED</code> if the timeout expired or
+	 * <code>INTERRUPTED</code> if this <code>MsgReceiver</code>
+	 * was interrupted calling the <code>interrupt()</code> method.
+	 **/
 	public int onEnd() {
 		received =false;
 		expired =false;
 		interrupted =false;
 		return ret;
 	}
-    //#APIDOC_EXCLUDE_END
+	//#APIDOC_EXCLUDE_END
 
 	/**
 	   This is invoked when a message matching the specified template 
@@ -165,8 +165,8 @@ public class MsgReceiver extends SimpleBehaviour {
 	 */
 	protected void handleMessage(ACLMessage msg) {
 	}
-	
-    /**
+
+	/**
        Reset this behaviour, possibly replacing the receive templatt
        and other data.
        @param mt The template to match ACL messages against during the
@@ -179,47 +179,47 @@ public class MsgReceiver extends SimpleBehaviour {
        put.
        @param msgKey The key to use to put the received message into
        the selected datastore.
-    */
-    public void reset(MessageTemplate mt, long deadline, DataStore s, Object msgKey) {
-	super.reset();
-	received = false;
-	expired = false;
-	interrupted =false;
-	setTemplate(mt);
-	setDeadline(deadline);
-	setDataStore(s);
-	setReceivedKey(msgKey);
-    }
+	 */
+	public void reset(MessageTemplate mt, long deadline, DataStore s, Object msgKey) {
+		super.reset();
+		received = false;
+		expired = false;
+		interrupted =false;
+		setTemplate(mt);
+		setDeadline(deadline);
+		setDataStore(s);
+		setReceivedKey(msgKey);
+	}
 
-    /**
-     * This method allows modifying the deadline
-     **/
-    public void setDeadline(long deadline) {
-	this.deadline = deadline;
-    }
-	
-    /**
-     * This method allows modifying the template
-     **/
-    public void setTemplate(MessageTemplate mt) {
-	template=mt;
-    }
-	
-    /**
-     * This method allows modifying the key in the DS where to put the 
-     * received message
-     **/
-    public void setReceivedKey(Object key) {
-	receivedMsgKey = key;
-    }
+	/**
+	 * This method allows modifying the deadline
+	 **/
+	public void setDeadline(long deadline) {
+		this.deadline = deadline;
+	}
 
-    /**
+	/**
+	 * This method allows modifying the template
+	 **/
+	public void setTemplate(MessageTemplate mt) {
+		template=mt;
+	}
+
+	/**
+	 * This method allows modifying the key in the DS where to put the 
+	 * received message
+	 **/
+	public void setReceivedKey(Object key) {
+		receivedMsgKey = key;
+	}
+
+	/**
        Signal an interruption to this receiver, and cause the ongoing
        receive operation to abort.
-    */
-    public void interrupt() {
-    	interrupted = true;
-    	restart();
-    }
+	 */
+	public void interrupt() {
+		interrupted = true;
+		restart();
+	}
 }
-	
+
