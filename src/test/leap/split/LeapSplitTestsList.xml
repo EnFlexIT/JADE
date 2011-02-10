@@ -237,5 +237,14 @@
 			<WhenTestPass>The test passes if the split-container exits successfully .
 			</WhenTestPass> 
 		</Test>
+		<Test name="Test the event notification mechanism available on the Front-End." skip="false">
+			<TestClassName>test.leap.split.tests.TestFrontEndEvents</TestClassName>
+			<WhatTest>Test that suitable BORN-AGENT and DEAD-AGENT events are properly notified to a registered FEListener when agents start/terminate on the FrontEnd
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass> 
+		</Test>
 		
 	</TestsList>

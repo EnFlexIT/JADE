@@ -124,7 +124,8 @@ public class MicroRuntime {
 		if (myFrontEnd == null) {
 			terminator = r;
 			terminated = false;
-			myFrontEnd = new FrontEndContainer(p);
+			myFrontEnd = new FrontEndContainer();
+			myFrontEnd.start(p);
 			if (terminated) {
 				myFrontEnd = null;
 			}

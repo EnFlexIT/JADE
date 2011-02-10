@@ -94,9 +94,9 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	private boolean starting = true;
 	
 	/**
-	 Construct a FrontEndContainer and connect to the BackEnd.
+	 * Start this FrontEndContainer creating agents and services and connecting to the BackEnd.
 	 */
-	FrontEndContainer(Properties p) {
+	void start(Properties p) {
 		configProperties = p;
 		
 		// Create all agents without starting them
