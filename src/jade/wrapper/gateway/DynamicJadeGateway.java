@@ -166,6 +166,8 @@ public class DynamicJadeGateway {
 	public final void init(String agentClassName, Object[] agentArgs, Properties jadeProfile) {
 		if (agentClassName != null) {
 			agentType = agentClassName;
+		} else {
+			agentType = GatewayAgent.class.getName();
 		}
 		
 		jadeProps = jadeProfile;
