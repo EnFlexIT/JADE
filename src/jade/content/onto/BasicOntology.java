@@ -271,6 +271,10 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.DONE)) { 
 				Done d = new Done();
 				d.setAction((AgentAction) referenceOnto.toObject(abs.getAbsObject(BasicOntology.DONE_ACTION))); 
+				AbsPredicate condition = (AbsPredicate) abs.getAbsObject(BasicOntology.DONE_CONDITION);
+				if (condition != null) {
+					d.setCondition((Predicate) referenceOnto.toObject(abs.getAbsObject(BasicOntology.DONE_CONDITION)));
+				}
 				return d;
 			}
 			// RESULT
@@ -380,6 +384,9 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 			if(obj instanceof Done) {
 				AbsPredicate absDone = new AbsPredicate(BasicOntology.DONE);
 				absDone.set(BasicOntology.DONE_ACTION, (AbsAgentAction) referenceOnto.fromObject(((Done) obj).getAction()));
+				if (((Done) obj).getCondition() != null) {
+					absDone.set(BasicOntology.DONE_CONDITION, (AbsPredicate) referenceOnto.fromObject(((Done) obj).getCondition()));
+				}
 				return absDone;
 			}
 

@@ -283,7 +283,8 @@ public class ScalabilityTest {
 		String prop = sName+":"+senderClass+"("+rName+")";
 		pp.setProperty(MicroRuntime.AGENTS_KEY, prop);
 		pp.setProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY, "-1");
-		FrontEndContainer fes = new FrontEndContainer(pp);
+		FrontEndContainer fes = new FrontEndContainer();
+		fes.start(pp);
 		
 		pp = new Properties();
 		if (host != null) {
@@ -305,7 +306,8 @@ public class ScalabilityTest {
 		prop = rName+":"+receiverClass;
 		pp.setProperty(MicroRuntime.AGENTS_KEY, prop);
 		pp.setProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY, "-1");
-		FrontEndContainer fer = new FrontEndContainer(pp);
+		FrontEndContainer fer = new FrontEndContainer();
+		fer.start(pp);
 	}
 	
 	private static void notifyTerminated(long time, long time2) {
