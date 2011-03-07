@@ -37,6 +37,7 @@ import jade.mtp.MTPException;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -113,10 +114,20 @@ public class HTTPSocketFactory {
 		 _socketFactory = SocketFactory.getDefault();
 		 _serverSocketFactory = ServerSocketFactory.getDefault();
 		 #DOTNET_INCLUDE_END*/
+
+		connectTimeout = Integer.parseInt(profile.getParameter(MTP_HTTP_PREFIX + "connectTimeout",
+		        Integer.toString(DEFAULT_CONNECT_TIMEOUT)));
 	}
 
   public Socket createSocket(String host, int port) throws IOException {
-    return _socketFactory.createSocket(host, port);
+    Socket s;
+    if(connectTimeout == DEFAULT_CONNECT_TIMEOUT) {
+        s = _socketFactory.createSocket(host, port);
+    } else {
+        s = _socketFactory.createSocket();
+        s.connect(new InetSocketAddress(host, port), connectTimeout);
+    }
+    return s;    
   }
 
   public Socket createSocket(
@@ -125,7 +136,15 @@ public class HTTPSocketFactory {
     InetAddress dest,
     int outport)
     throws IOException {
-    return _socketFactory.createSocket(host, port, dest, outport);
+    Socket s;
+    if(connectTimeout == DEFAULT_CONNECT_TIMEOUT) {
+        s = _socketFactory.createSocket(host, port, dest, outport);
+    } else {
+        s = _socketFactory.createSocket();
+        s.bind(new InetSocketAddress(dest, outport));
+        s.connect(new InetSocketAddress(host, port), connectTimeout);
+    }
+    return s;
   }
 
   public ServerSocket createServerSocket(int port) throws IOException {
@@ -142,8 +161,11 @@ public class HTTPSocketFactory {
 
   private static HTTPSocketFactory _instance;
   private static final String PREFIX = "jade_mtp_http_https_";
+  private static final String MTP_HTTP_PREFIX = "jade_mtp_http_";
+  private static final int DEFAULT_CONNECT_TIMEOUT = -1;
   private SocketFactory _socketFactory;
   private ServerSocketFactory _serverSocketFactory;
   private boolean _needClientAuth = false;
   private boolean _usingHttps = false;
+  private int connectTimeout;  
 }
