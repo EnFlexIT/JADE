@@ -29,6 +29,7 @@ package jade.content.onto;
 import jade.content.AgentAction;
 import jade.content.Concept;
 import jade.content.Predicate;
+import jade.content.lang.sl.SLCodec;
 import jade.content.onto.annotations.AggregateResult;
 import jade.content.onto.annotations.AggregateSlot;
 import jade.content.onto.annotations.Element;
@@ -42,6 +43,7 @@ import jade.content.schema.PredicateSchema;
 import jade.content.schema.TermSchema;
 import jade.content.schema.facets.DefaultValueFacet;
 import jade.content.schema.facets.DocumentationFacet;
+import jade.content.schema.facets.JavaTypeFacet;
 import jade.content.schema.facets.PermittedValuesFacet;
 import jade.content.schema.facets.RegexFacet;
 import jade.util.Logger;
@@ -624,6 +626,13 @@ class BeanOntologyBuilder {
 					}
 				}
 				schema.addFacet(slotName, new PermittedValuesFacet(typizedPermittedValues));
+			}
+			if ("true".equalsIgnoreCase(System.getProperty(SLCodec.PRESERVE_JAVA_TYPES)) && 
+				(	sad.type == Long.class || 
+					sad.type == long.class || 
+					sad.type == Double.class || 
+					sad.type == double.class)) {
+				schema.addFacet(slotName, new JavaTypeFacet(sad.type.getName()));
 			}
 		} else {
 			TermSchema ats = null;
