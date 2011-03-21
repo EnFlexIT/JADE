@@ -30,9 +30,6 @@ import jade.util.leap.HashMap;
 import jade.util.leap.Iterator;
 import jade.util.leap.Map;
 
-
-
-
 /**
  
  The <code>BaseService</code> abstract class partially implements

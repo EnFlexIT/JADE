@@ -872,7 +872,6 @@ public class AgentMobilityService extends BaseService {
 		
 		private void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, JADESecurityException {
 			try {
-				//log("Incoming agent " + agentID, 1);
 				if(myLogger.isLoggable(Logger.CONFIG))
 					myLogger.log(Logger.CONFIG,"Incoming agent " + agentID.getName());
 				
@@ -955,16 +954,13 @@ public class AgentMobilityService extends BaseService {
 				
 				// Connect the new instance to the local container
 				Agent old = myContainer.addLocalAgent(agentID, instance);
+				if(myLogger.isLoggable(Logger.FINE))
+					myLogger.log(Logger.FINE,"Agent " + agentID.getName() + " inserted into LADT");
 				
 				if(startIt) {
 					// Actually start the agent thread
 					myContainer.powerUpLocalAgent(agentID);
 				}
-				
-				//log("Agent " + agentID + " inserted into LADT", 1);
-				if(myLogger.isLoggable(Logger.FINE))
-					myLogger.log(Logger.FINE,"Agent " + agentID.getName() + " inserted into LADT");
-				
 			}
 			catch(IOException ioe) {
 				throw new IMTPException("An I/O error occurred during de-serialization", ioe);
@@ -1130,7 +1126,6 @@ public class AgentMobilityService extends BaseService {
 		
 		
 		private void handleTransferResult(AID agentID, boolean result, List messages) throws IMTPException, NotFoundException {
-			//log("Activating incoming agent "+agentID, 1);
 			if(myLogger.isLoggable(Logger.FINER))
 				myLogger.log(Logger.FINER,"Activating incoming agent "+agentID);
 			
@@ -1151,10 +1146,8 @@ public class AgentMobilityService extends BaseService {
 					}
 					
 					myContainer.powerUpLocalAgent(agentID);
-					//log("Incoming agent " + agentID + " activated", 1);
 					if(myLogger.isLoggable(Logger.CONFIG))
 						myLogger.log(Logger.CONFIG,"Incoming agent " + agentID.getName() + " activated");
-					
 				}
 			}
 			finally {

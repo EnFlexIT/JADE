@@ -305,7 +305,7 @@ public class MessageTransportProtocol implements MTP {
 			
 			// Prepare the HTTP request
 			// ------------------------
-			//Calculate de value of boundary
+			//Calculate the value of boundary
 			StringBuffer boundary = new StringBuffer();
 			for( int i=0 ; i < 31 ; i++ ) {
 				boundary.append(Integer.toString((int)Math.round(Math.random()*15),16));
