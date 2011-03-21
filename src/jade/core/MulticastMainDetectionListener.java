@@ -143,7 +143,7 @@ class MulticastMainDetectionListener implements Runnable {
 		String result = null;
 		if (request.indexOf(MainDetectionManager.PROTO_CMD_GETMAIN) == 0) {
 			// command [get main]
-			if (profile.isFirstMain()) {
+			if (profile.isMasterMain()) {
 				// only master main replies to [get main] commands
 				result = serveGetMain(request);
 			} else {

@@ -119,8 +119,8 @@ public class RMIIMTPManager implements IMTPManager {
 		}
 
 		// 2) Get LOCAL host and port (defaults to main-host and main-port if 
-		// this is a sole main container, localhost and 1099 otherwise)
-		if(myProfile.getBooleanProperty(Profile.MAIN, true) && !myProfile.getBooleanProperty(Profile.LOCAL_SERVICE_MANAGER, false)) {
+		// this is a master main container; localhost and 1099 otherwise)
+		if(myProfile.isMasterMain()) {
 			localHost = myProfile.getParameter(Profile.LOCAL_HOST, mainHost);
 			localPort = mainPort;
 		}
@@ -166,7 +166,7 @@ public class RMIIMTPManager implements IMTPManager {
 		// Initialize the local RMI addresses
 		localAddr = "rmi://" + localHost + ":" + localPort + "/";
 		// If this is a backup main, initialize the RMI address of the original PlatformManager 
-		if(myProfile.getBooleanProperty(Profile.MAIN, true) && myProfile.getBooleanProperty(Profile.LOCAL_SERVICE_MANAGER, false)) {
+		if (myProfile.isBackupMain()) {
 			originalPMAddr = "rmi://" + mainHost + ":" + mainPort + "/";
 		}
 

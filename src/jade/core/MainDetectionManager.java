@@ -395,7 +395,7 @@ class MainDetectionManager {
 
 	public static void detect(ProfileImpl profile) throws ProfileException {
 		logger.log(Logger.FINER, "MainDetectionManager::detect(...)");
-		if (!profile.isFirstMain()) {
+		if (!profile.isMasterMain()) {
 			MainAddr mainAddress = getMainAddress(profile);
 			if (mainAddress == null) {
 				// FIXME is the right exception to throw?

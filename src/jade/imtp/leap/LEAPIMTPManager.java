@@ -153,13 +153,11 @@ public class LEAPIMTPManager implements IMTPManager {
 		// be done after ICP installation
 		adjustMainURL();
 		
-		// Get the address of the master PlatformManager (if this is a backup main)
-		if (theProfile.getBooleanProperty(Profile.MAIN, true)) {
-			if (theProfile.getBooleanProperty(Profile.LOCAL_SERVICE_MANAGER, false)) {
-				// This node hosts a real PlatformManager that is NOT the master PlatformManager
-				// --> MAIN_URL points to the master PlatformManager
-				masterPMAddr = theProfile.getParameter(MAIN_URL, null);
-			}
+		// If this is a backup main get the address of the master PlatformManager
+		if (theProfile.isBackupMain()) {
+			// This node hosts a real PlatformManager that is NOT the master PlatformManager
+			// --> MAIN_URL points to the master PlatformManager
+			masterPMAddr = theProfile.getParameter(MAIN_URL, null);
 		}
 		
 		// Finally, if a URL for the default router is specified in the

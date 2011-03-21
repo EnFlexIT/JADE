@@ -355,6 +355,33 @@ public abstract class Profile {
 	public abstract void setSpecifiers(String key, List value);
 	
 	
+	/**
+	 * Provides a boolean indication about whether or not the container using this Profile
+	 * is a Main Container. 
+	 * @return <code>true</code> if the container using this Profile is a Main Container. <code>false</code> otherwise
+	 */
+	public boolean isMain() {
+		return getBooleanProperty(MAIN, false);
+	}
+	
+	/**
+	 * Provides a boolean indication about whether or not the container using this Profile
+	 * is the Master Main Container. 
+	 * @return <code>true</code> if the container using this Profile is the Master Main Container. <code>false</code> otherwise
+	 */
+	public boolean isMasterMain() {
+		return isMain() && !getBooleanProperty(LOCAL_SERVICE_MANAGER, false);
+	}	
+	
+	/**
+	 * Provides a boolean indication about whether or not the container using this Profile
+	 * is a Backup Main Container. 
+	 * @return <code>true</code> if the container using this Profile is a Backup Main Container. <code>false</code> otherwise
+	 */
+	public boolean isBackupMain() {
+		return isMain() && getBooleanProperty(LOCAL_SERVICE_MANAGER, false);
+	}
+	
 	public static String getDefaultNetworkName() {
 		String host = LOCALHOST_CONSTANT;
 		//#MIDP_EXCLUDE_BEGIN

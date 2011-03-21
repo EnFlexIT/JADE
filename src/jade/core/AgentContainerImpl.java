@@ -398,8 +398,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		//#MIDP_EXCLUDE_BEGIN
 		// If we are the master main container --> initialize the AMS and DF. Do that before booting all services 
 		// since during service boot some messages may be directed to the AMS or DF
-		boolean isMaster = !myProfile.getBooleanProperty(Profile.LOCAL_SERVICE_MANAGER, false);
-		if(myMainContainer != null && isMaster) {
+		if(myProfile.isMasterMain()) {
 			myMainContainer.initSystemAgents(this, false);
 		}
 		//#MIDP_EXCLUDE_END
@@ -409,7 +408,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 		//#MIDP_EXCLUDE_BEGIN
 		// If we are the master main container --> start the AMS and DF.
-		if(myMainContainer != null && isMaster) {
+		if(myProfile.isMasterMain()) {
 			myMainContainer.startSystemAgents(this, null);
 		}
 		//#MIDP_EXCLUDE_END

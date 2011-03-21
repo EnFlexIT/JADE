@@ -188,7 +188,7 @@ public class BootProfileImpl extends ProfileImpl {
 		if (port == null) {
 			// Default for a sole main container: use the local port, or
 			// the default port if also the local port is null.
-			if(isFirstMain()) {
+			if(isMasterMain()) {
 				port = argProp.getProperty(LOCAL_PORT);
 			}
 			if(port == null) {
@@ -201,7 +201,7 @@ public class BootProfileImpl extends ProfileImpl {
 		String localHost = argProp.getProperty(LOCAL_HOST);
 		if(localHost == null) {
 			// Default for a sole main container: use the MAIN_HOST property
-			if(isFirstMain()) {
+			if(isMasterMain()) {
 				localHost = host;
 			}
 			else {
@@ -214,7 +214,7 @@ public class BootProfileImpl extends ProfileImpl {
 		String localPort = argProp.getProperty(LOCAL_PORT);
 		if(localPort == null) {
 			// Default for a sole main container: use the MAIN_PORT property
-			if(isFirstMain()) {
+			if(isMasterMain()) {
 				localPort = port;
 			}
 			else {

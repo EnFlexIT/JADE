@@ -220,7 +220,7 @@ public class ProfileImpl extends Profile {
 			
 			// Default for a sole main container: use the local port, or
 			// the default port if also the local port is null.
-			if(isFirstMain()) {
+			if(isMasterMain()) {
 				
 				if(localPort != null) {
 					p = localPort;
@@ -238,7 +238,7 @@ public class ProfileImpl extends Profile {
 		
 		String localHost = props.getProperty(LOCAL_HOST);
 		if(localHost == null) {		
-			if(isFirstMain()) {
+			if(isMasterMain()) {
 				// Default for a sole main container: use the MAIN_HOST property
 				localHost = host;
 			}
@@ -251,7 +251,7 @@ public class ProfileImpl extends Profile {
 		
 		String lp = props.getProperty(LOCAL_PORT);
 		if(lp == null) {
-			if(isFirstMain()) {
+			if(isMasterMain()) {
 				// Default for a sole main container: use the MAIN_PORT property
 				lp = p;
 			}
@@ -582,19 +582,5 @@ public class ProfileImpl extends Profile {
 	private void setIntProperty(String aKey, int aValue) {
 		props.setProperty(aKey, Integer.toString(aValue));
 	}
-	
-	
-	//#APIDOC_EXCLUDE_BEGIN
-	protected boolean isMain() {
-		return getBooleanProperty(MAIN, false);
-	}
-	
-	// True if this is a Main Container and the LOCAL_SERVICE_MANAGER
-	// option is set to false or not set
-	protected boolean isFirstMain() {
-		return isMain() && !getBooleanProperty(LOCAL_SERVICE_MANAGER, false);
-	}	
-	//#APIDOC_EXCLUDE_END
-	
 }
 
