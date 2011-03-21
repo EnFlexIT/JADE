@@ -190,7 +190,7 @@ public class Logger
 		}
 
 		private Object readResolve() throws ObjectStreamException {
-			return new Logger(name, null);
+			return getMyLogger(name);
 		}
 	}
 	//////////////////////////////////////////////
