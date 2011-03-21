@@ -66,7 +66,39 @@ public class SimpleSLTokenizer {
 			throw new Codec.CodecException(msg+current);
 		}
 	}
+	
+	// We need a dedicated method since just doing nextToken().equals("(") would fail in case 
+	// there is a slot whose value is exactly "("
+	public boolean isOpenBracket() throws Codec.CodecException {
+		try {
+			skipSpaces();
+			char c = content.charAt(current);
+			if (c == '(') {
+				return true;
+			}
+			return false;
+		}
+		catch (IndexOutOfBoundsException ioobe) {
+			throw new Codec.CodecException(msg+current);
+		}
+	}
 
+	// We need a dedicated method since just doing nextToken().equals(")") would fail in case 
+	// there is a slot whose value is exactly ")"
+	public boolean isClosedBracket() throws Codec.CodecException {
+		try {
+			skipSpaces();
+			char c = content.charAt(current);
+			if (c == ')') {
+				return true;
+			}
+			return false;
+		}
+		catch (IndexOutOfBoundsException ioobe) {
+			throw new Codec.CodecException(msg+current);
+		}
+	}
+	
 	/**
 	   Check that the next character (after eventual spaces) is
 	   'c' and advance the pointer to the character just after

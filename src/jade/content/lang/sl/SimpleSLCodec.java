@@ -209,7 +209,7 @@ class SimpleSLCodec extends StringCodec {
 
 	private AbsObject parse(SimpleSLTokenizer p, Ontology o) throws CodecException {
 		AbsObject abs = null;
-		if (p.nextToken().startsWith("(")) {
+		if (p.isOpenBracket()) {
 			abs = parseComplex(p, o);
 		}
 		else {
@@ -254,7 +254,7 @@ class SimpleSLCodec extends StringCodec {
 	private void fillSlotsByOrder(AbsObject abs, ObjectSchema s, SimpleSLTokenizer p, Ontology o) throws CodecException {
 		String[] slotNames = s.getNames();
 		int i = 0;
-		while (!p.nextToken().startsWith(")")) {
+		while (!p.isClosedBracket()) {
 			AbsObject val = parse(p, o);
 			try {
 				AbsHelper.setAttribute(abs, slotNames[i], val);
@@ -267,7 +267,7 @@ class SimpleSLCodec extends StringCodec {
 	}
 
 	private void fillSlotsByName(AbsConcept abs, SimpleSLTokenizer p, Ontology o) throws CodecException {
-		while (!p.nextToken().startsWith(")")) {
+		while (!p.isClosedBracket()) {
 			String slotName = p.getElement();
 			try {
 				AbsTerm val = (AbsTerm) parse(p, o);
@@ -281,7 +281,7 @@ class SimpleSLCodec extends StringCodec {
 
 	private void fillAggregate(AbsAggregate abs, SimpleSLTokenizer p, Ontology o) throws CodecException {
 		int i = 0;
-		while (!p.nextToken().startsWith(")")) {
+		while (!p.isClosedBracket()) {
 			try {
 				AbsTerm val = (AbsTerm) parse(p, o);
 				abs.add(val);
