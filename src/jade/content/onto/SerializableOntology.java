@@ -49,6 +49,9 @@ public class SerializableOntology extends Ontology {
 	public static final String SERIALIZABLE = "serializable";
 	public static final String SERIALIZABLE_VALUE = "value";
 	
+	
+	private ClassLoader myClassLoader;
+	
 	/**
 	 * Returns the singleton instance of the <code>SerializableOntology</code>.
 	 * @return the singleton instance of the <code>SerializableOntology</code>
@@ -77,6 +80,10 @@ public class SerializableOntology extends Ontology {
 		}
 	}
 	
+	public void setClassLoader(ClassLoader cl) {
+		myClassLoader = cl;
+	}
+	
 	//#APIDOC_EXCLUDE_BEGIN
 	/**
 	 */
@@ -86,7 +93,17 @@ public class SerializableOntology extends Ontology {
 				AbsPrimitive absValue = (AbsPrimitive) abs.getAbsObject(SERIALIZABLE_VALUE);
 				String stringValue = absValue.getString();
 				byte[] value = Base64.decodeBase64(stringValue.getBytes("US-ASCII"));
-				ObjectInput in = new ObjectInputStream(new ByteArrayInputStream(value));
+				ObjectInput in = new ObjectInputStream(new ByteArrayInputStream(value)) {
+					protected Class resolveClass(ObjectStreamClass v) throws IOException, ClassNotFoundException {
+						if (myClassLoader != null) {
+							// FIXME: Manage primitive class fields. Refactor with AgentMobilityService
+							return Class.forName(v.getName(), true, myClassLoader);
+						}
+						else {
+							return super.resolveClass(v);
+						}
+					}
+				};
 				return in.readObject();
 			}
 			catch (Throwable t) {
