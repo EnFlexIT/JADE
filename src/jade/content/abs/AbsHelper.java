@@ -534,7 +534,7 @@ public class AbsHelper {
 		// Try to get associated schema from ontology
 		ObjectSchema schema = onto.getSchema(clazz);
 		
-		// If no schema found is as aggregate 
+		// If no schema found, try as an aggregate 
 		if (schema == null) {
 			schema = AggregateHelper.getSchema(clazz, null);
 		}
@@ -590,6 +590,8 @@ public class AbsHelper {
 		}
 		return abs;
 	}
+	
+	
 
 	private static String createVariableName(final String prefix, VarIndexWrapper viw) {
 		String varName = (prefix!=null ? prefix : "") + "v#" + viw.index;

@@ -443,12 +443,16 @@ public abstract class Behaviour implements Serializable {
 	//#APIDOC_EXCLUDE_END
 	
 	/**
-	 Blocks this behaviour. When this method is called, the behaviour
-	 state is set to <em>Blocked</em> and a suitable event is fired to
-	 notify its parent behaviour. Then the behaviour is put into a
-	 blocked behaviours queue by the agent scheduler. If this method
-	 is called from within <code>action()</code> method, behaviour
-	 suspension occurs as soon as <code>action()</code> returns.
+	 Blocks this behaviour. It should be noticed that this method is NOT a 
+	 blocking call: when it is invoked, the internal behaviour
+	 state is set to <em>Blocked</em> so that, as soon as the <code>action()</code>
+	 method returns, the behaviour is put into a blocked behaviours queue so that it will 
+	 not be scheduled anymore.<br> 
+	 The behaviour is moved back in the pool of active behaviours when either 
+	 a message is received or the behaviour is explicitly restarted by means of its 
+	 <code>restart()</code> method.<br> 
+	 If this behaviour is a child of a <code>CompositeBehaviour</code> a suitable event is fired to
+	 notify its parent behaviour up to the behaviour composition hierarchy root.
 	 @see jade.core.behaviours.Behaviour#restart() 
 	 */
 	public void block() {

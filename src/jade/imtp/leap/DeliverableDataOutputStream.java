@@ -505,7 +505,7 @@ class DeliverableDataOutputStream extends DataOutputStream {
     }
     serializeByteArray(payload);
     
-		writeObject(gm.getEnvelope());
+	writeObject(gm.getEnvelope());
   	writeBoolean(gm.isAMSFailure());
   	writeObject(gm.getTraceID());
   }
