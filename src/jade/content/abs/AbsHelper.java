@@ -423,17 +423,17 @@ public class AbsHelper {
 	 */
 	public static void setAttribute(AbsObject abs, String attrName, AbsObject attrValue) throws OntologyException { 
 		if (abs.getAbsType() == AbsObject.ABS_AGENT_ACTION) {
-			if (attrValue instanceof AbsTerm) {
+			if (attrValue instanceof AbsTerm || attrValue == null) {
 				((AbsAgentAction) abs).set(attrName, (AbsTerm) attrValue);
 				return;
 			}
-			if (attrValue instanceof AbsPredicate) {
+			if (attrValue instanceof AbsPredicate || attrValue == null) {
 				((AbsAgentAction) abs).set(attrName, (AbsPredicate) attrValue);
 				return;
 			}
 		}
 		if (abs.getAbsType() == AbsObject.ABS_CONCEPT) {
-			if (attrValue instanceof AbsTerm) {
+			if (attrValue instanceof AbsTerm || attrValue == null) {
 				((AbsConcept) abs).set(attrName, (AbsTerm) attrValue);
 				return;
 			}
