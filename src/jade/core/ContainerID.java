@@ -42,10 +42,10 @@ public class ContainerID implements Location {
 	public static final String DEFAULT_IMTP ="JADE-IMTP"; 
 
 	private String name;
-	private String address;
-	private Boolean main;
+	private String protocol = DEFAULT_IMTP;
+	private String address = "<Unknown Host>";
 	private String port;
-	private String protocol;
+	private Boolean main;
 
 
 	/**
@@ -67,11 +67,6 @@ public class ContainerID implements Location {
 			address = a.getHost();
 			port = a.getPort();
 			protocol = a.getProto();
-
-		}
-		else{
-			address = "<Unknown Host>";
-			protocol = DEFAULT_IMTP;
 		}
 	}
 
