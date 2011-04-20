@@ -523,6 +523,37 @@ public class AbsHelper {
 	}
 
 	/**
+	 * Return true if the abs-object is a template.
+	 * A template is an abs with all slots AbsVariable or AbsAggregate empty
+	 * @param abs abs-object to check
+	 * @return true if is a template
+	 */
+	public static boolean isAbsTemplate(AbsObject abs) {
+		if (abs instanceof AbsPrimitive) {
+			return false;
+		}
+		
+		if (abs instanceof AbsAggregate) {
+			Iterator it = ((AbsAggregate)abs).iterator();
+			while (it.hasNext()) {
+				if (!isAbsTemplate((AbsObject)it.next())) {
+					return false;
+				}
+			}
+		}
+
+		if (abs instanceof AbsConcept) {
+			for (String slotName : abs.getNames()) {
+				if (!isAbsTemplate(abs.getAbsObject(slotName))) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+	
+	/**
 	 * Generate an AbsObject consistently with class. 
 	 * @param clazz class to convert
 	 * @param onto reference ontology
@@ -590,8 +621,6 @@ public class AbsHelper {
 		}
 		return abs;
 	}
-	
-	
 
 	private static String createVariableName(final String prefix, VarIndexWrapper viw) {
 		String varName = (prefix!=null ? prefix : "") + "v#" + viw.index;
