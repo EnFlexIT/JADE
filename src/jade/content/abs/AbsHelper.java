@@ -521,7 +521,67 @@ public class AbsHelper {
 		}
 		return abs;
 	}
-
+	
+	/**
+	 * Recursively removes prefix (if present) from abs-type-name, except for BasicOntology types
+	 * Prefix is identified from last separator string
+	 * Eg. A.B.C -> C (if separator is .)
+	 * @param abs abs to un-prefix
+	 * @param separator separator string
+	 * @return un-prefixde abs
+	 * @throws OntologyException
+	 */
+	public static AbsObject removePrefix(AbsObject abs, String separator) throws OntologyException {
+		if (abs instanceof AbsConcept || abs instanceof AbsAggregate) {
+			String typeName = abs.getTypeName();
+			
+			// If the abs schema is a BasicOntology schema don't try to remove prefix
+			// ex. SEQUENCE
+			if (BasicOntology.getInstance().getSchema(typeName) == null) {
+				
+				// Check if separator is present
+				int separatorPos = typeName.lastIndexOf(separator);
+				if (separatorPos != -1 && separatorPos < typeName.length()) {
+					// Remove prefix 
+					typeName = typeName.substring(separatorPos+separator.length());
+	
+					// Set un-prefixed typeName  
+					((AbsConcept)abs).setTypeName(typeName);
+				}
+			}
+			
+			for (String slotName : abs.getNames()) {
+				removePrefix(abs.getAbsObject(slotName), separator);
+			}
+		}
+		return abs;
+	}
+	
+	/**
+	 * Recursively add prefix to abs-type-name, except for BasicOntology types
+	 * Eg. C -> A.B.C (if prefix is A.B.)
+	 * @param abs abs to prefix
+	 * @param prefix prefix to add
+	 * @return prefix abs
+	 * @throws OntologyException
+	 */
+	public static AbsObject addPrefix(AbsObject abs, String prefix) throws OntologyException {
+		if (abs instanceof AbsConcept || abs instanceof AbsAggregate) {
+			String typeName = abs.getTypeName();
+			
+			// If the abs schema is a BasicOntology schema don't add prefix
+			// ex. SEQUENCE
+			if (BasicOntology.getInstance().getSchema(typeName) == null) {
+				((AbsConcept)abs).setTypeName(prefix+typeName);
+			}
+			
+			for (String slotName : abs.getNames()) {
+				addPrefix(abs.getAbsObject(slotName), prefix);
+			}
+		}
+		return abs;
+	}
+	
 	/**
 	 * Return true if the abs-object is a template.
 	 * A template is an abs with all slots AbsVariable or AbsAggregate empty

@@ -63,6 +63,10 @@ public class AbsObjectImpl implements AbsObject {
 		return typeName;
 	} 
 
+	void setTypeName(String typeName) {
+		this.typeName = typeName;
+	}
+	
 	/**
 	 * Sets an attribute of the object held by this
 	 * abstract descriptor.
