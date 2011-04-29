@@ -143,7 +143,7 @@ public class IncomingEncodingFilter extends Filter {
 			enc = env.getAclRepresentation();
 		} else {
 			// no envelope means inter-container communication; use LEAP codec
-			enc = LEAPACLCodec.NAME.toLowerCase();
+			enc = LEAPACLCodec.NAME;
 		}
 		if (enc != null) { // A Codec was selected
 			ACLCodec codec =(ACLCodec)messageEncodings.get(enc.toLowerCase());
