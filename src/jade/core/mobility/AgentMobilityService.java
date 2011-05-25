@@ -74,6 +74,7 @@ import jade.core.management.AgentManagementSlice;
 //#J2ME_EXCLUDE_BEGIN
 import jade.core.management.CodeLocator;
 //#J2ME_EXCLUDE_END
+import jade.core.replication.MainReplicationHandle;
 
 import jade.lang.acl.ACLMessage;
 
@@ -122,12 +123,31 @@ public class AgentMobilityService extends BaseService {
 	static final boolean TRANSFER_COMMIT = true;
 	
 	
+	// The command sink, source side
+	private final CommandSourceSink senderSink = new CommandSourceSink();
+	
+	// The command sink, target side
+	private final CommandTargetSink receiverSink = new CommandTargetSink();
+	
+	//#J2ME_EXCLUDE_BEGIN
+	// Filter for outgoing commands
+	private final Filter _outFilter = new CommandOutgoingFilter();
+	//#J2ME_EXCLUDE_END
+	
+	// The handle to the MainReplicationService to keep GADT in synch when agents move
+	private MainReplicationHandle replicationHandle;
+	
 	public void init(AgentContainer ac, Profile p) throws ProfileException {
 		super.init(ac, p);
 		
 		myContainer = ac;
 	}
 	
+	public void boot(Profile myProfile) throws ServiceException {
+		// Initialize the MainReplicationHandle
+		replicationHandle = new MainReplicationHandle(this, myContainer.getServiceFinder());
+	}
+
 	public String getName() {
 		return AgentMobilitySlice.NAME;
 	}
@@ -646,29 +666,10 @@ public class AgentMobilityService extends BaseService {
 						ownership = ownerPr.getName();
 					}
 				}
-				try {
-					// If the name is already in the GADT, throws NameClashException
-					impl.bornAgent(agentID, cid, null, ownership, false);
-				}
-				catch(NameClashException nce) {
-					try {
-						ContainerID oldCid = impl.getContainerID(agentID);
-						Node n = impl.getContainerNode(oldCid).getNode();
-						
-						// Perform a non-blocking ping to check...
-						n.ping(false);
-						
-						// Ping succeeded: rethrow the NameClashException
-						throw nce;
-					}
-					catch(NameClashException nce2) {
-						throw nce2; // Let this one through...
-					}
-					catch(Exception e) {
-						// Ping failed: forcibly replace the dead agent...
-						impl.bornAgent(agentID, cid, null, ownership, true);
-					}
-				}
+				// If the name is already in the GADT, throws NameClashException
+				bornAgent(agentID, cid, null, ownership, false);
+				// Since bornAgent() succeeded directly apply forceReplacement on replicated Main Containers 
+				replicationHandle.invokeReplicatedMethod("bornAgent", new Object[]{agentID, cid, null, ownership, true});
 			}
 		}
 		
@@ -1203,7 +1204,8 @@ public class AgentMobilityService extends BaseService {
 						if(srcReady && destReady) {
 							// FIXME: We should issue a TRANSFER_IDENTITY V-Command to allow migration tracing and prevention
 							// Commit transaction
-							impl.movedAgent(agentID, (ContainerID)src, (ContainerID)dest);
+							movedAgent(agentID, (ContainerID)src, (ContainerID)dest);
+							replicationHandle.invokeReplicatedMethod("movedAgent", new Object[]{agentID, (ContainerID)src, (ContainerID)dest});
 							return true;
 						}
 						else {
@@ -1268,7 +1270,39 @@ public class AgentMobilityService extends BaseService {
 	} // End of ServiceComponent class
 	
 	
+	// Modify GADT to reflect an agent transfer 
+	// Public since it is replicated by the MainReplicationService
+	public void movedAgent(AID agentID, ContainerID src, ContainerID dest) throws NotFoundException {
+		myContainer.getMain().movedAgent(agentID, src, dest);
+	}
 	
+	// Modify GADT to reflect an agent clonation 
+	// Public since it is replicated by the MainReplicationService
+	public void bornAgent(AID agentID, ContainerID cid, JADEPrincipal principal, String ownership, boolean forceReplacement) throws NameClashException, NotFoundException {
+		MainContainer impl = myContainer.getMain();
+		try {
+			impl.bornAgent(agentID, cid, principal, ownership, forceReplacement);
+		}
+		catch(NameClashException nce) {
+			try {
+				ContainerID oldCid = impl.getContainerID(agentID);
+				Node n = impl.getContainerNode(oldCid).getNode();
+				
+				// Perform a non-blocking ping to check...
+				n.ping(false);
+				
+				// Ping succeeded: rethrow the NameClashException
+				throw nce;
+			}
+			catch(NameClashException nce2) {
+				throw nce2; // Let this one through...
+			}
+			catch(Exception e) {
+				// Ping failed: forcibly replace the dead agent...
+				impl.bornAgent(agentID, cid, null, ownership, true);
+			}
+		}
+	}
 	
 	/**
 	 * Inner class Deserializer
@@ -1599,18 +1633,6 @@ public class AgentMobilityService extends BaseService {
 		}
 	} // END of inner class CopyLifeCycle
 	
-	
-	
-	// The command sink, source side
-	private final CommandSourceSink senderSink = new CommandSourceSink();
-	
-	// The command sink, target side
-	private final CommandTargetSink receiverSink = new CommandTargetSink();
-	
-	//#J2ME_EXCLUDE_BEGIN
-	// Filter for outgoing commands
-	private final Filter _outFilter = new CommandOutgoingFilter();
-	//#J2ME_EXCLUDE_END
 	
 	// Work-around for PJAVA compilation
 	protected Service.Slice getFreshSlice(String name) throws ServiceException {

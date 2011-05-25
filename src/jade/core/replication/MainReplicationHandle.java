@@ -46,7 +46,7 @@ public class MainReplicationHandle {
 			}
 			catch (Exception e) {
 				// Should never happen as real exceptions are logged inside broadcastToReplicas()
-				myLogger.log(Logger.WARNING, "Error propagating H-command " + cmd.getName() +" to replicas", e);
+				myLogger.log(Logger.WARNING, "Error propagating H-command " + cmd.getName() +" to replicas. Method to invoke on replicas was "+methodName, e);
 			}
 		}
 		//#J2ME_EXCLUDE_END
