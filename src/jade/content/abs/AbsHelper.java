@@ -614,6 +614,57 @@ public class AbsHelper {
 	}
 	
 	/**
+	 * Apply default value to template
+	 * Replace node with default value only if the value in template is null or AbsVariable or 
+	 * default value is null and template is a true template 
+	 * @param absTemplate abs template value 
+	 * @param absDefault abs value with default value
+	 * @return
+	 * @throws OntologyException 
+	 */
+	public static AbsObject applyDefaultValues(AbsObject absTemplate, AbsObject absDefault) throws OntologyException {
+
+		// Aggregate not empty but all filled -> ignore default
+		if (absTemplate instanceof AbsAggregate && absTemplate.getCount() != 0 && absTemplate.isGrounded()) {
+			return absTemplate;
+		}
+		
+		// Template is already all filled -> ignore default
+		if (!(absTemplate instanceof AbsAggregate) && absTemplate.isGrounded()) {
+			return absTemplate; 
+		}
+		
+		// Template slot null or variable -> replace with default 
+		if (absTemplate == null || absTemplate instanceof AbsVariable) {
+			return absDefault; 
+		}
+
+		// Manage default value null  
+		if (absDefault == null) {
+			if (isAbsTemplate(absTemplate)) {
+				return null;
+			} else {
+				return absTemplate;
+			}
+		}
+
+		// Here the template is a concept -> check compatibility 
+		if (!(absDefault instanceof AbsConcept)) {
+			throw new OntologyException("Default abs structure ("+absDefault.getAbsType()+") not compatible with template ("+absTemplate.getAbsType()+")");
+		}
+		
+		// Loop all slots
+		for (String slotName : absTemplate.getNames()) {
+			AbsObject slotTemplateValue = absTemplate.getAbsObject(slotName);
+			AbsObject absDefaultValue = absDefault.getAbsObject(slotName);
+			if (absDefaultValue != null) {
+				AbsHelper.setAttribute(absTemplate, slotName, applyDefaultValues(slotTemplateValue, absDefaultValue));
+			}
+		}
+		return absTemplate;
+	}
+	
+	/**
 	 * Generate an AbsObject consistently with class. 
 	 * @param clazz class to convert
 	 * @param onto reference ontology
