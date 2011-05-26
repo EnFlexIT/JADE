@@ -43,7 +43,7 @@ import jade.util.leap.Iterator;
  */
 public class LEAPACLCodec implements ACLCodec {
 
-	public static String NAME = "leap.acl.rep";
+	public static final String NAME = "leap.acl.rep";
 
 	/**
 	 * Encodes an <code>ACLMessage</code> object into a byte sequence,
