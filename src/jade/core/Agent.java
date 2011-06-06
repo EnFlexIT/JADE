@@ -1407,7 +1407,11 @@ public class Agent implements Runnable, Serializable
 	 * If the O2A manager behaviour is set, whenever an object is inserted in the
 	 * O2A queue by means of the <code>putO2AObject()</code> method, only the manager 
 	 * is waken up. This improves the efficiency since all behaviours not interested in 
-	 * O2A communication remain sleeping.  
+	 * O2A communication remain sleeping. <br>
+	 * NOTE that this method only declares a behaviour as being responsible for managing 
+	 * objects received by the agent by means of the O2A communication channel; in order to 
+	 * correctly run, the behaviour must be added to the agent by means of the 
+	 * <code>addBehaviour()<code> method as usual.
 	 <br>
 	 <b>NOT available in MIDP</b>
 	 <br>
