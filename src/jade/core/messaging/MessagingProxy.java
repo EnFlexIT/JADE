@@ -57,6 +57,10 @@ public class MessagingProxy extends SliceProxy implements MessagingSlice {
 			cmd.addParam(senderID);
 			cmd.addParam(msg);
 			cmd.addParam(receiverID);
+			long timeStamp = msg.getTimeStamp();
+			if (timeStamp > 0) {
+				cmd.addParam(timeStamp);
+			}			
 			cmd.setPrincipal(msg.getSenderPrincipal());
 			cmd.setCredentials(msg.getSenderCredentials());
 			

@@ -90,6 +90,7 @@ public class OutgoingEncodingFilter extends Filter {
 		
 		if (name.equals(MessagingSlice.SEND_MESSAGE)) {
 			GenericMessage gmsg = (GenericMessage) cmd.getParam(1);
+			myService.stamp(gmsg);
 			AID sender = (AID) cmd.getParam(0);
 			AID receiver = (AID) cmd.getParam(2);
 			ACLMessage msg = gmsg.getACLMessage();

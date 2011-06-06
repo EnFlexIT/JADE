@@ -59,6 +59,7 @@ public class GenericMessage implements Serializable {
 	private transient boolean foreignReceiver = false;
 	private transient boolean modifiable = true;
 	private String traceID = null;
+	private long timeStamp = -1;
 
 	public GenericMessage(){
 	}
@@ -145,6 +146,14 @@ public class GenericMessage implements Serializable {
 
 	public final void setTraceID(String id) {
 		traceID = id;
+	}
+	
+	public final long getTimeStamp() {
+		return timeStamp;
+	}
+	
+	public final void setTimeStamp(long timeStamp) {
+		this.timeStamp = timeStamp; 
 	}
 
 	//#MIDP_EXCLUDE_BEGIN

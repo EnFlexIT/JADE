@@ -50,11 +50,15 @@ import jade.core.AID;
 import jade.core.ContainerID;
 import jade.core.Profile;
 import jade.core.ServiceHelper;
+import jade.core.ServiceNotActiveException;
 import jade.core.Specifier;
 import jade.core.ProfileException;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.core.replication.MainReplicationHandle;
+import jade.core.sam.AverageMeasureProviderImpl;
+import jade.core.sam.SAMHelper;
+import jade.core.sam.CounterValueProvider;
 
 import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.InternalError;
@@ -102,6 +106,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	public static final String ATTACH_PLATFORM_INFO = "jade_core_messaging_MessagingService_attachplatforminfo";
 	public static final String PLATFORM_IDENTIFIER = "x-sender-platform-identifer";
 	public static final String MTP_IDENTIFIER = "x-sender-mtp-identifer";
+	
+	// SAM related configurations
+	public static final String DELIVERY_TIME_MEASUREMENT_RATE = "jade_core_messaging_MessagingService_deliverytimemeasurementrate";
+	public static final int DELIVERY_TIME_MEASUREMENT_RATE_DEFAULT = -1; // Delivery time measurement disabled by default. Set it to N to measure delivery time 1 out of N delivered messages
+	public static final String ENABLE_POSTED_MESSAGE_COUNT = "jade_core_messaging_MessagingService_enablepostedmessagecount";
 	
 	// The profile passed to this object
 	private Profile myProfile;
@@ -155,6 +164,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	// The component managing asynchronous message delivery and retries
 	private MessageManager myMessageManager;
 	
+	// SAM related variables
+	private boolean samActive;
+	private int msgCounter = 0; 
+	private int deliveryTimeMeasurementRate;
+	private AverageMeasureProviderImpl deliveryTimeMeasureProvider;
+	private long postedMessageCounter;
 	
 	public static class UnknownACLEncodingException extends NotFoundException {
 		UnknownACLEncodingException(String msg) {
@@ -205,7 +220,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		cachedSlices = new HashCache(size);
 		
 		routes = new RoutingTable(myProfile.getBooleanProperty(ATTACH_PLATFORM_INFO, false));
-
+		
 		if (myContainer.getMain() != null) {
 			globalAliases = new Hashtable();
 			aliasListeners = new ArrayList();
@@ -241,6 +256,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		try {
 			// Initialize the MainReplicationHandle
 			replicationHandle = new MainReplicationHandle(this, myContainer.getServiceFinder());
+			
+			// Initialize messaging-related System Activity Monitoring
+			initializeSAM();
 			
 			// Activate the default ACL String codec anyway
 			ACLCodec stringCodec = new StringACLCodec();
@@ -332,7 +350,50 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			imtpe.printStackTrace();
 		}
 	}
-	
+
+	private void initializeSAM() {
+		try {
+			Service sam = myContainer.getServiceFinder().findService(SAMHelper.SERVICE_NAME);
+			if (sam != null) {
+				SAMHelper samHelper = (SAMHelper) sam.getHelper(null);
+				samActive = true;
+				
+				// DELIVERY TIME
+				deliveryTimeMeasurementRate = DELIVERY_TIME_MEASUREMENT_RATE_DEFAULT;
+				try {
+					deliveryTimeMeasurementRate = Integer.parseInt(myProfile.getParameter(DELIVERY_TIME_MEASUREMENT_RATE, null));
+				}
+				catch (Exception e) {
+					// Keep default
+				}
+				if (deliveryTimeMeasurementRate > 0) {
+					deliveryTimeMeasureProvider = new AverageMeasureProviderImpl();
+					samHelper.addEntityMeasureProvider("Message-Delivery-Time", deliveryTimeMeasureProvider);
+				}
+				
+				// MESSAGE COUNT
+				boolean enablePostedMessageCount = "true".equalsIgnoreCase(myProfile.getParameter(ENABLE_POSTED_MESSAGE_COUNT, "false"));
+				if (enablePostedMessageCount) {
+					samHelper.addCounterValueProvider("Posted-Message-Count", new CounterValueProvider() {
+						public long getValue() {
+							return postedMessageCounter;
+						}
+						public boolean isDifferential() {
+							return false;
+						}
+					});
+				}
+			}
+		}
+		catch (ServiceNotActiveException snae) {
+			// SAMService not active --> just do nothing
+		}
+		catch (Exception e) {
+			// Should never happen
+			myLogger.log(Logger.WARNING, "Error accessing the local SAMService.", e);
+		}
+	}
+
 	// kindly provided by David Bernstein, 15/6/2005
 	public void shutdown() {
 		// clone addresses (externally because leap list doesn't
@@ -426,16 +487,26 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			}
 			
 			public void registerAliasListener(AliasListener l) throws ServiceException {
-				synchronized (aliasListeners) {
-					if (!aliasListeners.contains(l)) {
-						aliasListeners.add(l);
+				if (myContainer.getMain() != null) {
+					synchronized (aliasListeners) {
+						if (!aliasListeners.contains(l)) {
+							aliasListeners.add(l);
+						}
 					}
+				}
+				else {
+					throw new ServiceException("Cannot register AliasListener on a non-Main container");
 				}
 			}
 			
 			public void deregisterAliasListener(AliasListener l) throws ServiceException {
-				synchronized (aliasListeners) {
-					aliasListeners.remove(l);
+				if (myContainer.getMain() != null) {
+					synchronized (aliasListeners) {
+						aliasListeners.remove(l);
+					}
+				}
+				else {
+					throw new ServiceException("Cannot register AliasListener on a non-Main container");
 				}
 			}
 		};
@@ -521,14 +592,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	
 	// Remove all local alias entries for a given agent 
 	List removeLocalAliases(AID agent) {
-		myLogger.log(Logger.INFO, "Removing all local alias entries for agent "+agent.getLocalName());
+		myLogger.log(Logger.FINE, "Removing all local alias entries for agent "+agent.getLocalName());
 		return removeEntriesFor(localAliases, agent);
 	}
 	
 	// Transfer all local alias entries for a given agent on a remote container
 	// This is executed when an agent moves
 	void transferLocalAliases(AID agent, ContainerID dest) {
-		myLogger.log(Logger.INFO, "Transferring all local alias entries for agent "+agent.getLocalName()+" to "+dest.getName());
+		myLogger.log(Logger.FINE, "Transferring all local alias entries for agent "+agent.getLocalName()+" to "+dest.getName());
 		List aliases = removeLocalAliases(agent);
 		if (aliases.size() > 0) {
 			try {
@@ -544,7 +615,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	// Remove all global alias entries for a given agent
 	// Public since it is replicated by the MainReplicationService
 	public void removeGlobalAliases(AID agent) {
-		myLogger.log(Logger.INFO, "Removing all global alias entries for agent "+agent.getLocalName());
+		myLogger.log(Logger.FINE, "Removing all global alias entries for agent "+agent.getLocalName());
 		List removedAliases = removeEntriesFor(globalAliases, agent);
 		// Notify listeners
 		Iterator it = removedAliases.iterator();
@@ -931,6 +1002,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				
 			}
 			postMessage(senderID, msg.getACLMessage(), receiverID);
+			postedMessageCounter++;
+			updateDeliveryTimeMeasurement(msg);
 			if (msg.getTraceID() != null) {
 				myLogger.log(Logger.INFO, msg.getTraceID()+" - Message posted");
 				
@@ -1263,6 +1336,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 					AID senderAID = (AID)params[0];
 					GenericMessage msg = (GenericMessage)params[1];
 					AID receiverID = (AID)params[2];
+					if (params.length == 4) {
+						msg.setTimeStamp((Long) params[3]); 
+					}
 					if (msg.getTraceID() != null) {
 						myLogger.log(Logger.INFO, "MessagingService slice received message "+MessageManager.stringify(msg)+" for receiver "+receiverID.getLocalName()+". Trace ID = "+msg.getTraceID());
 					}
@@ -1415,6 +1491,29 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		
 	} // End of ServiceComponent class
 	
+	
+	void stamp(GenericMessage gmsg) {
+		if (samActive) {
+			synchronized (this) {
+				msgCounter++;
+				if (msgCounter == deliveryTimeMeasurementRate) {
+					gmsg.setTimeStamp(System.currentTimeMillis());
+					msgCounter = 0;
+				}
+			}
+		}
+	}
+	
+	private void updateDeliveryTimeMeasurement(GenericMessage gmsg) {
+		if (samActive) {
+			long timeStamp = gmsg.getTimeStamp();
+			if (timeStamp > 0 && deliveryTimeMeasureProvider != null) {
+				long deliveryTime = System.currentTimeMillis() - timeStamp;
+				System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> Delivery time = "+deliveryTime);
+				deliveryTimeMeasureProvider.addSample(deliveryTime);
+			}
+		}
+	}
 	
 	
 	///////////////////////////////////////////////
@@ -1848,7 +1947,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	protected void clearCachedSlice(String name) {
 		if (cachedSlices != null){
 			cachedSlices.clear();
-			myLogger.log(Logger.INFO, "Clearing cache");
+			myLogger.log(Logger.CONFIG, "Clearing cache");
 		}
 		super.clearCachedSlice(name);
 	}
