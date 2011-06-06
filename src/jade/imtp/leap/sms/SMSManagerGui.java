@@ -88,14 +88,14 @@ public class SMSManagerGui extends JFrame {
 	}
 	
 	private void showCorrect(){
-    // Get the size of the default screen
-    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    int scrH = (int) dim.getHeight();
-    int scrW = (int) dim.getWidth();
-    setLocation((int) (scrW * 0.2), (int) (scrH * 0.1) );
-    show();
+		// Get the size of the default screen
+		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		int scrH = (int) dim.getHeight();
+		int scrW = (int) dim.getWidth();
+		setLocation((int) (scrW * 0.2), (int) (scrH * 0.1) );
+		setVisible(true);
 	}
-		
+
 	private Dimension getProperSize(int maxX, int maxY) {
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		int x = (screenSize.width < maxX ? screenSize.width : maxX);

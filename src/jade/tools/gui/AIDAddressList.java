@@ -492,7 +492,7 @@ public class AIDAddressList extends JPanel {
      */
     void cancelButton_actionPerformed(ActionEvent e) {
       setUserAction(CANCELLED);
-      hide();
+      setVisible(false);
     }
 
 
@@ -504,7 +504,7 @@ public class AIDAddressList extends JPanel {
     void okButton_actionPerformed(ActionEvent e) {
       setItsAddress(theAddressField.getText());
       setUserAction(OK);
-      hide();
+      setVisible(false);
     }
 
 

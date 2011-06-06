@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.gui;
 
@@ -44,44 +44,22 @@ import jade.lang.acl.ISO8601;
 /**
 @author Giovanni Caire - Adriana Quinto- CSELT S.p.A.
 @version $Date$ $Revision$
-*/
+ */
 
-public class ServiceDscDlg extends JDialog 
-{
-	/**
-  @serial
-	*/
+public class ServiceDscDlg extends JDialog {
 	JTextField txtName,txtType,txtOwner;
-	/**
-  @serial
-	*/
 	VisualStringList ontologiesListPanel,protocolsListPanel,languagesListPanel;
-	/**
-  @serial
-	*/
 	VisualPropertiesList propertiesListPanel;
-	/**
-  @serial
-	*/
 	ServiceDescription serviceDesc;
-	/**
-  @serial
-	*/
 	ServiceDescription out;
-	/**
-  @serial
-	*/
 	boolean editable;
-	/**
-  @serial
-	*/
 	boolean checkSlots;
 
 	/*#DOTNET_INCLUDE_BEGIN
 	Component myComponent;
-  private Component getOwner() {return myComponent;}
+	private Component getOwner() {return myComponent;}
 	#DOTNET_INCLUDE_END*/
-	
+
 	// CONSTRUCTORS
 	ServiceDscDlg(Frame parent) 
 	{
@@ -105,26 +83,26 @@ public class ServiceDscDlg extends JDialog
 	@param ed true if the gui must be editable, false otherwise
 	@param checkMandatorySlots true to force the check of the mandatory slots, false otherwise
 	@return a ServiceDescription if the Ok button is pressed, false otherwise.
-	*/
+	 */
 	ServiceDescription viewSD(ServiceDescription dsc, boolean ed, boolean checkMandatorySlots)
 	{
-	  
+
 		setTitle("Service");
 		out = null;
 		editable = ed;
 		checkSlots = checkMandatorySlots;
-		
+
 		if(dsc != null)
-		  serviceDesc = dsc;
+			serviceDesc = dsc;
 		else
-	  	serviceDesc = new ServiceDescription();
-	
+			serviceDesc = new ServiceDescription();
+
 		JPanel main = new JPanel();
 		main.setLayout(new BoxLayout(main,BoxLayout.Y_AXIS));
-		
+
 		JPanel p = new JPanel();
 		JLabel l;
-		
+
 		//Name	
 		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
 		l = new JLabel("Name");
@@ -138,8 +116,8 @@ public class ServiceDscDlg extends JDialog
 		p.add(txtName);
 		main.add(p);
 		main.add(Box.createRigidArea(new Dimension (0,3)));
-	
-    //Type
+
+		//Type
 		p = new JPanel();
 		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
 		l = new JLabel("Type");
@@ -161,20 +139,20 @@ public class ServiceDscDlg extends JDialog
 		l.setPreferredSize(new Dimension(130,20));
 		p.add(l);
 		p.add(Box.createHorizontalGlue());
-	  txtOwner = new JTextField();
+		txtOwner = new JTextField();
 		txtOwner.setPreferredSize(new Dimension(200,20));
 		txtOwner.setText(serviceDesc.getOwnership());
 		txtOwner.setEditable(editable);
 		p.add(txtOwner);
 		main.add(p);
 		main.add(Box.createRigidArea(new Dimension (0,3)));
-	 		
+
 		//Languages
 		p = new JPanel();
 		p.setLayout(new BorderLayout());
-	  p.setBorder(BorderFactory.createTitledBorder("Languages"));	
-	  languagesListPanel = new VisualStringList(serviceDesc.getAllLanguages(),getOwner());
-	  languagesListPanel.setDimension(new Dimension(350,40));
+		p.setBorder(BorderFactory.createTitledBorder("Languages"));	
+		languagesListPanel = new VisualStringList(serviceDesc.getAllLanguages(),getOwner());
+		languagesListPanel.setDimension(new Dimension(350,40));
 		languagesListPanel.setEnabled(editable);
 		p.add(languagesListPanel);
 		main.add(p);
@@ -184,15 +162,15 @@ public class ServiceDscDlg extends JDialog
 		//Ontologies
 		p = new JPanel();
 		p.setLayout(new BorderLayout());
-	  p.setBorder(BorderFactory.createTitledBorder("Ontologies"));	
-	  ontologiesListPanel = new VisualStringList(serviceDesc.getAllOntologies(),getOwner());
-	  ontologiesListPanel.setDimension(new Dimension(350,40));
+		p.setBorder(BorderFactory.createTitledBorder("Ontologies"));	
+		ontologiesListPanel = new VisualStringList(serviceDesc.getAllOntologies(),getOwner());
+		ontologiesListPanel.setDimension(new Dimension(350,40));
 		ontologiesListPanel.setEnabled(editable);
 		p.add(ontologiesListPanel);
 		main.add(p);
 		main.add(Box.createRigidArea(new Dimension (0,3)));
 
-   	//Protocols.
+		//Protocols.
 		p = new JPanel();
 		p.setLayout(new BorderLayout());
 		p.setBorder(BorderFactory.createTitledBorder("Protocols"));
@@ -201,7 +179,7 @@ public class ServiceDscDlg extends JDialog
 		protocolsListPanel.setEnabled(editable);
 		p.add(protocolsListPanel);
 		main.add(p);
-	
+
 
 		//Properties
 		p = new JPanel();
@@ -219,17 +197,17 @@ public class ServiceDscDlg extends JDialog
 			Property singleProp = (Property)temp.next();
 			props.setProperty(singleProp.getName(),singleProp.getValue().toString()); 
 		}
-    propertiesListPanel = new VisualPropertiesList(props,getOwner());
-    propertiesListPanel.setDimension(new Dimension(350,40));
-    propertiesListPanel.setEnabled(editable);
-    p.add(propertiesListPanel);
-    main.add(p);
-	
+		propertiesListPanel = new VisualPropertiesList(props,getOwner());
+		propertiesListPanel.setDimension(new Dimension(350,40));
+		propertiesListPanel.setEnabled(editable);
+		p.add(propertiesListPanel);
+		main.add(p);
+
 		//Button Panel
 		p = new JPanel();
 		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
 		JButton bOK = new JButton("OK");
-		
+
 		bOK.addActionListener( new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
@@ -239,136 +217,137 @@ public class ServiceDscDlg extends JDialog
 				{
 					if(editable)
 					{
-					
+
 						if(checkSlots)
 						{	
-						   
+
 							if(getSaveText(txtName) == null)
 							{
 								JOptionPane.showMessageDialog(null,"The name must not be empty !","Error Message", JOptionPane.ERROR_MESSAGE);
 								return;
 							}
-						
-				
+
+
 							if(getSaveText(txtType) == null)
 							{
 								JOptionPane.showMessageDialog(null,"The type must not be empty !","Error Message",JOptionPane.ERROR_MESSAGE);
 								return;
 							}
 						}
-						
-							out = new ServiceDescription();
-							out.setName(getSaveText(txtName));
-							out.setType(getSaveText(txtType));
-						
-					    out.setOwnership(getSaveText(txtOwner));
-					    
-					    Enumeration lang = languagesListPanel.getContent();
-					    while(lang.hasMoreElements())
-            		out.addLanguages((String)lang.nextElement());
 
-					    Enumeration onto = ontologiesListPanel.getContent();
-					    while(onto.hasMoreElements())
-            		out.addOntologies((String)onto.nextElement());
-            	
-            	//Protocols
-            	Enumeration proto = protocolsListPanel.getContent();
-            	while(proto.hasMoreElements())
-            		out.addProtocols((String)proto.nextElement());
-            	
-            	Properties ps = propertiesListPanel.getContentProperties();	
-            	Enumeration keys = ps.propertyNames();
-            	while(keys.hasMoreElements())
-            	{
-            		Property tp = new Property();
-            		String key = (String)keys.nextElement();
-            		tp.setName(key);
-								Object val = ps.getProperty(key);
-								// try if the property is a long or a float or a datetime
+						out = new ServiceDescription();
+						out.setName(getSaveText(txtName));
+						out.setType(getSaveText(txtType));
+
+						out.setOwnership(getSaveText(txtOwner));
+
+						Enumeration lang = languagesListPanel.getContent();
+						while(lang.hasMoreElements())
+							out.addLanguages((String)lang.nextElement());
+
+						Enumeration onto = ontologiesListPanel.getContent();
+						while(onto.hasMoreElements())
+							out.addOntologies((String)onto.nextElement());
+
+						//Protocols
+						Enumeration proto = protocolsListPanel.getContent();
+						while(proto.hasMoreElements())
+							out.addProtocols((String)proto.nextElement());
+
+						Properties ps = propertiesListPanel.getContentProperties();	
+						Enumeration keys = ps.propertyNames();
+						while(keys.hasMoreElements())
+						{
+							Property tp = new Property();
+							String key = (String)keys.nextElement();
+							tp.setName(key);
+							Object val = ps.getProperty(key);
+							// try if the property is a long or a float or a datetime
+							try {
+								val = Long.valueOf(val.toString());
+							} catch (NumberFormatException e1) {
 								try {
-										val = Long.valueOf(val.toString());
-								} catch (NumberFormatException e1) {
-										try {
-												val = Double.valueOf(val.toString());
-										} catch (NumberFormatException e2) {
-												try {
-														val = ISO8601.toDate(val.toString());
-												} catch (Exception e3) {
-												}
-										}
+									val = Double.valueOf(val.toString());
+								} catch (NumberFormatException e2) {
+									try {
+										val = ISO8601.toDate(val.toString());
+									} catch (Exception e3) {
+									}
 								}
-								// set the value of this property
-            		tp.setValue((Serializable)val);
-            		out.addProperties(tp);
-            	}
+							}
+							// set the value of this property
+							tp.setValue((Serializable)val);
+							out.addProperties(tp);
+						}
 
 					}
 					else
-							out = serviceDesc;			
-			
+						out = serviceDesc;			
+
 					dispose();
 				}
 			} 
 		} );
 
 		p.add(bOK);
-		
+
 		if(editable)
 		{
 			//CancelButton
 			JButton bCancel = new JButton("Cancel");
 			p.add(bCancel);
 			bCancel.addActionListener( new ActionListener()
-		  {
-		  	public void actionPerformed(ActionEvent e)
-			  {    
-			  	String param = (String) e.getActionCommand();
+			{
+				public void actionPerformed(ActionEvent e)
+				{    
+					String param = (String) e.getActionCommand();
 					if (param.equals("Cancel"))
 					{
 						out = null;
 						dispose();
 					}
-			  } 
-		  });
-		  p.add(bCancel);
+				} 
+			});
+			p.add(bCancel);
 		}
 		main.add(p);
-		
+
 		getContentPane().add(main, BorderLayout.CENTER);
 		//pack();
 		setModal(true);
 		setResizable(false);
-		
-	  try{
-		//#DOTNET_EXCLUDE_BEGIN
-    	int x = getOwner().getX() + (getOwner().getWidth() - getWidth()) / 2;
-    	int y = getOwner().getY() + (getOwner().getHeight() - getHeight()) / 2; 
-		//#DOTNET_EXCLUDE_END
-		/*#DOTNET_INCLUDE_BEGIN
-    	int x = getOwner().getX() + (getOwner().WIDTH - getWidth()) / 2;
-    	int y = getOwner().getY() + (getOwner().HEIGHT - getHeight()) / 2; 
-		#DOTNET_INCLUDE_END*/
 
-    	setLocation(x>0 ? x:0,y>0 ? y:0);
-    }catch(Exception e){}
-	        pack();
-		show();
-		
+		try{
+			//#DOTNET_EXCLUDE_BEGIN
+			int x = getOwner().getX() + (getOwner().getWidth() - getWidth()) / 2;
+			int y = getOwner().getY() + (getOwner().getHeight() - getHeight()) / 2; 
+			//#DOTNET_EXCLUDE_END
+			/*#DOTNET_INCLUDE_BEGIN
+    		int x = getOwner().getX() + (getOwner().WIDTH - getWidth()) / 2;
+    		int y = getOwner().getY() + (getOwner().HEIGHT - getHeight()) / 2; 
+			#DOTNET_INCLUDE_END*/
+
+			setLocation(x>0 ? x:0,y>0 ? y:0);
+		}
+		catch(Exception e){}
+		pack();
+		setVisible(true);
+
 		return out;		
-			
+
 	}
 
 	/**
 	Return the string relative to service description fields if not empty, null otherwise
-	*/
+	 */
 	private String getSaveText(JTextField field){
-	try{
-		String out = field.getText().trim();
-		return (out.length() == 0 ? null : out);
-	}catch( Exception e){
-	return null;
-	}
-	
+		try{
+			String out = field.getText().trim();
+			return (out.length() == 0 ? null : out);
+		}catch( Exception e){
+			return null;
+		}
+
 	}
 
 }

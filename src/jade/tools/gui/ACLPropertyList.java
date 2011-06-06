@@ -527,7 +527,7 @@ public class ACLPropertyList extends JPanel {
      */
     void cancelButton_actionPerformed(ActionEvent e) {
       setUserAction(CANCELLED);
-      hide();
+      setVisible(false);
     }
 
 
@@ -540,7 +540,7 @@ public class ACLPropertyList extends JPanel {
       setItskey(keyTextField.getText());
       setItsvalue(valueTextField.getText());
       setUserAction(OK);
-      hide();
+      setVisible(false);
     }
 
 
