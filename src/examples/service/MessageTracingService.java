@@ -12,7 +12,9 @@ import jade.lang.acl.ACLMessage;
  * This example shows how to implement a JADE Kernel Service that provides 
  * a Filter to process OUTGOING commands. In particular in this case we 
  * intercept SEND_MESSAGE commands of the Messaging Service to log all messages 
- * exchanged by agents. 
+ * exchanged by agents.<br>
+ * In order to try it compile the JADE examples and then launch<br>
+ * java -cp jade-and-examples-classes jade.Boot -gui -services examples.service.MessageTracingService 
  */
 public class MessageTracingService extends BaseService {
 	
