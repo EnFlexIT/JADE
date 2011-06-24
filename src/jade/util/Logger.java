@@ -72,7 +72,7 @@ import javax.microedition.rms.RecordStore;
  * For instance, in order to log the warning message  "Attention!", the
  * following code should be used, independently of the target device: <br><br>
  *
- * <code>Logger logger = Logger.getMyLogger(this.getClass().getName());</code><br>
+ * <code>Logger logger = Logger.getJADELogger(this.getClass().getName());</code><br>
  * <code>if (logger.isLoggable(logger.WARNING)) </code>
  * <br> <code>logger.log(Logger.WARNING,"Attention!"); </code>
  * <p>
@@ -190,7 +190,7 @@ public class Logger
 		}
 
 		private Object readResolve() throws ObjectStreamException {
-			return getMyLogger(name);
+			return getJADELogger(name);
 		}
 	}
 	//////////////////////////////////////////////
@@ -200,7 +200,7 @@ public class Logger
 	   @param name The name of the logger.
        @return the instance of the Logger.
 	 */
-	public synchronized static Logger getMyLogger(String name) {
+	public synchronized static Logger getJADELogger(String name) {
 		java.util.logging.LogManager mng = java.util.logging.LogManager.getLogManager(); 
 		java.util.logging.Logger lg = mng.getLogger(name);
 		if (lg == null) {
@@ -252,7 +252,11 @@ public class Logger
 	}
 	//#J2ME_EXCLUDE_END
 	
-  private static PrintStream logStream = System.out;
+	public static Logger getMyLogger(String name) {
+		return getJADELogger(name);
+	}
+	
+	private static PrintStream logStream = System.out;
 
 	public static void println(String log) {
 		logStream.println(log);
@@ -301,7 +305,7 @@ public class Logger
 		private int myLevel = INFO;
 		private String myName;
 		
-		public synchronized static Logger getMyLogger(String name){
+		public synchronized static Logger getJADELogger(String name){
 			Logger l = (Logger) loggers.get(name);
 			if (l == null) {
 				StringBuffer sb = new StringBuffer(name.replace('.', '_'));
@@ -367,7 +371,7 @@ public class Logger
 		}
 			
 					
-		//  Private constructor. The getMyLogger() static method must be used 
+		//  Private constructor. The getJADELogger() static method must be used instead 
 		private Logger(String name, int level) {
 			myName = name;
 			myLevel = level;
