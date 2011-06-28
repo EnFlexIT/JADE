@@ -56,9 +56,11 @@ import jade.core.ProfileException;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.core.replication.MainReplicationHandle;
+//#J2ME_EXCLUDE_BEGIN
 import jade.core.sam.AverageMeasureProviderImpl;
 import jade.core.sam.SAMHelper;
 import jade.core.sam.CounterValueProvider;
+//#J2ME_EXCLUDE_END
 
 import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.InternalError;
@@ -107,10 +109,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	public static final String PLATFORM_IDENTIFIER = "x-sender-platform-identifer";
 	public static final String MTP_IDENTIFIER = "x-sender-mtp-identifer";
 	
+	//#J2ME_EXCLUDE_BEGIN
 	// SAM related configurations
 	public static final String DELIVERY_TIME_MEASUREMENT_RATE = "jade_core_messaging_MessagingService_deliverytimemeasurementrate";
 	public static final int DELIVERY_TIME_MEASUREMENT_RATE_DEFAULT = -1; // Delivery time measurement disabled by default. Set it to N to measure delivery time 1 out of N delivered messages
 	public static final String ENABLE_POSTED_MESSAGE_COUNT = "jade_core_messaging_MessagingService_enablepostedmessagecount";
+	//#J2ME_EXCLUDE_END
 	
 	// The profile passed to this object
 	private Profile myProfile;
@@ -164,12 +168,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	// The component managing asynchronous message delivery and retries
 	private MessageManager myMessageManager;
 	
+	//#J2ME_EXCLUDE_BEGIN
 	// SAM related variables
 	private boolean samActive;
 	private int msgCounter = 0; 
 	private int deliveryTimeMeasurementRate;
 	private AverageMeasureProviderImpl deliveryTimeMeasureProvider;
 	private long postedMessageCounter;
+	//#J2ME_EXCLUDE_END
 	
 	public static class UnknownACLEncodingException extends NotFoundException {
 		UnknownACLEncodingException(String msg) {
@@ -352,6 +358,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
 
 	private void initializeSAM() {
+		//#J2ME_EXCLUDE_BEGIN
 		try {
 			Service sam = myContainer.getServiceFinder().findService(SAMHelper.SERVICE_NAME);
 			if (sam != null) {
@@ -392,6 +399,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			// Should never happen
 			myLogger.log(Logger.WARNING, "Error accessing the local SAMService.", e);
 		}
+		//#J2ME_EXCLUDE_END
 	}
 
 	// kindly provided by David Bernstein, 15/6/2005
@@ -1002,8 +1010,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				
 			}
 			postMessage(senderID, msg.getACLMessage(), receiverID);
+			//#J2ME_EXCLUDE_BEGIN
 			postedMessageCounter++;
 			updateDeliveryTimeMeasurement(msg);
+			//#J2ME_EXCLUDE_END
 			if (msg.getTraceID() != null) {
 				myLogger.log(Logger.INFO, msg.getTraceID()+" - Message posted");
 				
@@ -1337,7 +1347,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 					GenericMessage msg = (GenericMessage)params[1];
 					AID receiverID = (AID)params[2];
 					if (params.length == 4) {
-						msg.setTimeStamp((Long) params[3]); 
+						msg.setTimeStamp(((Long) params[3]).longValue()); 
 					}
 					if (msg.getTraceID() != null) {
 						myLogger.log(Logger.INFO, "MessagingService slice received message "+MessageManager.stringify(msg)+" for receiver "+receiverID.getLocalName()+". Trace ID = "+msg.getTraceID());
@@ -1493,6 +1503,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	
 	
 	void stamp(GenericMessage gmsg) {
+		//#J2ME_EXCLUDE_BEGIN
 		if (samActive) {
 			synchronized (this) {
 				msgCounter++;
@@ -1502,9 +1513,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				}
 			}
 		}
+		//#J2ME_EXCLUDE_END
 	}
 	
 	private void updateDeliveryTimeMeasurement(GenericMessage gmsg) {
+		//#J2ME_EXCLUDE_BEGIN
 		if (samActive) {
 			long timeStamp = gmsg.getTimeStamp();
 			if (timeStamp > 0 && deliveryTimeMeasureProvider != null) {
@@ -1513,6 +1526,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				deliveryTimeMeasureProvider.addSample(deliveryTime);
 			}
 		}
+		//#J2ME_EXCLUDE_END
 	}
 	
 	

@@ -41,6 +41,7 @@
 				
 				<exclude name="**/jade/core/mobility/**"/>
 				<exclude name="**/jade/core/event/**"/>
+				<exclude name="**/jade/core/sam/**"/>
 				<exclude name="**/jade/domain/introspection/**"/>
 				<exclude name="**/jade/domain/mobility/**"/>
 				<exclude name="**/jade/domain/DFGUIManagement/**"/>

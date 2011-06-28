@@ -668,8 +668,8 @@ public class AgentMobilityService extends BaseService {
 				}
 				// If the name is already in the GADT, throws NameClashException
 				bornAgent(agentID, cid, null, ownership, false);
-				// Since bornAgent() succeeded directly apply forceReplacement on replicated Main Containers 
-				replicationHandle.invokeReplicatedMethod("bornAgent", new Object[]{agentID, cid, null, ownership, true});
+				// Since bornAgent() succeeded, directly apply forceReplacement on replicated Main Containers 
+				replicationHandle.invokeReplicatedMethod("bornAgent", new Object[]{agentID, cid, null, ownership, new Boolean(true)});
 			}
 		}
 		

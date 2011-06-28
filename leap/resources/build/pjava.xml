@@ -30,6 +30,7 @@
 		<copy todir="${src}">
 			<fileset dir="${jade-src}">
 				<include name="**/jade/**"/>
+				<exclude name="**/jade/core/sam/**"/>
 				<exclude name="**/jade/imtp/rmi/**"/>
 				<exclude name="**/jade/mtp/iiop/**"/>
 				<exclude name="**/jade/tools/**"/>
