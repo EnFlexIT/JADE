@@ -64,6 +64,7 @@ public class DFKBFactory {
 	 * @throws SQLException if the database cannot be initialized
 	 */
 	protected DBKB getDFDBKB(int maxResultLimit, String driver, String url, String user, String passwd, boolean cleanTables) throws SQLException {
+		//#ANDROID_EXCLUDE_BEGIN
 		DBKB kb = null;
 		if (url == null)
 			kb = new DFHSQLKB(maxResultLimit, cleanTables);
@@ -71,6 +72,11 @@ public class DFKBFactory {
 			kb = new DFDBKB(maxResultLimit, driver, url, user, passwd, cleanTables);
 		kb.setup();
 		return kb;
+		//#ANDROID_EXCLUDE_END
+
+		/*#ANDROID_INCLUDE_BEGIN
+		throw new SQLException("Unsupported SQL KB");
+		#ANDROID_INCLUDE_END*/
 	}
 }
 

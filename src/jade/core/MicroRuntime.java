@@ -188,6 +188,31 @@ public class MicroRuntime {
 	}
 
 	/**
+	 Start a new agent. This method starts a new agent within
+	 the active Front End container.
+
+	 @param name The local name (i.e. without the platform ID)
+	 of the agent to create.
+	 @param className The fully qualified name of the class
+	 implementing the agent to start.
+	 @param args The creation arguments for the agent.
+
+	 @throws Exception If the underlying agent creation process
+	 fails.
+	 */
+	public static void startAgent(String name, String className, Object[] args) throws Exception {
+		if (myFrontEnd != null) {
+			try {
+				myFrontEnd.createAgent(name, className, args);
+			}
+			catch (IMTPException imtpe) {
+				// This is a local call --> an IMTPxception always wrap some other exception
+				throw (Exception) imtpe.getNested();
+			}
+		}
+	}
+
+	/**
 	 Kill an agent. This method terminates an agent running
 	 within the active Front End container.
 

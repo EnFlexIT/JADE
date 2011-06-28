@@ -128,7 +128,7 @@ class SlotAccessData implements Serializable{
 		in.defaultReadObject();
 
 		try {
-			getter = declaringClass.getMethod(getterName, null);
+			getter = declaringClass.getMethod(getterName, (Class[])null);
 			setter = declaringClass.getMethod(setterName, type);
 		} catch (Exception e) {
 			// Should never happen

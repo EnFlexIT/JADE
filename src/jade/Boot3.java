@@ -116,7 +116,10 @@ public class Boot3 {
         }
 
         if (properties.getBooleanProperty(BootProfileImpl.CONF_KEY, false)) {
+            //#ANDROID_EXCLUDE_BEGIN
             new BootGUI(this);
+            //#ANDROID_EXCLUDE_END
+
             if (properties.getBooleanProperty(BootProfileImpl.DUMP_KEY, false)) {
                 listProperties(System.out);
             }

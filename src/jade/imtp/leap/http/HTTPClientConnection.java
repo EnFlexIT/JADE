@@ -41,9 +41,11 @@ import jade.imtp.leap.JICP.JICPProtocol;
 import java.io.*;
 //#MIDP_EXCLUDE_BEGIN
 import java.net.*;
+//#ANDROID_EXCLUDE_BEGIN
 //#PJAVA_EXCLUDE_BEGIN
 import javax.swing.*; // Needed to traverse an authenticated Proxy
 //#PJAVA_EXCLUDE_END
+//#ANDROID_EXCLUDE_END
 //#MIDP_EXCLUDE_END
 /*#MIDP_INCLUDE_BEGIN
 import javax.microedition.io.*;
@@ -89,6 +91,7 @@ class HTTPClientConnection extends Connection {
 					username = System.getProperty("http.username");
 					password = System.getProperty("http.password");
 					if (username == null) {
+						//#ANDROID_EXCLUDE_BEGIN
 						JTextField usrTF = new JTextField();
 						JPasswordField pwdTF = new JPasswordField();
 						Object[] message = new Object[]{"Insert username and password", usrTF, pwdTF};
@@ -97,6 +100,12 @@ class HTTPClientConnection extends Connection {
 							username = usrTF.getText();
 							password = pwdTF.getText();
 						}
+						//#ANDROID_EXCLUDE_END
+
+						/*#ANDROID_INCLUDE_BEGIN
+						username = "";
+						password = "";
+						#ANDROID_INCLUDE_END*/
 					}
 				}
 

@@ -252,6 +252,8 @@ public abstract class Profile {
 	public static final String J2SE = "j2se";
 	public static final String PJAVA = "pjava";
 	public static final String MIDP = "midp";
+	public static final String ANDROID = "android";
+
 	
 	
 	/**
