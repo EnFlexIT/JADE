@@ -25,6 +25,7 @@
 package jade.android;
 
 import jade.core.MicroRuntime;
+import jade.core.Profile;
 import jade.util.Logger;
 import jade.util.leap.Properties;
 
@@ -98,10 +99,14 @@ public class MicroRuntimeService extends Service {
 					logger.log(Logger.INFO, "Creating micro agent container");
 
 					MicroRuntime.startJADE(finalProperties, null);
-
-					finalCallback.notifySuccess(logger, null);
-
-					logger.log(Logger.INFO, "Agent container created");
+					if (MicroRuntime.isRunning()) { 
+						logger.log(Logger.INFO, "Agent container created");
+						finalCallback.notifySuccess(logger, null);
+					} else {
+						throw new Exception("Cannot connect to the platform at " + 
+								finalProperties.getProperty(Profile.MAIN_HOST) + ":" + 
+								finalProperties.getProperty(Profile.MAIN_PORT));
+					}
 				} catch (Throwable t) {
 					logger.log(Logger.INFO,
 							"Cannot create micro agent container with message: "
