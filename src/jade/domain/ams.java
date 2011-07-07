@@ -211,6 +211,22 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 		toolNotification.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
 		toolNotification.setOntology(IntrospectionOntology.NAME);
 		toolNotification.setInReplyTo("tool-subscription");
+		
+		// Register a suitable Shutdown Hook to shutdown the whole platform in case 
+		// the Main Container JVM unexpectedly exits
+		java.lang.Runtime.getRuntime().addShutdownHook(new Thread() {
+			public void run() {
+				System.out.println(">>>>>>>>> Shutdown Hook activated. AMS state = "+ams.this.getState());
+				if (ams.this.getState() != Agent.AP_DELETED) {
+					try {
+						System.out.println(">>>>>>>>> Activating platform shutdown");
+						myPlatform.shutdownPlatform(null, null);
+					} catch (Exception e) {
+						logger.log(Logger.SEVERE, "Error shutting down the platform on Main Container JVM termination", e);
+					}
+				}
+			}
+		});
 
 	}
 
