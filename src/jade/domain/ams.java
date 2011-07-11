@@ -216,13 +216,14 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 		// the Main Container JVM unexpectedly exits
 		java.lang.Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
-				System.out.println(">>>>>>>>> Shutdown Hook activated. AMS state = "+ams.this.getState());
+				logger.log(Logger.FINE, ">>>>>>>>> Shutdown Hook activated. AMS state = "+ams.this.getState());
 				if (ams.this.getState() != Agent.AP_DELETED) {
 					try {
-						System.out.println(">>>>>>>>> Activating platform shutdown");
+						logger.log(Logger.WARNING, ">>>>>>>>> Main Container JVM is terminating. Activate platform shutdown");
 						myPlatform.shutdownPlatform(null, null);
+						logger.log(Logger.WARNING, ">>>>>>>>> Platform shutdown completed");
 					} catch (Exception e) {
-						logger.log(Logger.SEVERE, "Error shutting down the platform on Main Container JVM termination", e);
+						logger.log(Logger.SEVERE, ">>>>>>>>> Platform shutdown error", e);
 					}
 				}
 			}
