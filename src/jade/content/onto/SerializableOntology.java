@@ -142,4 +142,17 @@ public class SerializableOntology extends Ontology {
 		}
 	} 
 	//#APIDOC_EXCLUDE_END
+	
+	//#J2ME_EXCLUDE_BEGIN
+	private Object writeReplace() throws ObjectStreamException {
+		return new DummySerializableOntology();
+	}
+
+	private static class DummySerializableOntology implements Serializable {
+
+		private Object readResolve() throws ObjectStreamException {
+			return SerializableOntology.getInstance();
+		}
+	}
+	//#J2ME_EXCLUDE_END
 }
