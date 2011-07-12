@@ -3,7 +3,6 @@ package test.bob.beans;
 import jade.content.Concept;
 
 public class BeanWithArrays implements Concept {
-
 	private boolean[] booleans;
 	private ClassOne[] classOnes;
 
