@@ -1,3 +1,117 @@
+MAJOR CHANGES in JADE 4.1 (13 07 2011)
+==========================================================================
+GENERAL IMPROVEMENTS:
+Kernel
+- Added support for Aliases
+- Added support for listening about ALIAS creation/removal
+- Added support for measuring message delivery information as well as application specific information by means of the System Activity Monitoring (SAM) Service
+- Implemented the ResourceManagementService to retrieve resource from other containers
+- Added support for replicating service method invokations by means of the MainReplicationService
+- Added conversation-id (if not specified) in protocols performed by means of the FIPAService.doFipaRequestClient() method
+- Added support for detecting real sender when an agent sends a message specifying a different sender.
+- Added support for listening to Front-End relevant events by means of the FEListener interface and the addListener() method of the MicroRuntime class
+- Added method dump() in MainReplicationService to enable runtime inspection via ContainerMonitorAgent (see misc Add-On)
+- Improved error message when a mandatory kernel service fails at startup time
+- Added/made public/refactored methods isMain(), isMasterMain() and isBackupMain() in Profile class.
+- Modified ContainerID constructor to initialize address and protocol consistently. This solves a bug in LEAP serialization that created problems in Agent Mobility as reported by matias sm.
+- Added shutdown hook to make the platform shut down if the Main Container JVM unexpectedly exits
+
+Behaviours & Interaction Protocols
+- Added method newIteration() to the ContractNetInitiator class to implement Iterated-Contract-Net
+- Prevented potential deadlock in callback method onSuspended() of threaded behaviours
+- Added method getTerminatedChildren() in ParallelBehaviour to retrieve children that have already completed
+- Parameter management methods of LoaderBehaviour made protected to support customizations.
+- Added method handleMessage(...) in OntologyServer to override standard message handling
+- Added fixed-period mode in TickerBehaviour
+- Properly implemented reset() method of SequentialBehaviour class
+
+Content Language and Ontologies
+- BeanOntology: Added support for forcing the management of the value of a slot as a Serializable object by means of the manageAsSerializable attribute of the @Slot annotation
+- Modified SLCodec to work with an ad-hoc dialect of the SL language that preserves Java types (int, long, float, double...) when the SL-preserve-java-types System property is set to true.
+- Added support for specifying a mandatory aggregate slot with min-cardinality = 0
+- Added support for using an ad hoc ClassLoader in SerializationOntology 
+- Modified AbsHelper.setAttribute() method to permit null values
+- Added isAbsTemplate(), addPrefix(), removePrefix(), applyDefaultValues() methods to AbsHelper class
+- Added AbsExtendedPrimitive: an extended abstract descriptor that can hold values of generic primitive types 
+
+In-process interface
+- Added overloaded method getAgent(String name, boolean isGuid) in ContainerController class to allow retrieving agents whose names are not in the form <local-name>@<platform-name>
+- Modified DynamicJadeGateway so that if the init() method is not called the gateway starts with the default configuration
+- Modified DynamicJadeGateway.init() method so that, if agentClassName is null, the default GatewayAgent one is used
+
+Others
+- HTTP MTP: Connection timeout made configurable. FIX by Libor Svehlak [Siemens]
+- Added method getJADELogger() in Logger class to replace old getMyLogger() method 
+
+
+BUG-FIXES:
+- Fixed bug in SSIteratedContractNetResponder (indicated by Henrique Lopes Cardoso): the first CFP message was passed to the handleCfp() method at each iteration
+- Fixed bug in ObjectSchemaImpl.isAssignableFrom()
+- Fixed bug in isLocalHost() method by Felix Krull. Previous version failed in case you set local-host in the container config to a local address which is not the address delivered by InetAddress.getLocalHost().getHostName(), but the address of another local interface.
+- Fixed bug in NotificationService and Sniffer tool when an agent sended a messages specifying a different sender
+- Fixed bug on visualization of properties and AIDs of pending and received ACLMessages shown by the IntrospectorAgent (Indication by Cuong P. Nguyen). 
+- Fixed bug in Main Replication mechanism when the local-host option was specified (bug reported by Tom Pannell)
+- Fix in FE-to-BE SSL communication to prevent recursion when the SSLEngine is in closed state (by Eduard Drenth)
+- Fixed bug in handleGatewayDisconnected of DynamicJadeGateway when gateway container dies.
+- Fixed bug in AgentMobilityService - Deserializer: Added management of primitive java type (used if the moved agent declares a field of type Class with value a primitive type)
+- Fixed bug in BeanOntology related to externalization of aggregates containing a null element
+- Fixed bug in SimpleSLCodec to properly handle cases of String whose value is "(..." or ")...". Bug reported by Kostas (geniko09).
+- Fixed bug in Logger deserialization: reconstructed Logger was not linked to the logging system
+- Fixed bug: When moving/cloning agents replicated main containers where not properly kept in synch. Bug reported by Jamie Forth (Goldsmiths, University of London) 
+
+JADE-LEAP
+- Jade Android restructured and revisited as a JADE-LEAP Target
+
+JADE-OSGi: 
+- Added support for split container.
+
+ADD-ONS:
+- Misc Add-On:
+  - Added extensible JADE Administration Command Line Interface (package jade.cli) 
+  - Added support for invoking Behaviour.dump() method when present in Agent DUMP
+
+- Web Service Dynamic Client - WSDC Add-On:
+  - Added support for invoking WebServices using the WS-Addressing specification
+  - Added timeout when discovering Web Services
+  - Fixed bug in WebService invocation with IN/OUT headers
+  - Fixed bug in fault management with SOAP 1.2
+  - Added support for wsdl tag <Any/>
+
+- Web Service Integration Gateway (WSIG)
+  - Modified to properly handle Java enum types
+  - Added support for using the @Slot annotation in mapper method parameters too
+  - modified to properly manage array/collection in mapper method parameters
+  - Modified default optionality value in mapper methods parameters: primitive class -> MANDATORY; non primitive class -> OPTIONAL
+  - WSIG specific annotation packaged in a separated jar
+  - Added support for adapting action results by means of the @ResultConverter annotation
+  - Modified WSIG Servlet to listen to gateway notifications and react properly
+  - Modified wsdl generation to properly handle minOccur in aggregate slot
+  - Fixed bug in soap response with null slot
+  - Removed limitation related to aggregates with the same type/dimensions
+
+- Test Suite Add-On:
+  - Codec and Ontology properly registered in stand-alone execution mode too. Indicated by Leonardo C. Fraga
+  - Caught and traced JADE startup exceptions caused by JAVA_HOME environment variable syntax problems
+
+
+EXAMPLES:
+- New example on OntologyServer usage
+- New example on alias declaration
+- New example on JadeGateway usage
+- New example on JADE Kernel Service development
+
+
+DOCUMENTATION:
+- Updated LEAP User Guide
+- Updated WSIG Guide
+
+
+POSSIBLE BACKWARD INCOMPATIBILITIES:
+We do not expect any backward compatibility with respect to the previous JADE version   
+
+
+
+
 MAJOR CHANGES in JADE 4.0 (20 04 2010)
 ==========================================================================
 GENERAL IMPROVEMENTS:
