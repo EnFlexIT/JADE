@@ -34,6 +34,9 @@ import android.content.Intent;
 import android.os.IBinder;
 
 /**
+ * Implements the managing of a JADE platform within the <code>Service</code>
+ * component of the Android system achitecture.
+ * 
  * @author Federico Bergenti - Universita' di Parma
  */
 public class MicroRuntimeService extends Service {
@@ -44,16 +47,38 @@ public class MicroRuntimeService extends Service {
 
 	private String agentName;
 
+	/**
+	 * Called by the system when the service is first created. Do not call this
+	 * method directly.
+	 */
 	@Override
 	public void onCreate() {
 		logger.log(Logger.INFO, "JADE micro runtime service created");
 	}
 
+	/**
+	 * Called by the system to notify a Service that it is no longer used and is
+	 * being removed.
+	 */
 	@Override
 	public void onDestroy() {
 		logger.log(Logger.INFO, "JADE micro runtime service destroyed");
 	}
 
+	/**
+	 * Called by the system every time a client explicitly starts the service by
+	 * calling <code>startService(Intent)</code>. <b>Unsupported.</b>
+	 * 
+	 * @param intent
+	 *            The Intent supplied to <code>startService(Intent)</code>, as
+	 *            given.
+	 * @param flags
+	 *            Additional data about this start request.
+	 * @param startId
+	 *            A unique integer representing this specific request to start.
+	 * @return The return value indicates what semantics the system should use
+	 *         for the service's current started state.
+	 */
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		logger.log(Logger.SEVERE,
@@ -62,6 +87,15 @@ public class MicroRuntimeService extends Service {
 		throw new UnsupportedOperationException();
 	}
 
+	/**
+	 * Return the communication channel to the service.
+	 * 
+	 * @param intent
+	 *            The Intent that was used to bind to this service, as given to
+	 *            <code>Context.bindService</code>. <b>Unsupported.</b>
+	 * @return Return an <code>IBinder</code> through which clients can call on
+	 *         to the service.
+	 */
 	@Override
 	public IBinder onBind(Intent intent) {
 		logger.log(Logger.INFO, "JADE micro runtime service bound");
@@ -69,6 +103,16 @@ public class MicroRuntimeService extends Service {
 		return binder;
 	}
 
+	/**
+	 * Called when all clients have disconnected from a particular interface
+	 * published by the service. The default implementation does nothing and
+	 * returns false.
+	 * 
+	 * @param intent
+	 *            The Intent that was used to bind to this service, as given to
+	 *            <code>Context.bindService</code>. <b>Unsupported.</b>
+	 * @return Return always false
+	 */
 	@Override
 	public boolean onUnbind(Intent intent) {
 		logger.log(Logger.INFO, "JADE micro runtime service unbound");
@@ -76,6 +120,18 @@ public class MicroRuntimeService extends Service {
 		return false;
 	}
 
+	/**
+	 * Creates a new agent container in the current JVM, connected to a main
+	 * platform.
+	 * 
+	 * @param host
+	 *            hostname of the server that running the main container
+	 * @param port
+	 *            port on which the main container is listening
+	 * @param callback
+	 *            a <code>RuntimeCallback<Void></code> object that manages the
+	 *            outcome of the operation
+	 */
 	public void startAgentContainer(String host, int port,
 			RuntimeCallback<Void> callback) {
 		Properties properties = RuntimeHelper.createProfileProperties(host,
@@ -84,6 +140,17 @@ public class MicroRuntimeService extends Service {
 		startAgentContainer(properties, callback);
 	}
 
+	/**
+	 * Start up the JADE runtim creating a new micro agent container in the
+	 * current JVM, according to the parameters provided
+	 * 
+	 * @param properties
+	 *            A property bag, containing name-value pairs used to configure
+	 *            the container during boot
+	 * @param callback
+	 *            a <code>RuntimeCallback<Void></code> object that manages the
+	 *            outcome of the operation
+	 */
 	public void startAgentContainer(Properties properties,
 			RuntimeCallback<Void> callback) {
 		final Properties finalProperties = properties;
@@ -99,13 +166,17 @@ public class MicroRuntimeService extends Service {
 					logger.log(Logger.INFO, "Creating micro agent container");
 
 					MicroRuntime.startJADE(finalProperties, null);
-					if (MicroRuntime.isRunning()) { 
+					if (MicroRuntime.isRunning()) {
 						logger.log(Logger.INFO, "Agent container created");
 						finalCallback.notifySuccess(logger, null);
 					} else {
-						throw new Exception("Cannot connect to the platform at " + 
-								finalProperties.getProperty(Profile.MAIN_HOST) + ":" + 
-								finalProperties.getProperty(Profile.MAIN_PORT));
+						throw new Exception(
+								"Cannot connect to the platform at "
+										+ finalProperties
+												.getProperty(Profile.MAIN_HOST)
+										+ ":"
+										+ finalProperties
+												.getProperty(Profile.MAIN_PORT));
 					}
 				} catch (Throwable t) {
 					logger.log(Logger.INFO,
@@ -118,6 +189,14 @@ public class MicroRuntimeService extends Service {
 		}.start();
 	}
 
+	/**
+	 * Shut down the JADE runtime. This method stops the JADE Front End
+	 * container currently running in this JVM, if one such container exists.
+	 * 
+	 * @param callback
+	 *            a <code>RuntimeCallback<Void></code> object that manages the
+	 *            outcome of the operation
+	 */
 	public void stopAgentContainer(RuntimeCallback<Void> callback) {
 		final RuntimeCallback<Void> finalCallback = callback;
 
@@ -143,6 +222,22 @@ public class MicroRuntimeService extends Service {
 		}.start();
 	}
 
+	/**
+	 * Start a new agent. This method starts a new agent within the active Front
+	 * End container.
+	 * 
+	 * @param nickname
+	 *            The local name (i.e. without the platform ID) of the agent to
+	 *            create
+	 * @param className
+	 *            The fully qualified name of the class implementing the agent
+	 *            to start
+	 * @param args
+	 *            The creation arguments for the agent.
+	 * @param callback
+	 *            a <code>RuntimeCallback<Void></code> object that manages the
+	 *            outcome of the operation
+	 */
 	public void startAgent(String nickname, String className, Object[] args,
 			RuntimeCallback<Void> callback) {
 		final RuntimeCallback<Void> finalCallback = callback;
@@ -177,6 +272,14 @@ public class MicroRuntimeService extends Service {
 		}.start();
 	}
 
+	/**
+	 * Kill an agent. This method terminates an agent running within the active
+	 * Front End container.
+	 * 
+	 * @param callback
+	 *            a <code>RuntimeCallback<Void></code> object that manages the
+	 *            outcome of the operation
+	 */
 	public void killAgent(RuntimeCallback<Void> callback) {
 		final RuntimeCallback<Void> finalCallback = callback;
 
