@@ -114,8 +114,8 @@
 
 	<!-- LIB -->
 	<target name="do-lib" depends="do-compile" description="Create Jade-Android jar file">
-		<delete file="${android-root}/JadeAndroid.jar" quiet="true"/>
-		<jar jarfile="${android-root}/JadeAndroid.jar" basedir="${bin}"/>
+		<delete file="${android-root}/lib/JadeAndroid.jar" quiet="true"/>
+		<jar jarfile="${android-root}/lib/JadeAndroid.jar" basedir="${bin}"/>
 	</target>
 
 	

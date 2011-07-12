@@ -348,6 +348,7 @@
 			<include name="leap/resources/**"/>
 			<include name="leap/src/**"/>
 			<include name="leap/dotnet/**"/>
+			<include name="leap/android/**"/>
 			<include name="doc/tutorials/LEAPUserGuide.pdf"/>
 		</jar>
 		
@@ -370,6 +371,14 @@
 			</fileset>
 		</copy>
 		<jar jarfile="${dist}/JadeLeapMidp-${version}.zip" basedir="${jade-home}/leap/midp/lib"/>
+
+		<copy todir="android/lib" overwrite="yes">
+			<fileset dir="${jade-home}">
+				<include name="COPYING"/>
+				<include name="License"/>
+			</fileset>
+		</copy>
+		<jar jarfile="${dist}/JadeLeapAndroid-${version}.zip" basedir="${jade-home}/leap/android/lib"/>
 	</target>
 
 
