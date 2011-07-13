@@ -332,8 +332,8 @@
 		<copy file="LEAPUserGuide.pdf" todir="${jade-home}/doc/tutorials"/>
 
 
-		<delete file="${dist}/LeapAddon-${version}.zip" quiet="true"/>
-		<jar jarfile="${dist}/LeapAddon-${version}.zip" basedir="${jade-home}">
+		<delete file="${dist}/LeapAddOn-${version}.zip" quiet="true"/>
+		<jar jarfile="${dist}/LeapAddOn-${version}.zip" basedir="${jade-home}">
 			<include name="leap/License"/>
 			<include name="leap/COPYING"/>
 			<include name="leap/README.txt"/>
