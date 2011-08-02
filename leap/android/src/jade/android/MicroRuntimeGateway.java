@@ -140,7 +140,50 @@ public class MicroRuntimeGateway {
 
 		e.waitUntilProcessed(timeout);
 	}
+
+	public final void execute(Object command, final RuntimeCallback<Void> callback) {
+		execute(command, 0, callback);
+	}
 	
+	public final void execute(Object command, long timeout, final RuntimeCallback<Void> callback) {
+		final Event e = new Event(-1, command);
+
+		final long finalTimeout = timeout;
+		
+		final Object finalCommand = command;
+		
+		new Thread() {
+			@Override
+			public void run() {
+				try {
+					synchronized (MicroRuntimeGateway.this) {
+						checkJADE();
+
+						AgentController agentController = MicroRuntime.getAgent(agentName);
+						
+						try {
+							logger.log(Logger.INFO, "Requesting execution of command " + finalCommand);
+						
+							agentController.putO2AObject(e, AgentController.ASYNC);
+						} catch (StaleProxyException exc) {
+							exc.printStackTrace();
+
+							restartJADE();
+
+							agentController.putO2AObject(e, AgentController.ASYNC);
+						}
+					}
+
+					e.waitUntilProcessed(finalTimeout);
+
+					callback.onSuccess(null);
+				} catch (Throwable throwable) {
+					callback.onFailure(throwable);
+				}
+			}
+		}.start();
+	}
+
 	public void connect() {
 		logger.log(Level.INFO, "Creating service");
 
