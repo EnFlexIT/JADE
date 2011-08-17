@@ -32,6 +32,7 @@ import jade.util.leap.Properties;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import android.util.Log;
 
 /**
  * Implements the managing of a JADE platform within the <code>Service</code>
@@ -63,6 +64,8 @@ public class MicroRuntimeService extends Service {
 	@Override
 	public void onDestroy() {
 		logger.log(Logger.INFO, "JADE micro runtime service destroyed");
+		if(MicroRuntime.isRunning())
+			MicroRuntime.stopJADE();
 	}
 
 	/**
@@ -85,6 +88,8 @@ public class MicroRuntimeService extends Service {
 				"JADE micro runtime service can only be used locally");
 
 		throw new UnsupportedOperationException();
+		//return Service.START_STICKY;
+		
 	}
 
 	/**
@@ -151,8 +156,7 @@ public class MicroRuntimeService extends Service {
 	 *            a <code>RuntimeCallback<Void></code> object that manages the
 	 *            outcome of the operation
 	 */
-	public void startAgentContainer(Properties properties,
-			RuntimeCallback<Void> callback) {
+	public void startAgentContainer(Properties properties, RuntimeCallback<Void> callback) {
 		final Properties finalProperties = properties;
 
 		final RuntimeCallback<Void> finalCallback = callback;
