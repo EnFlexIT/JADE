@@ -37,13 +37,11 @@ public class MicroRuntimeServiceBinder extends Binder {
 		this.microRuntimeService = microRuntimeService;
 	}
 
-	public void startAgentContainer(String host, int port,
-			RuntimeCallback<Void> callback) {
+	public void startAgentContainer(String host, int port, RuntimeCallback<Void> callback) {
 		microRuntimeService.startAgentContainer(host, port, callback);
 	}
 
-	public void startAgentContainer(Properties properties,
-			RuntimeCallback<Void> callback) {
+	public void startAgentContainer(Properties properties, RuntimeCallback<Void> callback) {
 		microRuntimeService.startAgentContainer(properties, callback);
 	}
 
@@ -51,8 +49,7 @@ public class MicroRuntimeServiceBinder extends Binder {
 		microRuntimeService.stopAgentContainer(callback);
 	}
 
-	public void startAgent(String nickname, String className, Object[] args,
-			RuntimeCallback<Void> callback) {
+	public void startAgent(String nickname, String className, Object[] args, RuntimeCallback<Void> callback) {
 		microRuntimeService.startAgent(nickname, className, args, callback);
 	}
 }
