@@ -24,11 +24,6 @@ public class TestSSIteratedContractNetResponder extends Test {
 	public Behaviour load(Agent a) throws TestException {
 		final int totIterations = 3;
 		
-		// Create the agent acting as initiator
-		log("--- Creating Initiator Agent");
-		initiatorAgent = TestUtility.createAgent(a, "initiator", getClass().getName()+"$Initiator", new Object[]{totIterations, a.getAID()});
-		log("--- Initiator agent successfully created");
-		
 		// Create the behaviour implementing the test
 		final ParallelBehaviour pb = new ParallelBehaviour(a, ParallelBehaviour.WHEN_ANY) {
 			public int onEnd() {
@@ -42,6 +37,23 @@ public class TestSSIteratedContractNetResponder extends Test {
 		// Add the child listening for the initiation massage.
 		// This will add the SSIteratedContractNetResponder as second child
 		pb.addSubBehaviour(new SSResponderDispatcher(a, MessageTemplate.MatchPerformative(ACLMessage.CFP)) {
+			public void onStart() {
+				super.onStart();
+				// Create the agent acting as initiator
+				// NOTE: Since the Initiator agent immediately sends the initiation message,
+				// we cannot create it in the Test initialization phase, otherwise the TestGroupExecutor
+				// would steal the initiation message.
+				log("--- Creating Initiator Agent");
+				try {
+					initiatorAgent = TestUtility.createAgent(myAgent, "initiator", TestSSIteratedContractNetResponder.this.getClass().getName()+"$Initiator", new Object[]{totIterations, myAgent.getAID()});
+					log("--- Initiator agent successfully created");
+				}
+				catch (TestException te) {
+					te.printStackTrace();
+					failed("--- Error creating initiator agent. "+te);
+				}
+			}
+			
 			@Override
 			public Behaviour createResponder(ACLMessage initiation) {
 				log("--- Initiation CFP received");
