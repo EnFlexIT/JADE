@@ -533,7 +533,7 @@ public class Agent implements Runnable, Serializable
 		suspendLock = new Object();
 		temporaryMessageQueue = true;
 		//#MIDP_EXCLUDE_END
-		msgQueue = new InternalMessageQueue(msgQueueMaxSize);
+		msgQueue = new InternalMessageQueue(msgQueueMaxSize, this);
 		stateLock = new Object(); 
 		pendingTimers = new AssociationTB();
 		myActiveLifeCycle = new ActiveLifeCycle();
@@ -1761,7 +1761,7 @@ public class Agent implements Runnable, Serializable
 		o2aLocks = new HashMap();
 		myToolkit = DummyToolkit.instance();
 		temporaryMessageQueue = true;
-		msgQueue = new InternalMessageQueue(msgQueueMaxSize);
+		msgQueue = new InternalMessageQueue(msgQueueMaxSize, this);
 
 		//#PJAVA_EXCLUDE_BEGIN
 		//For persistence service

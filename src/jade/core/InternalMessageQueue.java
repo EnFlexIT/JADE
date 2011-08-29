@@ -23,6 +23,7 @@
 
 package jade.core;
 
+import jade.util.Logger;
 import jade.util.leap.Iterator;
 import jade.util.leap.EnumIterator;
 import jade.util.leap.List;
@@ -48,9 +49,12 @@ class InternalMessageQueue implements MessageQueue {
 	 #MIDP_INCLUDE_END*/
 
 	private int maxSize;
+	private Agent myAgent;
+	private Logger myLogger = Logger.getJADELogger(getClass().getName());
 
-	public InternalMessageQueue(int size) {
+	public InternalMessageQueue(int size, Agent a) {
 		maxSize = size;
+		myAgent = a;
 		//#MIDP_EXCLUDE_BEGIN
 		list = new LinkedList();
 		//#MIDP_EXCLUDE_END
@@ -60,7 +64,7 @@ class InternalMessageQueue implements MessageQueue {
 	}
 
 	public InternalMessageQueue() {
-		this(0);
+		this(0, null);
 	}
 
 	public boolean isEmpty() {
@@ -103,7 +107,7 @@ class InternalMessageQueue implements MessageQueue {
 		if((maxSize != 0) && (list.size() >= maxSize)){
 			//#MIDP_EXCLUDE_BEGIN
 			list.removeFirst(); // FIFO replacement policy
-			System.err.println("WARNING: a message has been lost by an agent because of the FIFO replacement policy of its message queue.\n Notice that, under some circumstances, this might not be the proper expected behaviour and the size of the queue needs to be increased. Check the method Agent.setQueueSize()");
+			myLogger.log(Logger.SEVERE, "Agent "+getAgentName()+" - Message queue size exceeded. Message discarded!!!!!");
 		}
 		list.addLast(msg);
 		//#MIDP_EXCLUDE_END
@@ -114,6 +118,10 @@ class InternalMessageQueue implements MessageQueue {
 		 #MIDP_INCLUDE_END*/
 	}
 
+	private String getAgentName() {
+		return myAgent != null ? myAgent.getLocalName() : "null";
+	}
+	
 	public ACLMessage receive(MessageTemplate pattern) {
 		ACLMessage result = null;
 		// This is just for the MIDP implementation where iterator.remove() is not supported. 
