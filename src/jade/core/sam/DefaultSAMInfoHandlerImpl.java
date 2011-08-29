@@ -42,7 +42,7 @@ class DefaultSAMInfoHandlerImpl implements SAMInfoHandler {
 	// For counters we need to keep the total value together with the Stream used to write the CSV file
 	private Map<String, CounterInfo> counters = new HashMap<String, CounterInfo>();
 	
-	private SimpleDateFormat timeStampFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+	private SimpleDateFormat timeStampFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 	private String csvSeparator = "| ";
 	
 	private File samInfoDirectory;
@@ -96,8 +96,9 @@ class DefaultSAMInfoHandlerImpl implements SAMInfoHandler {
 				stream.println(timeStampFormatter.format(timeStamp)+csvSeparator+m.getValue()+csvSeparator+m.getNSamples());
 			}
 			catch (Exception e) {
-				// FIXME: Print a suitable log
-				e.printStackTrace();
+				myLogger.log(Logger.WARNING, "Error writing to CSV file of entity "+entityName, e);
+				// Likely someone removed the CSV file in the meanwhile. Reset everything so that at next round the file will be re-created  
+				entityFiles.remove(entityName);
 			}
 		}
 		
@@ -121,8 +122,9 @@ class DefaultSAMInfoHandlerImpl implements SAMInfoHandler {
 				ci.stream.println(timeStampFormatter.format(timeStamp)+csvSeparator+value+csvSeparator+ci.totValue);
 			}
 			catch (Exception e) {
-				// FIXME: Print a suitable log
-				e.printStackTrace();
+				myLogger.log(Logger.WARNING, "Error writing to CSV file of counter "+counterName, e);
+				// Likely someone removed the CSV file in the meanwhile. Reset everything so that at next round the file will be re-created  
+				counters.remove(counterName);
 			}
 		}
 	}
