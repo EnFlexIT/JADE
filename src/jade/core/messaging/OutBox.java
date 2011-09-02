@@ -25,26 +25,26 @@ class OutBox {
 	private int size = 0;
 	private int maxSize; 
 	private boolean overMaxSize = false;
-	
+
 	// The massages to be delivered organized as an hashtable that maps
 	// a receiver AID into the Box of messages to be delivered to that receiver
 	private final Map messagesByReceiver = new HashMap(); 
 	// The messages to be delivered organized as a round list of the Boxes of
 	// messages for the currently addressed receivers 
 	private final RoundList messagesByOrder = new RoundList();
-		
+
 	// For debugging purposes 
 	private long submittedCnt = 0;
 	private long servedCnt = 0;
 
 	private Logger myLogger;
-	
+
 	OutBox(int s) {
 		maxSize = s;
 		myLogger = Logger.getMyLogger(getClass().getName());
 	}
-	
-	
+
+
 	/**
 	 * Add a message to the tail of the Box of messages for the indicated 
 	 * receiver. If a Box for the indicated receiver is not yet present, a 
@@ -62,10 +62,10 @@ class OutBox {
 				acl.setContent(null);
 			}
 		}
-		
+
 		// This must fall outside the synchronized block because the method calls Thread.sleep
 		increaseSize(msg.length());
-		
+
 		synchronized (this) {
 			Box b = (Box) messagesByReceiver.get(receiverID);
 			if (logActivated) {
@@ -98,7 +98,7 @@ class OutBox {
 	 * retransmission timer expires. Therefore a Box of messages for the
 	 * indicated receiver must already exist. Moreover the busy flag of 
 	 * this Box must be reset to allow deliverers to handle messages in it
-   *
+	 *
 	synchronized void addFirst(PendingMsg pm){
 		Box b = (Box) messagesByReceiver.get(pm.getReceiver());
 		b.addFirst(pm);
@@ -106,7 +106,7 @@ class OutBox {
 		// Wakes up all deliverers
 		notifyAll();
 	}*/
-	
+
 
 
 	/**
@@ -131,19 +131,19 @@ class OutBox {
 				// Just do nothing
 			}
 		}
-	 	PendingMsg pm = b.removeFirst();
-	 	decreaseSize(pm.getMessage().length());
-	 	return pm;
+		PendingMsg pm = b.removeFirst();
+		decreaseSize(pm.getMessage().length());
+		return pm;
 	}
-	
-	
+
+
 
 	/**
 	 * Get the Box of messages for the first idle (i.e. not busy) receiver.
 	 * @return null if all receivers are currently busy
 	 * This method does not need to be synchronized as it is only executed
 	 * inside a synchronized block.
-   */
+	 */
 	private final Box getNextIdle(){
 		for (int i = 0; i < messagesByOrder.size(); ++i) {
 			Box b = (Box) messagesByOrder.get();
@@ -156,12 +156,12 @@ class OutBox {
 		}
 		return null;	
 	}
-	
+
 	/**
 	 * A message for the receiver receiverID has been served
 	 * If the Box of messages for that receiver is now empty --> remove it.
 	 * Otherwise just mark it as idel (not busy).
-   */
+	 */
 	synchronized final void handleServed( AID receiverID ){
 		servedCnt++;
 		boolean logActivated = myLogger.isLoggable(Logger.FINER);
@@ -195,13 +195,13 @@ class OutBox {
 				sleepTime = (1 + ((size - maxSize) / 1000000)) * 100;
 			}
 		}
-			if (sleepTime > 0) {
-				try { // delay a bit this Thread because the queue is becoming too big
-					Thread.sleep(sleepTime);
-				}
-				catch (InterruptedException ie) {}
+		if (sleepTime > 0) {
+			try { // delay a bit this Thread because the queue is becoming too big
+				Thread.sleep(sleepTime);
 			}
+			catch (InterruptedException ie) {}
 		}
+	}
 
 	/**
 	 * The method decreases the value of size and, eventually,
@@ -222,23 +222,23 @@ class OutBox {
 			}
 		}
 	}
-	
+
 	/**
 	 * This class represents a Box of messages to be delivered to 
 	 * a single receiver
 	 */
 	private class Box {
-	    private final AID receiver;
-	    private boolean busy;
-	    private String owner;
-	    private final List messages;
-		
+		private final AID receiver;
+		private boolean busy;
+		private String owner;
+		private final List messages;
+
 		public Box(AID r) {
 			receiver = r;
 			busy = false;
 			messages = new LinkedList(); 
 		}
-		
+
 		private AID getReceiver() {
 			return receiver;
 		}
@@ -249,30 +249,30 @@ class OutBox {
 			owner = (busy ? Thread.currentThread().getName() : null);
 			//#J2ME_EXCLUDE_END
 		}
-		
+
 		private boolean isBusy(){
 			return busy;
 		}
-		
+
 		private void addLast(PendingMsg pm) {
 			messages.add(pm);
 		}
-		
+
 		private PendingMsg removeFirst() {
 			return (PendingMsg) messages.remove(0);
 		}
-		
+
 		private boolean isEmpty() {
 			return messages.isEmpty();
 		}	
-		
+
 		// For debugging purpose
 		public String toString() {
 			return "("+receiver.getName()+" :busy "+busy+ (owner != null ? " :owner "+owner : "") + " :message-cnt "+messages.size()+")";
 		}
 	} // END of inner class Box
-	
-	
+
+
 	// For debugging purpose
 	synchronized String[] getStatus() {
 		Object[] boxes = messagesByOrder.toArray();
@@ -282,16 +282,16 @@ class OutBox {
 		}
 		return status;
 	}	
-	
+
 	// For debugging purpose 
 	int getSize() {
 		return size;
 	}
-	
+
 	long getSubmittedCnt() {
 		return submittedCnt;
 	}
-	
+
 	long getServedCnt() {
 		return servedCnt;
 	}
