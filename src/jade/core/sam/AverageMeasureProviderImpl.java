@@ -33,7 +33,8 @@ import java.util.List;
  */
 public class AverageMeasureProviderImpl implements AverageMeasureProvider {
 
-	private List<Double> samples = new ArrayList<Double>();
+	private double sum = 0.0;
+	private int nSamples = 0;
 	
 	public synchronized void addSample(Number value) {
 		if (value != null) {
@@ -42,34 +43,31 @@ public class AverageMeasureProviderImpl implements AverageMeasureProvider {
 	}
 	
 	public synchronized void addSample(int value) {
-		samples.add((double) value);
+		nSamples++;
+		sum += value;
 	}
 	
 	public synchronized void addSample(long value) {
-		samples.add((double) value);
+		nSamples++;
+		sum += value;
 	}
 	
 	public synchronized void addSample(float value) {
-		samples.add((double) value);
+		nSamples++;
+		sum += value;
 	}
 	
 	public synchronized void addSample(double value) {
-		samples.add(value);
+		nSamples++;
+		sum += value;
 	}
 	
 	public synchronized AverageMeasure getValue() {
-		int nSamples = samples.size();
-		double value = 0;
-		if (nSamples > 0) {
-			for (double d : samples) {
-				value += d;
-			}
-			value = value / nSamples;
-			
-			// FIXME: compute variance
-		}
-		samples.clear();
-		return new AverageMeasure(value, nSamples);
+		double avg = (nSamples != 0 ? sum / nSamples : 0);
+		AverageMeasure result = new AverageMeasure(avg, nSamples);
+		nSamples = 0;
+		sum = 0.0;
+		return result;
 	}
 
 }

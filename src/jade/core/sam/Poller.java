@@ -89,13 +89,17 @@ class Poller extends Thread {
 			for (int i = 0; i < slices.length; i++) {
 				SAMSlice s = (SAMSlice) slices[i];
 				try {
+					startWatchDog();
 					SAMInfo sliceInfo = s.getSAMInfo();
 					globalInfo.update(sliceInfo);
 					myLogger.log(Logger.FINER, "SAM information successfully retrieved from node "+s.getNode().getName());
 				}
-				catch (IMTPException imtpe) {
+				catch (Exception imtpe) {
 					// Note that getAllSlices() always retrieves "fresh" slices --> no need for any retry
 					myLogger.log(Logger.WARNING, "Error retrieving SAM information from node "+s.getNode().getName(), imtpe);
+				}
+				finally {
+					stopWatchDog();
 				}
 			}
 			
@@ -111,5 +115,12 @@ class Poller extends Thread {
 		}
 	}
 	
+	private void startWatchDog() {
+		// FIXME: To be implemented
+	}
+
+	private void stopWatchDog() {
+		// FIXME: To be implemented
+	}
 	
 }
