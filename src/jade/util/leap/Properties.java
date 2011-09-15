@@ -87,6 +87,24 @@ public class Properties extends Hashtable {
     public Properties() {
     }
 
+    //#MIDP_EXCLUDE_BEGIN
+    public static Properties toLeapProperties(java.util.Properties pp) {
+    	if (pp instanceof Properties) {
+    		return (Properties) pp;
+    	}
+    	else {
+    		Properties leapPP = new Properties();
+    	    Enumeration names = pp.propertyNames();
+
+    	    while (names.hasMoreElements()) {
+    	      String key = (String) names.nextElement();
+    	      String value = pp.getProperty(key);
+    	      leapPP.setProperty(key, value);
+    	    }
+    	    return leapPP;
+    	}
+    }
+    //#MIDP_EXCLUDE_END
 
   /**
      Load a set of key-value pairs from a given storage element.

@@ -233,7 +233,7 @@ public class LinkedList implements List, Serializable {
      */
     public Object next() throws RuntimeException {
       if (expectedModCount != modCount) {
-        throw new RuntimeException("a concurrent modification has been occurred.");
+        throw new RuntimeException("Concurrent modification");
       } 
 
       return hiddenList.elementAt(index++);
