@@ -309,7 +309,7 @@
 
 
 	<!-- ******** The DEMO ********* -->
-	<target name="demo" depends="init, demo-j2se, demo-pjava, demo-midp" description="Build the demo using the appropriate {environment}.xml file"/>
+	<target name="demo" depends="init, demo-j2se, demo-pjava, demo-midp, demo-android" description="Build the demo using the appropriate {environment}.xml file"/>
 	<target name="demo-j2se" if="j2se">
 		<ant antfile="${buildfiles}/j2se.xml" target="do-demo" dir="."/>
 	</target>	
@@ -318,6 +318,9 @@
 	</target>
 	<target name="demo-midp" if="midp">
 		<ant antfile="${buildfiles}/midp.xml" target="do-demo" dir="."/>
+	</target>
+	<target name="demo-android" if="android">
+		<ant antfile="${buildfiles}/android.xml" target="do-demo" dir="."/>
 	</target>
 
 
