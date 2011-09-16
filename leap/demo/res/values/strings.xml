@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World!</string>
+    
+    <string name="app_name">Jade Chat</string>
+    <string name="app_title_main">Jade Chat</string>
+    <string name="app_title_settings">Jade Chat Settings</string>    
+    <string name="app_title_chat">Jade Chat Chat</string>    
+    <string name="app_title_partecipants">Jade Chat Partecipants</string>    
+
+    <string name="label_nick">Enter Nickname</string>
+    <string name="label_host">Host</string>
+    <string name="label_port">Port</string>
+    
+    <string name="button_login">  chat!  </string>
+    <string name="button_send">send!</string>
+    <string name="button_use">  use  </string>
+
+    <string name="menu_settings">settings</string>
+    <string name="menu_exit">exit</string>
+    <string name="menu_partecipants">partecipants</string>
+    <string name="menu_clear">clear</string>
+
+    <string name="default_host">10.0.2.2</string>    
+    <string name="default_port">1099</string>
+    
+    <string name="msg_connecting_to">Connecting to</string>
+    <string name="msg_nickname_in_use">Nickname already in use!</string>
+    <string name="msg_nickname_not_valid">Invalid nickname!</string>
+    <string name="msg_unexpected">Unexpected error!</string>
+</resources>
