@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Note that targets in this ANT build file are always invoked by other targets in the 
-     main JADE build file. In some cases they refer to properties that are not set locally -->        
+     main JADE build file. In some cases they refer to properties that are not set locally -->
 <project name="JADE for ANDROID" default="do-lib">
 	<!-- PROPERTIES specific for ANDROID -->
 	<property name="src" value="${android-root}/src"/>
@@ -12,6 +12,7 @@
 
 	<!-- INIT -->
 	<target name="do-init" description="Create the appropriate directories">
+		<echo>do-init...</echo>
 		<mkdir dir="${android-root}"/>
 		<mkdir dir="${src}"/>
 		<mkdir dir="${bin}"/>
@@ -19,7 +20,6 @@
 		<mkdir dir="${lib}"/>
 	</target>
 
-	
 	<!-- SETUP -->
 	<target name="do-setup" depends="do-init" description="Setup the build environment">
 		<!-- 1) Copy JADE sources -->
@@ -64,12 +64,12 @@
 		</copy>
 	</target>
 
-	
+
 	<!-- RESET -->
 	<target name="do-reset" description="Reset the build environment" depends="do-clean">
 	</target>
 
-	
+
 	<!-- CLEAN -->
 	<target name="do-clean" description="Clean class files">
 		<delete dir = "${doc}"/>
@@ -84,19 +84,19 @@
 		</delete>
 	</target>
 
-	
+
 	<!-- PARSERS -->
 	<target name="do-parsers" if="javacc-home" description="Generate ACL and SL parsers from .jj files">
-  		<!-- ACL Parser -->
+		<!-- ACL Parser -->
 		<javacc target="${src}/jade/lang/acl/ACLParser.jj" javacchome="${javacc-home}"/>
-  		<!-- SL Parser -->
+		<!-- SL Parser -->
 		<javacc target="${src}/jade/content/lang/sl/SLParser.jj" javacchome="${javacc-home}"/>
 	</target>
 
 
 	<!-- COMPILE -->
 	<target name="do-compile" depends="do-setup, do-parsers, compile" description="Compile sources"/>
-		
+
 	<target name="compile" description="Compile sources">
 		<javac srcdir="${src}"
 		       destdir="${bin}"
@@ -118,7 +118,7 @@
 		<jar jarfile="${android-root}/lib/JadeAndroid.jar" basedir="${bin}"/>
 	</target>
 
-	
+
 	<!-- JAVADOC -->
 	<target name="do-javadoc" depends="do-setup" description="Generate javadoc">
 		<javadoc sourcepath="${src}"
@@ -130,5 +130,67 @@
 		         windowtitle="${android-title}"
                  packagenames="jade.*"/>
 	</target>
-	
+
+	<!-- DEMO -->
+	<target name="check-resources">
+		<echo>check-resources...</echo>
+		<available file="${lib}/JadeAndroid.jar" property="JadeAndroid" value="${lib}/JadeAndroid.jar"/>
+		<available file="${jade-home}/src/jade/Boot.java" property="jade-sources-available" value="true"/>
+		<antcall target="get-android-jar"/>
+	</target>
+
+	<target name="get-android-jar" unless="JadeAndroid">
+		<antcall target="create-android-jar"/>
+		<antcall target="input-android-jar"/>
+	</target>
+
+	<target name="create-android-jar" if="jade-sources-available">
+		<antcall target="do-lib"/>
+	</target>
+
+	<target name="input-android-jar" unless="jade-sources-available">
+		<input message="Insert the pathname of the JADE-LEAP jar file for Android -->" addProperty="JadeAndroid"/>
+		<mkdir dir="${lib}"/>
+		<copy file="${JadeAndroid}" tofile="${lib}/JadeAndroid.jar"/>
+	</target>
+
+	<target name="do-demo"
+		depends="do-init, check-resources"
+		description="Build the demo">
+
+		<property name="jade.project.name" value="demoAndroid"/>
+		<delete>
+			<fileset dir="${demo}" includes="${jade.project.name}*.ap*"/>
+		</delete>
+		<delete dir="${demo-preprocessed}" quiet="true"/>
+		<delete dir="${demo-unverified}" quiet="true"/>
+		<delete dir="${demo-classes}" quiet="true"/>
+		<mkdir dir="${demo-preprocessed}"/>
+		<mkdir dir="${demo-unverified}"/>
+		<mkdir dir="${demo-classes}"/>
+
+		<copy todir="${demo-preprocessed}" overwrite="yes">
+			<fileset dir="${demo-src}">
+			</fileset>
+		</copy>
+
+		<pproc basedir="${demo-preprocessed}" type="android"/>
+				
+		<property name="sdk.dir" value="${android-platform-home}/../.."/>
+		<basename property="target" file="${android-platform-home}"/>
+
+		<property name="source.dir" value="../${demo-preprocessed}"/>
+		<property name="gen.dir" value="gen"/>
+		<property name="resource.dir" value="res"/>
+		<property name="asset.dir" value="assets"/>
+		<property name="external.libs.dir" value="../${lib}"/>
+		<property name="native.libs.dir" value="../${lib}"/>
+		<property name="out.dir" value="."/>
+
+	    <ant dir="${demo}" antfile="android_rules.xml"
+	            target="release" inheritall="true" inheritrefs="true" />
+
+	</target>
+
+
 </project>
