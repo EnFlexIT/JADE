@@ -92,9 +92,6 @@ public class ChatActivity extends Activity {
 
 		unregisterReceiver(myReceiver);
 
-		logger.info("Stopping Jade...");
-		MicroRuntime.stopJADE();
-		
 		logger.info("Destroy activity!");
 	}
 
