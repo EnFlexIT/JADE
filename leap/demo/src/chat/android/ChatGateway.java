@@ -85,24 +85,20 @@ public class ChatGateway {
 	public void startChatAgent(final String nickname,
 			final RuntimeCallback<AgentController> agentStartupCallback) {
 		if (microRuntimeServiceBinder == null) {
-			if (serviceConnection == null) {
-				serviceConnection = new ServiceConnection() {
-					public void onServiceConnected(ComponentName className,
-							IBinder service) {
-						microRuntimeServiceBinder = (MicroRuntimeServiceBinder) service;
-						logger.info("Gateway successfully bound to MicroRuntimeService");
-						startContainer(nickname, agentStartupCallback);
-					};
-
-					public void onServiceDisconnected(ComponentName className) {
-						microRuntimeServiceBinder = null;
-						logger.info("Gateway unbound from MicroRuntimeService");
-					}
+			serviceConnection = new ServiceConnection() {
+				public void onServiceConnected(ComponentName className,
+						IBinder service) {
+					microRuntimeServiceBinder = (MicroRuntimeServiceBinder) service;
+					logger.info("Gateway successfully bound to MicroRuntimeService");
+					startContainer(nickname, agentStartupCallback);
 				};
-			} else {
-				logger.info("ServiceConnection already present");
-			}
-			
+
+				public void onServiceDisconnected(ComponentName className) {
+					microRuntimeServiceBinder = null;
+					logger.info("Gateway unbound from MicroRuntimeService");
+				}
+			};
+
 			logger.info("Binding Gateway to MicroRuntimeService...");
 
 			context.bindService(new Intent(context, MicroRuntimeService.class),
@@ -161,37 +157,25 @@ public class ChatGateway {
 				});
 	}
 
-/*
-	public void detach() {
-		microRuntimeServiceBinder
-				.stopAgentContainer(new RuntimeCallback<Void>() {
-					@Override
-					public void onSuccess(Void thisIsNull) {
-						logger.info("Successfully stop of the container...");
-						MicroRuntime.stopJADE();
-						// microRuntimeServiceBinder = null;
-					}
-
-					@Override
-					public void onFailure(Throwable throwable) {
-						logger.severe("Failed to stop the agent container!");
-
-					}
-				});
-	}
-
-	public void stopAgent(final String nickname) {
-		try {
-			MicroRuntime.getAgent(nickname).kill();
-		} catch (StaleProxyException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ControllerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-*/
+	/*
+	 * public void detach() { microRuntimeServiceBinder .stopAgentContainer(new
+	 * RuntimeCallback<Void>() {
+	 * 
+	 * @Override public void onSuccess(Void thisIsNull) {
+	 * logger.info("Successfully stop of the container...");
+	 * MicroRuntime.stopJADE(); // microRuntimeServiceBinder = null; }
+	 * 
+	 * @Override public void onFailure(Throwable throwable) {
+	 * logger.severe("Failed to stop the agent container!");
+	 * 
+	 * } }); }
+	 * 
+	 * public void stopAgent(final String nickname) { try {
+	 * MicroRuntime.getAgent(nickname).kill(); } catch (StaleProxyException e) {
+	 * // TODO Auto-generated catch block e.printStackTrace(); } catch
+	 * (ControllerException e) { // TODO Auto-generated catch block
+	 * e.printStackTrace(); } }
+	 */
 	private void initProfile() {
 		// we need to clone the initialization properties to be sure that we
 		// start from a clean situation, also when the JADE Runtime

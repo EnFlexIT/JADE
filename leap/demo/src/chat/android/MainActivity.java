@@ -29,6 +29,7 @@ package chat.android;
 
 import jade.android.RuntimeCallback;
 import jade.core.MicroRuntime;
+import jade.core.Profile;
 import jade.util.Logger;
 import jade.wrapper.AgentController;
 import android.app.Activity;
@@ -122,8 +123,12 @@ public class MainActivity extends Activity {
 			} else {
 				try {
 					infoTextView.setText(getString(R.string.msg_connecting_to)
-							+ " " + getString(R.string.default_host) + ":"
-							+ getString(R.string.default_port) + "...");
+							+ " "
+							+ ChatApplication.getProperties().getProperty(
+									Profile.MAIN_HOST)
+							+ ":"
+							+ ChatApplication.getProperties().getProperty(
+									Profile.MAIN_PORT) + "...");
 					ChatGateway gateway = ChatGateway.getInstance();
 					gateway.init(getApplicationContext(),
 							ChatApplication.getProperties());

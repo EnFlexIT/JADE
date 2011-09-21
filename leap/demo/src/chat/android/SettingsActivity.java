@@ -69,7 +69,7 @@ public class SettingsActivity extends Activity {
 		public void onClick(View v) {
 			properties.setProperty(Profile.MAIN_HOST, hostField.getText()
 					.toString());
-			properties.setProperty(Profile.MAIN_HOST, portField.getText()
+			properties.setProperty(Profile.MAIN_PORT, portField.getText()
 					.toString());
 			ChatGateway.getInstance().init(getApplicationContext(), properties);
 			finish();
