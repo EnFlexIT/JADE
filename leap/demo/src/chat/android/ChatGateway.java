@@ -27,7 +27,6 @@ package chat.android;
 //#J2SE_EXCLUDE_FILE
 //#PJAVA_EXCLUDE_FILE
 
-import chat.client.ChatClientAgent;
 import jade.android.AndroidHelper;
 import jade.android.MicroRuntimeService;
 import jade.android.MicroRuntimeServiceBinder;
@@ -38,12 +37,12 @@ import jade.util.Logger;
 import jade.util.leap.Properties;
 import jade.wrapper.AgentController;
 import jade.wrapper.ControllerException;
-import jade.wrapper.StaleProxyException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import chat.client.ChatClientAgent;
 
 /**
  * This gateway implements the communication between the Android Application and
@@ -157,25 +156,6 @@ public class ChatGateway {
 				});
 	}
 
-	/*
-	 * public void detach() { microRuntimeServiceBinder .stopAgentContainer(new
-	 * RuntimeCallback<Void>() {
-	 * 
-	 * @Override public void onSuccess(Void thisIsNull) {
-	 * logger.info("Successfully stop of the container...");
-	 * MicroRuntime.stopJADE(); // microRuntimeServiceBinder = null; }
-	 * 
-	 * @Override public void onFailure(Throwable throwable) {
-	 * logger.severe("Failed to stop the agent container!");
-	 * 
-	 * } }); }
-	 * 
-	 * public void stopAgent(final String nickname) { try {
-	 * MicroRuntime.getAgent(nickname).kill(); } catch (StaleProxyException e) {
-	 * // TODO Auto-generated catch block e.printStackTrace(); } catch
-	 * (ControllerException e) { // TODO Auto-generated catch block
-	 * e.printStackTrace(); } }
-	 */
 	private void initProfile() {
 		// we need to clone the initialization properties to be sure that we
 		// start from a clean situation, also when the JADE Runtime

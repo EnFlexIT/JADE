@@ -101,9 +101,6 @@ public class MainActivity extends Activity {
 
 		unregisterReceiver(myReceiver);
 
-		logger.info("Stopping Jade...");
-		MicroRuntime.stopJADE();
-		
 		logger.info("Destroy activity!");
 	}
 
@@ -175,7 +172,8 @@ public class MainActivity extends Activity {
 			if (resultCode == RESULT_CANCELED) {
 				// The chat activity was closed.
 				infoTextView.setText("");
-				// finish();
+				logger.info("Stopping Jade...");
+				MicroRuntime.stopJADE();
 			}
 		}
 	}
