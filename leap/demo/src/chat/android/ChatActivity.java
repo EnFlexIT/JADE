@@ -27,11 +27,13 @@ package chat.android;
 //#J2SE_EXCLUDE_FILE
 //#PJAVA_EXCLUDE_FILE
 
-import jade.core.MicroRuntime;
+import jade.core.UnreachableException;
 import jade.util.Logger;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -44,12 +46,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import chat.client.AndroidChatGui;
 
 /**
  * This activity implement the chat interface.
  * 
- * @author Michele Izzo - Telecom Italia
+ * @author Michele Izzo - Telecomitalia
  */
 
 public class ChatActivity extends Activity {
@@ -65,7 +66,7 @@ public class ChatActivity extends Activity {
 		super.onCreate(savedInstanceState);
 
 		myReceiver = new MyReceiver();
-		partecipants = new String[] { };
+		partecipants = new String[] {};
 
 		IntentFilter refreshChatFilter = new IntentFilter();
 		refreshChatFilter.addAction("jade.demo.chat.REFRESH_CHAT");
@@ -100,8 +101,24 @@ public class ChatActivity extends Activity {
 			final EditText messageField = (EditText) findViewById(R.id.edit_message);
 			String message = messageField.getText().toString();
 			if (message != null && !message.equals("")) {
-				AndroidChatGui.handleSpoken(message);
-				messageField.setText("");
+				try {
+					ChatGateway.getInstance().sendMessage(message);
+					messageField.setText("");
+				} catch (UnreachableException e) {
+					AlertDialog.Builder builder = new AlertDialog.Builder(
+							ChatActivity.this);
+					builder.setMessage(e.getMessage())
+							.setCancelable(false)
+							.setPositiveButton("Ok",
+									new DialogInterface.OnClickListener() {
+										public void onClick(
+												DialogInterface dialog, int id) {
+											dialog.cancel();
+										}
+									});
+					AlertDialog alert = builder.create();
+					alert.show();
+				}
 			}
 
 		}

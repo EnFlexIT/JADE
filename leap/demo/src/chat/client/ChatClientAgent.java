@@ -41,10 +41,8 @@ import jade.util.Logger;
 import jade.util.leap.Iterator;
 import jade.util.leap.Set;
 import jade.util.leap.SortedSetImpl;
-import chat.ontology.ChatOntology;
-//#ANDROID_INCLUDE_BEGIN
 import android.content.Context;
-//#ANDROID_INCLUDE_END
+import chat.ontology.ChatOntology;
 
 /**
  * This agent implements the logic of the chat client running on the user
@@ -60,6 +58,8 @@ import android.content.Context;
  * @author Giovanni Caire - TILAB
  */
 public class ChatClientAgent extends Agent {
+	private static final long serialVersionUID = 1594371294421614291L;
+
 	private Logger logger = Logger.getMyLogger(this.getClass().getName());
 
 	private static final String CHAT_ID = "__chat__";
@@ -73,8 +73,14 @@ public class ChatClientAgent extends Agent {
 
 	// #ANDROID_INCLUDE_BEGIN
 	private Context context;
+	
+	public ChatClientAgent() {
+		// enable object2agent communication with queue of infinite length
+		setEnabledO2ACommunication(true, 0);
+	}	
 	// #ANDROID_INCLUDE_END
 
+	@SuppressWarnings("serial")
 	protected void setup() {
 		// #ANDROID_INCLUDE_BEGIN
 		Object[] args = getArguments();
@@ -101,13 +107,28 @@ public class ChatClientAgent extends Agent {
 
 		// Activate the GUI
 		// #MIDP_EXCLUDE_BEGIN
-		// myGui = new AWTChatGui(this);
+		myGui = new AWTChatGui(this);
 		// #MIDP_EXCLUDE_END
-		/*
-		 * #MIDP_INCLUDE_BEGIN myGui = new MIDPChatGui(this); #MIDP_INCLUDE_END
-		 */
+
+		// #MIDP_INCLUDE_BEGIN
+		myGui = new MIDPChatGui(this);
+		// #MIDP_INCLUDE_END
+
 		// #ANDROID_INCLUDE_BEGIN
-		myGui = new AndroidChatGui(context, this);
+		myGui = new AndroidChatGui(context);
+		
+		addBehaviour(new CyclicBehaviour() {
+			public void action() {
+				String message = (String) myAgent.getO2AObject();
+				if (message != null) {
+					logger.info("("+ myAgent.getLocalName() + ") Handling message '" + message + "'...");
+					handleSpoken(message);
+				}
+				else {
+					block();
+				}
+			}
+		});
     	// #ANDROID_INCLUDE_END
 	}
 
@@ -132,6 +153,7 @@ public class ChatClientAgent extends Agent {
 	 * information received from the ChatManager agent.
 	 */
 	class ParticipantsManager extends CyclicBehaviour {
+		private static final long serialVersionUID = -4845730529175649756L;
 		private MessageTemplate template;
 
 		ParticipantsManager(Agent a) {
@@ -213,6 +235,7 @@ public class ChatClientAgent extends Agent {
 	 * received from the ChatManager agent.
 	 */
 	class ChatListener extends CyclicBehaviour {
+		private static final long serialVersionUID = 741233963737842521L;
 		private MessageTemplate template = MessageTemplate
 				.MatchConversationId(CHAT_ID);
 
@@ -240,6 +263,7 @@ public class ChatClientAgent extends Agent {
 	 * sentence
 	 */
 	private class ChatSpeaker extends OneShotBehaviour {
+		private static final long serialVersionUID = -1426033904935339194L;
 		private String sentence;
 
 		private ChatSpeaker(Agent a, String s) {

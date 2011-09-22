@@ -39,7 +39,7 @@ import android.widget.EditText;
 /**
  * This activity implement the settings interface.
  * 
- * @author Michele Izzo - Telecom Italia
+ * @author Michele Izzo - Telecomitalia
  */
 
 public class SettingsActivity extends Activity {

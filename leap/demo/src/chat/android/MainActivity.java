@@ -54,7 +54,7 @@ import android.widget.TextView;
 /**
  * This activity implement the main interface.
  * 
- * @author Michele Izzo - Telecom Italia
+ * @author Michele Izzo - Telecomitalia
  */
 
 public class MainActivity extends Activity {
@@ -159,7 +159,6 @@ public class MainActivity extends Activity {
 					SETTINGS_REQUEST);
 			return true;
 		case R.id.menu_exit:
-			// ChatGateway.getInstance().detach();
 			finish();
 		default:
 			return super.onOptionsItemSelected(item);
@@ -209,7 +208,6 @@ public class MainActivity extends Activity {
 			String action = intent.getAction();
 			logger.info("Received intent " + action);
 			if (action.equalsIgnoreCase("jade.demo.chat.KILL")) {
-				// ChatGateway.getInstance().detach();
 				finish();
 			}
 			if (action.equalsIgnoreCase("jade.demo.chat.SHOW_CHAT")) {

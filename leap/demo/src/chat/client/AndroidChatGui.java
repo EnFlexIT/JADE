@@ -34,28 +34,23 @@ import android.content.Intent;
 /**
  * This class implement the chat GUI for the android specific implementation.
  * 
- * @author Michele Izzo - Telecom Italia
+ * @author Michele Izzo - Telecomitalia
  */
 
 public class AndroidChatGui implements ChatGui {
 	private Logger logger = Logger.getMyLogger(this.getClass().getName());
 
-	private static ChatClientAgent myAgent;
 	private Context myContext;
 
-	public AndroidChatGui(Context myContext, ChatClientAgent myAgent) {
+	public AndroidChatGui(Context myContext) {
 		logger.info("GUI started!");
-		AndroidChatGui.myAgent = myAgent;
+		
 		this.myContext = myContext;
 
 		Intent broadcast = new Intent();
 		broadcast.setAction("jade.demo.chat.SHOW_CHAT");
 		logger.info("Sending broadcast " + broadcast.getAction());
 		this.myContext.sendBroadcast(broadcast);
-	}
-
-	public static void handleSpoken(String s) {
-		myAgent.handleSpoken(s);
 	}
 
 	@Override

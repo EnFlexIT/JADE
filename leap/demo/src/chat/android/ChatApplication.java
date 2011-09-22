@@ -35,7 +35,7 @@ import android.app.Application;
 /**
  * This is the Android Chat Demo Application.
  * 
- * @author Michele Izzo - Telecom Italia
+ * @author Michele Izzo - Telecomitalia
  */
 
 public class ChatApplication extends Application {

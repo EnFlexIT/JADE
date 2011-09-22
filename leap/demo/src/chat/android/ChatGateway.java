@@ -33,6 +33,7 @@ import jade.android.MicroRuntimeServiceBinder;
 import jade.android.RuntimeCallback;
 import jade.core.MicroRuntime;
 import jade.core.Profile;
+import jade.core.UnreachableException;
 import jade.util.Logger;
 import jade.util.leap.Properties;
 import jade.wrapper.AgentController;
@@ -48,7 +49,7 @@ import chat.client.ChatClientAgent;
  * This gateway implements the communication between the Android Application and
  * the Jade platform.
  * 
- * @author Michele Izzo - Telecom Italia
+ * @author Michele Izzo - Telecomitalia
  */
 
 public class ChatGateway {
@@ -64,6 +65,8 @@ public class ChatGateway {
 
 	private Properties profile;
 	private Properties originalProfile;
+
+	private String nickname;
 
 	public static final ChatGateway getInstance() {
 		if (theGateway == null) {
@@ -83,21 +86,26 @@ public class ChatGateway {
 
 	public void startChatAgent(final String nickname,
 			final RuntimeCallback<AgentController> agentStartupCallback) {
+		this.nickname = nickname;
 		if (microRuntimeServiceBinder == null) {
-			serviceConnection = new ServiceConnection() {
-				public void onServiceConnected(ComponentName className,
-						IBinder service) {
-					microRuntimeServiceBinder = (MicroRuntimeServiceBinder) service;
-					logger.info("Gateway successfully bound to MicroRuntimeService");
-					startContainer(nickname, agentStartupCallback);
+			if (serviceConnection == null) {
+				serviceConnection = new ServiceConnection() {
+					public void onServiceConnected(ComponentName className,
+							IBinder service) {
+						microRuntimeServiceBinder = (MicroRuntimeServiceBinder) service;
+						logger.info("Gateway successfully bound to MicroRuntimeService");
+						startContainer(nickname, agentStartupCallback);
+					};
+
+					public void onServiceDisconnected(ComponentName className) {
+						microRuntimeServiceBinder = null;
+						logger.info("Gateway unbound from MicroRuntimeService");
+					}
 				};
-
-				public void onServiceDisconnected(ComponentName className) {
-					microRuntimeServiceBinder = null;
-					logger.info("Gateway unbound from MicroRuntimeService");
-				}
-			};
-
+			} else {
+				logger.info("ServiceConnection already present");
+			}
+			
 			logger.info("Binding Gateway to MicroRuntimeService...");
 
 			context.bindService(new Intent(context, MicroRuntimeService.class),
@@ -108,7 +116,16 @@ public class ChatGateway {
 		}
 	}
 
-	public void startContainer(final String nickname,
+	public void sendMessage(final String message) throws UnreachableException {
+		try {
+			MicroRuntime.getAgent(nickname).putO2AObject(message, AgentController.ASYNC);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new UnreachableException("Error sending message!");
+		}
+	}
+	
+	private void startContainer(final String nickname,
 			final RuntimeCallback<AgentController> agentStartupCallback) {
 		if (!MicroRuntime.isRunning()) {
 			microRuntimeServiceBinder.startAgentContainer(profile,
@@ -129,7 +146,7 @@ public class ChatGateway {
 		}
 	}
 
-	public void startAgent(final String nickname,
+	private void startAgent(final String nickname,
 			final RuntimeCallback<AgentController> agentStartupCallback) {
 		microRuntimeServiceBinder.startAgent(nickname,
 				ChatClientAgent.class.getName(), new Object[] { context },

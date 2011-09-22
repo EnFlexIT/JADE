@@ -43,7 +43,7 @@ import android.widget.ListView;
 /**
  * This activity implement the partecipants interface.
  * 
- * @author Michele Izzo - Telecom Italia
+ * @author Michele Izzo - Telecomitalia
  */
 
 public class PartecipantsActivity extends ListActivity {
