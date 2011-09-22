@@ -41,8 +41,10 @@ import jade.util.Logger;
 import jade.util.leap.Iterator;
 import jade.util.leap.Set;
 import jade.util.leap.SortedSetImpl;
-import android.content.Context;
 import chat.ontology.ChatOntology;
+/*#ANDROID_INCLUDE_BEGIN
+import android.content.Context;
+#ANDROID_INCLUDE_END*/
 
 /**
  * This agent implements the logic of the chat client running on the user
@@ -71,25 +73,24 @@ public class ChatClientAgent extends Agent {
 	private Ontology onto = ChatOntology.getInstance();
 	private ACLMessage spokenMsg;
 
-	//#ANDROID_INCLUDE_BEGIN
+	/*#ANDROID_INCLUDE_BEGIN
 	private Context context;
 	
 	public ChatClientAgent() {
 		// enable object2agent communication with queue of infinite length
 		setEnabledO2ACommunication(true, 0);
 	}	
-	//#ANDROID_INCLUDE_END
+	#ANDROID_INCLUDE_END*/
 
-	@SuppressWarnings("serial")
 	protected void setup() {
-		//#ANDROID_INCLUDE_BEGIN
+		/*#ANDROID_INCLUDE_BEGIN
 		Object[] args = getArguments();
 		if (args != null && args.length > 0) {
 			if (args[0] instanceof Context) {
 				context = (Context) args[0];
 			}
 		}
-		//#ANDROID_INCLUDE_END
+		#ANDROID_INCLUDE_END*/
 		
 		// Register language and ontology
 		ContentManager cm = getContentManager();
@@ -106,19 +107,19 @@ public class ChatClientAgent extends Agent {
 		spokenMsg.setConversationId(CHAT_ID);
 
 		// Activate the GUI
-/*#J2SE_INCLUDE_BEGIN
+		/*#J2SE_INCLUDE_BEGIN
 		myGui = new AWTChatGui(this);
-#J2SE_INCLUDE_END*/
+		#J2SE_INCLUDE_END*/
 
-/*#PJAVA_INCLUDE_BEGIN
+		/*#PJAVA_INCLUDE_BEGIN
 		myGui = new AWTChatGui(this);
-#PJAVA_INCLUDE_END*/
+		#PJAVA_INCLUDE_END*/
 
-/*#MIDP_INCLUDE_BEGIN
+		/*#MIDP_INCLUDE_BEGIN
 		myGui = new MIDPChatGui(this);
-#MIDP_INCLUDE_END*/
+		#MIDP_INCLUDE_END*/
 
-/*#ANDROID_INCLUDE_BEGIN
+		/*#ANDROID_INCLUDE_BEGIN
 		myGui = new AndroidChatGui(context);
 		
 		addBehaviour(new CyclicBehaviour() {
@@ -133,7 +134,7 @@ public class ChatClientAgent extends Agent {
 				}
 			}
 		});
-#ANDROID_INCLUDE_END*/
+		#ANDROID_INCLUDE_END*/
 	}
 
 	protected void takeDown() {
