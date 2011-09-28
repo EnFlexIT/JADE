@@ -84,7 +84,7 @@ public class ChatGateway {
 	private ChatGateway() {
 	}
 
-	public void startChatAgent(final String nickname,
+	public void startChat(final String nickname,
 			final RuntimeCallback<AgentController> agentStartupCallback) {
 		this.nickname = nickname;
 		if (microRuntimeServiceBinder == null) {

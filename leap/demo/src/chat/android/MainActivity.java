@@ -132,7 +132,7 @@ public class MainActivity extends Activity {
 					ChatGateway gateway = ChatGateway.getInstance();
 					gateway.init(getApplicationContext(),
 							ChatApplication.getProperties());
-					gateway.startChatAgent(nickname, agentStartupCallback);
+					gateway.startChat(nickname, agentStartupCallback);
 				} catch (Exception ex) {
 					// TODO: unexpected exception
 					logger.severe("Unexpected exception creating chat agent!");
