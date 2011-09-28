@@ -19,6 +19,6 @@
 		
 		<activity android:name=".SettingsActivity" android:label="@string/app_title_settings"></activity>
 		<activity android:name=".ChatActivity" android:label="@string/app_title_chat"></activity>
-		<activity android:name=".PartecipantsActivity" android:label="@string/app_title_partecipants"></activity>
+		<activity android:name=".ParticipantsActivity" android:label="@string/app_title_participants"></activity>
 	</application>
 </manifest>
