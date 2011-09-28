@@ -88,26 +88,20 @@ public class ChatGateway {
 			final RuntimeCallback<AgentController> agentStartupCallback) {
 		this.nickname = nickname;
 		if (microRuntimeServiceBinder == null) {
-			if (serviceConnection == null) {
-				serviceConnection = new ServiceConnection() {
-					public void onServiceConnected(ComponentName className,
-							IBinder service) {
-						microRuntimeServiceBinder = (MicroRuntimeServiceBinder) service;
-						logger.info("Gateway successfully bound to MicroRuntimeService");
-						startContainer(nickname, agentStartupCallback);
-					};
-
-					public void onServiceDisconnected(ComponentName className) {
-						microRuntimeServiceBinder = null;
-						logger.info("Gateway unbound from MicroRuntimeService");
-					}
+			serviceConnection = new ServiceConnection() {
+				public void onServiceConnected(ComponentName className,
+						IBinder service) {
+					microRuntimeServiceBinder = (MicroRuntimeServiceBinder) service;
+					logger.info("Gateway successfully bound to MicroRuntimeService");
+					startContainer(nickname, agentStartupCallback);
 				};
-			} else {
-				logger.info("ServiceConnection already present");
-			}
-			
-			logger.info("Binding Gateway to MicroRuntimeService...");
 
+				public void onServiceDisconnected(ComponentName className) {
+					microRuntimeServiceBinder = null;
+					logger.info("Gateway unbound from MicroRuntimeService");
+				}
+			};
+			logger.info("Binding Gateway to MicroRuntimeService...");
 			context.bindService(new Intent(context, MicroRuntimeService.class),
 					serviceConnection, Context.BIND_AUTO_CREATE);
 		} else {
@@ -118,13 +112,14 @@ public class ChatGateway {
 
 	public void sendMessage(final String message) throws UnreachableException {
 		try {
-			MicroRuntime.getAgent(nickname).putO2AObject(message, AgentController.ASYNC);
+			MicroRuntime.getAgent(nickname).putO2AObject(message,
+					AgentController.ASYNC);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new UnreachableException("Error sending message!");
 		}
 	}
-	
+
 	private void startContainer(final String nickname,
 			final RuntimeCallback<AgentController> agentStartupCallback) {
 		if (!MicroRuntime.isRunning()) {
