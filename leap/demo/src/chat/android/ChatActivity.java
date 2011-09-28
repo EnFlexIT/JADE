@@ -56,17 +56,17 @@ import android.widget.TextView;
 public class ChatActivity extends Activity {
 	private Logger logger = Logger.getMyLogger(this.getClass().getName());
 
-	static final int PARTECIPANTS_REQUEST = 0;
+	static final int PARTICIPANTS_REQUEST = 0;
 
 	private MyReceiver myReceiver;
-	private String[] partecipants;
+	private String[] participants;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		myReceiver = new MyReceiver();
-		partecipants = new String[] {};
+		participants = new String[] {};
 
 		IntentFilter refreshChatFilter = new IntentFilter();
 		refreshChatFilter.addAction("jade.demo.chat.REFRESH_CHAT");
@@ -76,10 +76,10 @@ public class ChatActivity extends Activity {
 		clearChatFilter.addAction("jade.demo.chat.CLEAR_CHAT");
 		registerReceiver(myReceiver, clearChatFilter);
 
-		IntentFilter refreshPartecipantsFilter = new IntentFilter();
-		refreshPartecipantsFilter
-				.addAction("jade.demo.chat.REFRESH_PARTECIPANTS");
-		registerReceiver(myReceiver, refreshPartecipantsFilter);
+		IntentFilter refreshParticipantsFilter = new IntentFilter();
+		refreshParticipantsFilter
+				.addAction("jade.demo.chat.REFRESH_PARTICIPANTS");
+		registerReceiver(myReceiver, refreshParticipantsFilter);
 
 		setContentView(R.layout.chat);
 
@@ -134,11 +134,11 @@ public class ChatActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.menu_partecipants:
-			Intent showPartecipants = new Intent(ChatActivity.this,
-					PartecipantsActivity.class);
-			showPartecipants.putExtra("partecipants", partecipants);
-			startActivityForResult(showPartecipants, PARTECIPANTS_REQUEST);
+		case R.id.menu_participants:
+			Intent showParticipants = new Intent(ChatActivity.this,
+					ParticipantsActivity.class);
+			showParticipants.putExtra("participants", participants);
+			startActivityForResult(showParticipants, PARTICIPANTS_REQUEST);
 			return true;
 		case R.id.menu_clear:
 			Intent broadcast = new Intent();
@@ -153,7 +153,7 @@ public class ChatActivity extends Activity {
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (requestCode == PARTECIPANTS_REQUEST) {
+		if (requestCode == PARTICIPANTS_REQUEST) {
 			if (resultCode == RESULT_OK) {
 				// TODO: A partecipant was picked. Send a private message.
 			}
@@ -175,9 +175,9 @@ public class ChatActivity extends Activity {
 				final TextView chatField = (TextView) findViewById(R.id.chatTextView);
 				chatField.setText("");
 			}
-			if (action.equalsIgnoreCase("jade.demo.chat.REFRESH_PARTECIPANTS")) {
-				partecipants = intent.getExtras()
-						.getStringArray("partecipants");
+			if (action.equalsIgnoreCase("jade.demo.chat.REFRESH_PARTICIPANTS")) {
+				participants = intent.getExtras()
+						.getStringArray("participants");
 			}
 		}
 	}

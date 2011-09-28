@@ -41,12 +41,12 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 /**
- * This activity implement the partecipants interface.
+ * This activity implement the participants interface.
  * 
  * @author Michele Izzo - Telecomitalia
  */
 
-public class PartecipantsActivity extends ListActivity {
+public class ParticipantsActivity extends ListActivity {
 	private Logger logger = Logger.getMyLogger(this.getClass().getName());
 
 	private MyReceiver myReceiver;
@@ -55,24 +55,24 @@ public class PartecipantsActivity extends ListActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		String[] partecipants = new String[] { };
+		String[] participants = new String[] { };
 		
 		Bundle extras = getIntent().getExtras();
 		if (extras != null) {
-			partecipants = extras.getStringArray("partecipants");
+			participants = extras.getStringArray("participants");
 		}
 
 		myReceiver = new MyReceiver();
 
-		IntentFilter refreshPartecipantsFilter = new IntentFilter();
-		refreshPartecipantsFilter
-				.addAction("jade.demo.chat.REFRESH_PARTECIPANTS");
-		registerReceiver(myReceiver, refreshPartecipantsFilter);
+		IntentFilter refreshParticipantsFilter = new IntentFilter();
+		refreshParticipantsFilter
+				.addAction("jade.demo.chat.REFRESH_PARTICIPANTS");
+		registerReceiver(myReceiver, refreshParticipantsFilter);
 
-		setContentView(R.layout.partecipants);
+		setContentView(R.layout.participants);
 
-		setListAdapter(new ArrayAdapter<String>(this, R.layout.partecipant,
-				partecipants));
+		setListAdapter(new ArrayAdapter<String>(this, R.layout.participant,
+				participants));
 
 		ListView listView = getListView();
 		listView.setTextFilterEnabled(true);
@@ -101,10 +101,10 @@ public class PartecipantsActivity extends ListActivity {
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
 			logger.info("Received intent " + action);
-			if (action.equalsIgnoreCase("jade.demo.chat.REFRESH_PARTECIPANTS")) {
-				String[] names = intent.getStringArrayExtra("partecipants");
+			if (action.equalsIgnoreCase("jade.demo.chat.REFRESH_PARTICIPANTS")) {
+				String[] names = intent.getStringArrayExtra("participants");
 				setListAdapter(new ArrayAdapter<String>(
-						PartecipantsActivity.this, R.layout.partecipant, names));
+						ParticipantsActivity.this, R.layout.participant, names));
 			}
 		}
 	}

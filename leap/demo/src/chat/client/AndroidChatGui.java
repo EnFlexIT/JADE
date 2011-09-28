@@ -56,8 +56,8 @@ public class AndroidChatGui implements ChatGui {
 	@Override
 	public void notifyParticipantsChanged(String[] names) {
 		Intent broadcast = new Intent();
-		broadcast.setAction("jade.demo.chat.REFRESH_PARTECIPANTS");
-		broadcast.putExtra("partecipants", names);
+		broadcast.setAction("jade.demo.chat.REFRESH_PARTICIPANTS");
+		broadcast.putExtra("participants", names);
 		logger.info("Sending broadcast " + broadcast.getAction());
 		myContext.sendBroadcast(broadcast);
 	}
