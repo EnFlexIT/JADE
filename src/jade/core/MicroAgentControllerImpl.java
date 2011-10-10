@@ -112,4 +112,13 @@ class MicroAgentControllerImpl implements AgentController {
 			throw new StaleProxyException(ace);
 		}
 	}
+
+	//#J2ME_EXCLUDE_BEGIN
+	@Override
+	public <T> T getO2AInterface(Class<T> theInterface) throws StaleProxyException {
+		// FIXME: To be implemented
+		return null;
+	}
+	//#J2ME_EXCLUDE_END
+
 }

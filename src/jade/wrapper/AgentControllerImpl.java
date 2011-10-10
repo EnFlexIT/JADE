@@ -157,9 +157,40 @@ class AgentControllerImpl implements AgentController {
 		} catch (InterruptedException ace) {
 			throw new StaleProxyException(ace);
 		}
-		myContainer.releaseLocalAgent(agentID);
+		finally {
+			myContainer.releaseLocalAgent(agentID);
+		}
 	}
 
+	//#J2ME_EXCLUDE_BEGIN
+	@SuppressWarnings("unchecked")
+	public <T> T getO2AInterface(Class<T> theInterface) throws StaleProxyException {
+		jade.core.Agent adaptee = myContainer.acquireLocalAgent(agentID);
+		if (adaptee == null) {
+			throw new StaleProxyException("Controlled agent does not exist");
+		}
+		try {
+			T o2aInterfaceImpl = adaptee.getO2AInterface(theInterface);
+	
+			if(o2aInterfaceImpl == null)
+				return null;
+	
+			ClassLoader classLoader = o2aInterfaceImpl.getClass().getClassLoader();
+	
+			return (T) java.lang.reflect.Proxy.newProxyInstance(classLoader, new Class[] { theInterface }, new O2AProxy(o2aInterfaceImpl) {
+				protected void checkAgent() throws O2AException {
+					if (!myContainer.isLocalAgent(agentID)) {
+						throw new O2AException("Controlled agent does not exist");
+					}
+				}
+			});
+		}
+		finally {
+			myContainer.releaseLocalAgent(agentID);
+		}
+	}
+	//#J2ME_EXCLUDE_END
+	
 	/**
 	 * @see jade.wrapper.AgentController#getState()
 	 */
@@ -199,4 +230,6 @@ class AgentControllerImpl implements AgentController {
 		myContainer.releaseLocalAgent(agentID);
 		return ret;
 	}
+
+
 }

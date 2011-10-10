@@ -473,6 +473,11 @@ public class Agent implements Runnable, Serializable
 	private Behaviour o2aManager = null;
 	private transient Object suspendLock;
 	//#MIDP_EXCLUDE_END
+	
+	//#J2ME_EXCLUDE_BEGIN
+	private java.util.Map<Class<?>, Object> o2aInterfaces;
+	//#J2ME_EXCLUDE_END
+	
 
 	private String myName = null;  
 	private AID myAID = null;
@@ -1424,6 +1429,26 @@ public class Agent implements Runnable, Serializable
 		o2aManager = b;
 	}
 	//#MIDP_EXCLUDE_END
+	
+	//#J2ME_EXCLUDE_BEGIN
+	/**
+	 * Used internally by the framework
+	 */
+	@SuppressWarnings("unchecked")
+	public <T> T getO2AInterface(Class<T> theInterface) {
+		return (T)o2aInterfaces.get(theInterface);
+	}
+
+	/**
+	 * Registers an implementation for a given O2A interface. All invocations
+	 * to methods of the O2A interface will be redirected to the registered implementation object.
+	 * @param theInterface The O2A interface the implementation is registered for.
+	 * @param implementation The object providing an implementation for the given O2A interface.
+	 */
+	protected <T> void registerO2AInterface(Class<T> theInterface, T implementation) {
+		o2aInterfaces.put(theInterface, implementation);
+	}
+	//#J2ME_EXCLUDE_END
 
 
 	//#APIDOC_EXCLUDE_BEGIN

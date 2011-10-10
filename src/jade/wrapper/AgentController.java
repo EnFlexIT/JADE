@@ -56,7 +56,7 @@ public interface AgentController {
 	 * This name would be what the platform would use to uniquely reference this agent.
 	 * @return The agents name.
 	 */
-	public abstract String getName() throws StaleProxyException;
+	public String getName() throws StaleProxyException;
 
 	/**
 	     Triggers a state transition from <b>INITIATED</b> to
@@ -66,7 +66,7 @@ public interface AgentController {
 	     @exception StaleProxyException If the underlying agent is dead or
 	     gone.
 	 */
-	public abstract void start() throws StaleProxyException;
+	public void start() throws StaleProxyException;
 
 	/**
 	     Triggers a state transition from <b>ACTIVE</b> to
@@ -74,7 +74,7 @@ public interface AgentController {
 	     @exception StaleProxyException If the underlying agent is dead or
 	     gone.
 	 */
-	public abstract void suspend() throws StaleProxyException;
+	public void suspend() throws StaleProxyException;
 
 	/**
 	     Triggers a state transition from <b>SUSPENDED</b> to
@@ -82,7 +82,7 @@ public interface AgentController {
 	     @exception StaleProxyException If the underlying agent is dead or
 	     gone.
 	 */
-	public abstract void activate() throws StaleProxyException;
+	public void activate() throws StaleProxyException;
 
 	/**
 	     Triggers a state transition from <b>ACTIVE</b> to
@@ -92,7 +92,7 @@ public interface AgentController {
 	     @exception StaleProxyException If the underlying agent is dead or
 	     gone.
 	 */
-	public abstract void kill() throws StaleProxyException;
+	public void kill() throws StaleProxyException;
 
 	/**
 	     Triggers a state transition from <b>ACTIVE</b> to
@@ -107,7 +107,7 @@ public interface AgentController {
 	     @exception StaleProxyException If the underlying agent is dead or
 	     gone.
 	 */
-	public abstract void move(Location where) throws StaleProxyException;
+	public void move(Location where) throws StaleProxyException;
 
 	/**
 	     Clones the current agent. Calling this method does not really
@@ -121,7 +121,7 @@ public interface AgentController {
 	     @exception StaleProxyException If the underlying agent is dead or
 	     gone.
 	 */
-	public abstract void clone(Location where, String newName) throws StaleProxyException;
+	public void clone(Location where, String newName) throws StaleProxyException;
 
 	/**
 	     Passes an application-specific object to a local agent, created
@@ -139,13 +139,25 @@ public interface AgentController {
 	     @see jade.core.Agent#getO2AObject()
 	     @see jade.core.Agent#setEnabledO2ACommunication(boolean enabled, int queueSize)
 	 */
-	public abstract void putO2AObject(Object o, boolean blocking) throws StaleProxyException;
+	public void putO2AObject(Object o, boolean blocking) throws StaleProxyException;
 
+	//#J2ME_EXCLUDE_BEGIN
+	/**
+	 * Retrieve an O2A (Object-to-Agent) interface to interact with the controlled
+	 * agent.
+	 * @param theInterface The O2A interface that must be retrieved 
+	 * @return An implementation of the indicated O2A interface
+	 * @exception StaleProxyException If the underlying agent is dead or gone.
+	 * @see jade.core.Agent#registerO2AInterface(Class<T> theClass, T theInterface)
+	 */
+	public <T> T getO2AInterface(Class<T> theInterface) throws StaleProxyException;
+	//#J2ME_EXCLUDE_END
+	
 	/**
 	     Read current agent state. This method can be used to query an
 	     agent for its state from the outside.
 	     @return the Agent Platform Life Cycle state this agent is currently in.
 	 */
-	public abstract State getState() throws StaleProxyException;
+	public State getState() throws StaleProxyException;
 
 }
