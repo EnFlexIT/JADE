@@ -59,7 +59,7 @@ import android.content.Context;
  * 
  * @author Giovanni Caire - TILAB
  */
-public class ChatClientAgent extends Agent {
+public class ChatClientAgent extends Agent implements ChatClientInterface {
 	private static final long serialVersionUID = 1594371294421614291L;
 
 	private Logger logger = Logger.getMyLogger(this.getClass().getName());
@@ -75,11 +75,6 @@ public class ChatClientAgent extends Agent {
 
 	/*#ANDROID_INCLUDE_BEGIN
 	private Context context;
-	
-	public ChatClientAgent() {
-		// enable object2agent communication with queue of infinite length
-		setEnabledO2ACommunication(true, 0);
-	}	
 	#ANDROID_INCLUDE_END*/
 
 	protected void setup() {
@@ -121,19 +116,8 @@ public class ChatClientAgent extends Agent {
 
 		/*#ANDROID_INCLUDE_BEGIN
 		myGui = new AndroidChatGui(context);
-		
-		addBehaviour(new CyclicBehaviour() {
-			public void action() {
-				String message = (String) myAgent.getO2AObject();
-				if (message != null) {
-					logger.info("("+ myAgent.getLocalName() + ") Handling message '" + message + "'...");
-					handleSpoken(message);
-				}
-				else {
-					block();
-				}
-			}
-		});
+
+		registerO2AInterface(ChatClientInterface.class, this);
 		#ANDROID_INCLUDE_END*/
 	}
 
@@ -146,7 +130,7 @@ public class ChatClientAgent extends Agent {
 	// ///////////////////////////////////////
 	// Methods called by the GUI
 	// ///////////////////////////////////////
-	void handleSpoken(String s) {
+	public void handleSpoken(String s) {
 		// Add a ChatSpeaker behaviour that INFORMs all participants about
 		// the spoken sentence
 		addBehaviour(new ChatSpeaker(this, s));

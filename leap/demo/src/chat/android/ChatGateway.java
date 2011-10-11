@@ -44,6 +44,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import chat.client.ChatClientAgent;
+import chat.client.ChatClientInterface;
 
 /**
  * This gateway implements the communication between the Android Application and
@@ -112,8 +113,7 @@ public class ChatGateway {
 
 	public void sendMessage(final String message) throws UnreachableException {
 		try {
-			MicroRuntime.getAgent(nickname).putO2AObject(message,
-					AgentController.ASYNC);
+			MicroRuntime.getAgent(nickname).getO2AInterface(ChatClientInterface.class).handleSpoken(message);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new UnreachableException("Error sending message!");
