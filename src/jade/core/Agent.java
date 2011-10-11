@@ -545,6 +545,9 @@ public class Agent implements Runnable, Serializable
 		myLifeCycle = myActiveLifeCycle;
 		myScheduler = new Scheduler(this);
 		theDispatcher = TimerDispatcher.getTimerDispatcher();
+		//#J2ME_EXCLUDE_BEGIN
+		o2aInterfaces = new java.util.Hashtable<Class<?>, Object>();
+		//#J2ME_EXCLUDE_END
 	}
 	
 	//#MIDP_EXCLUDE_BEGIN
