@@ -115,9 +115,28 @@ class MicroAgentControllerImpl implements AgentController {
 
 	//#J2ME_EXCLUDE_BEGIN
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> T getO2AInterface(Class<T> theInterface) throws StaleProxyException {
-		// FIXME: To be implemented
-		return null;
+		Agent adaptee = myFrontEnd.getLocalAgent(agentName);
+		if (adaptee == null) {
+			throw new StaleProxyException("Controlled agent does not exist");
+		}
+
+		T o2aInterfaceImpl = adaptee.getO2AInterface(theInterface);
+		if (o2aInterfaceImpl == null)
+			return null;
+
+		ClassLoader classLoader = o2aInterfaceImpl.getClass().getClassLoader();
+
+		return (T) java.lang.reflect.Proxy.newProxyInstance(classLoader,
+				new Class[] { theInterface }, new O2AProxy(o2aInterfaceImpl) {
+					protected void checkAgent() throws O2AException {
+						if (myFrontEnd.getLocalAgent(agentName) == null) {
+							throw new O2AException(
+									"Controlled agent does not exist");
+						}
+					}
+				});
 	}
 	//#J2ME_EXCLUDE_END
 
