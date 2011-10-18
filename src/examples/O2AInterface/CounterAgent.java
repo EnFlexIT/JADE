@@ -16,7 +16,10 @@ public class CounterAgent extends Agent implements CounterManager1,
 	// ////////////////////////////////
 	protected int i = 0;
 	protected Behaviour counter;
-
+	 
+	/**
+     * Construct the CounterAgent agent. 
+     */
 	public CounterAgent() {
 		registerO2AInterface(CounterManager1.class, this);
 
@@ -24,7 +27,7 @@ public class CounterAgent extends Agent implements CounterManager1,
 	}
 
 	/**
-	 * ActivateCounter the agent. This is method adds a ticker behavior that
+	 * ActivateCounter the agent. This method adds a ticker behavior that
 	 * increases the counter every 5 seconds and prints the value
 	 */
 	@Override
