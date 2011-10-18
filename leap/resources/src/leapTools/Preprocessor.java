@@ -19,6 +19,7 @@ public class Preprocessor extends Task {
 	private static final String PJAVA_EXCLUDE_FILE_MARKER = "//#PJAVA_EXCLUDE_FILE";
 	private static final String MIDP_EXCLUDE_FILE_MARKER = "//#MIDP_EXCLUDE_FILE";
 	private static final String DOTNET_EXCLUDE_FILE_MARKER = "//#DOTNET_EXCLUDE_FILE";
+	private static final String ANDROID_EXCLUDE_FILE_MARKER = "//#ANDROID_EXCLUDE_FILE";
 	
 	// Code exclusion/inclusion markers. Note that the LEAP preprocessor
 	// directives are conceived so that the non-preprocessed version of
@@ -29,10 +30,10 @@ public class Preprocessor extends Task {
 	private static final String ALL_INCLUDE_BEGIN_MARKER = "/*#ALL_INCLUDE_BEGIN";
 	private static final String ALL_INCLUDE_END_MARKER = "#ALL_INCLUDE_END*/";
 	
-	private static final String JAVA_EXCLUDE_BEGIN_MARKER = "//#JAVA_EXCLUDE_BEGIN"; 
-	private static final String JAVA_EXCLUDE_END_MARKER = "//#JAVA_EXCLUDE_END";
-	private static final String JAVA_INCLUDE_BEGIN_MARKER = "/*#JAVA_INCLUDE_BEGIN";
-	private static final String JAVA_INCLUDE_END_MARKER = "#JAVA_INCLUDE_END*/";
+	private static final String J2SE_EXCLUDE_BEGIN_MARKER = "//#J2SE_EXCLUDE_BEGIN"; 
+	private static final String J2SE_EXCLUDE_END_MARKER = "//#J2SE_EXCLUDE_END";
+	private static final String J2SE_INCLUDE_BEGIN_MARKER = "/*#J2SE_INCLUDE_BEGIN";
+	private static final String J2SE_INCLUDE_END_MARKER = "#J2SE_INCLUDE_END*/";
 		
 	private static final String J2ME_EXCLUDE_BEGIN_MARKER = "//#J2ME_EXCLUDE_BEGIN"; 
 	private static final String J2ME_EXCLUDE_END_MARKER = "//#J2ME_EXCLUDE_END";
@@ -54,6 +55,11 @@ public class Preprocessor extends Task {
 	private static final String DOTNET_INCLUDE_BEGIN_MARKER = "/*#DOTNET_INCLUDE_BEGIN"; 
 	private static final String DOTNET_INCLUDE_END_MARKER = "#DOTNET_INCLUDE_END*/";
 	
+	private static final String ANDROID_EXCLUDE_BEGIN_MARKER = "//#ANDROID_EXCLUDE_BEGIN"; 
+	private static final String ANDROID_EXCLUDE_END_MARKER = "//#ANDROID_EXCLUDE_END";
+	private static final String ANDROID_INCLUDE_BEGIN_MARKER = "/*#ANDROID_INCLUDE_BEGIN"; 
+	private static final String ANDROID_INCLUDE_END_MARKER = "#ANDROID_INCLUDE_END*/";
+	
 	// No-debug version generation markers
 	private static final String NODEBUG_EXCLUDE_BEGIN_MARKER = "//#NODEBUG_EXCLUDE_BEGIN"; 
 	private static final String NODEBUG_EXCLUDE_END_MARKER = "//#NODEBUG_EXCLUDE_END";
@@ -63,6 +69,7 @@ public class Preprocessor extends Task {
 	private static final String PJAVA   = "pjava"; 
 	private static final String MIDP    = "midp"; 
 	private static final String DOTNET  = "DotNET";
+	private static final String ANDROID  = "android";
 	
 	// Preprocessing results
 	private static final int KEEP = 0; 
@@ -116,12 +123,14 @@ public class Preprocessor extends Task {
 				ALL_EXCLUDE_BEGIN_MARKER, 
 				J2ME_EXCLUDE_BEGIN_MARKER, 
 				PJAVA_EXCLUDE_BEGIN_MARKER,
-			  DOTNET_EXCLUDE_BEGIN_MARKER};
+			  DOTNET_EXCLUDE_BEGIN_MARKER,
+			  ANDROID_EXCLUDE_BEGIN_MARKER};
 			eems = new String[] {
 				ALL_EXCLUDE_END_MARKER, 
 				J2ME_EXCLUDE_END_MARKER, 
 				PJAVA_EXCLUDE_END_MARKER,
-				DOTNET_EXCLUDE_END_MARKER};
+				DOTNET_EXCLUDE_END_MARKER,
+				ANDROID_EXCLUDE_END_MARKER};
 			ims = new String[] {
 				ALL_INCLUDE_BEGIN_MARKER, 
 				ALL_INCLUDE_END_MARKER, 
@@ -130,7 +139,9 @@ public class Preprocessor extends Task {
 				PJAVA_INCLUDE_BEGIN_MARKER, 
 				PJAVA_INCLUDE_END_MARKER,
 				DOTNET_INCLUDE_BEGIN_MARKER, 
-				DOTNET_INCLUDE_END_MARKER};
+				DOTNET_INCLUDE_END_MARKER,
+				ANDROID_INCLUDE_BEGIN_MARKER, 
+				ANDROID_INCLUDE_END_MARKER};
 			efms = new String[] {
 				ALL_EXCLUDE_FILE_MARKER, 
 				DOTNET_EXCLUDE_FILE_MARKER};  
@@ -141,12 +152,12 @@ public class Preprocessor extends Task {
 				ALL_EXCLUDE_BEGIN_MARKER, 
 				J2ME_EXCLUDE_BEGIN_MARKER, 
 				MIDP_EXCLUDE_BEGIN_MARKER,
-				JAVA_EXCLUDE_BEGIN_MARKER};
+				J2SE_EXCLUDE_BEGIN_MARKER};
 			eems = new String[] {
 				ALL_EXCLUDE_END_MARKER, 
 				J2ME_EXCLUDE_END_MARKER, 
 				MIDP_EXCLUDE_END_MARKER,
-				JAVA_EXCLUDE_END_MARKER};
+				J2SE_EXCLUDE_END_MARKER};
 			ims = new String[] {
 				ALL_INCLUDE_BEGIN_MARKER, 
 				ALL_INCLUDE_END_MARKER, 
@@ -165,12 +176,12 @@ public class Preprocessor extends Task {
 				ALL_EXCLUDE_BEGIN_MARKER, 
 				J2ME_EXCLUDE_BEGIN_MARKER, 
 				PJAVA_EXCLUDE_BEGIN_MARKER,
-				JAVA_EXCLUDE_BEGIN_MARKER};
+				J2SE_EXCLUDE_BEGIN_MARKER};
 			eems = new String[] {
 				ALL_EXCLUDE_END_MARKER, 
 				J2ME_EXCLUDE_END_MARKER, 
 				PJAVA_EXCLUDE_END_MARKER,
-				JAVA_EXCLUDE_END_MARKER};
+				J2SE_EXCLUDE_END_MARKER};
 			ims = new String[] {
 				ALL_INCLUDE_BEGIN_MARKER, 
 				ALL_INCLUDE_END_MARKER, 
@@ -183,18 +194,43 @@ public class Preprocessor extends Task {
 				J2ME_EXCLUDE_FILE_MARKER, 
 				PJAVA_EXCLUDE_FILE_MARKER};
 		}
+		else if (ANDROID.equalsIgnoreCase(type)) {
+			// For ANDROID
+			ebms = new String[] {
+				ALL_EXCLUDE_BEGIN_MARKER, 
+				J2ME_EXCLUDE_BEGIN_MARKER, 
+				ANDROID_EXCLUDE_BEGIN_MARKER,
+				J2SE_EXCLUDE_BEGIN_MARKER};
+			eems = new String[] {
+				ALL_EXCLUDE_END_MARKER, 
+				J2ME_EXCLUDE_END_MARKER, 
+				ANDROID_EXCLUDE_END_MARKER,
+				J2SE_EXCLUDE_END_MARKER};
+			ims = new String[] {
+				ALL_INCLUDE_BEGIN_MARKER, 
+				ALL_INCLUDE_END_MARKER, 
+				J2ME_INCLUDE_BEGIN_MARKER, 
+				J2ME_INCLUDE_END_MARKER, 
+				ANDROID_INCLUDE_BEGIN_MARKER, 
+				ANDROID_INCLUDE_END_MARKER};
+			efms = new String[] {
+				ALL_EXCLUDE_FILE_MARKER, 
+				J2ME_EXCLUDE_FILE_MARKER, 
+				ANDROID_EXCLUDE_FILE_MARKER};
+		}
 		else if (J2SE.equalsIgnoreCase(type)) {
 			// For J2SE
 			ebms = new String[] {
 				ALL_EXCLUDE_BEGIN_MARKER,
-				JAVA_EXCLUDE_BEGIN_MARKER};
+				J2SE_EXCLUDE_BEGIN_MARKER};
 			eems = new String[] {
 				ALL_EXCLUDE_END_MARKER,
-				JAVA_EXCLUDE_END_MARKER};
+				J2SE_EXCLUDE_END_MARKER};
 			ims = new String[] {
 				ALL_INCLUDE_BEGIN_MARKER, 
-				ALL_INCLUDE_END_MARKER
-			};
+				ALL_INCLUDE_END_MARKER,
+				J2SE_INCLUDE_BEGIN_MARKER, 
+				J2SE_INCLUDE_END_MARKER};
 			efms = new String[] {
 				ALL_EXCLUDE_FILE_MARKER,
 				J2SE_EXCLUDE_FILE_MARKER};
