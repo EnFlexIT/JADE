@@ -20,9 +20,6 @@
     <string name="menu_exit">exit</string>
     <string name="menu_participants">participants</string>
     <string name="menu_clear">clear</string>
-
-    <string name="default_host">10.0.2.2</string>    
-    <string name="default_port">1099</string>
     
     <string name="msg_connecting_to">Connecting to</string>
     <string name="msg_nickname_in_use">Nickname already in use!</string>
