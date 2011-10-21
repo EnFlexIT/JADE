@@ -1,9 +1,11 @@
 package chat.ontology;
 
+import java.util.List;
+
 import jade.content.Predicate;
 import jade.core.AID;
 
-//#MIDP_EXCLUDE_FILE
+//#J2ME_EXCLUDE_FILE
 
 /**
  * Joined predicate used by chat ontology.
@@ -14,13 +16,13 @@ import jade.core.AID;
 @SuppressWarnings("serial")
 public class Joined implements Predicate {
 
-	private AID _who;
+	private List<AID> _who;
 
-	public void setWho(AID who) {
+	public void setWho(List<AID> who) {
 		_who = who;
 	}
 
-	public AID getWho() {
+	public List<AID> getWho() {
 		return _who;
 	}
 

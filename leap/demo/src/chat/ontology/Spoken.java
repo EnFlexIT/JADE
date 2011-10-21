@@ -2,7 +2,7 @@ package chat.ontology;
 
 import jade.content.Predicate;
 
-//#MIDP_EXCLUDE_FILE
+//#J2ME_EXCLUDE_FILE
 
 /**
  * Spoken predicate used by chat ontology.
