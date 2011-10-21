@@ -29,42 +29,52 @@ import jade.content.schema.*;
 import jade.content.abs.*;
 
 /**
-   Ontology containing concepts, predicates and actions used 
-   within the chat application.
-   @author Giovanni Caire - TILAB
+ * Ontology containing concepts, predicates and actions used within the chat
+ * application.
+ * 
+ * @author Giovanni Caire - TILAB
  */
 public class ChatOntology extends Ontology implements ChatVocabulary {
-  
-  // The singleton instance of this ontology
+
+	// The singleton instance of this ontology
 	private static Ontology theInstance = new ChatOntology();
-	
+
 	public static Ontology getInstance() {
 		return theInstance;
 	}
-	
-  /**
-   * Constructor
-   */
-  private ChatOntology() {
-  	super(ONTOLOGY_NAME, BasicOntology.getInstance(), null);
 
-    try {
-    	add(new PredicateSchema(JOINED));
-    	add(new PredicateSchema(LEFT));
-    	add(new PredicateSchema(SPOKEN));
-    	
-    	PredicateSchema ps = (PredicateSchema) getSchema(JOINED);
-    	ps.add(JOINED_WHO, (ConceptSchema) getSchema(BasicOntology.AID), 0, ObjectSchema.UNLIMITED);
+	/**
+	 * Constructor
+	 */
+	private ChatOntology() {
+		super(ONTOLOGY_NAME, BasicOntology.getInstance(), null);
 
-    	ps = (PredicateSchema) getSchema(LEFT);
-    	ps.add(LEFT_WHO, (ConceptSchema) getSchema(BasicOntology.AID), 0, ObjectSchema.UNLIMITED);
+		try {
+			//#MIDP_EXCLUDE_BEGIN
+			add(new PredicateSchema(JOINED), Joined.class);
+			add(new PredicateSchema(LEFT), Left.class);
+			add(new PredicateSchema(SPOKEN), Spoken.class);
+			//#MIDP_EXCLUDE_END
+			/*#MIDP_INCLUDE_BEGIN
+			add(new PredicateSchema(JOINED));
+			add(new PredicateSchema(LEFT));
+			add(new PredicateSchema(SPOKEN));
+			#MIDP_INCLUDE_END*/
 
-    	ps = (PredicateSchema) getSchema(SPOKEN);
-    	ps.add(SPOKEN_WHAT, (PrimitiveSchema) getSchema(BasicOntology.STRING));
-    } 
-    catch (OntologyException oe) {
-    	oe.printStackTrace();
-    } 
+			PredicateSchema ps = (PredicateSchema) getSchema(JOINED);
+			ps.add(JOINED_WHO, (ConceptSchema) getSchema(BasicOntology.AID), 0,
+					ObjectSchema.UNLIMITED);
+
+			ps = (PredicateSchema) getSchema(LEFT);
+			ps.add(LEFT_WHO, (ConceptSchema) getSchema(BasicOntology.AID), 0,
+					ObjectSchema.UNLIMITED);
+
+			ps = (PredicateSchema) getSchema(SPOKEN);
+			ps.add(SPOKEN_WHAT,
+					(PrimitiveSchema) getSchema(BasicOntology.STRING));
+		} catch (OntologyException oe) {
+			oe.printStackTrace();
+		}
 	}
 
 }
