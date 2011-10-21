@@ -32,10 +32,12 @@ import jade.core.Agent;
 import javax.microedition.midlet.*;
 import javax.microedition.lcdui.*;
 
+import chat.client.agent.ChatClientAgent;
+
 /**
    @author Giovanni Caire - TILAB
  */
-class MIDPChatGui implements ChatGui, CommandListener {
+public class MIDPChatGui implements ChatGui, CommandListener {
 	private static final int MAX_SIZE = 5;
 	
 	private ChatClientAgent myAgent;
@@ -49,7 +51,7 @@ class MIDPChatGui implements ChatGui, CommandListener {
   private final Command okCmd = new Command("OK", Command.OK, 1);
   private final Command cancelCmd = new Command("Cancel", Command.CANCEL, 1);
 	
-	MIDPChatGui(ChatClientAgent a) {
+	public MIDPChatGui(ChatClientAgent a) {
 		myAgent = a;
 		
 		// Main chat form

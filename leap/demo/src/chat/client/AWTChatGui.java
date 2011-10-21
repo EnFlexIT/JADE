@@ -26,21 +26,21 @@ package chat.client;
 //#MIDP_EXCLUDE_FILE
 //#ANDROID_EXCLUDE_FILE
 
-import jade.core.Agent;
-
 import java.awt.*;
 import java.awt.event.*;
+
+import chat.client.agent.ChatClientAgent;
 
 /**
    @author Giovanni Caire - TILAB
  */
-class AWTChatGui extends Frame implements ChatGui {
+public class AWTChatGui extends Frame implements ChatGui {
 	private ChatClientAgent myAgent;
 	private TextField writeTf;
 	private TextArea allTa;
 	private ParticipantsFrame participantsFrame;
 	
-	AWTChatGui(ChatClientAgent a) {
+	public AWTChatGui(ChatClientAgent a) {
 		myAgent = a;
 		
 		setTitle("Chat: "+myAgent.getLocalName());

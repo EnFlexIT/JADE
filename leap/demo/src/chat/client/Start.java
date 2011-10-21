@@ -88,7 +88,7 @@ public class Start extends MicroBoot {
 	  	}
 	  	else {
 	  		try {
-	    		MicroRuntime.startAgent(name, "chat.client.ChatClientAgent", null);
+	    		MicroRuntime.startAgent(name, "chat.client.agent.ChatClientAgent", null);
 	    		dispose();
     		}
     		catch (Exception ex) {
@@ -146,7 +146,7 @@ public class Start extends MicroBoot implements CommandListener {
     	else {
     		try {
     			si.setText("Joining chat. Please wait...");
-	    		MicroRuntime.startAgent(name, "chat.client.ChatClientAgent", null);
+	    		MicroRuntime.startAgent(name, "chat.client.agent.ChatClientAgent", null);
     		}
     		catch (Exception e) {
     			si.setText("Nickname already in use");
