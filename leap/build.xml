@@ -25,6 +25,7 @@
 	<property name="android-root" value="${root}/android"/>	
 	<property name="tmp" value="${root}/tmp"/>	
 	<property name="dist" value="${jade-home}/add-ons"/>	
+	<property name="demo-dist" value="${root}/demo/dist"/>
 	
 	<!-- Javadoc Header and Footer -->
 	<property name="title" value="JADE-LEAP"/>
@@ -384,7 +385,122 @@
 		<jar jarfile="${dist}/JadeLeapAndroid-${version}.zip" basedir="${jade-home}/leap/android/lib"/>
 	</target>
 
+	<target name="android-demo-dist" description="Build the distribution package for the android demo">
+		<!-- Step 1: Setup the demo distribution folders -->
+		<delete dir="${demo-dist}" quiet="true"/>
+		<mkdir dir="${demo-dist}"/>
+		<mkdir dir="${demo-dist}/standard"/>
+		<mkdir dir="${demo-dist}/standard/lib"/>
+		<mkdir dir="${demo-dist}/standard/src"/>
+		<mkdir dir="${demo-dist}/standard/bin"/>
+		<mkdir dir="${demo-dist}/android"/>
+		<mkdir dir="${demo-dist}/android/lib"/>
+		<mkdir dir="${demo-dist}/android/src"/>
+		<mkdir dir="${demo-dist}/android/res"/>
+		<mkdir dir="${demo-dist}/android/bin"/>
 
+		<copy file="${jade-home}/lib/jade.jar" todir="${demo-dist}/standard/lib"/>
+		<copy todir="${demo-dist}/standard/src" overwrite="yes">
+			<fileset dir="${demo-src}">
+				<exclude name="**/client/gui/**"/>
+			</fileset>
+		</copy>
+		<pproc basedir="${demo-dist}/standard/src" type="j2se"/>
+
+		<copy file="${root}/resources/demo/build.xml" todir="${demo-dist}/standard"/>
+		<copy todir="${demo-dist}/standard/bin" overwrite="yes">
+			<fileset dir="${root}/resources/demo/bin">
+			</fileset>
+		</copy>
+
+		<copy file="${android-root}/lib/JadeAndroid.jar" todir="${demo-dist}/android/lib"/>
+		<copy todir="${demo-dist}/android/src" overwrite="yes">
+			<fileset dir="${demo-src}">
+				<exclude name="**/manager/**"/>
+				<exclude name="**/ontology/**"/>
+			</fileset>
+		</copy>
+		<pproc basedir="${demo-dist}/android/src" type="android"/>
+
+		<copy todir="${demo-dist}/android/res" overwrite="yes">
+			<fileset dir="${demo}/res">
+			</fileset>
+		</copy>
+
+		<copy file="${demo}/demoAndroid-release.apk" tofile="${demo-dist}/android/bin/chatClient.apk"/>
+		<copy file="${demo}/AndroidManifest.xml" todir="${demo-dist}/android"/>
+
+		<!-- Step 2: Build the Chat Ontology library -->
+		<delete dir = "${demo-preprocessed}" quiet="true"/>
+		<delete dir = "${demo-classes}" quiet="true"/>
+		<mkdir dir="${demo-preprocessed}"/>
+		<mkdir dir="${demo-classes}"/>
+		
+		<copy todir="${demo-preprocessed}" overwrite="yes">
+			<fileset dir="${demo-src}">
+				<exclude name="**/client/**"/>
+				<exclude name="**/manager/**"/>
+			</fileset>
+		</copy>
+		
+		<pproc basedir="${demo-preprocessed}" type="j2se"/>
+	  
+		<javac srcdir="${demo-preprocessed}"
+		       destdir="${demo-classes}"
+		       classpath="${demo-dist}/standard/lib/jade.jar"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="off"
+		       fork="yes"
+		       compiler="classic"
+		       source="1.5"
+		       target="1.5"/>
+		       
+		<jar jarfile="${demo-dist}/standard/lib/chatOntology.jar" basedir="${demo-classes}"/>
+		<copy file="${demo-dist}/standard/lib/chatOntology.jar" todir="${demo-dist}/android/lib"/>
+		
+		<!-- Step 3: Build the Chat Standard library -->
+		<delete dir = "${demo-preprocessed}" quiet="true"/>
+		<delete dir = "${demo-classes}" quiet="true"/>
+		<mkdir dir="${demo-preprocessed}"/>
+		<mkdir dir="${demo-classes}"/>
+		
+		<copy todir="${demo-preprocessed}" overwrite="yes">
+			<fileset dir="${demo-src}">
+				<exclude name="**/client/gui/**"/>
+				<exclude name="**/ontology/**"/>
+			</fileset>
+		</copy>
+
+		<pproc basedir="${demo-preprocessed}" type="j2se"/>
+	  
+		<javac srcdir="${demo-preprocessed}"
+		       destdir="${demo-classes}"
+		       classpath="${demo-dist}/standard/lib/jade.jar:${demo-dist}/standard/lib/chatOntology.jar"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="off"
+		       fork="yes"
+		       compiler="classic"
+		       source="1.5"
+		       target="1.5"/>
+		       
+		<jar jarfile="${demo-dist}/standard/lib/chatStandard.jar" basedir="${demo-classes}"/>
+		
+		<!-- Step 4: Create the distribution archives -->
+		<mkdir dir="${root}/dist"/>		
+		<delete file="${root}/dist/chatAndroid.zip" quiet="true"/>
+		<zip zipfile="${root}/dist/chatAndroid.zip">
+			<zipfileset dir="${demo-dist}/android" prefix="android"/>
+		</zip>		
+
+		<delete file="${root}/dist/chatStandard.zip" quiet="true"/>
+		<zip zipfile="${root}/dist/chatStandard.zip">
+			<zipfileset dir="${demo-dist}/standard" prefix="standard"/>
+		</zip>		
+
+	</target>
+	
 	<!-- ******** LEAP ant tasks ******** -->
 
 	<target name = "leapTools">
