@@ -24,6 +24,9 @@ Boston, MA  02111-1307, USA.
 package chat.manager;
 
 //#J2ME_EXCLUDE_FILE
+//#MIDP_EXCLUDE_FILE
+//#PJAVA_EXCLUDE_FILE
+//#ANDROID_EXCLUDE_FILE
 
 import jade.core.Agent;
 import jade.core.AID;
