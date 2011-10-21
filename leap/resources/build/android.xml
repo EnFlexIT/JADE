@@ -75,7 +75,7 @@
 		<delete dir = "${doc}"/>
 		<delete dir = "${bin}"/>
 		<delete dir = "${lib}"/>
-		<delete file = "${android-root}/JadeAndroid.jar"/>
+		<delete file = "${android-root}/lib/JadeAndroid.jar"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${src}">
 				<include name="**/jade/**"/>
@@ -110,7 +110,6 @@
 		       source="1.6"
 		       target="1.6"/>
 	</target>
-
 
 	<!-- LIB -->
 	<target name="do-lib" depends="do-compile" description="Create Jade-Android jar file">
