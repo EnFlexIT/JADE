@@ -65,10 +65,10 @@ public class ChatOntology extends Ontology implements ChatVocabulary {
 			#J2ME_INCLUDE_END*/
 
 			PredicateSchema ps = (PredicateSchema) getSchema(JOINED);
-			ps.add(JOINED_WHO, (ConceptSchema) getSchema(BasicOntology.AID), 0, ObjectSchema.UNLIMITED);
+			ps.add(JOINED_WHO, (ConceptSchema) getSchema(BasicOntology.AID), 1, ObjectSchema.UNLIMITED);
 
 			ps = (PredicateSchema) getSchema(LEFT);
-			ps.add(LEFT_WHO, (ConceptSchema) getSchema(BasicOntology.AID), 0, ObjectSchema.UNLIMITED);
+			ps.add(LEFT_WHO, (ConceptSchema) getSchema(BasicOntology.AID), 1, ObjectSchema.UNLIMITED);
 
 			ps = (PredicateSchema) getSchema(SPOKEN);
 			ps.add(SPOKEN_WHAT, (PrimitiveSchema) getSchema(BasicOntology.STRING));

@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package chat.client.agent;
 
+import java.util.List;
+
 import jade.content.ContentManager;
 import jade.content.Predicate;
 import jade.content.lang.Codec;
@@ -223,15 +225,18 @@ public class ChatClientAgent extends Agent implements ChatClientInterface {
 						Predicate p = (Predicate) myAgent.getContentManager().extractContent(msg);
 						if(p instanceof Joined) {
 							Joined joined = (Joined) p;
-							AID aid = joined.getWho();
-							participants.add(aid);
+							List<AID> aid = (List<AID>) joined.getWho();
+							participants.add(aid.get(0));
 							notifyParticipantsChanged();
 						}
 						if(p instanceof Left) {
-							participants.remove(((Left) p).getWho());
+							Left left = (Left) p;
+							List<AID> aid = (List<AID>) left.getWho();
+							participants.remove(aid.get(0));
 							notifyParticipantsChanged();
 						}
 						//#MIDP_EXCLUDE_END
+						//#ANDROID_EXCLUDE_BEGIN
 						/*#MIDP_INCLUDE_BEGIN
 						AbsPredicate p = (AbsPredicate) myAgent
 							.getContentManager().extractAbsContent(msg);
@@ -266,6 +271,7 @@ public class ChatClientAgent extends Agent implements ChatClientInterface {
 							notifyParticipantsChanged();
 						}
 						#MIDP_INCLUDE_END*/
+						//#ANDROID_EXCLUDE_END
 					} catch (Exception e) {
 						Logger.println(e.toString());
 						e.printStackTrace();
