@@ -24,7 +24,6 @@ Boston, MA  02111-1307, USA.
 package chat.client.agent;
 
 import java.util.List;
-
 import jade.content.ContentManager;
 import jade.content.Predicate;
 import jade.content.lang.Codec;
@@ -40,12 +39,16 @@ import jade.util.Logger;
 import jade.util.leap.Iterator;
 import jade.util.leap.Set;
 import jade.util.leap.SortedSetImpl;
+//#J2SE_EXCLUDE_BEGIN
+//#ANDROID_EXCLUDE_BEGIN
 /*#MIDP_INCLUDE_BEGIN
 import jade.content.abs.AbsAggregate;
 import jade.content.abs.AbsConcept;
 import jade.content.abs.AbsPredicate;
 import jade.content.onto.BasicOntology;
 #MIDP_INCLUDE_END*/
+//#ANDROID_EXCLUDE_END
+//#J2SE_EXCLUDE_END
 //#MIDP_EXCLUDE_BEGIN
 import chat.ontology.ChatOntology;
 import chat.ontology.Joined;
@@ -226,17 +229,20 @@ public class ChatClientAgent extends Agent implements ChatClientInterface {
 						if(p instanceof Joined) {
 							Joined joined = (Joined) p;
 							List<AID> aid = (List<AID>) joined.getWho();
-							participants.add(aid.get(0));
+							for(AID a : aid)
+								participants.add(a);
 							notifyParticipantsChanged();
 						}
 						if(p instanceof Left) {
 							Left left = (Left) p;
 							List<AID> aid = (List<AID>) left.getWho();
-							participants.remove(aid.get(0));
+							for(AID a : aid)
+								participants.remove(a);
 							notifyParticipantsChanged();
 						}
 						//#MIDP_EXCLUDE_END
 						//#ANDROID_EXCLUDE_BEGIN
+						//#J2SE_EXCLUDE_BEGIN
 						/*#MIDP_INCLUDE_BEGIN
 						AbsPredicate p = (AbsPredicate) myAgent
 							.getContentManager().extractAbsContent(msg);
@@ -271,6 +277,7 @@ public class ChatClientAgent extends Agent implements ChatClientInterface {
 							notifyParticipantsChanged();
 						}
 						#MIDP_INCLUDE_END*/
+						//#J2SE_EXCLUDE_END
 						//#ANDROID_EXCLUDE_END
 					} catch (Exception e) {
 						Logger.println(e.toString());
