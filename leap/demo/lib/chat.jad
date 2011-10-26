@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+LEAP-host: localhost
+MIDlet-Jar-Size: 701538
+MIDlet-2: View-output, , jade.util.leap.OutputViewer
+MIDlet-1: JADE-Chat, , chat.client.Start
+MIDlet-Jar-URL: chatMidp.jar
+Ant-Version: Apache Ant 1.6.5
+MicroEdition-Configuration: CLDC-1.0
+MIDlet-Version: 1.0
+Created-By: 1.5.0_01-b08 (Sun Microsystems Inc.)
+MIDlet-Vendor: TILAB
+MIDlet-Name: JADE-Demo
+MicroEdition-Profile: MIDP-1.0
+LEAP-conf: jad
