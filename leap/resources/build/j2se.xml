@@ -80,6 +80,7 @@
 
 	<!-- DEMO -->
 	<target name="do-demo" depends="do-init, check-resources" description="Build the demo for the J2SE environment">
+		<!--
 		<delete dir = "${demo-preprocessed}" quiet="true"/>
 		<delete dir = "${demo-classes}" quiet="true"/>
 		<mkdir dir="${demo-preprocessed}"/>
@@ -101,6 +102,66 @@
 		       
 		<delete file="${root}/demo/demoJ2se.jar" quiet="true"/>
 		<jar jarfile="${root}/demo/demoJ2se.jar" basedir="${demo-classes}"/>
+		-->
+		<!-- Step 1: Copy the JADE library -->
+		<copy file="${jade-home}/lib/jade.jar" todir="${demo}/lib"/>
+
+		<!-- Step 2: Build the Chat Ontology library -->
+		<delete dir = "${demo-preprocessed}" quiet="true"/>
+		<delete dir = "${demo-classes}" quiet="true"/>
+		<mkdir dir="${demo-preprocessed}"/>
+		<mkdir dir="${demo-classes}"/>
+		
+		<copy todir="${demo-preprocessed}" overwrite="yes">
+			<fileset dir="${demo-src}">
+				<exclude name="**/client/**"/>
+				<exclude name="**/manager/**"/>
+			</fileset>
+		</copy>
+		<pproc basedir="${demo-preprocessed}" type="j2se"/>
+	  
+		<javac srcdir="${demo-preprocessed}"
+		       destdir="${demo-classes}"
+		       classpath="${demo-dist}/standard/lib/jade.jar"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="off"
+		       fork="yes"
+		       compiler="classic"
+		       source="1.5"
+		       target="1.5"/>
+		       
+		<jar jarfile="${demo}/lib/chatOntology.jar" basedir="${demo-classes}"/>
+		<!--
+		<copy file="${demo}/lib/chatOntology.jar" todir="${demo-dist}/android/lib"/>
+		-->
+		
+		<!-- Step 3: Build the Chat Standard library -->
+		<delete dir = "${demo-preprocessed}" quiet="true"/>
+		<delete dir = "${demo-classes}" quiet="true"/>
+		<mkdir dir="${demo-preprocessed}"/>
+		<mkdir dir="${demo-classes}"/>
+		
+		<copy todir="${demo-preprocessed}" overwrite="yes">
+			<fileset dir="${demo-src}">
+				<exclude name="**/ontology/**"/>
+			</fileset>
+		</copy>
+
+		<pproc basedir="${demo-preprocessed}" type="j2se"/>
+	  
+		<javac srcdir="${demo-preprocessed}"
+		       destdir="${demo-classes}"
+		       classpath="${demo}/lib/jade.jar:${demo}/lib/chatOntology.jar"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="off"
+		       fork="yes"
+		       compiler="classic"
+		       source="1.5"
+		       target="1.5"/>
+		       
+		<jar jarfile="${demo}/lib/chatStandard.jar" basedir="${demo-classes}"/>		
 	</target>
 
 	

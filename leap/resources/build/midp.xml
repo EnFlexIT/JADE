@@ -191,20 +191,20 @@
 	  
 		<unjar src="${lib}/JadeLeap.jar" dest="${demo-classes}"/>
 		
-		<delete file="${demo}/demoMidp.jar" quiet="true"/>
-		<jar jarfile="${demo}/demoMidp.jar" basedir="${demo-classes}" manifest="${demo}/demo.manifest"/>
+		<delete file="${demo}/lib/chatMidp.jar" quiet="true"/>
+		<jar jarfile="${demo}/lib/chatMidp.jar" basedir="${demo-classes}" manifest="${demo}/chat.manifest"/>
 
 		<!-- Update MIDP version according to buildLEAP.properties file -->  
-		<manifest file="${demo}/demo.manifest" mode="update">
+		<manifest file="${demo}/chat.manifest" mode="update">
 			<attribute name="MicroEdition-Profile" value="MIDP-${midp-version}" />
 		</manifest>
         
 		<!-- Update jad file -->          
-		<copy file="${demo}/demo.manifest" toFile="${demo}/demo.jad" overWrite="yes" />
-		<manifest file="${demo}/demo.jad" mode="update">
-			<attribute name="MIDlet-Jar-URL" value="demoMidp.jar" />
+		<copy file="${demo}/chat.manifest" toFile="${demo}/lib/chat.jad" overWrite="yes" />
+		<manifest file="${demo}/lib/chat.jad" mode="update">
+			<attribute name="MIDlet-Jar-URL" value="chatMidp.jar" />
 		</manifest>
-		<updatejad jad="${demo}/demo.jad" />
+		<updatejad jad="${demo}/lib/chat.jad" />
 	</target>
 
 	<!-- The following targets are there to ensure that the JadeLeap.jar file for MIDP is available

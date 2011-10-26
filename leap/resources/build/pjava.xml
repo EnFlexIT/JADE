@@ -160,8 +160,8 @@
 			</fileset>
 		</copy>
 		
-		<delete file="${root}/demo/demoPjava.jar" quiet="true"/>
-		<jar jarfile="${root}/demo/demoPjava.jar" basedir="${demo-classes}"/>
+		<delete file="${root}/demo/lib/chatPjava.jar" quiet="true"/>
+		<jar jarfile="${root}/demo/lib/chatPjava.jar" basedir="${demo-classes}"/>
 	</target>
 
 	<!-- The following targets are there to ensure that the JadeLeap.jar file for PJAVA is available
