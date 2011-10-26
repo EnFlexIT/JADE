@@ -42,7 +42,12 @@ import jade.util.leap.Iterator;
 import jade.util.leap.Set;
 import jade.util.leap.SortedSetImpl;
 import chat.client.ChatGui;
+/*#MIDP_INCLUDE_BEGIN
+import chat.client.MIDPChatGui;
+#MIDP_INCLUDE_END*/
+//#MIDP_EXCLUDE_BEGIN
 import chat.client.AWTChatGui;
+//#MIDP_EXCLUDE_END
 import chat.ontology.ChatOntology;
 
 /**
