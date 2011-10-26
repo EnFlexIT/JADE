@@ -23,13 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package chat.client.gui;
 
-//#MIDP_EXCLUDE_FILE
-//#J2SE_EXCLUDE_FILE
-//#PJAVA_EXCLUDE_FILE
-
-import chat.client.agent.ChatClientInterface;
 import jade.core.MicroRuntime;
-import jade.core.UnreachableException;
 import jade.util.Logger;
 import jade.wrapper.ControllerException;
 import jade.wrapper.O2AException;
@@ -51,6 +45,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import chat.client.agent.ChatClientInterface;
 
 /**
  * This activity implement the chat interface.
