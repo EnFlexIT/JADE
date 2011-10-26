@@ -23,11 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package chat.client.agent;
 
-import java.util.List;
 import jade.content.ContentManager;
-import jade.content.Predicate;
+import jade.content.abs.AbsAggregate;
+import jade.content.abs.AbsConcept;
+import jade.content.abs.AbsPredicate;
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
+import jade.content.onto.BasicOntology;
 import jade.content.onto.Ontology;
 import jade.core.AID;
 import jade.core.Agent;
@@ -39,31 +41,8 @@ import jade.util.Logger;
 import jade.util.leap.Iterator;
 import jade.util.leap.Set;
 import jade.util.leap.SortedSetImpl;
-//#J2SE_EXCLUDE_BEGIN
-//#ANDROID_EXCLUDE_BEGIN
-/*#MIDP_INCLUDE_BEGIN
-import jade.content.abs.AbsAggregate;
-import jade.content.abs.AbsConcept;
-import jade.content.abs.AbsPredicate;
-import jade.content.onto.BasicOntology;
-#MIDP_INCLUDE_END*/
-//#ANDROID_EXCLUDE_END
-//#J2SE_EXCLUDE_END
-//#MIDP_EXCLUDE_BEGIN
-import chat.ontology.ChatOntology;
-import chat.ontology.Joined;
-import chat.ontology.Left;
-//#MIDP_EXCLUDE_END
-//#ANDROID_EXCLUDE_BEGIN
 import chat.client.ChatGui;
-import chat.client.AWTChatGui;
-//#ANDROID_EXCLUDE_END
-//#J2SE_EXCLUDE_BEGIN
-/*#ANDROID_INCLUDE_BEGIN
-import android.content.Intent;
-import android.content.Context;
-#ANDROID_INCLUDE_END*/
-//#J2SE_EXCLUDE_END
+import chat.ontology.ChatOntology;
 
 /**
  * This agent implements the logic of the chat client running on the user
@@ -78,7 +57,7 @@ import android.content.Context;
  * 
  * @author Giovanni Caire - TILAB
  */
-public class ChatClientAgent extends Agent implements ChatClientInterface {
+public class ChatClientAgent extends Agent {
 	private static final long serialVersionUID = 1594371294421614291L;
 
 	private Logger logger = Logger.getMyLogger(this.getClass().getName());
@@ -86,32 +65,13 @@ public class ChatClientAgent extends Agent implements ChatClientInterface {
 	private static final String CHAT_ID = "__chat__";
 	private static final String CHAT_MANAGER_NAME = "manager";
 
-	//#ANDROID_EXCLUDE_BEGIN
 	private ChatGui myGui;
-	//#ANDROID_EXCLUDE_END
 	private Set participants = new SortedSetImpl();
 	private Codec codec = new SLCodec();
 	private Ontology onto = ChatOntology.getInstance();
 	private ACLMessage spokenMsg;
 
-	//#J2SE_EXCLUDE_BEGIN
-	/*#ANDROID_INCLUDE_BEGIN
-	private Context context;
-	#ANDROID_INCLUDE_END*/
-	//#J2SE_EXCLUDE_END
-
 	protected void setup() {
-		//#J2SE_EXCLUDE_BEGIN
-		/*#ANDROID_INCLUDE_BEGIN
-		Object[] args = getArguments();
-		if (args != null && args.length > 0) {
-			if (args[0] instanceof Context) {
-				context = (Context) args[0];
-			}
-		}
-		#ANDROID_INCLUDE_END*/
-		//#J2SE_EXCLUDE_END
-		
 		// Register language and ontology
 		ContentManager cm = getContentManager();
 		cm.registerLanguage(codec);
@@ -127,7 +87,6 @@ public class ChatClientAgent extends Agent implements ChatClientInterface {
 		spokenMsg.setConversationId(CHAT_ID);
 
 		// Activate the GUI
-		//#ANDROID_EXCLUDE_BEGIN
 		/*#J2SE_INCLUDE_BEGIN
 		myGui = new AWTChatGui(this);
 		#J2SE_INCLUDE_END*/
@@ -140,53 +99,20 @@ public class ChatClientAgent extends Agent implements ChatClientInterface {
 		/*#MIDP_INCLUDE_BEGIN
 		myGui = new MIDPChatGui(this);
 		#MIDP_INCLUDE_END*/
-		//#ANDROID_EXCLUDE_END
-		/*#ANDROID_INCLUDE_BEGIN
-		registerO2AInterface(ChatClientInterface.class, this);
-		
-		Intent broadcast = new Intent();
-		broadcast.setAction("jade.demo.chat.SHOW_CHAT");
-		logger.info("Sending broadcast " + broadcast.getAction());
-		context.sendBroadcast(broadcast);
-		#ANDROID_INCLUDE_END*/
-		//#J2SE_EXCLUDE_END
 	}
 
 	protected void takeDown() {
-		//#ANDROID_EXCLUDE_BEGIN
 		if (myGui != null) {
 			myGui.dispose();
 		}
-		//#ANDROID_EXCLUDE_END
 	}
 
 	private void notifyParticipantsChanged() {
-		//#ANDROID_EXCLUDE_BEGIN
 		myGui.notifyParticipantsChanged(getParticipantNames());
-		//#ANDROID_EXCLUDE_END
-		//#J2SE_EXCLUDE_BEGIN
-		/*#ANDROID_INCLUDE_BEGIN
-		Intent broadcast = new Intent();
-		broadcast.setAction("jade.demo.chat.REFRESH_PARTICIPANTS");
-		logger.info("Sending broadcast " + broadcast.getAction());
-		context.sendBroadcast(broadcast);
-		#ANDROID_INCLUDE_END*/
-		//#J2SE_EXCLUDE_END
 	}
 
 	private void notifySpoken(String speaker, String sentence) {
-		//#ANDROID_EXCLUDE_BEGIN
 		myGui.notifySpoken(speaker, sentence);
-		//#ANDROID_EXCLUDE_END
-		//#J2SE_EXCLUDE_BEGIN
-		/*#ANDROID_INCLUDE_BEGIN
-		Intent broadcast = new Intent();
-		broadcast.setAction("jade.demo.chat.REFRESH_CHAT");
-		broadcast.putExtra("sentence", speaker + ": " + sentence + "\n");
-		logger.info("Sending broadcast " + broadcast.getAction());
-		context.sendBroadcast(broadcast);
-		#ANDROID_INCLUDE_END*/
-		//#J2SE_EXCLUDE_END
 	}
 	
 	/**
@@ -224,26 +150,6 @@ public class ChatClientAgent extends Agent implements ChatClientInterface {
 			if (msg != null) {
 				if (msg.getPerformative() == ACLMessage.INFORM) {
 					try {
-						//#MIDP_EXCLUDE_BEGIN
-						Predicate p = (Predicate) myAgent.getContentManager().extractContent(msg);
-						if(p instanceof Joined) {
-							Joined joined = (Joined) p;
-							List<AID> aid = (List<AID>) joined.getWho();
-							for(AID a : aid)
-								participants.add(a);
-							notifyParticipantsChanged();
-						}
-						if(p instanceof Left) {
-							Left left = (Left) p;
-							List<AID> aid = (List<AID>) left.getWho();
-							for(AID a : aid)
-								participants.remove(a);
-							notifyParticipantsChanged();
-						}
-						//#MIDP_EXCLUDE_END
-						//#ANDROID_EXCLUDE_BEGIN
-						//#J2SE_EXCLUDE_BEGIN
-						/*#MIDP_INCLUDE_BEGIN
 						AbsPredicate p = (AbsPredicate) myAgent
 							.getContentManager().extractAbsContent(msg);
 						if (p.getTypeName().equals(ChatOntology.JOINED)) {
@@ -276,9 +182,6 @@ public class ChatClientAgent extends Agent implements ChatClientInterface {
 							}
 							notifyParticipantsChanged();
 						}
-						#MIDP_INCLUDE_END*/
-						//#J2SE_EXCLUDE_END
-						//#ANDROID_EXCLUDE_END
 					} catch (Exception e) {
 						Logger.println(e.toString());
 						e.printStackTrace();

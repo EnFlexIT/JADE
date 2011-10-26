@@ -24,7 +24,6 @@ Boston, MA  02111-1307, USA.
 package chat.client;
 
 //#MIDP_EXCLUDE_FILE
-//#ANDROID_EXCLUDE_FILE
 
 import java.awt.*;
 import java.awt.event.*;

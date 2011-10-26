@@ -23,8 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package chat.client;
 
-//#ANDROID_EXCLUDE_FILE
-
 /**
    @author Giovanni Caire - TILAB
  */

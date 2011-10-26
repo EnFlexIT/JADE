@@ -37,8 +37,6 @@ import javax.microedition.midlet.*;
 import javax.microedition.lcdui.*;
 #MIDP_INCLUDE_END*/
 
-//#ANDROID_EXCLUDE_FILE
-
 /**
    Startup class for the chat application
    @author Giovanni Caire - TILAB
@@ -172,6 +170,3 @@ public class Start extends MicroBoot implements CommandListener {
   	return true;
   }
 }
-
-
-
