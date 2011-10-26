@@ -122,7 +122,7 @@
 	  
 		<javac srcdir="${demo-preprocessed}"
 		       destdir="${demo-classes}"
-		       classpath="${demo-dist}/standard/lib/jade.jar"
+		       classpath="${demo}/lib/jade.jar"
 		       debug="${debug-build}"
 		       optimize="${optimised-build}"
 		       deprecation="off"
