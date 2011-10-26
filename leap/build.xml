@@ -25,7 +25,6 @@
 	<property name="android-root" value="${root}/android"/>	
 	<property name="tmp" value="${root}/tmp"/>	
 	<property name="dist" value="${jade-home}/add-ons"/>	
-	<property name="demo-dist" value="${root}/demo/dist"/>
 	
 	<!-- Javadoc Header and Footer -->
 	<property name="title" value="JADE-LEAP"/>
@@ -37,7 +36,11 @@
 	<property name="demo-preprocessed" value="${tmp}/demo/preprocessed"/>
 	<property name="demo-unverified" value="${tmp}/demo/unverified"/>
 	<property name="demo-classes" value="${tmp}/demo/classes"/>
-	
+
+	<!-- Properties for demo distribution -->
+	<property name="android-demo" value="${android-root}/demo"/>
+	<property name="demo-dist" value="${tmp}/demo"/>
+
 	<!-- Additional ANT tasks definition -->
 	<!-- Preprocessor -->
 	<taskdef name = "pproc"    classname="leapTools.Preprocessor">
@@ -407,28 +410,40 @@
 		</copy>
 		<pproc basedir="${demo-dist}/standard/src" type="j2se"/>
 
-		<copy file="${root}/resources/demo/build.xml" todir="${demo-dist}/standard"/>
-		<copy todir="${demo-dist}/standard/bin" overwrite="yes">
-			<fileset dir="${root}/resources/demo/bin">
-			</fileset>
-		</copy>
-
 		<copy file="${android-root}/lib/JadeAndroid.jar" todir="${demo-dist}/android/lib"/>
 		<copy todir="${demo-dist}/android/src" overwrite="yes">
-			<fileset dir="${demo-src}">
-				<exclude name="**/manager/**"/>
-				<exclude name="**/ontology/**"/>
+			<fileset dir="${android-demo}/src">
 			</fileset>
 		</copy>
-		<pproc basedir="${demo-dist}/android/src" type="android"/>
 
 		<copy todir="${demo-dist}/android/res" overwrite="yes">
-			<fileset dir="${demo}/res">
+			<fileset dir="${android-demo}/res">
 			</fileset>
 		</copy>
 
-		<copy file="${demo}/demoAndroid-release.apk" tofile="${demo-dist}/android/bin/chatClient.apk"/>
-		<copy file="${demo}/AndroidManifest.xml" todir="${demo-dist}/android"/>
+		<copy todir="${demo-dist}/android" overwrite="yes">
+			<fileset dir="${android-demo}/dist">
+			</fileset>
+		</copy>
+		
+		<copy file="${android-demo}/bin/chatClient-release.apk" todir="${demo-dist}/android/bin"/>
+		<copy file="${android-demo}/AndroidManifest.xml" todir="${demo-dist}/android"/>
+		<copy file="${android-demo}/ant.properties" todir="${demo-dist}/android"/>
+		<copy file="${android-demo}/build.xml" todir="${demo-dist}/android"/>
+		<copy file="${android-demo}/chatClient.keystore" todir="${demo-dist}/android"/>
+		<copy file="${android-demo}/local.properties" todir="${demo-dist}/android"/>
+		<copy file="${android-demo}/proguard.cfg" todir="${demo-dist}/android"/>
+		<copy file="${android-demo}/project.properties" todir="${demo-dist}/android"/>
+
+		<copy todir="${demo-dist}/standard/bin" overwrite="yes">
+			<fileset dir="${demo}/bin">
+			</fileset>
+		</copy>
+
+		<copy todir="${demo-dist}/standard" overwrite="yes">
+			<fileset dir="${demo}/dist">
+			</fileset>
+		</copy>
 
 		<!-- Step 2: Build the Chat Ontology library -->
 		<delete dir = "${demo-preprocessed}" quiet="true"/>
@@ -467,7 +482,6 @@
 		
 		<copy todir="${demo-preprocessed}" overwrite="yes">
 			<fileset dir="${demo-src}">
-				<exclude name="**/client/gui/**"/>
 				<exclude name="**/ontology/**"/>
 			</fileset>
 		</copy>
@@ -499,6 +513,7 @@
 			<zipfileset dir="${demo-dist}/standard" prefix="standard"/>
 		</zip>		
 
+		<delete dir="${demo-dist}" quiet="true"/>
 	</target>
 	
 	<!-- ******** LEAP ant tasks ******** -->
