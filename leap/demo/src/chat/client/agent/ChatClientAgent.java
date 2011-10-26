@@ -42,6 +42,7 @@ import jade.util.leap.Iterator;
 import jade.util.leap.Set;
 import jade.util.leap.SortedSetImpl;
 import chat.client.ChatGui;
+import chat.client.AWTChatGui;
 import chat.ontology.ChatOntology;
 
 /**
@@ -99,6 +100,7 @@ public class ChatClientAgent extends Agent {
 		/*#MIDP_INCLUDE_BEGIN
 		myGui = new MIDPChatGui(this);
 		#MIDP_INCLUDE_END*/
+		//#J2SE_EXCLUDE_END
 	}
 
 	protected void takeDown() {
