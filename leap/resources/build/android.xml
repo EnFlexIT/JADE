@@ -153,43 +153,8 @@
 		<copy file="${JadeAndroid}" tofile="${lib}/JadeAndroid.jar"/>
 	</target>
 
-	<target name="do-demo"
-		depends="do-init, check-resources"
-		description="Build the demo">
-
-		<property name="jade.project.name" value="demoAndroid"/>
-		<delete>
-			<fileset dir="${demo}" includes="${jade.project.name}*.ap*"/>
-		</delete>
-		<delete dir="${demo-preprocessed}" quiet="true"/>
-		<delete dir="${demo-unverified}" quiet="true"/>
-		<delete dir="${demo-classes}" quiet="true"/>
-		<mkdir dir="${demo-preprocessed}"/>
-		<mkdir dir="${demo-unverified}"/>
-		<mkdir dir="${demo-classes}"/>
-
-		<copy todir="${demo-preprocessed}" overwrite="yes">
-			<fileset dir="${demo-src}">
-			</fileset>
-		</copy>
-
-		<pproc basedir="${demo-preprocessed}" type="android"/>
-				
-		<property name="sdk.dir" value="${android-platform-home}/../.."/>
-		<basename property="target" file="${android-platform-home}"/>
-
-		<property name="source.dir" value="../${demo-preprocessed}"/>
-		<property name="gen.dir" value="gen"/>
-		<property name="resource.dir" value="res"/>
-		<property name="asset.dir" value="assets"/>
-		<property name="external.libs.dir" value="../${lib}"/>
-		<property name="native.libs.dir" value="../${lib}"/>
-		<property name="out.dir" value="."/>
-
-	    <ant dir="${demo}" antfile="android_rules.xml"
+	<target name="do-demo" depends="do-init, check-resources" description="Build the demo">
+	    <ant dir="${android-root}/demo" antfile="build.xml"
 	            target="release" inheritall="true" inheritrefs="true" />
-
 	</target>
-
-
 </project>
