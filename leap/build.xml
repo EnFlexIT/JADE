@@ -426,7 +426,7 @@
 			</fileset>
 		</copy>
 		
-		<copy file="${android-demo}/bin/chatClient-release.apk" todir="${demo-dist}/android/bin"/>
+		<copy file="${android-demo}/bin/chatClient.apk" todir="${demo-dist}/android/bin"/>
 		<copy file="${android-demo}/AndroidManifest.xml" todir="${demo-dist}/android"/>
 		<copy file="${android-demo}/ant.properties" todir="${demo-dist}/android"/>
 		<copy file="${android-demo}/build.xml" todir="${demo-dist}/android"/>
