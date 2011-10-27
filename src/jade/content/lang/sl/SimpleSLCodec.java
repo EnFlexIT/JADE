@@ -41,7 +41,7 @@ import jade.util.Logger;
  * MIDP implementation of the SLCodec. Actually the MIDP version of the SLCodec just extends SimpleSLCodec
  * @version $Date$ $Revision$
  **/
-class SimpleSLCodec extends StringCodec {
+public class SimpleSLCodec extends StringCodec {
 	private int indent = 0;
 
 	private Logger logger = Logger.getMyLogger(this.getClass().getName());
