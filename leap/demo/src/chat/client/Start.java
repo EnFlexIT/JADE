@@ -32,10 +32,12 @@ import jade.util.leap.Properties;
 import java.awt.*;
 import java.awt.event.*;
 //#MIDP_EXCLUDE_END
+//#J2SE_EXCLUDE_BEGIN
 /*#MIDP_INCLUDE_BEGIN
 import javax.microedition.midlet.*;
 import javax.microedition.lcdui.*;
 #MIDP_INCLUDE_END*/
+//#J2SE_EXCLUDE_END
 
 /**
    Startup class for the chat application
@@ -112,6 +114,7 @@ public class Start extends MicroBoot {
 		}
   }
 //#MIDP_EXCLUDE_END
+//#J2SE_EXCLUDE_BEGIN
 /*#MIDP_INCLUDE_BEGIN
 public class Start extends MicroBoot implements CommandListener {
   private final Command okCommand = new Command("OK", Command.OK, 1);
@@ -160,6 +163,7 @@ public class Start extends MicroBoot implements CommandListener {
   	p.setProperty("exitwhenempty", "true");
 	}
 #MIDP_INCLUDE_END*/
+//#J2SE_EXCLUDE_END
   
   private static boolean checkName(String name) {
   	if (name == null || name.trim().equals("")) {

@@ -54,7 +54,8 @@ public class ChatOntology extends Ontology implements ChatVocabulary {
 			add(new PredicateSchema(JOINED), Joined.class);
 			add(new PredicateSchema(LEFT), Left.class);
 			add(new PredicateSchema(SPOKEN), Spoken.class);
-			//#J2ME_EXCLUDE_END
+		//#J2ME_EXCLUDE_END
+		//#J2SE_EXCLUDE_BEGIN
 		/*#J2ME_INCLUDE_BEGIN
 		super(ONTOLOGY_NAME, BasicOntology.getInstance(), null);
 
@@ -63,7 +64,7 @@ public class ChatOntology extends Ontology implements ChatVocabulary {
 			add(new PredicateSchema(LEFT));
 			add(new PredicateSchema(SPOKEN));
 			#J2ME_INCLUDE_END*/
-
+		//#J2SE_EXCLUDE_END
 			PredicateSchema ps = (PredicateSchema) getSchema(JOINED);
 			ps.add(JOINED_WHO, (ConceptSchema) getSchema(BasicOntology.AID), 1, ObjectSchema.UNLIMITED);
 
