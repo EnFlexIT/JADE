@@ -76,11 +76,9 @@ public class ChatActivity extends Activity {
 			chatClientInterface = MicroRuntime.getAgent(nickname)
 					.getO2AInterface(ChatClientInterface.class);
 		} catch (StaleProxyException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			showAlertDialog(getString(R.string.msg_interface_exc), true);
 		} catch (ControllerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			showAlertDialog(getString(R.string.msg_controller_exc), true);
 		}
 
 		myReceiver = new MyReceiver();
@@ -117,19 +115,7 @@ public class ChatActivity extends Activity {
 					chatClientInterface.handleSpoken(message);
 					messageField.setText("");
 				} catch (O2AException e) {
-					AlertDialog.Builder builder = new AlertDialog.Builder(
-							ChatActivity.this);
-					builder.setMessage(e.getMessage())
-							.setCancelable(false)
-							.setPositiveButton("Ok",
-									new DialogInterface.OnClickListener() {
-										public void onClick(
-												DialogInterface dialog, int id) {
-											dialog.cancel();
-										}
-									});
-					AlertDialog alert = builder.create();
-					alert.show();
+					showAlertDialog(e.getMessage(), false);
 				}
 			}
 
@@ -211,4 +197,20 @@ public class ChatActivity extends Activity {
 		chatField.setText(savedInstanceState.getString("chatField"));
 	}
 
+	private void showAlertDialog(String message, final boolean fatal) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(
+				ChatActivity.this);
+		builder.setMessage(message)
+				.setCancelable(false)
+				.setPositiveButton("Ok",
+						new DialogInterface.OnClickListener() {
+							public void onClick(
+									DialogInterface dialog, int id) {
+								dialog.cancel();
+								if(fatal) finish();
+							}
+						});
+		AlertDialog alert = builder.create();
+		alert.show();		
+	}
 }

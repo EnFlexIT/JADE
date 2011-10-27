@@ -25,4 +25,7 @@
     <string name="msg_nickname_in_use">Nickname already in use!</string>
     <string name="msg_nickname_not_valid">Invalid nickname!</string>
     <string name="msg_unexpected">Unexpected error!</string>
+    
+    <string name="msg_interface_exc">Internal error!</string>
+    <string name="msg_controller_exc">Server error!</string>
 </resources>
