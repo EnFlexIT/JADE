@@ -522,7 +522,9 @@
 		<mkdir dir="${tmp}/leapTools"/>
 
 		<javac srcdir  = "resources/src"
-		       destdir = "${tmp}/leapTools"/>
+		       destdir = "${tmp}/leapTools"
+			   source="1.1"
+			   target="1.1"/>
 
 		<delete file="resources/antTasks/leapTools.jar" quiet="true"/>
 		<jar jarfile = "resources/antTasks/leapTools.jar" basedir = "${tmp}/leapTools"/>
