@@ -139,10 +139,14 @@ public class ChatActivity extends Activity {
 			startActivityForResult(showParticipants, PARTICIPANTS_REQUEST);
 			return true;
 		case R.id.menu_clear:
+			/*
 			Intent broadcast = new Intent();
 			broadcast.setAction("jade.demo.chat.CLEAR_CHAT");
 			logger.info("Sending broadcast " + broadcast.getAction());
 			sendBroadcast(broadcast);
+			*/
+			final TextView chatField = (TextView) findViewById(R.id.chatTextView);
+			chatField.setText("");
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
