@@ -139,7 +139,6 @@ public class MainActivity extends Activity {
 							+ " " + host + ":" + port + "...");
 					startChat(nickname, host, port, agentStartupCallback);
 				} catch (Exception ex) {
-					// TODO: unexpected exception
 					logger.severe("Unexpected exception creating chat agent!");
 					infoTextView.setText(getString(R.string.msg_unexpected));
 				}
@@ -177,7 +176,20 @@ public class MainActivity extends Activity {
 				// The chat activity was closed.
 				infoTextView.setText("");
 				logger.info("Stopping Jade...");
-				MicroRuntime.stopJADE();
+				microRuntimeServiceBinder
+						.stopAgentContainer(new RuntimeCallback<Void>() {
+							@Override
+							public void onSuccess(Void thisIsNull) {
+							}
+
+							@Override
+							public void onFailure(Throwable throwable) {
+								logger.severe("Failed to stop the "
+										+ ChatClientAgent.class.getName()
+										+ "...");
+								agentStartupCallback.onFailure(throwable);
+							}
+						});
 			}
 		}
 	}
