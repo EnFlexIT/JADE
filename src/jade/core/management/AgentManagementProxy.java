@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.core.management;
 
@@ -48,227 +48,227 @@ import jade.security.JADESecurityException;
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
 
-*/
+ */
 public class AgentManagementProxy extends SliceProxy implements AgentManagementSlice {
 
-    public void createAgent(AID agentID, String className, Object arguments[], JADEPrincipal owner, Credentials initialCredentials, boolean startIt, Command sourceCmd) throws IMTPException, NotFoundException, NameClashException, JADESecurityException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_CREATEAGENT, AgentManagementSlice.NAME, null);
-	    cmd.addParam(agentID);
-	    cmd.addParam(className);
-	    cmd.addParam(arguments);
-	    cmd.addParam(owner);
-	    cmd.addParam(initialCredentials);
-	    cmd.addParam(new Boolean(startIt));
-	    cmd.setPrincipal(sourceCmd.getPrincipal());
-	    cmd.setCredentials(sourceCmd.getCredentials());
+	public void createAgent(AID agentID, String className, Object arguments[], JADEPrincipal owner, Credentials initialCredentials, boolean startIt, Command sourceCmd) throws IMTPException, NotFoundException, NameClashException, JADESecurityException {
+		try {
+			GenericCommand cmd = new GenericCommand(H_CREATEAGENT, AgentManagementSlice.NAME, null);
+			cmd.addParam(agentID);
+			cmd.addParam(className);
+			cmd.addParam(arguments);
+			cmd.addParam(owner);
+			cmd.addParam(initialCredentials);
+			cmd.addParam(new Boolean(startIt));
+			cmd.setPrincipal(sourceCmd.getPrincipal());
+			cmd.setCredentials(sourceCmd.getCredentials());
 
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else if(result instanceof NotFoundException) {
+					throw (NotFoundException)result;
+				}
+				else if(result instanceof NameClashException) {
+					throw (NameClashException)result;
+				}
+				else if(result instanceof JADESecurityException) {
+					throw (JADESecurityException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
 		}
-		else if(result instanceof NotFoundException) {
-		    throw (NotFoundException)result;
+		catch(ServiceException se) {
+			throw new IMTPException("Unable to access remote node", se);
 		}
-		else if(result instanceof NameClashException) {
-		    throw (NameClashException)result;
-		}
-		else if(result instanceof JADESecurityException) {
-		    throw (JADESecurityException)result;
-		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
-		}
-	    }
 	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }
 
-    public void killAgent(AID agentID, Command sourceCmd) throws IMTPException, NotFoundException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_KILLAGENT, AgentManagementSlice.NAME, null);
-	    cmd.addParam(agentID);
-	    cmd.setPrincipal(sourceCmd.getPrincipal());
-	    cmd.setCredentials(sourceCmd.getCredentials());
+	public void killAgent(AID agentID, Command sourceCmd) throws IMTPException, NotFoundException {
+		try {
+			GenericCommand cmd = new GenericCommand(H_KILLAGENT, AgentManagementSlice.NAME, null);
+			cmd.addParam(agentID);
+			cmd.setPrincipal(sourceCmd.getPrincipal());
+			cmd.setCredentials(sourceCmd.getCredentials());
 
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else if(result instanceof NotFoundException) {
+					throw (NotFoundException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
 		}
-		else if(result instanceof NotFoundException) {
-		    throw (NotFoundException)result;
+		catch(ServiceException se) {
+			throw new IMTPException("Unable to access remote node", se);
 		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
-		}
-	    }
 	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }
 
-    public void changeAgentState(AID agentID, int newState) throws IMTPException, NotFoundException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_CHANGEAGENTSTATE, AgentManagementSlice.NAME, null);
-	    cmd.addParam(agentID);
-	    cmd.addParam(new Integer(newState));
+	public void changeAgentState(AID agentID, int newState) throws IMTPException, NotFoundException {
+		try {
+			GenericCommand cmd = new GenericCommand(H_CHANGEAGENTSTATE, AgentManagementSlice.NAME, null);
+			cmd.addParam(agentID);
+			cmd.addParam(new Integer(newState));
 
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else if(result instanceof NotFoundException) {
+					throw (NotFoundException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
 		}
-		else if(result instanceof NotFoundException) {
-		    throw (NotFoundException)result;
+		catch(ServiceException se) {
+			throw new IMTPException("Unable to access remote node", se);
 		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
-		}
-	    }
 	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }
 
-    public void bornAgent(AID name, ContainerID cid, Command sourceCmd) throws IMTPException, NameClashException, NotFoundException, JADESecurityException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_BORNAGENT, AgentManagementSlice.NAME, null);
-	    cmd.addParam(name);
-	    cmd.addParam(cid);
-	    cmd.setPrincipal(sourceCmd.getPrincipal());
-	    cmd.setCredentials(sourceCmd.getCredentials());
+	public void bornAgent(AID name, ContainerID cid, Command sourceCmd) throws IMTPException, NameClashException, NotFoundException, JADESecurityException {
+		try {
+			GenericCommand cmd = new GenericCommand(H_BORNAGENT, AgentManagementSlice.NAME, null);
+			cmd.addParam(name);
+			cmd.addParam(cid);
+			cmd.setPrincipal(sourceCmd.getPrincipal());
+			cmd.setCredentials(sourceCmd.getCredentials());
 
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else if(result instanceof NotFoundException) {
+					throw (NotFoundException)result;
+				}
+				else if(result instanceof NameClashException) {
+					throw (NameClashException)result;
+				}
+				else if(result instanceof JADESecurityException) {
+					throw (JADESecurityException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
 		}
-		else if(result instanceof NotFoundException) {
-		    throw (NotFoundException)result;
+		catch(ServiceException se) {
+			throw new IMTPException("Unable to access remote node", se);
 		}
-		else if(result instanceof NameClashException) {
-		    throw (NameClashException)result;
-		}
-		else if(result instanceof JADESecurityException) {
-		    throw (JADESecurityException)result;
-		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
-		}
-	    }
 	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }
 
-    public void deadAgent(AID name, Command sourceCmd) throws IMTPException, NotFoundException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_DEADAGENT, AgentManagementSlice.NAME, null);
-	    cmd.addParam(name);
-	    cmd.setPrincipal(sourceCmd.getPrincipal());
-	    cmd.setCredentials(sourceCmd.getCredentials());
+	public void deadAgent(AID name, Command sourceCmd) throws IMTPException, NotFoundException {
+		try {
+			GenericCommand cmd = new GenericCommand(H_DEADAGENT, AgentManagementSlice.NAME, null);
+			cmd.addParam(name);
+			cmd.setPrincipal(sourceCmd.getPrincipal());
+			cmd.setCredentials(sourceCmd.getCredentials());
 
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else if(result instanceof NotFoundException) {
+					throw (NotFoundException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
 		}
-		else if(result instanceof NotFoundException) {
-		    throw (NotFoundException)result;
+		catch(ServiceException se) {
+			throw new IMTPException("Unable to access remote node", se);
 		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
-		}
-	    }
 	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }
 
-    public void suspendedAgent(AID name) throws IMTPException, NotFoundException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_SUSPENDEDAGENT, AgentManagementSlice.NAME, null);
-	    cmd.addParam(name);
+	public void suspendedAgent(AID name) throws IMTPException, NotFoundException {
+		try {
+			GenericCommand cmd = new GenericCommand(H_SUSPENDEDAGENT, AgentManagementSlice.NAME, null);
+			cmd.addParam(name);
 
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else if(result instanceof NotFoundException) {
+					throw (NotFoundException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
 		}
-		else if(result instanceof NotFoundException) {
-		    throw (NotFoundException)result;
+		catch(ServiceException se) {
+			throw new IMTPException("Unable to access remote node", se);
 		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
-		}
-	    }
 	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }
 
-    public void resumedAgent(AID name) throws IMTPException, NotFoundException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_RESUMEDAGENT, AgentManagementSlice.NAME, null);
-	    cmd.addParam(name);
+	public void resumedAgent(AID name) throws IMTPException, NotFoundException {
+		try {
+			GenericCommand cmd = new GenericCommand(H_RESUMEDAGENT, AgentManagementSlice.NAME, null);
+			cmd.addParam(name);
 
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else if(result instanceof NotFoundException) {
+					throw (NotFoundException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
 		}
-		else if(result instanceof NotFoundException) {
-		    throw (NotFoundException)result;
+		catch(ServiceException se) {
+			throw new IMTPException("Unable to access remote node", se);
 		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
-		}
-	    }
 	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }
 
-    public void exitContainer() throws IMTPException, NotFoundException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_EXITCONTAINER, AgentManagementSlice.NAME, null);
+	public void exitContainer() throws IMTPException, NotFoundException {
+		try {
+			GenericCommand cmd = new GenericCommand(H_EXITCONTAINER, AgentManagementSlice.NAME, null);
 
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else if(result instanceof NotFoundException) {
+					throw (NotFoundException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
 		}
-		else if(result instanceof NotFoundException) {
-		    throw (NotFoundException)result;
+		catch(ServiceException se) {
+			throw new IMTPException("Unable to access remote node", se);
 		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
-		}
-	    }
 	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }
-    
+
 
 
 }

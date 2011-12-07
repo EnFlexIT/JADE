@@ -1522,7 +1522,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			long timeStamp = gmsg.getTimeStamp();
 			if (timeStamp > 0 && deliveryTimeMeasureProvider != null) {
 				long deliveryTime = System.currentTimeMillis() - timeStamp;
-				System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> Delivery time = "+deliveryTime);
+				if (myLogger.isLoggable(Logger.FINER)) {
+					myLogger.log(Logger.FINER, "Delivery time = "+deliveryTime);
+				}
 				deliveryTimeMeasureProvider.addSample(deliveryTime);
 			}
 		}

@@ -47,7 +47,11 @@ class NodeSkel extends Skeleton {
 			case Command.ACCEPT_COMMAND: {
 		    HorizontalCommand cmd = (HorizontalCommand)command.getParamAt(0);
 		    Object result = myNode.accept(cmd);
-	
+		    
+		    if (result instanceof Throwable) {
+		    	((Throwable) result).printStackTrace();
+		    }
+		    
 		    command.reset(Command.OK);
 		    command.addParam(result);
 		    break;

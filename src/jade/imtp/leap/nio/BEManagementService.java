@@ -241,6 +241,7 @@ public class BEManagementService extends BaseService {
     It stops the Ticker thread and all active IO event servers.
 	 */
 	public void shutdown() {
+		myLogger.log(Logger.CONFIG, "BEManagementService initiating shutdown procedure...");
 		// Shutdown the Ticker
 		if (myTicker != null) {
 			myTicker.shutdown();
@@ -432,18 +433,21 @@ public class BEManagementService extends BaseService {
 				// Close the server socket
 				if (mySSChannel != null) {
 					mySSChannel.close();
+					myLogger.log(Logger.FINEST, myLogPrefix + "Server Socket Channel closed");
 				}
 				// Force the looper threads to terminate.
 				if (loopers != null) {
 					for (int i = 0; i < loopers.length; ++i) {
+						myLogger.log(Logger.FINE, myLogPrefix + "Stopping LoopManager #"+i);
 						loopers[i].stop();
 						loopers[i].join();
+						myLogger.log(Logger.FINEST, myLogPrefix + "LoopManager #"+i+" terminated");
 					}
 				}
 			} catch (IOException ioe) {
-				ioe.printStackTrace();
+				myLogger.log(Logger.WARNING, myLogPrefix + "Error closing Server Socket Channel", ioe);
 			} catch (InterruptedException ie) {
-				ie.printStackTrace();
+				myLogger.log(Logger.WARNING, myLogPrefix + "Interrupted while waiting for LoopManager to termnate", ie);
 			}
 
 			// Close all mediators
@@ -451,10 +455,12 @@ public class BEManagementService extends BaseService {
 				Iterator it = mediators.values().iterator();
 				while (it.hasNext()) {
 					NIOMediator m = (NIOMediator) it.next();
+					myLogger.log(Logger.FINE, myLogPrefix + "Killing mediator ", m.getID());
 					m.kill();
 				}
 			}
 			mediators.clear();
+			myLogger.log(Logger.CONFIG, myLogPrefix + "Shutdown complete");
 		}
 
 		final String getID() {
