@@ -620,8 +620,88 @@ public class AgentMobilityService extends BaseService {
 			copyAgent(agentID, where, newName);
 		}
 		
-		private void handleInformMoved(VerticalCommand cmd) {
-			// Nothing to do here: INFORM_MOVED has no target-side action...
+		private void handleInformMoved(VerticalCommand cmd) throws IMTPException {
+			Object[] params = cmd.getParams();
+			AID agentID = (AID)params[0];
+			Agent instance = (Agent)params[1];
+			String classSiteName = (String)params[2];
+			boolean isCloned = ((Boolean)params[3]).booleanValue();
+			boolean startIt = ((Boolean)params[4]).booleanValue();
+			
+			try {
+				// Nothing to do here: INFORM_MOVED has no target-side action...
+				/* --- This code should go into the Security Service ---
+				 
+				 // agent is about to be created on the destination Container,
+				  // let's check for permissions before
+				   
+				   // does the agent come from a MOVE or a CLONE ?
+				    switch (instance.getState()) {
+				    case Agent.AP_TRANSIT:  // MOVED
+				    // checking CONTAINER_MOVE_TO...
+				     myContainer.getAuthority().checkAction(
+				     Authority.CONTAINER_MOVE_TO,
+				     myContainer.getContainerPrincipal(),
+				     instance.getCertificateFolder()  );
+				     break;
+				     case Agent.AP_COPY:  // CLONED
+				     // checking CONTAINER_CLONE_TO...
+				      myContainer.getAuthority().checkAction(
+				      Authority.CONTAINER_CLONE_TO,
+				      myContainer.getContainerPrincipal(),
+				      instance.getCertificateFolder()  );
+				      break;
+				      } // end switch
+				      
+				      log("Permissions for agent " + agentID + " OK", 2);
+				      
+				      // --- End of code that should go into the Security Service ---
+				       */
+				
+				Credentials agentCerts = null;
+				//#MIDP_EXCLUDE_BEGIN
+				//CertificateFolder agentCerts = instance.getCertificateFolder();
+				//#MIDP_EXCLUDE_END
+				
+				/*# MIDP_INCLUDE_BEGIN
+				 CertificateFolder agentCerts = new CertificateFolder();
+				 # MIDP_INCLUDE_END*/
+				
+				if(isCloned) {
+					// Notify the main slice that a new agent is born
+					AgentMobilitySlice mainSlice = (AgentMobilitySlice)getSlice(MAIN_SLICE);
+					
+					try {
+						mainSlice.clonedAgent(agentID, myContainer.getID(), agentCerts);
+					}
+					catch(IMTPException imtpe) {
+						// Try to get a newer slice and repeat...
+						mainSlice = (AgentMobilitySlice)getFreshSlice(MAIN_SLICE);
+						mainSlice.clonedAgent(agentID, myContainer.getID(), agentCerts);
+					}
+				}
+				
+				// Store the container where the classes for this agent can be
+				// retrieved
+				sites.put(instance, classSiteName);
+				
+				// Connect the new instance to the local container
+				Agent old = myContainer.addLocalAgent(agentID, instance);
+				if(myLogger.isLoggable(Logger.FINE))
+					myLogger.log(Logger.FINE,"Agent " + agentID.getName() + " inserted into LADT");
+				
+				if(startIt) {
+					// Actually start the agent thread
+					myContainer.powerUpLocalAgent(agentID);
+				}
+			}
+			catch (IMTPException imtpe) {
+				throw imtpe;
+			}
+			catch (Throwable t) {
+				t.printStackTrace();
+				throw new IMTPException("Unexpected error managing incoming agent.", t);
+			}
 		}
 		
 		private void handleInformCloned(VerticalCommand cmd) throws JADESecurityException, NotFoundException, NameClashException {
@@ -789,7 +869,16 @@ public class AgentMobilityService extends BaseService {
 					boolean isCloned = ((Boolean)params[3]).booleanValue();
 					boolean startIt = ((Boolean)params[4]).booleanValue();
 					
-					createAgent(agentID, serializedInstance, classSiteName, isCloned, startIt);
+					Agent instance = deserializeAgent(agentID, serializedInstance, classSiteName, isCloned, startIt);
+					
+					GenericCommand gCmd = new GenericCommand(AgentMobilityHelper.INFORM_MOVED, AgentMobilitySlice.NAME, null);
+					gCmd.addParam(agentID);
+					gCmd.addParam(instance);
+					gCmd.addParam(classSiteName);
+					gCmd.addParam(isCloned);
+					gCmd.addParam(startIt);
+					
+					result = gCmd;
 				}
 				else if(cmdName.equals(AgentMobilitySlice.H_FETCHCLASSFILE)) {
 					String className = (String)params[0];
@@ -871,7 +960,7 @@ public class AgentMobilityService extends BaseService {
 		}
 		
 		
-		private void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, JADESecurityException {
+		private Agent deserializeAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, JADESecurityException {
 			try {
 				if(myLogger.isLoggable(Logger.CONFIG))
 					myLogger.log(Logger.CONFIG,"Incoming agent " + agentID.getName());
@@ -896,72 +985,8 @@ public class AgentMobilityService extends BaseService {
 				if(myLogger.isLoggable(Logger.FINE))
 					myLogger.log(Logger.FINE,"Agent " + agentID + " reconstructed");
 				
+				return instance;
 				
-				
-				/* --- This code should go into the Security Service ---
-				 
-				 // agent is about to be created on the destination Container,
-				  // let's check for permissions before
-				   
-				   // does the agent come from a MOVE or a CLONE ?
-				    switch (instance.getState()) {
-				    case Agent.AP_TRANSIT:  // MOVED
-				    // checking CONTAINER_MOVE_TO...
-				     myContainer.getAuthority().checkAction(
-				     Authority.CONTAINER_MOVE_TO,
-				     myContainer.getContainerPrincipal(),
-				     instance.getCertificateFolder()  );
-				     break;
-				     case Agent.AP_COPY:  // CLONED
-				     // checking CONTAINER_CLONE_TO...
-				      myContainer.getAuthority().checkAction(
-				      Authority.CONTAINER_CLONE_TO,
-				      myContainer.getContainerPrincipal(),
-				      instance.getCertificateFolder()  );
-				      break;
-				      } // end switch
-				      
-				      log("Permissions for agent " + agentID + " OK", 2);
-				      
-				      // --- End of code that should go into the Security Service ---
-				       */
-				
-				Credentials agentCerts = null;
-				//#MIDP_EXCLUDE_BEGIN
-				//CertificateFolder agentCerts = instance.getCertificateFolder();
-				//#MIDP_EXCLUDE_END
-				
-				/*# MIDP_INCLUDE_BEGIN
-				 CertificateFolder agentCerts = new CertificateFolder();
-				 # MIDP_INCLUDE_END*/
-				
-				if(isCloned) {
-					// Notify the main slice that a new agent is born
-					AgentMobilitySlice mainSlice = (AgentMobilitySlice)getSlice(MAIN_SLICE);
-					
-					try {
-						mainSlice.clonedAgent(agentID, myContainer.getID(), agentCerts);
-					}
-					catch(IMTPException imtpe) {
-						// Try to get a newer slice and repeat...
-						mainSlice = (AgentMobilitySlice)getFreshSlice(MAIN_SLICE);
-						mainSlice.clonedAgent(agentID, myContainer.getID(), agentCerts);
-					}
-				}
-				
-				// Store the container where the classes for this agent can be
-				// retrieved
-				sites.put(instance, classSiteName);
-				
-				// Connect the new instance to the local container
-				Agent old = myContainer.addLocalAgent(agentID, instance);
-				if(myLogger.isLoggable(Logger.FINE))
-					myLogger.log(Logger.FINE,"Agent " + agentID.getName() + " inserted into LADT");
-				
-				if(startIt) {
-					// Actually start the agent thread
-					myContainer.powerUpLocalAgent(agentID);
-				}
 			}
 			catch(IOException ioe) {
 				throw new IMTPException("An I/O error occurred during de-serialization", ioe);
@@ -971,7 +996,7 @@ public class AgentMobilityService extends BaseService {
 			}
 			catch(Throwable t) {
 				t.printStackTrace();
-				throw new IMTPException("Unexpected error.", t);
+				throw new IMTPException("Unexpected error in agent deserialization.", t);
 			}
 		}
 		
