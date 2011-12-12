@@ -455,8 +455,12 @@ class DeliverableDataOutputStream extends DataOutputStream {
 	    int sz = params.length;
 	    writeInt(sz);
 	    for(int i = 0; i < sz; i++) {
-        writeObject(params[i]);
+	    	writeObject(params[i]);
 	    }
+	    
+	    // Write optional principal and credentials
+	    writeObject(cmd.getPrincipal());
+	    writeObject(cmd.getCredentials());
     }
     catch(IOException ioe) {
 	    throw new LEAPSerializationException("Error serializing horizontal command");

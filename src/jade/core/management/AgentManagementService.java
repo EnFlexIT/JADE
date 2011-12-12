@@ -326,9 +326,11 @@ public class AgentManagementService extends BaseService {
 			Object[] params = cmd.getParams();
 			AID target = (AID)params[0];
 			Agent instance = (Agent)params[1];
+			JADEPrincipal owner = (JADEPrincipal)params[2];
 			
 			if(myLogger.isLoggable(Logger.CONFIG)) {
-				myLogger.log(Logger.CONFIG,"Source Sink consuming command INFORM_CREATED. Name is "+target.getName());
+				String ownerInfo = owner != null ? ", Owner = "+owner : "";
+				myLogger.log(Logger.CONFIG,"Source Sink consuming command INFORM_CREATED. Name is "+target.getName()+ownerInfo);
 			}
 			
 			initAgent(target, instance, cmd);
@@ -522,8 +524,10 @@ public class AgentManagementService extends BaseService {
 			boolean startIt = ((Boolean) params[5]).booleanValue();
 			
 			//log("Target sink consuming command REQUEST_CREATE: Name is "+agentID.getName(), 2);
-			if(myLogger.isLoggable(Logger.FINE))
-				myLogger.log(Logger.FINE,"Target sink consuming command REQUEST_CREATE: Name is "+agentID.getName());
+			if(myLogger.isLoggable(Logger.FINE)) {
+				String ownerInfo = owner != null ? ", Owner = "+owner : "";
+				myLogger.log(Logger.FINE,"Target sink consuming command REQUEST_CREATE: Name is "+agentID.getName()+ownerInfo);
+			}
 			
 			createAgent(agentID, className, arguments, owner, initialCredentials, startIt);
 		}
@@ -847,6 +851,12 @@ public class AgentManagementService extends BaseService {
 					ContainerID cid = (ContainerID)params[1];
 					gCmd.addParam(agentID);
 					gCmd.addParam(cid);
+					
+					JADEPrincipal owner = cmd.getPrincipal();
+					if(myLogger.isLoggable(Logger.FINE)) {
+						String ownerInfo = owner != null ? ", Owner = "+owner : "";
+						myLogger.log(Logger.CONFIG,"Local slice processing H-command BORN_AGENT. Name is "+agentID.getName()+ownerInfo);
+					}
 					
 					result = gCmd;
 				}

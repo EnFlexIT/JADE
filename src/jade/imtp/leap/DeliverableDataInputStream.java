@@ -386,6 +386,10 @@ class DeliverableDataInputStream extends DataInputStream {
 			for(int i = 0; i < sz; i++) {
 				result.addParam(readObject());
 			}
+			
+			// Read optional principal and credentials
+			result.setPrincipal((JADEPrincipal) readObject());
+			result.setCredentials((Credentials) readObject());
 
 			return result;
 		}
