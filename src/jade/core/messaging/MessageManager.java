@@ -57,6 +57,8 @@ class MessageManager {
 	// A shared instance to have a single thread pool
 	private static MessageManager theInstance; // FIXME: Maybe a table, indexed by a profile subset, would be better?
 
+	private static final String DUMMY_RECEIVER_NAME = "___DUMMY_";
+	
 	private static final int  POOL_SIZE_DEFAULT = 5;
 	private static final int  MAX_POOL_SIZE = 100;
 
@@ -65,6 +67,7 @@ class MessageManager {
 	private OutBox outBox;
 	private Thread[] delivererThreads;
 	private Deliverer[] deliverers;
+	private boolean active = true;
 	
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 
@@ -109,24 +112,49 @@ class MessageManager {
 			deliverers = new Deliverer[poolSize];
 			for (int i = 0; i < poolSize; ++i) {
 				String name = "Deliverer-"+i;
-				deliverers[i] = new Deliverer();
+				deliverers[i] = new Deliverer(name);
 				delivererThreads[i] = rm.getThread(ResourceManager.TIME_CRITICAL, name, deliverers[i]);
 				if (myLogger.isLoggable(Logger.FINE)) {
 					myLogger.log(Logger.FINE, "Starting deliverer "+name+". Thread="+delivererThreads[i]);
 				}
 				delivererThreads[i].start();
 			}
+			
+			// When the JADE Runtime terminates stop all deliverers.
+			jade.core.Runtime.instance().invokeOnTermination(new Runnable() {
+
+				@Override
+				public void run() {
+					shutdown();
+				}
+			});
 		}
 		catch (ProfileException pe) {
 			throw new RuntimeException("Can't get ResourceManager. "+pe.getMessage());
 		}
+	}
+	
+	private void shutdown() {
+		myLogger.log(Logger.INFO, "MessageManager shutting down ...");
+		active = false;
+		// Submit 1 dummy message for each deliverer. 
+		for (int i = 0; i < deliverers.length; ++i) {
+			outBox.addLast(new AID(DUMMY_RECEIVER_NAME+i, AID.ISGUID), new GenericMessage(), null);
+		}
+		// Reset the MessageManager singleton instance 
+		theInstance = null;
 	}
 
 	/**
 	   Activate the asynchronous delivery of a GenericMessage
 	 */
 	public void deliver(GenericMessage msg, AID receiverID, Channel ch) {
-		outBox.addLast(receiverID, msg, ch);
+		if (active) {
+			outBox.addLast(receiverID, msg, ch);
+		}
+		else {
+			myLogger.log(Logger.WARNING, "MessageManager NOT active. Cannot deliver message "+stringify(msg));
+		}
 	}
 
 
@@ -135,12 +163,17 @@ class MessageManager {
  	   Inner class Deliverer
 	 */
 	class Deliverer implements Runnable {
-		
+
+		private String name;
 		// For debugging purpose
 		private long servedCnt = 0;
 
+		Deliverer(String name) {
+			this.name = name;
+		}
+		
 		public void run() {
-			while (true) {
+			while (active) {
 				// Get a message from the OutBox (block until there is one)
 				PendingMsg pm = outBox.get();
 				GenericMessage msg = pm.getMessage();
@@ -148,17 +181,23 @@ class MessageManager {
 
 				// Deliver the message
 				Channel ch = pm.getChannel();
-				try {
-					ch.deliverNow(msg, receiverID);
+				if (ch != null) {
+					// Ch is null only in the case of dummy messages used to make the deliverers terminate.
+					// See shutdown() method
+					try {
+						ch.deliverNow(msg, receiverID);
+					}
+					catch (Throwable t) {
+						// A MessageManager deliverer thread must never die
+						myLogger.log(Logger.WARNING, "MessageManager cannot deliver message "+stringify(msg)+" to agent "+receiverID.getName(), t);
+						ch.notifyFailureToSender(msg, receiverID, new InternalError(ACLMessage.AMS_FAILURE_UNEXPECTED_ERROR + ": "+t));
+					}
+					servedCnt++;
+					outBox.handleServed(receiverID);
 				}
-				catch (Throwable t) {
-					// A MessageManager deliverer thread must never die
-					myLogger.log(Logger.WARNING, "MessageManager cannot deliver message "+stringify(msg)+" to agent "+receiverID.getName(), t);
-					ch.notifyFailureToSender(msg, receiverID, new InternalError(ACLMessage.AMS_FAILURE_UNEXPECTED_ERROR + ": "+t));
-				}
-				servedCnt++;
-				outBox.handleServed(receiverID);
 			}
+			
+			myLogger.log(Logger.CONFIG, "Deliverer Thread "+name+ " terminated");
 		}
 		
 		long getServedCnt() {
