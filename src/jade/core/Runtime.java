@@ -282,6 +282,8 @@ public class Runtime {
 						Runnable r = (Runnable) terminators.get(i);
 						r.run();
 					}
+					// Clear the terminators list at the end
+					terminators.clear();
 				}
 			} );
 			//#MIDP_EXCLUDE_BEGIN

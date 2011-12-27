@@ -50,12 +50,12 @@ import jade.util.Logger;
  * @author Steffen Rusitschka - Siemens
  */
 class JICPClient {
-	
+
 	private TransportProtocol protocol;
 	private ConnectionFactory connFactory;
 	private ConnectionPool pool;
-        private static Logger log = Logger.getMyLogger(JICPClient.class.getName());
-	
+	private static Logger log = Logger.getMyLogger(JICPClient.class.getName());
+
 	/**
 	 * Constructor declaration
 	 */
@@ -64,7 +64,7 @@ class JICPClient {
 		connFactory = f;
 		pool = new ConnectionPool(protocol, connFactory, max);
 	} 
-	
+
 	/**
 	 * Send a command to this transport address
 	 * @param ta the address to send the command to
@@ -77,23 +77,23 @@ class JICPClient {
 	public byte[] send(TransportAddress ta, byte dataType, byte[] data, boolean requireFreshConnection) throws ICPException {
 		ConnectionWrapper cw = null;
 		boolean done = false;
-		
+
 		while (true) {
 			try {
 				// Acquire a connection wrapper from the pool
 				cw = pool.acquire(ta, requireFreshConnection);
-				
+
 				// Prepare JICP information
 				byte dataInfo = JICPProtocol.DEFAULT_INFO;
 				if (cw.isOneShot()) {
 					dataInfo |= JICPProtocol.TERMINATED_INFO;
 				}
-				
+
 				// Get the actual connection and send the request
 				Connection connection = cw.getConnection();
 				JICPPacket request = new JICPPacket(dataType, dataInfo, ta.getFile(), data);
 				connection.writePacket(request);
-				
+
 				// Read the reply
 				JICPPacket reply = connection.readPacket();
 				if (reply.getType() == JICPProtocol.ERROR_TYPE) {
@@ -104,7 +104,7 @@ class JICPClient {
 					cw.setOneShot();
 				}
 				pool.release(cw);
-				
+
 				done = true;
 				byte[] bb = reply.getData();
 				if (bb == null) {
@@ -114,8 +114,8 @@ class JICPClient {
 			} 
 			catch (EOFException eof) {
 				if (!cw.isReused()) {
-                                    log.log(Logger.SEVERE, "EOF reached", eof);
-                                    throw new ICPException("EOF reached");
+					log.log(Logger.SEVERE, "EOF reached", eof);
+					throw new ICPException("EOF reached");
 				}
 			} 
 			catch (IOException ioe) {
@@ -147,11 +147,11 @@ class JICPClient {
 			}
 		}
 	} 
-	
+
 	public void shutdown() {
 		pool.shutdown();
 	}
-	
+
 	/**
 	 Called by the JICPPeer ticker at each tick
 	 */
