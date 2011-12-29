@@ -875,8 +875,8 @@ public class AgentMobilityService extends BaseService {
 					gCmd.addParam(agentID);
 					gCmd.addParam(instance);
 					gCmd.addParam(classSiteName);
-					gCmd.addParam(isCloned);
-					gCmd.addParam(startIt);
+					gCmd.addParam(new Boolean(isCloned));
+					gCmd.addParam(new Boolean(startIt));
 					
 					result = gCmd;
 				}

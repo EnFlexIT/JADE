@@ -123,7 +123,6 @@ class MessageManager {
 			// When the JADE Runtime terminates stop all deliverers.
 			jade.core.Runtime.instance().invokeOnTermination(new Runnable() {
 
-				@Override
 				public void run() {
 					shutdown();
 				}

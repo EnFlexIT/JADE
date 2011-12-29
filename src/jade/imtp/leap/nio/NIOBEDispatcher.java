@@ -216,7 +216,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
     connections on its own (the JICPMediatorManager does that in general).
      */
     public void handleConnectionError(Connection c, Exception e) {
-        myLogger.log(Level.WARNING, "connection error", e);
+        myLogger.log(Logger.WARNING, "connection error", e);
         if (active && peerActive) {
             // Try assuming it is the input connection
             try {

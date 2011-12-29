@@ -128,7 +128,7 @@ public class MicroRuntimeGateway {
 
 	public final void execute(final Object command, final RuntimeCallback<Void> cmdCallback) {
 		if (microRuntimeServiceBinder == null) {
-			logger.info("MicroRumtimeGateway binding to service");
+			logger.log(Logger.INFO, "MicroRumtimeGateway binding to service");
 			// We are not bound to the MicroRuntimeService yet
 			bind(new RuntimeCallback<AgentController>() {
 
@@ -145,7 +145,7 @@ public class MicroRuntimeGateway {
 			});	
 		}
 		else {
-			logger.info("MicroRumtimeGateway already binded to service");
+			logger.log(Logger.INFO, "MicroRumtimeGateway already binded to service");
 			submit(command, cmdCallback);
 		}
 	}
@@ -155,7 +155,7 @@ public class MicroRuntimeGateway {
 			submit(MicroRuntime.getAgent(agentName), command, cmdCallback);
 		}
 		catch (ControllerException ce) {
-			logger.info("activating agent...");
+			logger.log(Logger.INFO, "activating agent...");
 			// The agent is not active --> Create it and retry
 			activateAgent(new RuntimeCallback<AgentController>() {
 
@@ -175,11 +175,11 @@ public class MicroRuntimeGateway {
 	private final void submit(AgentController agent, Object command, RuntimeCallback<Void> callback) {
 		AsynchCommandInfo info = new AsynchCommandInfo(command, callback);
 		try {
-			logger.info("passing command to agent...");
+			logger.log(Logger.INFO, "passing command to agent...");
 			agent.putO2AObject(info, AgentController.ASYNC);
 		} catch (StaleProxyException e) {
 			// should never happen
-			logger.info("error passing command to agent...");
+			logger.log(Logger.INFO, "error passing command to agent...");
 			callback.onFailure(e);
 		}
 	}
@@ -188,17 +188,17 @@ public class MicroRuntimeGateway {
 		serviceConnection = new ServiceConnection() {
 			public void onServiceConnected(ComponentName className, IBinder service) {
 				microRuntimeServiceBinder = (MicroRuntimeServiceBinder) service;
-				logger.log(Level.INFO, "Gateway successfully bound to MicroRuntimeService");
+				logger.log(Logger.INFO, "Gateway successfully bound to MicroRuntimeService");
 				activateAgent(agentStartupCallback);
 			};
 
 			public void onServiceDisconnected(ComponentName className) {
 				microRuntimeServiceBinder = null;
-				logger.log(Level.INFO, "Gateway unbound from MicroRuntimeService");
+				logger.log(Logger.INFO, "Gateway unbound from MicroRuntimeService");
 			}
 		};
 
-		logger.log(Level.INFO, "Binding Gateway to MicroRuntimeService...");
+		logger.log(Logger.INFO, "Binding Gateway to MicroRuntimeService...");
 
 		context.bindService(new Intent(context, MicroRuntimeService.class), serviceConnection, Context.BIND_AUTO_CREATE);
 	}
@@ -211,13 +211,13 @@ public class MicroRuntimeGateway {
 			microRuntimeServiceBinder.startAgentContainer(profile, new RuntimeCallback<Void>() {
 				@Override
 				public void onSuccess(Void thisIsNull) {
-					logger.log(Level.INFO, "Gateway Container successfully started");
+					logger.log(Logger.INFO, "Gateway Container successfully started");
 					activateAgent(agentStartupCallback);
 				}
 	
 				@Override
 				public void onFailure(Throwable throwable) {
-					logger.log(Level.WARNING, "Gateway Container startup error.", throwable);
+					logger.log(Logger.WARNING, "Gateway Container startup error.", throwable);
 					agentStartupCallback.onFailure(throwable);
 				}
 			});
@@ -226,7 +226,7 @@ public class MicroRuntimeGateway {
 			microRuntimeServiceBinder.startAgent("Control-%C", AndroidGatewayAgent.class.getName(), new Object[]{new ListenerImpl()}, new RuntimeCallback<Void>() {
 				@Override
 				public void onSuccess(Void thisIsNull) {
-					logger.log(Level.INFO, "Gateway Agent successfully started");
+					logger.log(Logger.INFO, "Gateway Agent successfully started");
 					try {
 						agentName = "Control-"+ profile.getProperty(MicroRuntime.CONTAINER_NAME_KEY);
 						agentStartupCallback.onSuccess(MicroRuntime.getAgent(agentName));
@@ -238,7 +238,7 @@ public class MicroRuntimeGateway {
 
 				@Override
 				public void onFailure(Throwable throwable) {
-					logger.log(Level.WARNING, "Gateway Agent startup error.", throwable);
+					logger.log(Logger.WARNING, "Gateway Agent startup error.", throwable);
 					agentStartupCallback.onFailure(throwable);
 				}
 			});

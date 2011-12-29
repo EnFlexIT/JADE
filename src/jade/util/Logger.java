@@ -45,10 +45,8 @@ import javax.microedition.rms.RecordStore;
  * This class provides a uniform API to produce logs
  * over a set of different and device-dependent logging mechanisms. 
  * Different implementations of this class are
- * provided according to the target environment (J2SE, pJava, MIDP), but all
- * of them offer the same API. Finally the MIDP implementation redirects 
- * logging printouts on a MIDP RecordStore where they can be later inspected 
- * by means of the OutputViewer MIDlet distributed with the LEAP add-on.
+ * provided according to the target environment (Java Standard Edition, PersonalJava or CDC, MIDP and Android), 
+ * but all of them offer the same API. 
  * <br>
  * See also this
  * <a href="../../../tutorials/logging/JADELoggingService.html"> tutorial </a>
@@ -64,20 +62,18 @@ import javax.microedition.rms.RecordStore;
  * FINE <br>
  * FINER <br>
  * FINEST (lowest value)
- * <p> In addition, there is a level OFF that can be used to turn off logging, and a level ALL that can be used to enable logging of all messages.
+ * <p> In addition, there is a level OFF that can be used to turn off logging, 
+ * and a level ALL that can be used to enable logging of all messages.
  * <p>
  * Notice that re-definition of logging levels was necessary in order to allow
- * portability of calling code in PersonalJava e MIDP environments.
+ * portability of calling code in environments where Java Logging is not supported.
  * <p>
  * For instance, in order to log the warning message  "Attention!", the
- * following code should be used, independently of the target device: <br><br>
+ * following code can be used, independently of the target environment: <br><br>
  *
  * <code>Logger logger = Logger.getJADELogger(this.getClass().getName());</code><br>
- * <code>if (logger.isLoggable(logger.WARNING)) </code>
- * <br> <code>logger.log(Logger.WARNING,"Attention!"); </code>
+ * <code>logger.log(Logger.WARNING,"Attention!"); </code>
  * <p>
- * Notice that the test <code>isLoggable</code> allows just to improve performance, but
- * it has no side-effect.
  * <p> <b>J2SE</b><br>
  * The J2SE implementation is a pure
  * extension of the <code>java.util.logging.Logger</code> class and
@@ -89,11 +85,10 @@ import javax.microedition.rms.RecordStore;
  * that is part of the JRE distribution,
  * can be overridden by setting the java.util.logging.config.file
  * system property, like the following example: <br>
- * <code>java -Djava.util.logging.config.file=mylogging.properties jade.Boot </code>
+ * <code>java -Djava.util.logging.config.file=mylogging.properties jade.Boot ...</code>
  *
  * <p><b>PersonaJava</b><br>
- * In the PJava implementation of the <code>Logger</code> class (available in 
- * the LEAP add-on) calls to the 
+ * In the PJava implementation of the <code>Logger</code> class calls to the 
  * <code>log()</code> method result in calls to <code>System.out.println()</code>.
  * Alternatively it is possible to redirect logging printouts to a text file 
  * by setting the <code>-jade_util_Logger_logfile</code> option. Note that, 
@@ -101,16 +96,21 @@ import javax.microedition.rms.RecordStore;
  * logging printouts produced by different Logger objects to different files.
  * 
  * <p><b>MIDP</b><br>
- * In the MIDP implementation of the <code>Logger</code> class (available in 
- * the LEAP add-on) logging printouts are redirected to a MIDP RecordStore so 
- * that they can be later viewed
+ * In the MIDP implementation of the <code>Logger</code> class logging printouts 
+ * are redirected to a MIDP RecordStore so that they can be later viewed
  * by means of the <code>jade.util.leap.OutputViewer</code> MIDlet included
  * in the LEAP add-on.<br>
- * <br>
+ * 
+ * <p><b>Android</b><br>
+ * In the Android implementation of the <code>Logger</code> class logging printouts 
+ * are redirected to the Android logging system implemented by the <code>android.util.Log</code>
+ * class. <br>
+ * 
+ * <p>
  * The default level for logging is set to INFO, all messages of higher level 
  * will be logged by default.
- * In MIDP and PJava the logging level for a Logger object registererd with 
- * name x.y.z can be configured by setting the configuration option
+ * In MIDP, PJava and Android environments, the logging level for a Logger object 
+ * registered with name x.y.z can be configured by setting the configuration option
  * <code>x_y_z_loglevel</code> to one of <code>severe, warning, info, config,
  * fine, finer, finest, all</code>. See the LEAP user guide for details about 
  * how to set JADE configuration options in MIDP and PJava.
@@ -119,13 +119,16 @@ import javax.microedition.rms.RecordStore;
  * @author Nicolas Lhuillier - Motorola (MIDP version)
  */
 public class Logger
+//#ANDROID_EXCLUDE_BEGIN
 //#J2ME_EXCLUDE_BEGIN
 		extends java.util.logging.Logger
 //#J2ME_EXCLUDE_END
+//#ANDROID_EXCLUDE_END
 		implements Serializable
 {
 
 	//#J2ME_EXCLUDE_BEGIN
+	//#ANDROID_EXCLUDE_BEGIN
 	/**
 	 * SEVERE is a message level indicating a serious failure.
 	 **/
@@ -174,6 +177,7 @@ public class Logger
 	private Logger(String name,String resourceBundleName){
 		super(name,resourceBundleName);
 	}
+	//#ANDROID_EXCLUDE_END
 
 	//////////////////////////////////////////////
 	// This section is for serialization purposes
@@ -195,6 +199,7 @@ public class Logger
 	}
 	//////////////////////////////////////////////
 	
+	//#ANDROID_EXCLUDE_BEGIN
 	/**
 	   Find or create a logger for a named subsystem.
 	   @param name The name of the logger.
@@ -250,6 +255,7 @@ public class Logger
    */
 	public static void initialize(Properties pp) {
 	}
+	//#ANDROID_EXCLUDE_END
 	//#J2ME_EXCLUDE_END
 	
 	public static Logger getMyLogger(String name) {
@@ -266,173 +272,238 @@ public class Logger
 		}
 		catch (Throwable t){
 			// Maybe the record-store has been closed from the outside. Retry.
-            theRecordStore = null;
-            try {
-      	      write(log);
+			theRecordStore = null;
+			try {
+				write(log);
 			}
 			catch (Throwable t1) {
-              t.printStackTrace();
-      	      theRecordStore = null;
+				t.printStackTrace();
+				theRecordStore = null;
 			}
 		}		
 		#MIDP_INCLUDE_END*/
+		
+		/*#ANDROID_INCLUDE_BEGIN
+		android.util.Log.i("", log);
+		#ANDROID_INCLUDE_END*/
 	}
 		
+
+	// The following section must be included both in J2ME and in Android
+	//#ANDROID_EXCLUDE_BEGIN
+	/*#J2ME_INCLUDE_BEGIN
+	//#ANDROID_EXCLUDE_END
+	//#J2ME_EXCLUDE_BEGIN
+	/*#ANDROID_INCLUDE_BEGIN
+	//#J2ME_EXCLUDE_END
+	//SEVERE is a message level indicating a serious failure.
+	public static final int SEVERE	=	10;
+	//WARNING is a message level indicating a potential problem.
+	public static final int WARNING	=	9;
+	//INFO is a message level for informational messages
+	public static final int INFO	=	8;
+	//CONFIG is a message level for static configuration messages.
+	public static final int CONFIG	=	7;
+	//FINE is a message level providing tracing information.
+	public static final int FINE	=	5;
+	//FINER indicates a fairly detailed tracing message.
+	public static final int FINER	=	4;
+	//FINEST indicates a highly detailed tracing message
+	public static final int FINEST	=	3;
+	//ALL indicates that all messages should be logged.
+	public static final int ALL		=	-2147483648;
+	//Special level to be used to turn off logging
+	public static final int OFF		=	2147483647;
+
+	private static int getLevel(String level) {
+		if (level != null) {
+			try {
+				return Integer.parseInt(level);
+			}
+			catch (Exception e) {				
+			 	if (level.equals("severe"))
+			 		return SEVERE;
+			 	if (level.equals("warning"))
+			 		return WARNING;
+			 	if (level.equals("info"))
+			 		return INFO;
+			 	if (level.equals("config"))
+			 		return CONFIG;
+			 	if (level.equals("fine"))
+			 		return FINE;
+			 	if (level.equals("finer"))
+			 		return FINER;
+			 	if (level.equals("finest"))
+			 		return FINEST;
+			 	if (level.equals("all"))
+			 		return ALL;
+			 	if (level.equals("off"))
+			 		return OFF;
+			}
+		}
+		// If we get here either nothing or a wrong value was specified --> use default
+		return INFO;
+	}
+			
+	private static Properties verbosityLevels = null;
+	private static Hashtable loggers = new Hashtable();
+		
+	public synchronized static Logger getJADELogger(String name){
+		Logger l = (Logger) loggers.get(name);
+		if (l == null) {
+			StringBuffer sb = new StringBuffer(name.replace('.', '_'));
+			sb.append("_loglevel");
+			String key = sb.toString();
+			int level = INFO;
+			if (verbosityLevels != null) {
+				try {
+					level = getLevel(verbosityLevels.getProperty(key));
+				}
+				catch (Exception e) {
+					// Keep default
+				}
+			}
+			l = new Logger(name, level);
+			loggers.put(name, l);
+		}
+		return l;
+	}
+	
+	public static void initialize(Properties pp) {
+		if (pp != null) {
+			PrintStream ps = initLogStream(pp);
+			if (ps != null) {
+				logStream = ps;
+			}
+			verbosityLevels = pp;
+		}
+		else {
+			verbosityLevels = new Properties();
+		}
+	}
+
+
+	private int myLevel = INFO;
+	private String myName;		
+		
+	// Private constructor. The getJADELogger() static method must be used instead 
+	private Logger(String name, int level) {
+		myName = name;
+		myLevel = level;
+	}
+	
+	public String getName() {
+		return myName;
+	}
+		
+	// Check if the current level is loggable
+	public boolean isLoggable(int level){
+		return level >= myLevel;
+	}
+	
+	public void log(int level, String msg) {
+		log(level, msg, null);
+	}
+	
+	//#J2ME_EXCLUDE_BEGIN
+	#ANDROID_INCLUDE_END*/
+	//#J2ME_EXCLUDE_END
+	//#ANDROID_EXCLUDE_BEGIN
+	//#J2ME_EXCLUDE_BEGIN
+	/*
+	//#J2ME_EXCLUDE_END
+	#J2ME_INCLUDE_END*/
+	//#ANDROID_EXCLUDE_END
+
 	
 	/*#J2ME_INCLUDE_BEGIN
-	  //SEVERE is a message level indicating a serious failure.
-		public static final int SEVERE	=	10;
-	  //WARNING is a message level indicating a potential problem.
-		public static final int WARNING	=	9;
-	  //INFO is a message level for informational messages
-		public static final int INFO	=	8;
-	  //CONFIG is a message level for static configuration messages.
-	  	public static final int CONFIG	=	7;
-	  //FINE is a message level providing tracing information.
-		public static final int FINE	=	5;
-	  //FINER indicates a fairly detailed tracing message.
-		public static final int FINER	=	4;
-	  //FINEST indicates a highly detailed tracing message
-		public static final int FINEST	=	3;
-	  //ALL indicates that all messages should be logged.
-		public static final int ALL		=	-2147483648;
-	  //Special level to be used to turn off logging
-		public static final int OFF		=	2147483647;
-
-		private static Properties verbosityLevels = null;
-		private static Hashtable loggers = new Hashtable();
-		
-		private int myLevel = INFO;
-		private String myName;
-		
-		public synchronized static Logger getJADELogger(String name){
-			Logger l = (Logger) loggers.get(name);
-			if (l == null) {
-				StringBuffer sb = new StringBuffer(name.replace('.', '_'));
-				sb.append("_loglevel");
-				String key = sb.toString();
-				int level = INFO;
-				if (verbosityLevels != null) {
-					try {
-						level = getLevel(verbosityLevels.getProperty(key));
-					}
-					catch (Exception e) {
-						// Keep default
-					}
-				}
-				l = new Logger(name, level);
-				loggers.put(name, l);
+	public void log(int level, String msg, Throwable t) {
+		if(level >= myLevel){
+			StringBuffer sb = new StringBuffer(myName);
+			sb.append(": ");
+			sb.append(msg);
+			if (t != null) {
+				sb.append('[');
+				sb.append(t);
+				sb.append(']');
 			}
-			return l;
+			println(sb.toString());
 		}
-	
-		public static void initialize(Properties pp) {
-			if (pp != null) {
-				PrintStream ps = initLogStream(pp);
-				if (ps != null) {
-				  logStream = ps;
-        }
-				verbosityLevels = pp;
-			}
-			else {
-				verbosityLevels = new Properties();
-			}
-		}
-
-		
-		private static int getLevel(String level) {
-			if (level != null) {
-				try {
-					return Integer.parseInt(level);
-				}
-				catch (Exception e) {				
-				 	if (level.equals("severe"))
-				 		return SEVERE;
-				 	if (level.equals("warning"))
-				 		return WARNING;
-				 	if (level.equals("info"))
-				 		return INFO;
-				 	if (level.equals("config"))
-				 		return CONFIG;
-				 	if (level.equals("fine"))
-				 		return FINE;
-				 	if (level.equals("finer"))
-				 		return FINER;
-				 	if (level.equals("finest"))
-				 		return FINEST;
-				 	if (level.equals("all"))
-				 		return ALL;
-				 	if (level.equals("off"))
-				 		return OFF;
-				}
-			}
-			// If we get here either nothing or a wrong value was specified --> use default
-			return INFO;
-		}
-			
-					
-		//  Private constructor. The getJADELogger() static method must be used instead 
-		private Logger(String name, int level) {
-			myName = name;
-			myLevel = level;
-		}
-		
-		// Check if the current level is loggable
-		public boolean isLoggable(int level){
-			if(level >= myLevel) {
-		   return true;
-			}
-			else {
-				return false;
-		  }
-		}
-		
-		public void log(int level, String msg) {
-		  log(level, msg, null);
-		}
-		
-		public void log(int level, String msg, Throwable t) {
-	      if(level >= myLevel){
-	        StringBuffer sb = new StringBuffer(myName);
-	        sb.append(": ");
-	        sb.append(msg);
-	        if (t != null) {
-	          sb.append('[');
-	          sb.append(t);
-	          sb.append(']');
-	        }
-		    println(sb.toString());
-	      }
-		}		
+	}		
 	#J2ME_INCLUDE_END*/
-
-
-  /*#PJAVA_INCLUDE_BEGIN
-    private static PrintStream initLogStream(Properties pp) {
-      String logprefix = pp.getProperty("jade_util_Logger_logfile");
-      if (logprefix != null) {
-        try {
-		      java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("ddMMyyyy");
-		      String logfile = logprefix + sdf.format(new java.util.Date()) + ".txt";
-          return new PrintStream(new FileOutputStream(logfile, true)) {
-            private java.text.SimpleDateFormat hourFormatter = new java.text.SimpleDateFormat("HH:mm:ss");
-            
-            public void println(String s) {
-            s = hourFormatter.format(new java.util.Date()) + " " + s;
-              super.println(s);
-            }
-          };
-        }
-        catch (Exception e) {
-          println("Cannot initialize log stream. "+e);
-        }
-      }
-      return null;
-    }
-  #PJAVA_INCLUDE_END*/
+	
+	/*#ANDROID_INCLUDE_BEGIN
+	public void log(int level, String msg, Throwable t) {
+		if(level >= myLevel){
+			if (t == null) {
+				switch (level) {
+				case SEVERE:
+					android.util.Log.e(myName, msg);
+					break;
+				case WARNING:
+					android.util.Log.w(myName, msg);
+					break;
+				case INFO:
+					android.util.Log.i(myName, msg);
+					break;
+				case CONFIG:
+					android.util.Log.d(myName, msg);
+					break;
+				default: 
+					android.util.Log.v(myName, msg);
+					break;
+				}
+			}
+			else {
+				switch (level) {
+				case SEVERE:
+					android.util.Log.e(myName, msg, t);
+					break;
+				case WARNING:
+					android.util.Log.w(myName, msg, t);
+					break;
+				case INFO:
+					android.util.Log.i(myName, msg, t);
+					break;
+				case CONFIG:
+					android.util.Log.d(myName, msg, t);
+					break;
+				default: 
+					android.util.Log.v(myName, msg, t);
+					break;
+				}
+			}
+		}
+	}		
+	#ANDROID_INCLUDE_END*/
 	
 	
-  /*#MIDP_INCLUDE_BEGIN
+	/*#PJAVA_INCLUDE_BEGIN
+	private static PrintStream initLogStream(Properties pp) {
+		String logprefix = pp.getProperty("jade_util_Logger_logfile");
+		if (logprefix != null) {
+			try {
+				java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("ddMMyyyy");
+				String logfile = logprefix + sdf.format(new java.util.Date()) + ".txt";
+				return new PrintStream(new FileOutputStream(logfile, true)) {
+					private java.text.SimpleDateFormat hourFormatter = new java.text.SimpleDateFormat("HH:mm:ss");
+
+					public void println(String s) {
+						s = hourFormatter.format(new java.util.Date()) + " " + s;
+						super.println(s);
+					}
+				};
+			}
+			catch (Exception e) {
+				println("Cannot initialize log stream. "+e);
+			}
+		}
+		return null;
+	}
+	#PJAVA_INCLUDE_END*/
+	
+	
+	/*#MIDP_INCLUDE_BEGIN
 	private static final String OUTPUT = "OUTPUT";
 	private static RecordStore theRecordStore;
 	private static volatile int cnt = 0;
@@ -459,10 +530,17 @@ public class Logger
         theRecordStore.addRecord(bb,0,bb.length);
 	}
 		
-    private static PrintStream initLogStream(Properties pp) {
-      return null;
-    }
-  #MIDP_INCLUDE_END*/
+	private static PrintStream initLogStream(Properties pp) {
+		return null;
+	}
+	#MIDP_INCLUDE_END*/
+	
+	/*#ANDROID_INCLUDE_BEGIN
+	private static PrintStream initLogStream(Properties pp) {
+		return null;
+	}
+	#ANDROID_INCLUDE_END*/
+	
 }
 
 

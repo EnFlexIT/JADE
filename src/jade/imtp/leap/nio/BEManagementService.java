@@ -133,7 +133,7 @@ public class BEManagementService extends BaseService {
 	// FIXME: The mechanism for filling/clearing this list is not yet
 	// defined/implemented
 	private Vector maliciousAddresses = new Vector();
-	private Logger myLogger = Logger.getMyLogger(getClass().getName());
+	private Logger myLogger = Logger.getJADELogger(getClass().getName());
 
 	/**
     @return The name of this service.
@@ -455,7 +455,7 @@ public class BEManagementService extends BaseService {
 				Iterator it = mediators.values().iterator();
 				while (it.hasNext()) {
 					NIOMediator m = (NIOMediator) it.next();
-					myLogger.log(Logger.FINE, myLogPrefix + "Killing mediator ", m.getID());
+					myLogger.log(Logger.FINE, myLogPrefix + "Killing mediator " + m.getID());
 					m.kill();
 				}
 			}
@@ -492,8 +492,8 @@ public class BEManagementService extends BaseService {
 			Socket s = null;
 			NIOJICPConnection conn = (NIOJICPConnection) myConnectionFactory.createConnection(s);
 			conn.init((SocketChannel) key.channel());
-			if (myLogger.isLoggable(Level.FINE)) {
-				myLogger.fine("create connection " + conn.getClass().getName());
+			if (myLogger.isLoggable(Logger.FINE)) {
+				myLogger.log(Logger.FINE, "create connection " + conn.getClass().getName());
 			}
 			return conn;
 		}
@@ -737,7 +737,7 @@ public class BEManagementService extends BaseService {
 					key.cancel();
 					key.channel().configureBlocking(true);
 				} catch (Exception e) {
-					myLogger.log(Level.SEVERE, "error configuring blocking", e);
+					myLogger.log(Logger.SEVERE, "error configuring blocking", e);
 				}
 			}
 		}
@@ -940,8 +940,8 @@ public class BEManagementService extends BaseService {
 			 } catch (PacketIncompleteException pie) {
 				 // The data ready to be read is not enough to complete
 				 // a packet. Just do nothing and wait until more data is ready
-				 if (myLogger.isLoggable(Level.FINE)) {
-					 myLogger.fine("waiting for more data..");
+				 if (myLogger.isLoggable(Logger.FINE)) {
+					 myLogger.log(Logger.FINE, "waiting for more data..");
 				 }
 			 } catch (Exception e) {
 				 server.serveException(this, e);
@@ -1049,7 +1049,7 @@ public class BEManagementService extends BaseService {
 										}
 										handleReadOp(key);
 									} catch (ICPException ex) {
-										myLogger.log(Level.SEVERE, "failed to read from socket", ex);
+										myLogger.log(Logger.SEVERE, "failed to read from socket", ex);
 									}
 								}
 							}
