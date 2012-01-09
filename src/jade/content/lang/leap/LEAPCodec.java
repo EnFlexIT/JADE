@@ -71,6 +71,7 @@ public class LEAPCodec extends ByteArrayCodec {
 	private static final byte  DOUBLE = 11;
 	private static final byte  DATE = 12;
 	private static final byte  BYTE_SEQUENCE = 13;
+	private static final byte  BIG_STRING = 14;
 
 	// Modifiers 
 	private static final byte  MODIFIER = (byte) 0x10; // Only bit five set to 1
@@ -168,7 +169,13 @@ public class LEAPCodec extends ByteArrayCodec {
 			Object obj = ((AbsPrimitive) abs).getObject();
 
 			if (obj instanceof String) {
-				writeString(stream, STRING, (String) obj);
+				String s = (String) obj;
+				if (s.length() >= 65535) {
+					writeBigString(stream, BIG_STRING, s);
+				}
+				else {
+					writeString(stream, STRING, s);
+				}
 			} 
 			else if (obj instanceof Boolean) {
 				stream.writeByte(BOOLEAN);
@@ -266,6 +273,9 @@ public class LEAPCodec extends ByteArrayCodec {
 
 		if ((type&UNMODIFIER) == STRING) {
 			return AbsPrimitive.wrap(readString(stream, type));
+		} 
+		if ((type&UNMODIFIER) == BIG_STRING) {
+			return AbsPrimitive.wrap(readBigString(stream, type));
 		} 
 		if (type == BOOLEAN) {
 			boolean value = stream.readBoolean();
@@ -398,6 +408,27 @@ public class LEAPCodec extends ByteArrayCodec {
 		}
 	}
 
+	// This method is equal to writeString, but is used to encode String whose 
+	// length is >= 65535. Therefore the string is not encoded using writeUTF(). 
+	private final void writeBigString(DataOutputStream stream, byte tag, String s) throws Throwable {
+		int index = stringReferences.indexOf(s);
+		if (index >= 0) {
+			// Write the tag modified and just put the index
+			//System.out.println("String "+s+" already encoded");
+			stream.writeByte(tag|MODIFIER);
+			stream.writeByte(index);
+		}
+		else {
+			stream.writeByte(tag);
+			byte[] bytes = s.getBytes();
+			stream.writeInt(bytes.length);
+			stream.write(bytes, 0, bytes.length);
+			if ((s.length() > 1) && (stringReferences.size() < 256)) {
+				stringReferences.addElement(s);
+			}
+		}
+	}
+
 	private final String readString(DataInputStream stream, byte tag) throws Throwable {
 		String s = null;
 		if ((tag&MODIFIER) != 0) {
@@ -408,6 +439,27 @@ public class LEAPCodec extends ByteArrayCodec {
 		}
 		else {
 			s = stream.readUTF();
+			if ((s.length() > 1) && (stringReferences.size() < 256)) {
+				stringReferences.addElement(s);
+			}
+		}
+		return s;
+	}
+	
+	// This method is equal to readString, but is used to decode String whose 
+	// length is >= 65535. Therefore the string is not decoded using writeUTF(). 
+	private final String readBigString(DataInputStream stream, byte tag) throws Throwable {
+		String s = null;
+		if ((tag&MODIFIER) != 0) {
+			int index = stream.readUnsignedByte();
+			if (index < stringReferences.size()) {
+				s= (String) stringReferences.elementAt(index);
+			}
+		}
+		else {
+			byte[] bytes = new byte[stream.readInt()];
+			stream.read(bytes, 0, bytes.length);
+			s = new String(bytes);
 			if ((s.length() > 1) && (stringReferences.size() < 256)) {
 				stringReferences.addElement(s);
 			}

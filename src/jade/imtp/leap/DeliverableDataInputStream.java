@@ -184,6 +184,7 @@ class DeliverableDataInputStream extends DataInputStream {
 			} 
 		}      // END of try
 		catch (IOException e) {
+			e.printStackTrace();
 			throw new LEAPSerializationException("I/O Error Deserializing a generic object");
 		} 
 		catch(LEAPSerializationException leapse) {
