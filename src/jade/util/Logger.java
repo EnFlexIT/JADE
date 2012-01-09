@@ -31,10 +31,12 @@ import java.util.Hashtable;
 import java.io.*;
 
 //#J2ME_EXCLUDE_BEGIN
+//#ANDROID_EXCLUDE_BEGIN
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.Map;
 import java.util.HashMap;
+//#ANDROID_EXCLUDE_END
 //#J2ME_EXCLUDE_END
 
 /*#MIDP_INCLUDE_BEGIN
@@ -398,6 +400,7 @@ public class Logger
 		
 	// Check if the current level is loggable
 	public boolean isLoggable(int level){
+		//System.out.println("---> isLoggable, level="+level+", myLevel="+myLevel+", Name="+myName);
 		return level >= myLevel;
 	}
 	
@@ -434,6 +437,7 @@ public class Logger
 	
 	/*#ANDROID_INCLUDE_BEGIN
 	public void log(int level, String msg, Throwable t) {
+		//System.out.println("---> Log, level="+level+", myLevel="+myLevel+", Name="+myName);
 		if(level >= myLevel){
 			if (t == null) {
 				switch (level) {
