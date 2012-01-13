@@ -31,8 +31,8 @@ import java.util.Hashtable;
 import java.io.*;
 
 //#J2ME_EXCLUDE_BEGIN
-//#ANDROID_EXCLUDE_BEGIN
 import java.util.logging.Level;
+//#ANDROID_EXCLUDE_BEGIN
 import java.util.logging.LogRecord;
 import java.util.Map;
 import java.util.HashMap;
@@ -130,7 +130,6 @@ public class Logger
 {
 
 	//#J2ME_EXCLUDE_BEGIN
-	//#ANDROID_EXCLUDE_BEGIN
 	/**
 	 * SEVERE is a message level indicating a serious failure.
 	 **/
@@ -169,6 +168,7 @@ public class Logger
 	public static final Level OFF		=	Level.OFF;
 
 
+	//#ANDROID_EXCLUDE_BEGIN
 	private static Map wrappers = new HashMap();
 
     /**
@@ -291,13 +291,7 @@ public class Logger
 	}
 		
 
-	// The following section must be included both in J2ME and in Android
-	//#ANDROID_EXCLUDE_BEGIN
 	/*#J2ME_INCLUDE_BEGIN
-	//#ANDROID_EXCLUDE_END
-	//#J2ME_EXCLUDE_BEGIN
-	/*#ANDROID_INCLUDE_BEGIN
-	//#J2ME_EXCLUDE_END
 	//SEVERE is a message level indicating a serious failure.
 	public static final int SEVERE	=	10;
 	//WARNING is a message level indicating a potential problem.
@@ -407,19 +401,7 @@ public class Logger
 	public void log(int level, String msg) {
 		log(level, msg, null);
 	}
-	
-	//#J2ME_EXCLUDE_BEGIN
-	#ANDROID_INCLUDE_END*/
-	//#J2ME_EXCLUDE_END
-	//#ANDROID_EXCLUDE_BEGIN
-	//#J2ME_EXCLUDE_BEGIN
-	/*
-	//#J2ME_EXCLUDE_END
-	#J2ME_INCLUDE_END*/
-	//#ANDROID_EXCLUDE_END
 
-	
-	/*#J2ME_INCLUDE_BEGIN
 	public void log(int level, String msg, Throwable t) {
 		if(level >= myLevel){
 			StringBuffer sb = new StringBuffer(myName);
@@ -434,54 +416,7 @@ public class Logger
 		}
 	}		
 	#J2ME_INCLUDE_END*/
-	
-	/*#ANDROID_INCLUDE_BEGIN
-	public void log(int level, String msg, Throwable t) {
-		//System.out.println("---> Log, level="+level+", myLevel="+myLevel+", Name="+myName);
-		if(level >= myLevel){
-			if (t == null) {
-				switch (level) {
-				case SEVERE:
-					android.util.Log.e(myName, msg);
-					break;
-				case WARNING:
-					android.util.Log.w(myName, msg);
-					break;
-				case INFO:
-					android.util.Log.i(myName, msg);
-					break;
-				case CONFIG:
-					android.util.Log.d(myName, msg);
-					break;
-				default: 
-					android.util.Log.v(myName, msg);
-					break;
-				}
-			}
-			else {
-				switch (level) {
-				case SEVERE:
-					android.util.Log.e(myName, msg, t);
-					break;
-				case WARNING:
-					android.util.Log.w(myName, msg, t);
-					break;
-				case INFO:
-					android.util.Log.i(myName, msg, t);
-					break;
-				case CONFIG:
-					android.util.Log.d(myName, msg, t);
-					break;
-				default: 
-					android.util.Log.v(myName, msg, t);
-					break;
-				}
-			}
-		}
-	}		
-	#ANDROID_INCLUDE_END*/
-	
-	
+		
 	/*#PJAVA_INCLUDE_BEGIN
 	private static PrintStream initLogStream(Properties pp) {
 		String logprefix = pp.getProperty("jade_util_Logger_logfile");
@@ -540,9 +475,127 @@ public class Logger
 	#MIDP_INCLUDE_END*/
 	
 	/*#ANDROID_INCLUDE_BEGIN
+	
+	private static Level getLevel(String level) {
+		if (level != null) {
+		 	if (level.equals("severe"))
+		 		return SEVERE;
+		 	if (level.equals("warning"))
+		 		return WARNING;
+		 	if (level.equals("info"))
+		 		return INFO;
+		 	if (level.equals("config"))
+		 		return CONFIG;
+		 	if (level.equals("fine"))
+		 		return FINE;
+		 	if (level.equals("finer"))
+		 		return FINER;
+		 	if (level.equals("finest"))
+		 		return FINEST;
+		 	if (level.equals("all"))
+		 		return ALL;
+		 	if (level.equals("off"))
+		 		return OFF;
+		}
+		// If we get here either nothing or a wrong value was specified --> use default
+		return INFO;
+	}
+			
+	private static Properties verbosityLevels = null;
+	private static Hashtable loggers = new Hashtable();
+		
+	public synchronized static Logger getJADELogger(String name){
+		Logger l = (Logger) loggers.get(name);
+		if (l == null) {
+			StringBuffer sb = new StringBuffer(name.replace('.', '_'));
+			sb.append("_loglevel");
+			String key = sb.toString();
+			Level level = INFO;
+			if (verbosityLevels != null) {
+				try {
+					level = getLevel(verbosityLevels.getProperty(key));
+				}
+				catch (Exception e) {
+					// Keep default
+				}
+			}
+			l = new Logger(name, level);
+			loggers.put(name, l);
+		}
+		return l;
+	}
+	
+	public static void initialize(Properties pp) {
+		if (pp != null) {
+			PrintStream ps = initLogStream(pp);
+			if (ps != null) {
+				logStream = ps;
+			}
+			verbosityLevels = pp;
+		}
+		else {
+			verbosityLevels = new Properties();
+		}
+	}
+
+	private Level myLevel = INFO;
+	private String myName;		
+		
+	// Private constructor. The getJADELogger() static method must be used instead 
+	private Logger(String name, Level level) {
+		myName = name;
+		myLevel = level;
+	}
+	
+	public String getName() {
+		return myName;
+	}
+		
+	// Check if the current level is loggable
+	public boolean isLoggable(Level level){
+		//System.out.println("---> isLoggable, level="+level+", myLevel="+myLevel+", Name="+myName);
+		return level.intValue() >= myLevel.intValue();
+	}
+	
+	public void log(Level level, String msg) {
+		log(level, msg, null);
+	}
+
 	private static PrintStream initLogStream(Properties pp) {
 		return null;
 	}
+
+	public void log(Level level, String msg, Throwable t) {
+		//System.out.println("---> Log, level="+level+", myLevel="+myLevel+", Name="+myName);
+		if(level.intValue() >= myLevel.intValue()){
+			if (t == null) {
+				if (level.equals(SEVERE)) {
+					android.util.Log.e(myName, msg);
+				} else if (level.equals(WARNING)) {
+					android.util.Log.w(myName, msg);
+				} else if (level.equals(INFO)) {
+					android.util.Log.i(myName, msg);
+				} else if (level.equals(CONFIG)) {
+					android.util.Log.d(myName, msg);
+				} else {
+					android.util.Log.v(myName, msg);
+				}
+			}
+			else {
+				if (level.equals(SEVERE)) {
+					android.util.Log.e(myName, msg, t);
+				} else if (level.equals(WARNING)) {
+					android.util.Log.w(myName, msg, t);
+				} else if (level.equals(INFO)) {
+					android.util.Log.i(myName, msg, t);
+				} else if (level.equals(CONFIG)) {
+					android.util.Log.d(myName, msg, t);
+				} else {
+					android.util.Log.v(myName, msg, t);
+				}
+			}
+		}
+	}		
 	#ANDROID_INCLUDE_END*/
 	
 }
