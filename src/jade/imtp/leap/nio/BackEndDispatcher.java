@@ -242,14 +242,14 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		byte type = pkt.getType();
 		switch (type) {
 		case JICPProtocol.DROP_DOWN_TYPE:
-			System.out.println("DROP_DOWN received: "+pkt.getSessionID());
+			System.out.println("BE "+myID+" - DROP_DOWN received: "+pkt.getSessionID());
 			// Note that the return packet is written inside the handleDropDown() 
 			// method since the connection must be closed after the response has 
 			// been sent back.
 			handleDropDown(c, pkt, addr, port);
 			break;
 		case JICPProtocol.COMMAND_TYPE:
-			System.out.println("COMMAND received: "+pkt.getSessionID());
+			System.out.println("BE "+myID+" - COMMAND received: "+pkt.getSessionID());
 			if (peerActive) {
 				reply = outManager.handleCommand(pkt);
 			}
@@ -260,12 +260,12 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			}
 			break;
 		case JICPProtocol.KEEP_ALIVE_TYPE:
-			System.out.println("KEEP_ALIVE received: "+pkt.getSessionID());
+			System.out.println("BE "+myID+" - KEEP_ALIVE received: "+pkt.getSessionID());
 			reply = outManager.handleKeepAlive(pkt);
 			break;
 		case JICPProtocol.RESPONSE_TYPE:
 		case JICPProtocol.ERROR_TYPE:
-			System.out.println("RESPONSE/ERROR received: "+pkt.getSessionID());
+			System.out.println("BE "+myID+" - RESPONSE/ERROR received: "+pkt.getSessionID());
 			inpManager.notifyIncomingResponseReceived(pkt);
 			break;
 		default:
@@ -275,7 +275,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		if (reply != null) {
 			try {
 				writePacket(myConnection, reply);
-				System.out.println("RESPONSE sent back: "+reply.getSessionID());
+				System.out.println("BE "+myID+" - RESPONSE sent back: "+reply.getSessionID());
 			}
 			catch (IOException ioe) {
 	      		myLogger.log(Logger.WARNING, myID+": Communication error sending back response. "+ioe);				
@@ -457,12 +457,12 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			waitingForFlush = myStub.flush();
 		}
 		
-		void resetConnection() {
-			synchronized (BackEndDispatcher.this) {
+		synchronized void resetConnection() {
+			//synchronized (BackEndDispatcher.this) {
 				myConnection = null;
 				// If there was someone waiting for a response on the connection notify it.
-				BackEndDispatcher.this.notifyAll();
-			}
+				notifyAll();
+			//}
 		}
 		
 		final boolean isEmpty() {
@@ -493,12 +493,12 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 					pkt.setSessionID((byte) inpCnt);
 					try {
 						lastIncomingResponse = null;
-						System.out.println("Sending command to FE "+pkt.getSessionID());
+						System.out.println("[Thread="+Thread.currentThread().getName()+"] BE "+myID+" - Sending command to FE "+pkt.getSessionID());
 						writePacket(myConnection, pkt);
-						System.out.println("Waiting for response from FE "+pkt.getSessionID());
+						System.out.println("[Thread="+Thread.currentThread().getName()+"] BE "+myID+" - Waiting for response from FE "+pkt.getSessionID());
 						pkt = waitForResponse(inpCnt, RESPONSE_TIMEOUT);
 						if (pkt != null) {
-							System.out.println("Response received from FE "+pkt.getSessionID());
+							System.out.println("[Thread="+Thread.currentThread().getName()+"] BE "+myID+" - Response received from FE "+pkt.getSessionID());
 							if (myLogger.isLoggable(Logger.FINER)) {
 								myLogger.log(Logger.FINER, myID+": Response received from FE "+pkt.getSessionID());
 							}							
@@ -539,10 +539,10 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			}
 		}
 		
-		private JICPPacket waitForResponse(int sessionID, long timeout) {
+		private synchronized JICPPacket waitForResponse(int sessionID, long timeout) {
 			try {
 				while (lastIncomingResponse == null ) {
-					BackEndDispatcher.this.wait(timeout);
+					wait(timeout);
 					if (lastIncomingResponse != null && lastIncomingResponse.getSessionID() != sessionID) {
 						myLogger.log(Logger.WARNING, myID+": Duplicated response from FE: type="+lastIncomingResponse.getType()+" info="+lastIncomingResponse.getInfo()+" SID="+lastIncomingResponse.getSessionID());
 						// Go back waiting
@@ -556,11 +556,11 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			return lastIncomingResponse;
 		}
 		
-		private void notifyIncomingResponseReceived(JICPPacket rsp) {
-			synchronized (BackEndDispatcher.this) {
+		private synchronized void notifyIncomingResponseReceived(JICPPacket rsp) {
+			//synchronized (BackEndDispatcher.this) {
 				lastIncomingResponse = rsp;
-				BackEndDispatcher.this.notifyAll();
-			}
+				notifyAll();
+			//}
 		}
 	} // END of inner class InputManager
 	

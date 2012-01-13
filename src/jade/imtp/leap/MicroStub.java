@@ -49,6 +49,7 @@ public class MicroStub {
 		try {
 			disableFlush();
 			byte[] cmd = SerializationEngine.serialize(c);
+			System.out.println("[Thread="+Thread.currentThread().getName()+"] Dispatching command "+c.getCode());
 			byte[] rsp = myDispatcher.dispatch(cmd, flushing);
 			if (pendingCommands.size() > 0) {
 				System.out.println("############# Dispatch succeeded with "+pendingCommands.size()+" pending commands.");
