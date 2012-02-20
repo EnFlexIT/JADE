@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 
 /**
- This class implements the BIFEDispatcher related BackEnd dispatcher 
+ This class implements the FrontEndDispatcher related BackEnd dispatcher 
  managable by an asynchronous JICPMediatorManager  
  @author Giovanni Caire - Telecom Italia LAB S.p.A.
  */
@@ -458,11 +458,9 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		}
 		
 		synchronized void resetConnection() {
-			//synchronized (BackEndDispatcher.this) {
-				myConnection = null;
-				// If there was someone waiting for a response on the connection notify it.
-				notifyAll();
-			//}
+			myConnection = null;
+			// If there was someone waiting for a response on the connection notify it.
+			notifyAll();
 		}
 		
 		final boolean isEmpty() {
@@ -557,10 +555,8 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		}
 		
 		private synchronized void notifyIncomingResponseReceived(JICPPacket rsp) {
-			//synchronized (BackEndDispatcher.this) {
-				lastIncomingResponse = rsp;
-				notifyAll();
-			//}
+			lastIncomingResponse = rsp;
+			notifyAll();
 		}
 	} // END of inner class InputManager
 	
