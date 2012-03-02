@@ -31,7 +31,6 @@ import jade.core.AID;
 import jade.core.behaviours.WakerBehaviour;
 
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.ISO8601;
 
 import jade.content.lang.sl.SimpleSLTokenizer;
@@ -88,6 +87,9 @@ import java.util.Date;
   * 
   **/
 public class DFService extends FIPAService {
+	public static final String DF_SEARCH_TIMEOUT_KEY = "jade_domain_dfservice_searchtimeout";
+	public static final String DF_SEARCH_TIMEOUT_DEFAULT = "30000";
+	
 	private static final long OFFSET = 10000; // 10 sec
 	private static final String SPACE_COLON = " :";
 	private static final String SPACE_BRACKET = " (";
@@ -359,9 +361,17 @@ public class DFService extends FIPAService {
 		}
 		
 		ACLMessage request = createRequestMessage(a, dfName, FIPAManagementVocabulary.SEARCH, dfd, constraints);
-		ACLMessage inform = doFipaRequestClient(a,request);
+		
+		int timeout = 0;
+		try {
+			timeout = Integer.parseInt(a.getProperty(DF_SEARCH_TIMEOUT_KEY, DF_SEARCH_TIMEOUT_DEFAULT));
+		} catch (Exception e) {
+			throw new FIPAException("Property "+DF_SEARCH_TIMEOUT_KEY+" is not a valid value for integer parameter");
+		}
+
+		ACLMessage inform = doFipaRequestClient(a, request, timeout);
 		if (inform == null) {
-			throw new FIPAException("Missing reply");
+			throw new FIPAException("Timeout searching for data into df");
 		}
 		
 		return decodeResult(inform.getContent());
