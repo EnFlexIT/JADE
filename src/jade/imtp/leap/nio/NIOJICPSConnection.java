@@ -25,41 +25,41 @@ import javax.net.ssl.SSLEngine;
  */
 public class NIOJICPSConnection extends NIOJICPConnection {
 
-    private SSLEngineHelper helper = null;
-    private static Logger log = Logger.getLogger(NIOJICPSConnection.class.getName());
+	private SSLEngineHelper helper = null;
+	private static Logger log = Logger.getLogger(NIOJICPSConnection.class.getName());
 
-    public NIOJICPSConnection() {
-    }
+	public NIOJICPSConnection() {
+	}
 
-    /**
-     * Initializes this connection by setting a {@link SSLEngineHelper } and calling the super.
-     *
-     * @see SSLEngineHelper
-     * @param key the Selection key provided by the {@link Selector}.
-     * @throws ICPException
-     */
-    @Override
-     void init(SocketChannel channel) throws ICPException {
-        super.init(channel);
-        if (log.isLoggable(Level.FINE)) {
-            log.fine("initialize ssl tooling");
-        }
-        helper = new SSLEngineHelper(getRemoteHost(), channel.socket().getPort(), this);
-        addBufferTransformer(helper);
-    }
+	/**
+	 * Initializes this connection by setting a {@link SSLEngineHelper } and calling the super.
+	 *
+	 * @see SSLEngineHelper
+	 * @param key the Selection key provided by the {@link Selector}.
+	 * @throws ICPException
+	 */
+	@Override
+	void init(SocketChannel channel) throws ICPException {
+		super.init(channel);
+		if (log.isLoggable(Level.FINE)) {
+			log.fine("initialize ssl tooling");
+		}
+		helper = new SSLEngineHelper(getRemoteHost(), channel.socket().getPort(), this);
+		addBufferTransformer(helper);
+	}
 
-    /**
-     * first try to send ssl close packet, then close channel
-     * @throws IOException
-     */
-    @Override
-    public void close() throws IOException {
+	/**
+	 * first try to send ssl close packet, then close channel
+	 * @throws IOException
+	 */
+	@Override
+	public void close() throws IOException {
 
-        try {
-            helper.close();
-        } catch (IOException ex) {
-        }
-        super.close();
-    }
+		try {
+			helper.close();
+		} catch (IOException ex) {
+		}
+		super.close();
+	}
 
 }

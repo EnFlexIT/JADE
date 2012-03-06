@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Vector;
 import java.util.Enumeration;
-import java.util.logging.Level;
 
 /**
 This service handles BEContainer creation requests and manages IO operations
@@ -111,6 +110,12 @@ public class BEManagementService extends BaseService {
 	private static final int TERMINATED_STATE = 3;
 	private static final int ERROR_STATE = -1;
 	public static final String INCOMING_CONNECTION = "Incoming-Connection";
+	// since this is the only service dealing with NIO it is ok to set the size used for enlarging buffers here
+	private static int bufferIncreaseSize = 1024;
+	/**
+	 * this property can be used to set how many bytes will be used when nio buffer need to be increased
+	 */
+	public static final String BUFFERINCREASE = "bufferincrease";
 
 	private static final String[] OWNED_COMMANDS = new String[]{
 		INCOMING_CONNECTION
@@ -141,6 +146,10 @@ public class BEManagementService extends BaseService {
 	public String getName() {
 		String className = getClass().getName();
 		return className.substring(0, className.indexOf("Service"));
+	}
+
+	public static final int getBufferIncreaseSize() {
+		return bufferIncreaseSize;
 	}
 
 	public String[] getOwnedCommands() {
@@ -230,6 +239,11 @@ public class BEManagementService extends BaseService {
 		long tickTime = 30000;
 		try {
 			tickTime = Long.parseLong(p.getParameter(PREFIX + "ticktime", null));
+		} catch (Exception ex) {
+		}
+		try {
+			// set buffer increase size
+			bufferIncreaseSize = Integer.parseInt(p.getParameter(PREFIX + BUFFERINCREASE, null));
 		} catch (Exception ex) {
 		}
 		myTicker = new Ticker(tickTime);
@@ -933,38 +947,38 @@ public class BEManagementService extends BaseService {
         Read some data from the connection associated to the managed key
         and let the IOEventServer serve it
 		 */
-		 public final void read() {
-			 try {
-				 JICPPacket pkt = connection.readPacket();
-				 server.servePacket(this, pkt);
-			 } catch (PacketIncompleteException pie) {
-				 // The data ready to be read is not enough to complete
-				 // a packet. Just do nothing and wait until more data is ready
-				 if (myLogger.isLoggable(Logger.FINE)) {
-					 myLogger.log(Logger.FINE, "waiting for more data..");
-				 }
-			 } catch (Exception e) {
-				 server.serveException(this, e);
-			 }
-		 }
+		public final void read() {
+			try {
+				JICPPacket pkt = connection.readPacket();
+				server.servePacket(this, pkt);
+			} catch (PacketIncompleteException pie) {
+				// The data ready to be read is not enough to complete
+				// a packet. Just do nothing and wait until more data is ready
+				if (myLogger.isLoggable(Logger.FINE)) {
+					myLogger.log(Logger.FINE, "waiting for more data..");
+				}
+			} catch (Exception e) {
+				server.serveException(this, e);
+			}
+		}
 
-		 // TO BE REMOVED
-		 public void handleExtraData() {
-			 System.out.println("####### handleExtraData()");
-			 //final Exception e = new Exception("DUMMY!!!!!!!!!!!");
-			 Thread t = new Thread(new Runnable() {
+		// TO BE REMOVED
+		public void handleExtraData() {
+			System.out.println("####### handleExtraData()");
+			//final Exception e = new Exception("DUMMY!!!!!!!!!!!");
+			Thread t = new Thread(new Runnable() {
 
-				 public void run() {
-					 read();
-					 //e.printStackTrace();
-				 }
-			 });
-			 t.setName(Thread.currentThread().getName()+"HED");
-			 t.start();
-		 }
+				public void run() {
+					read();
+					//e.printStackTrace();
+				}
+			});
+			t.setName(Thread.currentThread().getName()+"HED");
+			t.start();
+		}
 	} // END of inner class KeyManager
-	
-	
+
+
 	/**
 	 * Inner class LoopManager
 	 */

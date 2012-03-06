@@ -22,9 +22,7 @@ public class NIOJICPConnection extends Connection {
 	// type+info+session+recipient-length+recipient(255)+payload-length(4)
 	public static final int MAX_HEADER_SIZE = 263;
 	// TODO 5k, why? configurable?
-	public static final int INITIAL_BUFFER_SIZE = 5120;
-	// TODO 5k, why? configurable?
-	public static final int INCREASE_STEP = 5120;
+	public static final int INITIAL_BUFFER_SIZE = 1024;
 	private SocketChannel myChannel;
 	private ByteBuffer socketData = ByteBuffer.allocateDirect(INITIAL_BUFFER_SIZE);
 	private ByteBuffer payloadBuf = ByteBuffer.allocateDirect(INITIAL_BUFFER_SIZE);
@@ -131,7 +129,7 @@ public class NIOJICPConnection extends Connection {
 			// We read exactly how many bytes how socketData can contain. VERY likely there are 
 			// more bytes to read from the channel --> Enlarge socketData and read again
 			socketData.flip();
-			socketData = NIOHelper.enlargeAndFillBuffer(socketData, INCREASE_STEP);
+			socketData = NIOHelper.enlargeAndFillBuffer(socketData, BEManagementService.getBufferIncreaseSize(), "socketData");
 			try {
 				readFromChannel(socketData);
 			}
@@ -194,7 +192,7 @@ public class NIOJICPConnection extends Connection {
 
 	private void resizePayloadBuffer(int payloadLength) {
 		if (payloadLength > payloadBuf.capacity()) {
-			payloadBuf = NIOHelper.enlargeBuffer(payloadBuf, payloadLength - payloadBuf.capacity());
+			payloadBuf = NIOHelper.enlargeBuffer(payloadBuf, payloadLength - payloadBuf.capacity(), "payLoad",true);
 		} else {
 			payloadBuf.limit(payloadLength);
 		}
@@ -339,7 +337,7 @@ public class NIOJICPConnection extends Connection {
 			ByteBuffer actualTransformationInput = transformationInput;
 			if (unprocessedData != null && unprocessedData.hasRemaining()) {
 				//System.out.println("######## Attaching "+unprocessedData.remaining()+" unprocessed bytes");
-				actualTransformationInput = NIOHelper.enlargeAndFillBuffer(unprocessedData, transformationInput.remaining());
+				actualTransformationInput = NIOHelper.enlargeAndFillBuffer(unprocessedData, transformationInput.remaining(), "unprocessedData");
 				NIOHelper.copyAsMuchAsFits(actualTransformationInput, transformationInput);
 				actualTransformationInput.flip();
 			}

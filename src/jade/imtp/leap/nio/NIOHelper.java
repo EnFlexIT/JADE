@@ -44,7 +44,7 @@ public class NIOHelper {
 	 */
 	public static void logBuffer(ByteBuffer b, String name, Level l) {
 		if (log.isLoggable(l)) {
-			log.log(l,"bufferinfo " + name + ": pos " + b.position() + ", rem " + b.remaining() + ", lim " + b.limit());
+			log.log(l, "bufferinfo {0}: pos {1}, rem {2}, lim {3}, cap {4}", new Object[]{name, b.position(), b.remaining(), b.limit(), b.capacity()});
 		}
 	}
 
@@ -88,17 +88,34 @@ public class NIOHelper {
 	}
 
 	/**
+	 * calls {@link NIOHelper#enlargeBuffer(java.nio.ByteBuffer, int, java.lang.String, boolean) } with false for doLog
+	 * @param b
+	 * @param extraSpace
+	 * @param name the name of the buffer
+	 * @return the new enlarged buffer
+	 */
+	public static ByteBuffer enlargeBuffer(ByteBuffer b, int extraSpace, String name) {
+		return enlargeBuffer(b, extraSpace, name, false);
+	}
+
+	/**
 	 * returns an enlarged, empty buffer
 	 * @param b
 	 * @param extraSpace
+	 * @param name the name of the buffer
+	 * @param doLog log the changes or not
 	 * @return the new enlarged buffer
 	 */
-	public static ByteBuffer enlargeBuffer(ByteBuffer b, int extraSpace) {
-		if (log.isLoggable(Level.FINE)) {
-			logBuffer(b,"enlarging buffer with " + extraSpace);
+	public static ByteBuffer enlargeBuffer(ByteBuffer b, int extraSpace, String name, boolean doLog) {
+		if (!doLog) {
+			return ByteBuffer.allocateDirect(b.capacity() + extraSpace);
+		} else {
+			ByteBuffer bigger = ByteBuffer.allocateDirect(b.capacity() + extraSpace);
+			logBuffer(b,String.format("before resize %s",name),Level.WARNING);
+			logBuffer(bigger,String.format("after resize %s",name),Level.WARNING);
+			return bigger;
 		}
-		ByteBuffer bigger = ByteBuffer.allocateDirect(b.capacity() + extraSpace);
-		return bigger;
+
 	}
 
 	/**
@@ -107,9 +124,11 @@ public class NIOHelper {
 	 * @param extraSpace
 	 * @return the new enlarged buffer
 	 */
-	public static ByteBuffer enlargeAndFillBuffer(ByteBuffer b, int extraSpace) {
-		ByteBuffer bigger = enlargeBuffer(b, extraSpace);
+	public static ByteBuffer enlargeAndFillBuffer(ByteBuffer b, int extraSpace, String name) {
+		ByteBuffer bigger = enlargeBuffer(b, extraSpace, name,false);
 		bigger.put(b);
+		logBuffer(b,String.format("before resize %s",name),Level.WARNING);
+		logBuffer(bigger,String.format("after resize %s",name),Level.WARNING);
 		return bigger;
 	}
 }
