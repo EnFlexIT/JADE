@@ -28,6 +28,7 @@ package jade.core.nodeMonitoring;
 //#J2ME_EXCLUDE_FILE
 
 import jade.core.IMTPException;
+import jade.core.Profile;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -308,62 +309,61 @@ class UDPMonitorServer {
 	/**
 	 * Starts the UDP server
 	 */
-	synchronized void start() {
-		try {
-			// Start UDP server
+	synchronized void start() throws Exception {
+		// Start UDP server
 
-			//#DOTNET_EXCLUDE_BEGIN
-			server.configureBlocking(false);
-            try {
-                server.socket().bind(new InetSocketAddress(host, port));
-            } catch (BindException e){
-                server.socket().bind(null);
-                port  = server.socket().getLocalPort();
-                logger.log(Logger.INFO, "New UDP monitoring server port  " + port);
-            }
-            //#DOTNET_EXCLUDE_END
+		//#DOTNET_EXCLUDE_BEGIN
+		server.configureBlocking(false);
+        try {
+            server.socket().bind(new InetSocketAddress(host, port));
+        } catch (BindException e){
+        	if (Profile.isLocalHost(host)) {
+        		// Port busy --> select a free one
+	            logger.log(Logger.WARNING, "Cannot bind UDP Server Socket on port " + port + ". Let the system select a free one.");
+	            server.socket().bind(new InetSocketAddress(host, 0));
+	            port  = server.socket().getLocalPort();
+        	}
+        	else {
+        		// Specified host does not represent a local host --> Exception
+        		throw e;
+        	}
+        }
+        //#DOTNET_EXCLUDE_END
 
-			/*#DOTNET_INCLUDE_BEGIN
-			 server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-			 server.set_Blocking( false );
-			 server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, 1);
-			 String defaultNetworkName = Profile.getDefaultNetworkName();
-			 System.Net.IPHostEntry hostEntry = System.Net.Dns.GetHostByName( defaultNetworkName );
-			 System.Net.IPAddress[] ipAddresses = hostEntry.get_AddressList();
-			 long ipAddressLong = ipAddresses[0].get_Address();
-			 if ( !server.get_Connected() )
-			 {
-			 IPEndPoint ipPoint = new IPEndPoint(IPAddress.Any, port);
-			 try
-			 {
-			 server.Bind( ipPoint );
-			 }
-			 catch(SocketException se)
-			 {
-			 int socketError = se.get_ErrorCode();
-			 }
-			 }
-			 #DOTNET_INCLUDE_END*/
+		/*#DOTNET_INCLUDE_BEGIN
+		 server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+		 server.set_Blocking( false );
+		 server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, 1);
+		 String defaultNetworkName = Profile.getDefaultNetworkName();
+		 System.Net.IPHostEntry hostEntry = System.Net.Dns.GetHostByName( defaultNetworkName );
+		 System.Net.IPAddress[] ipAddresses = hostEntry.get_AddressList();
+		 long ipAddressLong = ipAddresses[0].get_Address();
+		 if ( !server.get_Connected() )
+		 {
+		 IPEndPoint ipPoint = new IPEndPoint(IPAddress.Any, port);
+		 try
+		 {
+		 server.Bind( ipPoint );
+		 }
+		 catch(SocketException se)
+		 {
+		 int socketError = se.get_ErrorCode();
+		 }
+		 }
+		 #DOTNET_INCLUDE_END*/
 
-			//#DOTNET_EXCLUDE_BEGIN
-			// Create and register Selector
-			selector = Selector.open();
-			server.register(selector, SelectionKey.OP_READ);
-			//#DOTNET_EXCLUDE_END
+		//#DOTNET_EXCLUDE_BEGIN
+		// Create and register Selector
+		selector = Selector.open();
+		server.register(selector, SelectionKey.OP_READ);
+		//#DOTNET_EXCLUDE_END
 
-			// Start PingHandler thread
-			pingHandler = new PingHandler("UDPNodeFailureMonitor-PingHandler");
-			pingHandler.start();
+		// Start PingHandler thread
+		pingHandler = new PingHandler("UDPNodeFailureMonitor-PingHandler");
+		pingHandler.start();
 
-			// start timer for deadlines
-			timer = new Timer();
-
-			if (logger.isLoggable(Logger.CONFIG))
-				logger.log(Logger.CONFIG, "UDP monitoring server started.");
-		} catch (Throwable t) { // .net requires I catch Exception instead of IOException
-			logger.log(Logger.SEVERE, "UDP monitoring server cannot be started. " + t);
-			t.printStackTrace();
-		}
+		// start timer for deadlines
+		timer = new Timer();
 	}
 
 	/**

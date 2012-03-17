@@ -62,6 +62,12 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 	public static final String NAME = "jade.core.nodeMonitoring.UDPNodeMonitoring";
 
 	/**
+	 * This constant is the name of the property whose value contains 
+	 * the hostname where the Main Container is listening for UDP pings. 
+	 */
+	public static final String HOST = PREFIX + "host";
+	
+	/**
 	 * This constant is the name of the property whose value contains an
 	 * integer representing the port number where the Main Container is
 	 * listening for UDP pings. 
@@ -181,7 +187,7 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 		mainContainer = ac.getMain();
 		if (mainContainer != null) {
 			// We are on the main container --> launch a UDPMonitorServer
-			String host = Profile.getDefaultNetworkName(); 
+			String host = p.getParameter(HOST, Profile.getDefaultNetworkName()); 
 			int port = getPosIntValue(p, PORT, DEFAULT_PORT);
 			int pingDelay = getPosIntValue(p, PING_DELAY, DEFAULT_PING_DELAY);
 			int pingDelayLimit = getPosIntValue(p, PING_DELAY_LIMIT, DEFAULT_PING_DELAY_LIMIT);
@@ -194,9 +200,9 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 			try {
 				myServer = new UDPMonitorServer(this, host, port, pingDelay, pingDelayLimit, unreachLimit, orphanNodePingsCnt, maxTracedUnknownPings, checker);
 				myServer.start();
-                //port can be changed if it is already binded to
-                port = myServer.getPort();
-                myLogger.log(Logger.INFO, "UDPMonitorServer successfully started. Port = " + port + " pingdelaylimit = " + pingDelayLimit + " unreachablelimit = " + unreachLimit);
+				// Port may have changed
+				port = myServer.getPort();
+				myLogger.log(Logger.INFO, "UDPMonitorServer successfully started. Host = " + host + ", port = " + port + " pingdelaylimit = " + pingDelayLimit + " unreachablelimit = " + unreachLimit);
 			} catch (Exception e) {
 				String s = "Error creating UDP monitoring server";
 				myLogger.log(Logger.SEVERE, s);
