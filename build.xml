@@ -140,6 +140,7 @@ ant dist - to create the distribution files
 		       debuglevel="lines,vars,source" 
 		       deprecation="on" 
 			   target="1.5"
+			   source="1.5"
 		       excludes="demo/**,examples/**,test/**" >
 		</javac>
 		
