@@ -226,7 +226,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	private void setPlatformManager(PlatformManager pm) throws IMTPException {
 		thePlatformManager = pm;
 		String actualPlatformName  = thePlatformManager.getPlatformName();
-		if (platformName != null) {
+		if (platformName != null && !platformName.equals("*") ) { // * is the wild-card for automatic main detection
 			// PlatformName already set --> Check that it is consistent with the actual name of the platform
 			if (!platformName.equals(actualPlatformName)) {
 				throw new IMTPException("Wrong platform name "+platformName+". It should be "+actualPlatformName);
