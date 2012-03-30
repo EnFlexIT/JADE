@@ -80,6 +80,13 @@ public abstract class WrapperException extends Exception {
 			nested.printStackTrace(pw);
 		}
 	}
+	public void printStackTrace(java.io.PrintStream ps) {
+		super.printStackTrace(ps);
+		if(nested != null) {
+			ps.println("Nested Exception:");
+			nested.printStackTrace(ps);
+		}
+	}
 	//#MIDP_EXCLUDE_END
 	/*#MIDP_INCLUDE_BEGIN
 	public void printStackTrace() {
