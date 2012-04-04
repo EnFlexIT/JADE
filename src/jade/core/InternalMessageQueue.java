@@ -50,7 +50,7 @@ class InternalMessageQueue implements MessageQueue {
 
 	private int maxSize;
 	private Agent myAgent;
-	private Logger myLogger = Logger.getMyLogger(getClass().getName());
+	private Logger myLogger = Logger.getJADELogger(getClass().getName());
 
 	public InternalMessageQueue(int size, Agent a) {
 		maxSize = size;
