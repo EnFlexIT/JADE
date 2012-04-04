@@ -37,7 +37,7 @@ import jade.util.Logger;
 class NodeSkel extends Skeleton {
 
 	private Node myNode;
-	private Logger myLogger = Logger.getJADELogger(getClass().getName());
+	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 
 	public NodeSkel(Node n) {
 		myNode = n;

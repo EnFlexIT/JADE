@@ -49,10 +49,10 @@ public class MicroStub {
 		try {
 			disableFlush();
 			byte[] cmd = SerializationEngine.serialize(c);
-			System.out.println("[Thread="+Thread.currentThread().getName()+"] Dispatching command "+c.getCode());
+			logger.log(Logger.FINE, "Dispatching command "+c.getCode());
 			byte[] rsp = myDispatcher.dispatch(cmd, flushing);
 			if (pendingCommands.size() > 0) {
-				System.out.println("############# Dispatch succeeded with "+pendingCommands.size()+" pending commands.");
+				logger.log(Logger.FINE, "############# Dispatch succeeded with "+pendingCommands.size()+" pending commands.");
 			}
 			Command r = SerializationEngine.deserialize(rsp);
 			if (r.getCode() == Command.ERROR) {
@@ -149,7 +149,7 @@ public class MicroStub {
 					}
 					
 					// 3) Unlock the buffer of pending commands
-					System.out.println("########## "+pendingCommands.size()+" pending commands after flush");
+					logger.log(Logger.FINE, "########## "+pendingCommands.size()+" pending commands after flush");
 					synchronized (pendingCommands) {
 						flushing = false;
 						pendingCommands.notifyAll();
