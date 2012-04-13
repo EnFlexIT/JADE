@@ -99,13 +99,15 @@ public final class SSLEngineHelper implements BufferTransformer {
 		 * 4 close inbound
 		 * 5 don't let all this frustrate the channel closing
 		 */
-		ssle.closeOutbound();
-
-		sendSSLClose();
-
-		ssle.closeInbound();
-		// give gc a chance to cleanup
-		ssle = null;
+		if (ssle != null) {
+			ssle.closeOutbound();
+	
+			sendSSLClose();
+	
+			ssle.closeInbound();
+			// give gc a chance to cleanup
+			ssle = null;
+		}
 	}
 
 	private void sendSSLClose() {

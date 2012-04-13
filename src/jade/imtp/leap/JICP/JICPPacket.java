@@ -44,7 +44,7 @@ import jade.util.Logger;
  * @author Steffen Rusitschka - Siemens AG
  */
 public class JICPPacket {
-	public static final int MAX_SIZE = 1000000;
+	public static final int MAX_SIZE = 10000000;
 
   /**
    * The type of data included in the packet
