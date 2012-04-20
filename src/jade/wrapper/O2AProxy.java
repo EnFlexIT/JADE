@@ -39,7 +39,6 @@ public abstract class O2AProxy implements InvocationHandler {
 		this.target = target; 
 	}
 	
-	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		// Before forwarding the invocation to the actual O2A interface implementation, check that the underlying agent is still valid 
 		checkAgent();

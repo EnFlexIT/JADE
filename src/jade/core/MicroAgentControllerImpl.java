@@ -114,7 +114,6 @@ class MicroAgentControllerImpl implements AgentController {
 	}
 
 	//#J2ME_EXCLUDE_BEGIN
-	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T getO2AInterface(Class<T> theInterface) throws StaleProxyException {
 		Agent adaptee = myFrontEnd.getLocalAgent(agentName);
