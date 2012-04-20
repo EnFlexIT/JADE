@@ -106,8 +106,8 @@
 		       classpath="${android-platform-home}/android.jar;${lib}/commons-codec/commons-codec-1.3.jar"
 		       fork="yes"
 		       compiler="classic"
-		       source="1.6"
-		       target="1.6"/>
+		       source="1.5"
+		       target="1.5"/>
 	</target>
 
 	<!-- LIB -->
