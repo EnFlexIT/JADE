@@ -214,6 +214,10 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 				setExpirationDeadline();
 			}
 		}
+		try {
+			c.close();
+		} catch(Exception e1) {
+		}
 	}
 	
 	/**
