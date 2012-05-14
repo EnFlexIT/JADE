@@ -101,7 +101,9 @@ public class JICPProtocol extends TransportProtocol {
 	public static final long DEFAULT_MAX_DISCONNECTION_TIME = 600000; // 10 min
 	public static final long DEFAULT_RETRY_TIME = 10000;              // 10 sec
 	public static final long DEFAULT_KEEP_ALIVE_TIME = 60000;         // 1 min
-
+	public static final long DEFAULT_RESPONSE_TIMEOUT_OFFSET = 60000;  // 1 min
+	public static final double DEFAULT_RESPONSE_TIMEOUT_MULTIPLICATIVE_FACTOR = ((double)1000) / (5 * 1024);  // 5Kb/1sec
+	
 	/**
 	 * Keys
 	 */
@@ -117,6 +119,9 @@ public class JICPProtocol extends TransportProtocol {
 	public static final String MEDIATOR_ID_KEY = "mediator-id";	
 	public static final String MSISDN_KEY = "msisdn";	
 	public static final String VERSION_KEY = "version";	
+	public static final String RESPONSE_TIMEOUT_OFFSET_KEY = "response-timeout-offset";
+	public static final String RESPONSE_TIMEOUT_MULTIPLICATIVE_FACTOR_KEY = "response-timeout-multiplicative-factor";
+	
 	/**
 	 * @deprecated Use <code>MicroRuntime.OWNER_KEY</code>
 	 */
