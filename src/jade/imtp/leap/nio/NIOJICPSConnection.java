@@ -57,8 +57,13 @@ public class NIOJICPSConnection extends NIOJICPConnection {
 
 		try {
 			helper.close();
-		} catch (IOException ex) {
+		} 
+		catch (IOException ex) {
 		}
+		catch (Exception e) {
+			log.log(Level.WARNING, "Unexpected error closing SSLHelper.", e);
+		}
+		
 		super.close();
 	}
 
