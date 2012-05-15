@@ -15,7 +15,7 @@ import java.util.Vector;
 
 /**
  * Utility class to manage instances of classes with attached properties i.e. classes specified in the form<br>
- * foo.Bar[key1=value1;key2=value2...]
+ * foo.Bar[key1=value1,key2=value2...]
  * This class allows registering "Loaders" for given types of objects (e.g. agents) and successively load such 
  * objects using them
  */
@@ -51,7 +51,7 @@ public class ObjectManager {
 			pp.setProperty(CLASS_NAME, str.substring(0, index));
 			int index1 = str.indexOf(']');
 			String propsStr = str.substring(index+1, index1);
-			Vector propsList = Specifier.parseList(propsStr, ';');
+			Vector propsList = Specifier.parseList(propsStr, ',');
 			for (int i = 0; i < propsList.size(); ++i) {
 				String ps = (String) propsList.get(i);
 				int k = ps.indexOf('=');
