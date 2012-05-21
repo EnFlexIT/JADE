@@ -26,6 +26,7 @@ package jade.core;
 //#J2ME_EXCLUDE_FILE
 //#APIDOC_EXCLUDE_FILE
 
+import jade.imtp.leap.JICP.JICPProtocol;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.domain.FIPAAgentManagement.Envelope;
@@ -119,7 +120,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 		myConnectionManager = cm;
 	}
 	
-	
 	public boolean connect() {
 		try {
 			// Initialize the BackEndManager if required
@@ -131,7 +131,8 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 			myProfile.setParameter(Profile.AGENTS, null);
 			
 			myFrontEnd = myConnectionManager.getFrontEnd(this, null);
-			myLogger.log(Logger.FINE, "BackEnd container "+myProfile.getParameter(Profile.CONTAINER_NAME, null)+" joining the platform ...");
+			myLogger.log(Logger.FINE, "BackEnd container "+myProfile.getParameter(Profile.CONTAINER_NAME, null)+" joining the platform ... (FrontEnd version: "+myProfile.getParameter(JICPProtocol.VERSION_KEY, "not available")+")");
+			
 			Runtime.instance().beginContainer();
 			boolean connected = joinPlatform();
 			if (connected) {
