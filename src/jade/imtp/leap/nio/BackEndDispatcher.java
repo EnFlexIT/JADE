@@ -201,8 +201,19 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		
 		// Update keep-alive info
 		lastReceivedTime = System.currentTimeMillis();
-		
+
 		if (peerActive) {
+			// In some cases the front-end disconnects and we do not detect that.
+			// When it reconnects, close the previous connection and notify any Thread waiting from
+			// responses on the old connection
+			if (myConnection != null && myConnection != c) {
+				inpManager.resetConnection();
+				try {
+					myConnection.close();
+				} catch(Exception e) {
+				}
+			}
+			
 			myConnection = c;
 			updateConnectedState();			
 			inpManager.setConnection(myConnection);

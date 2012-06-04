@@ -109,6 +109,7 @@ public class JICPProtocol extends TransportProtocol {
 	 */
 	public static final String LOCAL_PORT_KEY = "local-port";
 	public static final String LOCAL_HOST_KEY = "local-host";
+	// In case it is not possible to get the local host address, it is possible to specify a remote URL where to find it by means of the GET_ADDRESS JICP command
 	public static final String REMOTE_URL_KEY = "remote-url";
 	public static final String UNREACHABLE_KEY = "unreachable";
 	public static final String RECONNECTION_RETRY_TIME_KEY = "reconnection-retry-time";
