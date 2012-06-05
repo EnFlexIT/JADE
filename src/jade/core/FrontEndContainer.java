@@ -147,6 +147,13 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		// Connect to the BackEnd
 		try {
 			myBackEnd = new BackEndWrapper(this, configProperties);
+
+			String startupTag = System.getProperty("startup-tag");
+			if (startupTag != null) {
+				// This line print in the standard output a tag used from the controller to check if container is started 
+				System.out.println(startupTag + " " + myId);
+			}
+
 			logger.log(Logger.INFO, "--------------------------------------\nAgent container " + myId.getName() + " is ready.\n--------------------------------------------");
 		}
 		catch (IMTPException imtpe) {

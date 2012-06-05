@@ -517,7 +517,14 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 		joined = true;
 		
+		String startupTag = System.getProperty("startup-tag");
+		if (startupTag != null) {
+			// This line print in the standard output a tag used from the controller to check if container is started 
+			System.out.println(startupTag + " " + myID);
+		}
+
 		myLogger.log(Logger.INFO, "--------------------------------------\nAgent container " + myID + " is ready.\n--------------------------------------------");
+		
 		return true;
 	}
 	
