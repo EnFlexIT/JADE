@@ -135,13 +135,17 @@ public class LoaderBehaviour extends Behaviour {
 							b = loadFromZip(className, zip);
 						}
 						else {
+							//#J2ME_EXCLUDE_BEGIN
 							// Try using the local loader if any. Otherwise load from the classpath
 							if (localLoader != null) {
 								b = (Behaviour) Class.forName(className, true, localLoader).newInstance();
 							}
 							else {
+							//#J2ME_EXCLUDE_END
 								b = (Behaviour) Class.forName(className).newInstance();
+							//#J2ME_EXCLUDE_BEGIN
 							}
+							//#J2ME_EXCLUDE_END
 						}
 						
 						// Set parameters
@@ -265,7 +269,12 @@ public class LoaderBehaviour extends Behaviour {
 	private Behaviour load(String className, Hashtable classes) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		ClassLoader loader = new HashClassLoader(classes, getClass().getClassLoader());
 		
+		//#J2ME_EXCLUDE_BEGIN
 		Class c = Class.forName(className, true, loader);
+		//#J2ME_EXCLUDE_END
+		/*#J2ME_INCLUDE_BEGIN
+		Class c = loader.loadClass(className);
+		#J2ME_INCLUDE_END*/
 		return (Behaviour) c.newInstance();
 	}
 	

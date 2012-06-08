@@ -42,11 +42,9 @@ import jade.util.leap.Iterator;
 import jade.util.leap.Set;
 import jade.util.leap.SortedSetImpl;
 import chat.client.ChatGui;
-//#J2SE_EXCLUDE_BEGIN
 /*#MIDP_INCLUDE_BEGIN
 import chat.client.MIDPChatGui;
 #MIDP_INCLUDE_END*/
-//#J2SE_EXCLUDE_END
 //#MIDP_EXCLUDE_BEGIN
 import chat.client.AWTChatGui;
 //#MIDP_EXCLUDE_END
@@ -95,19 +93,13 @@ public class ChatClientAgent extends Agent {
 		spokenMsg.setConversationId(CHAT_ID);
 
 		// Activate the GUI
-		/*#J2SE_INCLUDE_BEGIN
+		//#MIDP_EXCLUDE_BEGIN
 		myGui = new AWTChatGui(this);
-		#J2SE_INCLUDE_END*/
-
-		//#J2SE_EXCLUDE_BEGIN
-		/*#PJAVA_INCLUDE_BEGIN
-		myGui = new AWTChatGui(this);
-		#PJAVA_INCLUDE_END*/
+		//#MIDP_EXCLUDE_END
 
 		/*#MIDP_INCLUDE_BEGIN
 		myGui = new MIDPChatGui(this);
 		#MIDP_INCLUDE_END*/
-		//#J2SE_EXCLUDE_END
 	}
 
 	protected void takeDown() {

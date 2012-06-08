@@ -93,6 +93,7 @@ public class SerializableOntology extends Ontology {
 				AbsPrimitive absValue = (AbsPrimitive) abs.getAbsObject(SERIALIZABLE_VALUE);
 				String stringValue = absValue.getString();
 				byte[] value = Base64.decodeBase64(stringValue.getBytes("US-ASCII"));
+				//#J2ME_EXCLUDE_BEGIN
 				ObjectInput in = new ObjectInputStream(new ByteArrayInputStream(value)) {
 					protected Class resolveClass(ObjectStreamClass v) throws IOException, ClassNotFoundException {
 						if (myClassLoader != null) {
@@ -104,6 +105,10 @@ public class SerializableOntology extends Ontology {
 						}
 					}
 				};
+				//#J2ME_EXCLUDE_END
+				/*#J2ME_INCLUDE_BEGIN
+				ObjectInput in = new ObjectInputStream(new ByteArrayInputStream(value));
+				#J2ME_INCLUDE_END*/
 				return in.readObject();
 			}
 			catch (Throwable t) {

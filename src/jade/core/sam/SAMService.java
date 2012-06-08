@@ -23,6 +23,8 @@
 
 package jade.core.sam;
 
+//#DOTNET_EXCLUDE_FILE
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

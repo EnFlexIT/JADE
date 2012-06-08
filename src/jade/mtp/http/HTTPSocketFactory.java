@@ -37,7 +37,11 @@ import jade.mtp.MTPException;
 
 import java.io.IOException;
 import java.net.InetAddress;
+
+//#DOTNET_EXCLUDE_BEGIN
 import java.net.InetSocketAddress;
+//#DOTNET_EXCLUDE_END
+
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -121,12 +125,20 @@ public class HTTPSocketFactory {
 
   public Socket createSocket(String host, int port) throws IOException {
     Socket s;
+    
+    //#DOTNET_EXCLUDE_BEGIN
     if(connectTimeout == DEFAULT_CONNECT_TIMEOUT) {
         s = _socketFactory.createSocket(host, port);
     } else {
         s = _socketFactory.createSocket();
         s.connect(new InetSocketAddress(host, port), connectTimeout);
     }
+    //#DOTNET_EXCLUDE_END
+
+	/*#DOTNET_INCLUDE_BEGIN
+	 s = _socketFactory.createSocket(host, port);
+	 #DOTNET_INCLUDE_END*/
+    
     return s;    
   }
 
@@ -137,6 +149,8 @@ public class HTTPSocketFactory {
     int outport)
     throws IOException {
     Socket s;
+    
+    //#DOTNET_EXCLUDE_BEGIN
     if(connectTimeout == DEFAULT_CONNECT_TIMEOUT) {
         s = _socketFactory.createSocket(host, port, dest, outport);
     } else {
@@ -144,6 +158,12 @@ public class HTTPSocketFactory {
         s.bind(new InetSocketAddress(dest, outport));
         s.connect(new InetSocketAddress(host, port), connectTimeout);
     }
+    //#DOTNET_EXCLUDE_END
+
+	/*#DOTNET_INCLUDE_BEGIN
+	 s = _socketFactory.createSocket(host, port, dest, outport);
+	 #DOTNET_INCLUDE_END*/
+    
     return s;
   }
 

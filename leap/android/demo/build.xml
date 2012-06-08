@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="chatClient" default="help">
 
+	<!-- As of JDK 7, the default signing algorithim has changed, requiring you to specify the signature and 
+	     digest algorithims  (-sigalg and -digestalg) when you sign an APK.-->
+	<presetdef name="signjar">
+		<signjar sigalg="MD5withRSA" digestalg="SHA1" />
+	</presetdef>
+
     <!-- The local.properties file is created and updated by the 'android' tool.
          It contains the path to the SDK. It should *NOT* be checked into
          Version Control Systems. -->

@@ -23,6 +23,8 @@
 
 package jade.core.sam;
 
+//#DOTNET_EXCLUDE_FILE
+
 import java.util.Date;
 
 import jade.core.IMTPException;

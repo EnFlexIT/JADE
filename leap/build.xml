@@ -13,7 +13,6 @@
 
 	<!-- JAVA classes -->
 	<property name="boot-java-classes" value="${java-home}/jre/lib/rt.jar"/>
-
    
 	<!-- Directories -->
 	<property name="jade-src" value="${jade-home}/src"/>
@@ -347,10 +346,10 @@
 			<include name="leap/buildLEAP.properties"/>
 			<include name="leap/build.xml"/>
 			<include name="leap/jade-leap.jad"/>
-			<include name="leap/demo/*.bat"/>
-			<include name="leap/demo/demo.jad"/>
-			<include name="leap/demo/demo.manifest"/>
-			<include name="leap/demo/demo.dlc"/>
+			<include name="leap/demo/bin/**"/>
+			<include name="leap/demo/dist/**"/>
+			<include name="leap/demo/chat.manifest"/>
+			<include name="leap/demo/chat.dlc"/>
 			<include name="leap/demo/src/**"/>
 			<include name="leap/resources/**"/>
 			<include name="leap/src/**"/>
@@ -388,7 +387,7 @@
 		<jar jarfile="${dist}/JadeLeapAndroid-${version}.zip" basedir="${jade-home}/leap/android/lib"/>
 	</target>
 
-	<target name="android-demo-dist" description="Build the distribution package for the android demo">
+	<target name="android-demo-dist" depends="init, android, demo-android" description="Build the distribution package for the android demo">
 		<!-- Step 1: Setup the demo distribution folders -->
 		<delete dir="${demo-dist}" quiet="true"/>
 		<mkdir dir="${demo-dist}"/>
@@ -437,6 +436,8 @@
 
 		<copy todir="${demo-dist}/standard/bin" overwrite="yes">
 			<fileset dir="${demo}/bin">
+				<exclude name="startChatParticipantPjava.bat"/>
+				<exclude name="startChatParticipantPjava.sh"/>
 			</fileset>
 		</copy>
 

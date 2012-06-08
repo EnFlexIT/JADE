@@ -987,7 +987,7 @@ class ExtendedSLParser implements ExtendedSLParserConstants {
   }
   /** Constructor with InputStream and supplied encoding */
   public ExtendedSLParser(java.io.InputStream stream, String encoding) {
-    try { jj_input_stream = new SimpleCharStream(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
+    try { jj_input_stream = new SimpleCharStream(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e.getMessage(), e); }
     token_source = new ExtendedSLParserTokenManager(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
@@ -1001,7 +1001,7 @@ class ExtendedSLParser implements ExtendedSLParserConstants {
   }
   /** Reinitialise. */
   public void ReInit(java.io.InputStream stream, String encoding) {
-    try { jj_input_stream.ReInit(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
+    try { jj_input_stream.ReInit(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e.getMessage(), e); }
     token_source.ReInit(jj_input_stream);
     token = new Token();
     jj_ntk = -1;

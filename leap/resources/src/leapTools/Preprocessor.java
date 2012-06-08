@@ -117,47 +117,16 @@ public class Preprocessor extends Task {
 		String[] ims = null;
 		String[] efms = null;
 		
-		if (DOTNET.equalsIgnoreCase(type)) {
-		// For DOTNET
-			ebms = new String[] {
-				ALL_EXCLUDE_BEGIN_MARKER, 
-				J2ME_EXCLUDE_BEGIN_MARKER, 
-				PJAVA_EXCLUDE_BEGIN_MARKER,
-			  DOTNET_EXCLUDE_BEGIN_MARKER,
-			  ANDROID_EXCLUDE_BEGIN_MARKER};
-			eems = new String[] {
-				ALL_EXCLUDE_END_MARKER, 
-				J2ME_EXCLUDE_END_MARKER, 
-				PJAVA_EXCLUDE_END_MARKER,
-				DOTNET_EXCLUDE_END_MARKER,
-				ANDROID_EXCLUDE_END_MARKER};
-			ims = new String[] {
-				ALL_INCLUDE_BEGIN_MARKER, 
-				ALL_INCLUDE_END_MARKER, 
-				J2ME_INCLUDE_BEGIN_MARKER, 
-				J2ME_INCLUDE_END_MARKER, 
-				PJAVA_INCLUDE_BEGIN_MARKER, 
-				PJAVA_INCLUDE_END_MARKER,
-				DOTNET_INCLUDE_BEGIN_MARKER, 
-				DOTNET_INCLUDE_END_MARKER,
-				ANDROID_INCLUDE_BEGIN_MARKER, 
-				ANDROID_INCLUDE_END_MARKER};
-			efms = new String[] {
-				ALL_EXCLUDE_FILE_MARKER, 
-				DOTNET_EXCLUDE_FILE_MARKER};  
-		}
-		else if (MIDP.equalsIgnoreCase(type)) {
+		if (MIDP.equalsIgnoreCase(type)) {
 			// For MIDP
 			ebms = new String[] {
 				ALL_EXCLUDE_BEGIN_MARKER, 
 				J2ME_EXCLUDE_BEGIN_MARKER, 
-				MIDP_EXCLUDE_BEGIN_MARKER,
-				J2SE_EXCLUDE_BEGIN_MARKER};
+				MIDP_EXCLUDE_BEGIN_MARKER};
 			eems = new String[] {
 				ALL_EXCLUDE_END_MARKER, 
 				J2ME_EXCLUDE_END_MARKER, 
-				MIDP_EXCLUDE_END_MARKER,
-				J2SE_EXCLUDE_END_MARKER};
+				MIDP_EXCLUDE_END_MARKER};
 			ims = new String[] {
 				ALL_INCLUDE_BEGIN_MARKER, 
 				ALL_INCLUDE_END_MARKER, 
@@ -175,13 +144,11 @@ public class Preprocessor extends Task {
 			ebms = new String[] {
 				ALL_EXCLUDE_BEGIN_MARKER, 
 				J2ME_EXCLUDE_BEGIN_MARKER, 
-				PJAVA_EXCLUDE_BEGIN_MARKER,
-				J2SE_EXCLUDE_BEGIN_MARKER};
+				PJAVA_EXCLUDE_BEGIN_MARKER};
 			eems = new String[] {
 				ALL_EXCLUDE_END_MARKER, 
 				J2ME_EXCLUDE_END_MARKER, 
-				PJAVA_EXCLUDE_END_MARKER,
-				J2SE_EXCLUDE_END_MARKER};
+				PJAVA_EXCLUDE_END_MARKER};
 			ims = new String[] {
 				ALL_INCLUDE_BEGIN_MARKER, 
 				ALL_INCLUDE_END_MARKER, 
@@ -193,6 +160,23 @@ public class Preprocessor extends Task {
 				ALL_EXCLUDE_FILE_MARKER, 
 				J2ME_EXCLUDE_FILE_MARKER, 
 				PJAVA_EXCLUDE_FILE_MARKER};
+		}
+		else if (J2SE.equalsIgnoreCase(type)) {
+			// For J2SE
+			ebms = new String[] {
+				ALL_EXCLUDE_BEGIN_MARKER,
+				J2SE_EXCLUDE_BEGIN_MARKER};
+			eems = new String[] {
+				ALL_EXCLUDE_END_MARKER,
+				J2SE_EXCLUDE_END_MARKER};
+			ims = new String[] {
+				ALL_INCLUDE_BEGIN_MARKER, 
+				ALL_INCLUDE_END_MARKER,
+				J2SE_INCLUDE_BEGIN_MARKER, 
+				J2SE_INCLUDE_END_MARKER};
+			efms = new String[] {
+				ALL_EXCLUDE_FILE_MARKER,
+				J2SE_EXCLUDE_FILE_MARKER};
 		}
 		else if (ANDROID.equalsIgnoreCase(type)) {
 			// For ANDROID
@@ -211,22 +195,22 @@ public class Preprocessor extends Task {
 				ALL_EXCLUDE_FILE_MARKER, 
 				ANDROID_EXCLUDE_FILE_MARKER};
 		}
-		else if (J2SE.equalsIgnoreCase(type)) {
-			// For J2SE
+		else if (DOTNET.equalsIgnoreCase(type)) {
+			// For DOTNET
 			ebms = new String[] {
-				ALL_EXCLUDE_BEGIN_MARKER,
-				J2SE_EXCLUDE_BEGIN_MARKER};
+				ALL_EXCLUDE_BEGIN_MARKER, 
+				DOTNET_EXCLUDE_BEGIN_MARKER};
 			eems = new String[] {
-				ALL_EXCLUDE_END_MARKER,
-				J2SE_EXCLUDE_END_MARKER};
+				ALL_EXCLUDE_END_MARKER, 
+				DOTNET_EXCLUDE_END_MARKER};
 			ims = new String[] {
 				ALL_INCLUDE_BEGIN_MARKER, 
-				ALL_INCLUDE_END_MARKER,
-				J2SE_INCLUDE_BEGIN_MARKER, 
-				J2SE_INCLUDE_END_MARKER};
+				ALL_INCLUDE_END_MARKER, 
+				DOTNET_INCLUDE_BEGIN_MARKER, 
+				DOTNET_INCLUDE_END_MARKER};
 			efms = new String[] {
-				ALL_EXCLUDE_FILE_MARKER,
-				J2SE_EXCLUDE_FILE_MARKER};
+				ALL_EXCLUDE_FILE_MARKER, 
+				DOTNET_EXCLUDE_FILE_MARKER};
 		}
 		else {
 			// User defined preprocessing type

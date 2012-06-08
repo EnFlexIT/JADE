@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 LEAP-host: localhost
-MIDlet-Jar-Size: 701538
+MIDlet-Jar-Size: 704491
 MIDlet-2: View-output, , jade.util.leap.OutputViewer
 MIDlet-1: JADE-Chat, , chat.client.Start
 MIDlet-Jar-URL: chatMidp.jar

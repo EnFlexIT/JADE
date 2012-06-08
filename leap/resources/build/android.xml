@@ -155,5 +155,6 @@
 	<target name="do-demo" depends="do-init, check-resources" description="Build the demo">
 	    <ant dir="${android-root}/demo" antfile="build.xml"
 	            target="release" inheritall="true" inheritrefs="true" />
+		<copy file="${android-root}/demo/bin/chatClient-release.apk" tofile="${android-root}/demo/bin/chatClient.apk"/>
 	</target>
 </project>

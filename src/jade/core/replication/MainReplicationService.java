@@ -23,7 +23,7 @@
 
 package jade.core.replication;
 
-//#MIDP_EXCLUDE_FILE
+//#J2ME_EXCLUDE_FILE
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

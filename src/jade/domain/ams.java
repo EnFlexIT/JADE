@@ -212,6 +212,7 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 		toolNotification.setOntology(IntrospectionOntology.NAME);
 		toolNotification.setInReplyTo("tool-subscription");
 		
+		//#J2ME_EXCLUDE_BEGIN
 		// Register a suitable Shutdown Hook to shutdown the whole platform in case 
 		// the Main Container JVM unexpectedly exits
 		java.lang.Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -228,7 +229,7 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 				}
 			}
 		});
-
+		//#J2ME_EXCLUDE_END
 	}
 
 	//////////////////////////////////////////////////////////////////

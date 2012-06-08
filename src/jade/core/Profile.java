@@ -25,7 +25,9 @@ package jade.core;
 
 //#MIDP_EXCLUDE_BEGIN
 import java.net.InetAddress;
+//#DOTNET_EXCLUDE_BEGIN
 import java.net.NetworkInterface;
+//#DOTNET_EXCLUDE_END
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
@@ -416,7 +418,9 @@ public abstract class Profile {
 		
 		// The trick here is to compare the IP Addresses the host name resolves to.
 		try {
-			InetAddress localHostAddr = InetAddress.getByName(host);				
+			InetAddress localHostAddr = InetAddress.getByName(host);
+			
+			//#DOTNET_EXCLUDE_BEGIN
 			Enumeration interfaces = NetworkInterface.getNetworkInterfaces();
 			while(interfaces.hasMoreElements()) {
 				NetworkInterface nextIface = (NetworkInterface)interfaces.nextElement();
@@ -428,11 +432,18 @@ public abstract class Profile {
 					}
 				}
 			}
-		} 
+			//#DOTNET_EXCLUDE_END
+			
+			/*#DOTNET_INCLUDE_BEGIN
+			return localHostAddr.equals(InetAddress.getLocalHost());
+			#DOTNET_INCLUDE_END*/
+		}
+		//#DOTNET_EXCLUDE_BEGIN
 		catch (SocketException e1) {
 			// We cannot retrieve local network interfaces information --> print a warning and return false
 			e1.printStackTrace();
 		}
+		//#DOTNET_EXCLUDE_END
 		catch (UnknownHostException uhe) {
 			// An unknown host is certainly not local		
 		}
