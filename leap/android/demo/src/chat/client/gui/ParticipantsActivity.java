@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package chat.client.gui;
 
+import java.util.logging.Level;
+
 import chat.client.agent.ChatClientInterface;
 import jade.core.MicroRuntime;
 import jade.util.Logger;
@@ -47,7 +49,7 @@ import android.widget.ListView;
  */
 
 public class ParticipantsActivity extends ListActivity {
-	private Logger logger = Logger.getMyLogger(this.getClass().getName());
+	private Logger logger = Logger.getJADELogger(this.getClass().getName());
 
 	private MyReceiver myReceiver;
 
@@ -105,14 +107,14 @@ public class ParticipantsActivity extends ListActivity {
 
 		unregisterReceiver(myReceiver);
 
-		logger.info("Destroy activity!");
+		logger.log(Level.INFO, "Destroy activity!");
 	}
 
 	private class MyReceiver extends BroadcastReceiver {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
-			logger.info("Received intent " + action);
+			logger.log(Level.INFO, "Received intent " + action);
 			if (action.equalsIgnoreCase("jade.demo.chat.REFRESH_PARTICIPANTS")) {
 				setListAdapter(new ArrayAdapter<String>(
 						ParticipantsActivity.this, R.layout.participant,

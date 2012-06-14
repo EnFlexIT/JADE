@@ -24,6 +24,8 @@ Boston, MA  02111-1307, USA.
 package chat.client.agent;
 
 import java.util.List;
+import java.util.logging.Level;
+
 import jade.content.ContentManager;
 import jade.content.Predicate;
 import jade.content.lang.Codec;
@@ -61,7 +63,7 @@ import android.content.Context;
 public class ChatClientAgent extends Agent implements ChatClientInterface {
 	private static final long serialVersionUID = 1594371294421614291L;
 
-	private Logger logger = Logger.getMyLogger(this.getClass().getName());
+	private Logger logger = Logger.getJADELogger(this.getClass().getName());
 
 	private static final String CHAT_ID = "__chat__";
 	private static final String CHAT_MANAGER_NAME = "manager";
@@ -100,7 +102,7 @@ public class ChatClientAgent extends Agent implements ChatClientInterface {
 		
 		Intent broadcast = new Intent();
 		broadcast.setAction("jade.demo.chat.SHOW_CHAT");
-		logger.info("Sending broadcast " + broadcast.getAction());
+		logger.log(Level.INFO, "Sending broadcast " + broadcast.getAction());
 		context.sendBroadcast(broadcast);
 	}
 
@@ -110,7 +112,7 @@ public class ChatClientAgent extends Agent implements ChatClientInterface {
 	private void notifyParticipantsChanged() {
 		Intent broadcast = new Intent();
 		broadcast.setAction("jade.demo.chat.REFRESH_PARTICIPANTS");
-		logger.info("Sending broadcast " + broadcast.getAction());
+		logger.log(Level.INFO, "Sending broadcast " + broadcast.getAction());
 		context.sendBroadcast(broadcast);
 	}
 
@@ -118,7 +120,7 @@ public class ChatClientAgent extends Agent implements ChatClientInterface {
 		Intent broadcast = new Intent();
 		broadcast.setAction("jade.demo.chat.REFRESH_CHAT");
 		broadcast.putExtra("sentence", speaker + ": " + sentence + "\n");
-		logger.info("Sending broadcast " + broadcast.getAction());
+		logger.log(Level.INFO, "Sending broadcast " + broadcast.getAction());
 		context.sendBroadcast(broadcast);
 	}
 	

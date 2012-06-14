@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package chat.client.gui;
 
+import java.util.logging.Level;
+
 import chat.client.agent.ChatClientAgent;
 import jade.android.AndroidHelper;
 import jade.android.MicroRuntimeService;
@@ -64,7 +66,7 @@ import android.widget.TextView;
  */
 
 public class MainActivity extends Activity {
-	private Logger logger = Logger.getMyLogger(this.getClass().getName());
+	private Logger logger = Logger.getJADELogger(this.getClass().getName());
 
 	private MicroRuntimeServiceBinder microRuntimeServiceBinder;
 	private ServiceConnection serviceConnection;
@@ -110,7 +112,7 @@ public class MainActivity extends Activity {
 
 		unregisterReceiver(myReceiver);
 
-		logger.info("Destroy activity!");
+		logger.log(Level.INFO, "Destroy activity!");
 	}
 
 	private static boolean checkName(String name) {
@@ -127,7 +129,7 @@ public class MainActivity extends Activity {
 			final EditText nameField = (EditText) findViewById(R.id.edit_nickname);
 			nickname = nameField.getText().toString();
 			if (!checkName(nickname)) {
-				logger.info("Invalid nickname!");
+				logger.log(Level.INFO, "Invalid nickname!");
 				myHandler.postError(getString(R.string.msg_nickname_not_valid));
 			} else {
 				try {
@@ -139,7 +141,7 @@ public class MainActivity extends Activity {
 							+ " " + host + ":" + port + "...");
 					startChat(nickname, host, port, agentStartupCallback);
 				} catch (Exception ex) {
-					logger.severe("Unexpected exception creating chat agent!");
+					logger.log(Level.SEVERE, "Unexpected exception creating chat agent!");
 					infoTextView.setText(getString(R.string.msg_unexpected));
 				}
 			}
@@ -175,7 +177,7 @@ public class MainActivity extends Activity {
 			if (resultCode == RESULT_CANCELED) {
 				// The chat activity was closed.
 				infoTextView.setText("");
-				logger.info("Stopping Jade...");
+				logger.log(Level.INFO, "Stopping Jade...");
 				microRuntimeServiceBinder
 						.stopAgentContainer(new RuntimeCallback<Void>() {
 							@Override
@@ -184,7 +186,7 @@ public class MainActivity extends Activity {
 
 							@Override
 							public void onFailure(Throwable throwable) {
-								logger.severe("Failed to stop the "
+								logger.log(Level.SEVERE, "Failed to stop the "
 										+ ChatClientAgent.class.getName()
 										+ "...");
 								agentStartupCallback.onFailure(throwable);
@@ -201,7 +203,7 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void onFailure(Throwable throwable) {
-			logger.info("Nickname already in use!");
+			logger.log(Level.INFO, "Nickname already in use!");
 			myHandler.postError(getString(R.string.msg_nickname_in_use));
 		}
 	};
@@ -223,7 +225,7 @@ public class MainActivity extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
-			logger.info("Received intent " + action);
+			logger.log(Level.INFO, "Received intent " + action);
 			if (action.equalsIgnoreCase("jade.demo.chat.KILL")) {
 				finish();
 			}
@@ -282,21 +284,21 @@ public class MainActivity extends Activity {
 				public void onServiceConnected(ComponentName className,
 						IBinder service) {
 					microRuntimeServiceBinder = (MicroRuntimeServiceBinder) service;
-					logger.info("Gateway successfully bound to MicroRuntimeService");
+					logger.log(Level.INFO, "Gateway successfully bound to MicroRuntimeService");
 					startContainer(nickname, profile, agentStartupCallback);
 				};
 
 				public void onServiceDisconnected(ComponentName className) {
 					microRuntimeServiceBinder = null;
-					logger.info("Gateway unbound from MicroRuntimeService");
+					logger.log(Level.INFO, "Gateway unbound from MicroRuntimeService");
 				}
 			};
-			logger.info("Binding Gateway to MicroRuntimeService...");
+			logger.log(Level.INFO, "Binding Gateway to MicroRuntimeService...");
 			bindService(new Intent(getApplicationContext(),
 					MicroRuntimeService.class), serviceConnection,
 					Context.BIND_AUTO_CREATE);
 		} else {
-			logger.info("MicroRumtimeGateway already binded to service");
+			logger.log(Level.INFO, "MicroRumtimeGateway already binded to service");
 			startContainer(nickname, profile, agentStartupCallback);
 		}
 	}
@@ -308,13 +310,13 @@ public class MainActivity extends Activity {
 					new RuntimeCallback<Void>() {
 						@Override
 						public void onSuccess(Void thisIsNull) {
-							logger.info("Successfully start of the container...");
+							logger.log(Level.INFO, "Successfully start of the container...");
 							startAgent(nickname, agentStartupCallback);
 						}
 
 						@Override
 						public void onFailure(Throwable throwable) {
-							logger.severe("Failed to start the container...");
+							logger.log(Level.SEVERE, "Failed to start the container...");
 						}
 					});
 		} else {
@@ -330,7 +332,7 @@ public class MainActivity extends Activity {
 				new RuntimeCallback<Void>() {
 					@Override
 					public void onSuccess(Void thisIsNull) {
-						logger.info("Successfully start of the "
+						logger.log(Level.INFO, "Successfully start of the "
 								+ ChatClientAgent.class.getName() + "...");
 						try {
 							agentStartupCallback.onSuccess(MicroRuntime
@@ -343,7 +345,7 @@ public class MainActivity extends Activity {
 
 					@Override
 					public void onFailure(Throwable throwable) {
-						logger.severe("Failed to start the "
+						logger.log(Level.SEVERE, "Failed to start the "
 								+ ChatClientAgent.class.getName() + "...");
 						agentStartupCallback.onFailure(throwable);
 					}

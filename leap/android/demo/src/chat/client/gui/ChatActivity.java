@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package chat.client.gui;
 
+import java.util.logging.Level;
+
 import jade.core.MicroRuntime;
 import jade.util.Logger;
 import jade.wrapper.ControllerException;
@@ -54,7 +56,7 @@ import chat.client.agent.ChatClientInterface;
  */
 
 public class ChatActivity extends Activity {
-	private Logger logger = Logger.getMyLogger(this.getClass().getName());
+	private Logger logger = Logger.getJADELogger(this.getClass().getName());
 
 	static final int PARTICIPANTS_REQUEST = 0;
 
@@ -103,7 +105,7 @@ public class ChatActivity extends Activity {
 
 		unregisterReceiver(myReceiver);
 
-		logger.info("Destroy activity!");
+		logger.log(Level.INFO, "Destroy activity!");
 	}
 
 	private OnClickListener buttonSendListener = new OnClickListener() {
@@ -167,7 +169,7 @@ public class ChatActivity extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
-			logger.info("Received intent " + action);
+			logger.log(Level.INFO, "Received intent " + action);
 			if (action.equalsIgnoreCase("jade.demo.chat.REFRESH_CHAT")) {
 				final TextView chatField = (TextView) findViewById(R.id.chatTextView);
 				chatField.append(intent.getExtras().getString("sentence"));

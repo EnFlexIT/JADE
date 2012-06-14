@@ -387,7 +387,7 @@
 		<jar jarfile="${dist}/JadeLeapAndroid-${version}.zip" basedir="${jade-home}/leap/android/lib"/>
 	</target>
 
-	<target name="android-demo-dist" depends="init, android, demo-android" description="Build the distribution package for the android demo">
+	<target name="android-demo-dist" description="Build the distribution package for the android demo">
 		<!-- Step 1: Setup the demo distribution folders -->
 		<delete dir="${demo-dist}" quiet="true"/>
 		<mkdir dir="${demo-dist}"/>
@@ -396,7 +396,7 @@
 		<mkdir dir="${demo-dist}/standard/src"/>
 		<mkdir dir="${demo-dist}/standard/bin"/>
 		<mkdir dir="${demo-dist}/android"/>
-		<mkdir dir="${demo-dist}/android/lib"/>
+		<mkdir dir="${demo-dist}/android/libs"/>
 		<mkdir dir="${demo-dist}/android/src"/>
 		<mkdir dir="${demo-dist}/android/res"/>
 		<mkdir dir="${demo-dist}/android/bin"/>
@@ -409,7 +409,7 @@
 		</copy>
 		<pproc basedir="${demo-dist}/standard/src" type="j2se"/>
 
-		<copy file="${android-root}/lib/JadeAndroid.jar" todir="${demo-dist}/android/lib"/>
+		<copy file="${android-root}/lib/JadeAndroid.jar" todir="${demo-dist}/android/libs"/>
 		<copy todir="${demo-dist}/android/src" overwrite="yes">
 			<fileset dir="${android-demo}/src">
 			</fileset>
@@ -473,7 +473,7 @@
 		       target="1.5"/>
 		       
 		<jar jarfile="${demo-dist}/standard/lib/chatOntology.jar" basedir="${demo-classes}"/>
-		<copy file="${demo-dist}/standard/lib/chatOntology.jar" todir="${demo-dist}/android/lib"/>
+		<copy file="${demo-dist}/standard/lib/chatOntology.jar" todir="${demo-dist}/android/libs"/>
 		
 		<!-- Step 3: Build the Chat Standard library -->
 		<delete dir = "${demo-preprocessed}" quiet="true"/>
