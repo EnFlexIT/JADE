@@ -60,7 +60,7 @@ public abstract class CompositeBehaviour extends Behaviour {
 	private int currentResult;
 
 	//#APIDOC_EXCLUDE_BEGIN  
-	protected boolean currentExecuted;
+	protected boolean currentExecuted = false;
 	//#APIDOC_EXCLUDE_END
 
 

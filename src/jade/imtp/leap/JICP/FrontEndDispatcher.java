@@ -425,6 +425,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			try {
 				while (isConnected()) {
 					JICPPacket pkt = myConnection.readPacket();
+					myLogger.log(Logger.INFO, "CR-"+myId+" packet received, SID="+pkt.getSessionID());
 					
 					pkt = handleIncomingPacket(pkt);
 					if (pkt != null) {
@@ -452,14 +453,15 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		private JICPPacket handleIncomingPacket(JICPPacket pkt) {
 			switch(pkt.getType()) {
 			case JICPProtocol.COMMAND_TYPE:
-				//System.out.println("COMMAND received from BE. "+pkt.getSessionID());
+				myLogger.log(Logger.INFO, "CR-"+myId+" COMMAND received from BE, SID="+pkt.getSessionID());
 				serveCommand(pkt);
+				myLogger.log(Logger.INFO, "CR-"+myId+" Incoming command enqueued");
 				break;
 			case JICPProtocol.KEEP_ALIVE_TYPE:
 				return handleIncomingKeepAlive(pkt);
 			case JICPProtocol.RESPONSE_TYPE:
 			case JICPProtocol.ERROR_TYPE:
-				//System.out.println("RESPONSE/ERROR received from BE. "+pkt.getSessionID());
+				myLogger.log(Logger.INFO, "CR-"+myId+" RESPONSE/ERROR received from BE. "+pkt.getSessionID());
 				notifyOutgoingResponseReceived(pkt);
 				break;
 			default:
@@ -845,15 +847,16 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		
 		public void run() {
 			while (active) {
+				myLogger.log(Logger.INFO, "CS Waiting for next command to serve");
 				acquireCurrentCommand();
 				
-				byte sid = currentCommand.getSessionID();			
+				byte sid = currentCommand.getSessionID();
+				myLogger.log(Logger.INFO, "CS Starting serving command, SID="+sid);
 				if (sid == lastSid) {
 					// Duplicated incoming packet
-					myLogger.log(Logger.WARNING, "Duplicated command from BE: info="+currentCommand.getInfo()+" SID="+sid);
+					myLogger.log(Logger.WARNING, "Duplicated command from BE: info="+currentCommand.getInfo()+", SID="+sid);
 				}
 				else {
-					//System.out.println("Serving command. "+currentCommand.getSessionID());
 					lastResponse = handleIncomingCommand(currentCommand);
 					if (Thread.currentThread() == terminator) {
 						// Attach the TERMINATED_INFO flag to the response
@@ -862,7 +865,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 					lastResponse.setSessionID(sid);
 					lastSid = sid;
 				}
-				//System.out.println("COMMAND served. "+currentCommand.getSessionID());
+				myLogger.log(Logger.INFO, "CS COMMAND served");
 				try {
 					writePacket(lastResponse, myConnection);
 				}

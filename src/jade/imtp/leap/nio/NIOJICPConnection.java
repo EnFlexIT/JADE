@@ -243,7 +243,7 @@ public class NIOJICPConnection extends Connection {
 		}
 		
 		if (log.isLoggable(Level.FINE)) {
-			throw new IOException("writePacket: total bytes written " + totalWrited + ", total needed to write: " + totalToWrite);
+			log.fine("writePacket: total bytes written " + totalWrited + ", total needed to write: " + totalToWrite);
 		}
 
 		return totalWrited;
