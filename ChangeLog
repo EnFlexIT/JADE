@@ -1,3 +1,90 @@
+MAJOR CHANGES in JADE 4.2 (26 06 2012)
+==========================================================================
+GENERAL IMPROVEMENTS:
+Kernel
+- Added support for Object-To-Agent Interface
+- Modified to make deliverer Threads terminate when the JADE runtime exits (no more containers in the JVM)
+- Modified InternalMessageQueue to include the Agent name in the error message that is printed when a message is discarded. 
+- Agent Mobility Service: Incoming agent management moved from local slice to target sink to enable user defined services to intercepts the INFORM_MOVED VCommand on destination containers
+- SAM (System Activity Monitoring) Service: modified AverageMeasureProviderImpl to avoid keeping the full list of samples.
+- UDPNodeMonitoring Service: Added support for specifying host where to bind the UDP server socket 
+- Changed class property separator from ; to , to avoid confusion with agent specifier separator (problem indicated by Matias SM)
+- Added support for startupTag option to facilitate detecting successful JADE startup in separated process.
+- Added support for timeout on read operations over JICPConnections. Problem indicated by Mark Bowman (Las Cumbres Observatory)
+
+Split Containers
+- Several improvements and fixes in BEManagement Service and related classes to manage split containers with java.nio
+- Response timeout made configurable in BackEndDispatcher
+- Modified to close "zombie" connections when a front-end disconnects (and the back-end does not detect that) and then reconnects.
+
+Content Language and Ontologies
+- Modified LEAPCodec to deal with Strings longer than 65535 chars
+
+DF
+- Managed jade_domain_dfservice_searchtimeout property in DFService to avoid synchronous search() to block forever in case of problems 
+
+Others
+- Fixed compatibility with JAVA 7
+- AppletBoot class to embed JADE agents in Java Applets moved from LEAP to JADE 
+
+
+BUG-FIXES:
+Fixed bug: Principal and Credentials where not properly transported with the LEAP IMTPManager. Bug reported by Michael C. Smith
+Fixed bug: Automatic main detection wild-card * was not properly managed
+Fixed bug: Profile.setParameter() did not work properly for parameters that require special handling such as Profile.GUI and Profile.NOMTP. Bug reported by wra.
+
+JADE-LEAP ANDROID
+- Completely restructured the Jade Android demo
+- Added asynchronous version of MicroRuntimeGateway.execute() method to comply with typical Android programming style
+- MicroRuntimeGateway made singleton
+- Modified JADE Logger to use android.util.Log in the Android environment
+- Excluded unused class in android distribution
+
+
+
+ADD-ONS:
+
+- Web Service Integration Gateway (WSIG)
+  - Added ANT target customize-war to automatically generate a .war file including required application specific classes 
+  - Added support for generating exposed services WSDL offline
+  - Modified mapper mechanism so that it is now possible to use beans not included in the mapped ontology
+  - Modified web.xml to support http authentication and SSL autehentication
+  - Added support for WS-Security
+  - Added support for managing SOAP faults
+  - Added support for managing SOAP headers
+  - Added schema for wsdl anyURI type in XsdPrimitivesOntology 
+
+- Miscellaneous Add-On
+  - Added support for transferring file between agents by means of the FileManagerServer and FileManagerClient classes
+  - Added CLI command CheckMain to check if the Main Container is up and running
+
+- Trusted Agents Add-On:
+  - Modified to support management of commands other than CreateAgent
+  - More flexible setup to allow developers to secure any vertical command and to be more specific in providing tokens.
+  - Backward-incompatible API change: TokenProvider.getToken(), TokenValidator.isValid()
+
+- XMPP MTP Add-On
+  - Bugfix by R.D. integrated (see http://old.nabble.com/Re%3A-XMPP-Plugin-for-connecting-to-SPADE-%28Python-based-agent-platform%29-p32854482.html). No more IllegalStateException when trying to connect to XMPP server.
+
+
+EXAMPLES:
+- Fixed WSIG xml SOAP client examples 
+
+
+DOCUMENTATION:
+- Added Tutorial on Jade Android
+- Updated WSIG Guide
+- Updated Jade Security Guide (Fixed wrong indication about jade.mobile.SignatureService - Indicated by Michael.C.Smith)
+
+
+POSSIBLE BACKWARD INCOMPATIBILITIES:
+We do not expect any backward incompatibility with respect to the previous JADE version.
+However, with respect to version 4.1.1 some changes occurred in low level communication within containers -->
+DO NOT MIX Jade 4.2 and Jade 4.1.x containers in the same platform.    
+
+
+
+
 MAJOR CHANGES in JADE 4.1 (13 07 2011)
 ==========================================================================
 GENERAL IMPROVEMENTS:
