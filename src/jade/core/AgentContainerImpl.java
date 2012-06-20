@@ -135,6 +135,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	// class can actually create a new Agent Container.
 	AgentContainerImpl(Profile p) {
 		myProfile = p;
+		((ProfileImpl) myProfile).init();
 		localAgents = new LADT(16);
 	}
 

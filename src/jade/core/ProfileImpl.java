@@ -83,7 +83,6 @@ public class ProfileImpl extends Profile {
 	 */
 	public ProfileImpl(Properties aProp) {
 		props = aProp;
-		init();
 	}
 	
 	/**
@@ -107,7 +106,6 @@ public class ProfileImpl extends Profile {
 		 props = new Properties();
 		 #ALL_INCLUDE_END*/
 		props.setProperty(Profile.MAIN, (new Boolean(isMain)).toString()); // set to a main/non-main container
-		init();
 	}
 	
 	/**
@@ -131,7 +129,6 @@ public class ProfileImpl extends Profile {
 				throw new ProfileException("Can't load properties: "+ioe.getMessage());
 			}
 		}
-		init(); 
 	}
 	
 	
@@ -182,12 +179,10 @@ public class ProfileImpl extends Profile {
 			setIntProperty(MAIN_PORT, port);
 		if(platformID != null)
 			props.setProperty(PLATFORM_ID, platformID);
-		// calls the method init to adjust all the other parameters
-		init();
 	}
 	
 	
-	private void init() {
+	void init() {
 		bootProps = (Properties)props.clone();
 		// Set JVM parameter if not set
 		if(props.getProperty(JVM) == null) {
