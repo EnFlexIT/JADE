@@ -54,15 +54,17 @@ class JICPClient {
 	private TransportProtocol protocol;
 	private ConnectionFactory connFactory;
 	private ConnectionPool pool;
+	private int connectionTimeout;
 	private static Logger log = Logger.getMyLogger(JICPClient.class.getName());
 
 	/**
 	 * Constructor declaration
 	 */
-	public JICPClient(TransportProtocol tp, ConnectionFactory f, int max) {
+	public JICPClient(TransportProtocol tp, ConnectionFactory f, int max, int ct) {
 		protocol = tp;
 		connFactory = f;
 		pool = new ConnectionPool(protocol, connFactory, max);
+		connectionTimeout = ct;
 	} 
 
 	/**
@@ -82,7 +84,8 @@ class JICPClient {
 			try {
 				// Acquire a connection wrapper from the pool
 				cw = pool.acquire(ta, requireFreshConnection);
-
+				manageReadTimeout(cw);
+				
 				// Prepare JICP information
 				byte dataInfo = JICPProtocol.DEFAULT_INFO;
 				if (cw.isOneShot()) {
@@ -147,6 +150,25 @@ class JICPClient {
 			}
 		}
 	} 
+	
+	private void manageReadTimeout(ConnectionWrapper cw) {
+		if (cw.isReused()) {
+			Connection c = cw.getConnection();
+			if (c instanceof JICPConnection && connectionTimeout > 0) {
+				try {
+					((JICPConnection) c).setReadTimeout(connectionTimeout);
+				}
+				catch (IOException e) {
+					try {
+						log.log(Logger.WARNING, "Cannot set read-timeout on reused connection to "+c.getRemoteHost());
+					}
+					catch (Exception e1) {
+						log.log(Logger.WARNING, "Cannot set read-timeout on reused connection");
+					}
+				}
+			}
+		}
+	}
 
 	public void shutdown() {
 		pool.shutdown();

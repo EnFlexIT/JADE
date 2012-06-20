@@ -71,7 +71,7 @@ public class JICPPeer implements ICP, ProtocolManager {
 		connectionTimeout = Integer.parseInt(p.getParameter(CONNECTION_TIMEOUT, "0"));
 
 		// Start the client
-		client = new JICPClient(getProtocol(), getConnectionFactory(), POOL_SIZE);
+		client = new JICPClient(getProtocol(), getConnectionFactory(), POOL_SIZE, connectionTimeout);
 
 		// Start the server listening for connections
 		server = new JICPServer(p, this, l, getConnectionFactory(), POOL_SIZE);
