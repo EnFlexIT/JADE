@@ -44,7 +44,7 @@ import java.util.StringTokenizer;
  * Topics can have the form x.y.z... and agents can register to "topic templates" like x.y.* meaning that they 
  * want to receive all messages concerning topics that start with x.y (e.g. x.y, x.y.z, x.y.t and so on).
  * Each '.' separated part of a topic is called a topic section.
- * Registrations of agent interest in topics are organized in a tree of TTNode-s (TopicTable Node). Each TTNode
+ * Registrations of agents interest in topics are organized in a tree of TTNode-s (TopicTable Node). Each TTNode
  * corresponds to a topic section and represents a topic whose name is the full path of the TTNode in the tree.
  * Each TTNode includes 
  * - The list of agents interested in the TTNode topic

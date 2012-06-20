@@ -96,10 +96,10 @@ public abstract class CompositeBehaviour extends Behaviour {
 				scheduleNext(currentDone, currentResult);
 			}
 		}
-		currentExecuted = false;
 
 		// Get the current child
 		Behaviour current = getCurrent();
+		currentExecuted = false;
 		currentDone = false;
 		currentResult = 0;
 

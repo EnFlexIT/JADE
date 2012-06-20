@@ -111,7 +111,7 @@ public class JavaLoggingLogManagerImpl implements LogManager {
 					//if a FileHandler has been specified it's not possibile to retrieve the fileName 
 					
 					//retrieves all the handlers associated to the logger
-					//root handlers are inheredited by default
+					//root handlers are inherited by default
 					List loggerHandlers = (this.rootHandlers == null ? new ArrayList() : new ArrayList(this.rootHandlers));
 					//root logger handlers have been already set.
 					if(!logName.equals("")){
