@@ -10,4 +10,7 @@ C:\Users\Enrico\Documents\Lavoro\TILab\workspace\jade\leap\android\demo\res\layo
 C:\Users\Enrico\Documents\Lavoro\TILab\workspace\jade\leap\android\demo\res\menu\chat_menu.xml \
 C:\Users\Enrico\Documents\Lavoro\TILab\workspace\jade\leap\android\demo\res\menu\main_menu.xml \
 C:\Users\Enrico\Documents\Lavoro\TILab\workspace\jade\leap\android\demo\res\values\strings.xml \
+C:\Users\Enrico\Documents\Lavoro\TILab\workspace\jade\leap\android\demo\bin\res\drawable-hdpi\icon.png \
+C:\Users\Enrico\Documents\Lavoro\TILab\workspace\jade\leap\android\demo\bin\res\drawable-ldpi\icon.png \
+C:\Users\Enrico\Documents\Lavoro\TILab\workspace\jade\leap\android\demo\bin\res\drawable-mdpi\icon.png \
 C:\Users\Enrico\Documents\Lavoro\TILab\workspace\jade\leap\android\demo\AndroidManifest.xml \
