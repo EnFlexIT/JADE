@@ -1069,6 +1069,8 @@ public class BEManagementService extends BaseService {
 							}
 							it.remove();
 						}
+					} else {
+						myLogger.log(Logger.INFO, "Exit from select() with zero numbers of updated keys");
 					}
 					handlePendingChannels();
 				}
