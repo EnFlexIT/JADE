@@ -2,19 +2,19 @@
  JADE - Java Agent DEvelopment Framework is a framework to develop 
  multi-agent systems in compliance with the FIPA specifications.
  Copyright (C) 2000 CSELT S.p.A. 
- 
+
  GNU Lesser General Public License
- 
+
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation, 
  version 2.1 of the License. 
- 
+
  This library is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  Lesser General Public License for more details.
- 
+
  You should have received a copy of the GNU Lesser General Public
  License along with this library; if not, write to the
  Free Software Foundation, Inc., 59 Temple Place - Suite 330,
@@ -51,12 +51,12 @@ import java.util.Vector;
  */
 public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, TimerListener, Runnable {
 	private static final int RESPONSE_TIMEOUT = 30000;
-	
+
 	private MicroSkeleton mySkel = null;
 	private BackEndStub myStub = null;
-	
+
 	protected String myMediatorClass = "jade.imtp.leap.nio.BackEndDispatcher";
-	
+
 	// Variables related to the connection with the Mediator
 	private Properties myProperties;
 	private String[] backEndAddresses;
@@ -67,9 +67,9 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	//private long keepAliveTime = JICPProtocol.DEFAULT_KEEP_ALIVE_TIME;
 	private long keepAliveTime = -1;
 	private long connectionDropDownTime = -1;
-	
+
 	private Timer kaTimer, cdTimer;
-		
+
 	private IncomingCommandServer myCommandServer;
 	private ConnectionReader myConnectionReader;
 	private Connection myConnection = null;
@@ -77,7 +77,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	private Object connectionLock = new Object();
 	private Object responseLock = new Object();
 	private ConnectionListener myConnectionListener;
-	
+
 	private boolean active = true;
 	private boolean connectionDropped = false;
 	private boolean waitingForFlush = false;
@@ -85,31 +85,31 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	private int outCnt = 0;
 	private JICPPacket lastOutgoingResponse = null;
 	private Thread terminator;
-	
+
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 
-	
+
 	//////////////////////////////////////////////
 	// FEConnectionManager interface implementation
 	//////////////////////////////////////////////
-	
+
 	/**
 	 * Connect to a remote BackEnd and return a stub to communicate with it
 	 */
 	public BackEnd getBackEnd(FrontEnd fe, Properties props) throws IMTPException {
 		myProperties = props;
-	  	myMediatorID = myProperties.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
+		myMediatorID = myProperties.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
 		try {
-			
+
 			String tmp = props.getProperty(FrontEnd.REMOTE_BACK_END_ADDRESSES);
 			backEndAddresses = parseBackEndAddresses(tmp);
-			
+
 			// Host
 			String host = props.getProperty(MicroRuntime.HOST_KEY);
 			if (host == null) {
 				host = "localhost";
 			}
-			
+
 			// Port
 			int port = JICPProtocol.DEFAULT_PORT;
 			try {
@@ -117,15 +117,15 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			} catch (NumberFormatException nfe) {
 				// Use default
 			}
-			
+
 			// Compose URL 
 			mediatorTA = JICPProtocol.getInstance().buildAddress(host, String.valueOf(port), null, null);
-			
+
 			mediatorTA = JICPProtocol.getInstance().buildAddress(host, String.valueOf(port), null, null);
 			if (myLogger.isLoggable(Logger.CONFIG)) {
 				myLogger.log(Logger.CONFIG, "Remote URL="+JICPProtocol.getInstance().addrToString(mediatorTA));
 			}
-			
+
 			// Mediator class
 			tmp = props.getProperty(JICPProtocol.MEDIATOR_CLASS_KEY);
 			if (tmp != null) {
@@ -138,7 +138,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			if (myLogger.isLoggable(Logger.CONFIG)) {
 				myLogger.log(Logger.CONFIG, "Mediator class="+myMediatorClass);
 			}
-			
+
 			// (re)connection retry time
 			tmp = props.getProperty(JICPProtocol.RECONNECTION_RETRY_TIME_KEY);
 			try {
@@ -149,7 +149,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			if (myLogger.isLoggable(Logger.CONFIG)) {
 				myLogger.log(Logger.CONFIG, "Reconnection time="+retryTime);
 			}
-			
+
 			// Max disconnection time
 			tmp = props.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY);
 			try {
@@ -160,7 +160,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			if (myLogger.isLoggable(Logger.CONFIG)) {
 				myLogger.log(Logger.CONFIG, "Max discon. time="+maxDisconnectionTime);
 			}
-			
+
 			// Keep-alive time 
 			tmp = props.getProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY);
 			try {
@@ -173,7 +173,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			if (myLogger.isLoggable(Logger.CONFIG)) {
 				myLogger.log(Logger.CONFIG, "Keep-alive time="+keepAliveTime);
 			}
-			
+
 			// Connection-drop-down time 
 			tmp = props.getProperty(JICPProtocol.DROP_DOWN_TIME_KEY);
 			try {
@@ -185,7 +185,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			if (myLogger.isLoggable(Logger.CONFIG)) {
 				myLogger.log(Logger.CONFIG, "Connection-drop-down time="+connectionDropDownTime);
 			}
-			
+
 			// Retrieve the ConnectionListener if any
 			try {
 				Object obj = props.get("connection-listener");
@@ -199,22 +199,22 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			catch (Exception e) {
 				// Just ignore it
 			}
-			
+
 			// Create the BackEnd in the fixed network
 			mySkel = new FrontEndSkel(fe);
 			myStub = new BackEndStub(this);
-			
+
 			Connection c = createBackEnd();
 			active = true;
 			startConnectionReader(c);
-			
+
 			return myStub;
 		} 
 		catch (ICPException icpe) {
 			throw new IMTPException("Connection error", icpe);
 		}
 	}
-	
+
 	/**
 	   Send the CREATE_MEDIATOR command with the necessary parameter
 	   in order to create the BackEnd in the fixed network.
@@ -231,10 +231,10 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			BackEndStub.appendProp(sb, "lastsid", String.valueOf(lastSid));
 		}
 		JICPPacket pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
-		
+
 		// Try first with the current transport address, then with the various backup addresses
 		for(int i = -1; i < backEndAddresses.length; i++) {
-			
+
 			if (i >= 0) {
 				// Set the mediator address to a new address..
 				String addr = backEndAddresses[i];
@@ -243,14 +243,14 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				String port = addr.substring(colonPos + 1, addr.length());
 				mediatorTA = new JICPAddress(host, port, myMediatorID, "");
 			}
-			
+
 			try {
 				myLogger.log(Logger.INFO, "Creating BackEnd on jicp://"+mediatorTA.getHost()+":"+mediatorTA.getPort());				
 				JICPConnection con = openConnection(mediatorTA);
-				
+
 				writePacket(pkt, con);
 				pkt = con.readPacket();
-				
+
 				String replyMsg = new String(pkt.getData());
 				if (pkt.getType() != JICPProtocol.ERROR_TYPE) {
 					// BackEnd creation successful
@@ -273,11 +273,11 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				myLogger.log(Logger.WARNING, "Connection error. "+ioe.toString());
 			}
 		}
-		
+
 		// No address succeeded: try to handle the problem...
 		throw new IMTPException("Error creating the BackEnd.");
 	}
-	
+
 	private String[] parseBackEndAddresses(String addressesText) {
 		Vector addrs = Specifier.parseList(addressesText, ';');
 		// Convert the list into an array of strings
@@ -287,14 +287,14 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		}
 		return result;
 	}
-	
+
 	/**
 	   Make this FrontEndDispatcher terminate.
 	 */
 	public synchronized void shutdown() {
 		if (active) {
 			active = false;
-			
+
 			terminator = Thread.currentThread();
 			if (terminator != myCommandServer) {
 				// This is a self-initiated shut down --> we must explicitly
@@ -308,7 +308,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 					else {
 						terminationPacket = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.TERMINATED_INFO, null);
 					}
-					
+
 					if (myConnection != null) {
 						myLogger.log(Logger.INFO, "Sending termination notification");
 						writePacket(terminationPacket, myConnection);
@@ -321,8 +321,8 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			}
 		}
 	}
-	
-	
+
+
 	//////////////////////////////////////////////
 	// Dispatcher interface implementation
 	//////////////////////////////////////////////
@@ -332,7 +332,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	 */
 	public synchronized byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
 		if (connectionDropped) {
-			myLogger.log(Logger.INFO, "Dispatching with connection dropped. Reconnecting...");
+			myLogger.log(Logger.INFO, myMediatorID+" - Dispatching with connection dropped. Reconnecting...");
 			undrop();
 			throw new ICPException("Connection dropped");
 		}
@@ -342,9 +342,9 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 					throw new ICPException("Upsetting dispatching order");
 				}
 				waitingForFlush = false;
-				
-				if (myLogger.isLoggable(Logger.FINE)) {
-					myLogger.log(Logger.FINE, "Issuing outgoing command "+outCnt);
+
+				if (myLogger.isLoggable(Logger.INFO)) {
+					myLogger.log(Logger.INFO, myMediatorID+" - Issuing outgoing command "+outCnt);
 				}
 				JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
 				pkt.setSessionID((byte) outCnt);
@@ -352,12 +352,12 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 					lastOutgoingResponse = null;
 					//System.out.println("Sending command to BE "+pkt.getSessionID());
 					writePacket(pkt, myConnection);
-					//System.out.println("Waiting for response from BE "+pkt.getSessionID());
+					myLogger.log(Logger.INFO, myMediatorID+" - Waiting for response, SID = "+pkt.getSessionID());
 					JICPPacket response = waitForResponse(outCnt, RESPONSE_TIMEOUT);
 					if (response != null) {
 						//System.out.println("Response received from BE "+response.getSessionID());
-						if (myLogger.isLoggable(Logger.FINER)) {
-							myLogger.log(Logger.FINER, "Response received "+response.getSessionID());
+						if (myLogger.isLoggable(Logger.INFO)) {
+							myLogger.log(Logger.INFO, myMediatorID+" - Response received "+response.getSessionID());
 						}
 						if (response.getType() == JICPProtocol.ERROR_TYPE) {
 							// Communication OK, but there was a JICP error on the peer
@@ -367,14 +367,14 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 						return response.getData();
 					}
 					else {
-						myLogger.log(Logger.WARNING, "Response timeout expired "+pkt.getSessionID());
+						myLogger.log(Logger.WARNING, myMediatorID+" - Response timeout expired. SID = "+pkt.getSessionID());
 						handleDisconnection();
 						throw new ICPException("Response timeout expired");
 					}
 				}
 				catch (IOException ioe) {
 					// Can't reach the BackEnd. 
-					myLogger.log(Logger.WARNING, ioe.toString());
+					myLogger.log(Logger.WARNING, myMediatorID+" - Error writing command. SID = "+pkt.getSessionID(), ioe);
 					handleDisconnection();
 					throw new ICPException("Dispatching error.", ioe);
 				}
@@ -384,8 +384,8 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			}
 		}
 	} 
-	
-	
+
+
 	//////////////////////////////////////////////////
 	// Connection reader 
 	//////////////////////////////////////////////////
@@ -395,12 +395,12 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		myConnectionReader = new ConnectionReader(myConnection);
 		myConnectionReader.start();
 	}
-	
+
 	// This variable is only used within the ConnectionReader class,
 	// but is declared externally since it must "survive" when 
 	// a ConnectionReader is replaced
 	private int cnt = 0;
-	
+
 	/**
 	 Inner class ConnectionReader.
 	 This class is responsible for reading incoming packets (incoming commands and responses
@@ -409,7 +409,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	private class ConnectionReader extends Thread {
 		private int myId;
 		private Connection myConnection = null;
-		
+
 		public ConnectionReader(Connection c) {
 			super();
 			myConnection = c;
@@ -417,16 +417,16 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			setName("ConnectionReader-"+myId);
 			//#MIDP_EXCLUDE_END
 		}
-		
+
 		public void run() {
 			myId = cnt++;
-			myLogger.log(Logger.INFO, "CR-"+myId+" started");
-			
+			myLogger.log(Logger.INFO, myMediatorID+" - CR-"+myId+" started");
+
 			try {
 				while (isConnected()) {
 					JICPPacket pkt = myConnection.readPacket();
-					myLogger.log(Logger.INFO, "CR-"+myId+" packet received, SID="+pkt.getSessionID());
-					
+					myLogger.log(Logger.INFO, myMediatorID+" - CR-"+myId+" packet received, SID="+pkt.getSessionID());
+
 					pkt = handleIncomingPacket(pkt);
 					if (pkt != null) {
 						writePacket(pkt, myConnection);
@@ -436,45 +436,47 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			catch (IOException ioe) {
 				synchronized (connectionLock) {
 					if (active && !connectionDropped) {
-						myLogger.log(Logger.WARNING, "CR Exception "+ioe);
+						myLogger.log(Logger.WARNING, myMediatorID+" - CR Exception ", ioe);
 						// This synchronized check avoids that an old connection reader suddenly realizes that its connection is down
 						// and tries to refresh an already restored connection
 						if (this == FrontEndDispatcher.this.myConnectionReader) {
+							// Unblock any Thread waiting for a response. It will behave as if the response timeout was expired
+							notifyOutgoingResponseReceived(null);
 							handleDisconnection();
 						}
 					}
 				}
 			}
-			
-			myLogger.log(Logger.INFO, "CR-"+myId+" terminated");
+
+			myLogger.log(Logger.INFO, myMediatorID+" - CR-"+myId+" terminated");
 		}
-		
-		
+
+
 		private JICPPacket handleIncomingPacket(JICPPacket pkt) {
 			switch(pkt.getType()) {
 			case JICPProtocol.COMMAND_TYPE:
-				myLogger.log(Logger.INFO, "CR-"+myId+" COMMAND received from BE, SID="+pkt.getSessionID());
+				myLogger.log(Logger.INFO, myMediatorID+" - CR-"+myId+" COMMAND received from BE, SID="+pkt.getSessionID());
 				serveCommand(pkt);
-				myLogger.log(Logger.INFO, "CR-"+myId+" Incoming command enqueued");
+				myLogger.log(Logger.INFO, myMediatorID+" - CR-"+myId+" Incoming command passed to asynchronous command server");
 				break;
 			case JICPProtocol.KEEP_ALIVE_TYPE:
 				return handleIncomingKeepAlive(pkt);
 			case JICPProtocol.RESPONSE_TYPE:
 			case JICPProtocol.ERROR_TYPE:
-				myLogger.log(Logger.INFO, "CR-"+myId+" RESPONSE/ERROR received from BE. "+pkt.getSessionID());
+				myLogger.log(Logger.INFO, myMediatorID+" - CR-"+myId+" RESPONSE/ERROR received from BE. "+pkt.getSessionID());
 				notifyOutgoingResponseReceived(pkt);
 				break;
 			default:
-				myLogger.log(Logger.WARNING, "Unexpected incoming packet type: "+pkt.getType());
+				myLogger.log(Logger.WARNING, myMediatorID+" - Unexpected incoming packet type: "+pkt.getType());
 			}
 			return null;
 		}
-		
+
 		private final boolean isConnected() {
 			return myConnection != null;
 		}
 	} // END of inner class ConnectionReader
-			
+
 	private JICPPacket handleIncomingCommand(JICPPacket cmd) {
 		// Incoming command
 		if (myLogger.isLoggable(Logger.FINE)) {
@@ -486,29 +488,29 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		}
 		return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, rspData);
 	}
-	
+
 	private JICPPacket handleIncomingKeepAlive(JICPPacket ka) {
 		return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
 	}
-	
+
 	private JICPConnection openConnection(TransportAddress ta) throws IOException {
-                if (myConnectionListener != null) {
-                                myConnectionListener.handleConnectionEvent(ConnectionListener.BEFORE_CONNECTION,null);
-                }
+		if (myConnectionListener != null) {
+			myConnectionListener.handleConnectionEvent(ConnectionListener.BEFORE_CONNECTION,null);
+		}
 		JICPConnection c = getConnection(ta);
 		return c;
 	}
 
-        /**
-         * subclasses may overwrite this to provide their version of a JICPConnection
-         * @param ta
-         * @return
-         * @throws IOException
-         */
-        protected JICPConnection getConnection(TransportAddress ta) throws IOException {
-              return new JICPConnection(ta);
-          }
-	
+	/**
+	 * subclasses may overwrite this to provide their version of a JICPConnection
+	 * @param ta
+	 * @return
+	 * @throws IOException
+	 */
+	protected JICPConnection getConnection(TransportAddress ta) throws IOException {
+		return new JICPConnection(ta);
+	}
+
 	// This is synchronized to be sure that commands and responses are always written in a non-overlapping way
 	private synchronized void writePacket(JICPPacket pkt, Connection c) throws IOException {
 		c.writePacket(pkt);
@@ -522,7 +524,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			}
 		}
 	}
-	
+
 	private JICPPacket waitForResponse(int sessionID, long timeout) {
 		// Mutual exclusion with notifyOutgoingResponseReceived()
 		synchronized(responseLock) {
@@ -542,7 +544,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			return lastOutgoingResponse;
 		}
 	}
-	
+
 	private void notifyOutgoingResponseReceived(JICPPacket rsp) {
 		// Mutual exclusion with waitForResponse()
 		synchronized(responseLock) {
@@ -550,8 +552,8 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			responseLock.notifyAll();
 		}
 	}
-	
-	
+
+
 	///////////////////////////////////////////////////////
 	// Reconnection related methods
 	///////////////////////////////////////////////////////
@@ -562,11 +564,14 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		while (active) {
 			try {
 				if (backEndExists) {
-					myLogger.log(Logger.INFO, "Connecting to " + mediatorTA.getHost() + ":" + mediatorTA.getPort() + " " + cnt);
+					myLogger.log(Logger.INFO, myMediatorID+" - Connecting to " + mediatorTA.getHost() + ":" + mediatorTA.getPort() + " " + cnt);
 					Connection c = openConnection(mediatorTA);
+					myLogger.log(Logger.INFO, myMediatorID+" - Connection opened");
 					JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorTA.getFile(), null);
 					writePacket(pkt, c);
+					myLogger.log(Logger.INFO, myMediatorID+" - Connect maediator packet written");
 					pkt = c.readPacket();
+					myLogger.log(Logger.INFO, myMediatorID+" - Connect maediator responce received");
 					if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
 						String errorMsg = new String(pkt.getData());
 						c.close();
@@ -587,7 +592,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 					else {
 						// The local-host address may have changed
 						myProperties.setProperty(JICPProtocol.LOCAL_HOST_KEY, new String(pkt.getData()));
-						myLogger.log(Logger.INFO, "Connect OK");
+						myLogger.log(Logger.INFO, myMediatorID+" - Connect OK");
 						handleReconnection(c);
 						return;
 					}
@@ -600,23 +605,23 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				}
 			} 
 			catch (IOException ioe) {
-				myLogger.log(Logger.WARNING, "Connect failed. " + ioe);
+				myLogger.log(Logger.WARNING, myMediatorID+" - Connect failed. " + ioe);
 			} 
 			catch (IMTPException imtpe) {
-				myLogger.log(Logger.WARNING, "BE recreation failed.");
+				myLogger.log(Logger.WARNING, myMediatorID+" - BE recreation failed.");
 			}
-			
+
 			if ((System.currentTimeMillis() - startTime) > maxDisconnectionTime) {
 				handleReconnectionError("Max disconnection time expired ("+System.currentTimeMillis()+")");
 				return;
 			}
-			
+
 			// Wait a bit before trying again
 			cnt++;
 			waitABit(retryTime);
 		}	
 	}
-	
+
 	/**
 	 * Start the asynchronous reconnection process implemented in the run() method
 	 */
@@ -624,7 +629,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		synchronized (connectionLock) {
 			if (!refreshingConnection) {
 				refreshingConnection = true;
-				
+
 				// Close the Connection if still there (It may be null due to a previous 
 				if (myConnection != null) {
 					try {
@@ -636,14 +641,14 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 						myConnectionListener.handleConnectionEvent(ConnectionListener.DISCONNECTED, null);
 					}
 				}
-				
+
 				// Asynchronously try to recreate the Connection
 				Thread t = new Thread(this);
 				t.start();
 			}
 		}
 	}
-	
+
 	protected void handleReconnection(Connection c) {
 		synchronized (connectionLock) {
 			startConnectionReader(c);
@@ -653,33 +658,33 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			}
 		}
 	}
-	
+
 	private void handleReconnectionError(String msg) {
 		myLogger.log(Logger.SEVERE, "Can't reconnect: "+msg);
-		
+
 		if (myConnectionListener != null) {
 			myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTION_FAILURE, null);
 		}
 		active = false;
 	}
-		
+
 	private void handleBENotFound() {
 		if (myConnectionListener != null) {
 			myConnectionListener.handleConnectionEvent(ConnectionListener.BE_NOT_FOUND, null);
 		}
 	}
-	
+
 	private void waitABit(long period) {
 		try {
 			Thread.sleep(period);
 		} catch (Exception e) {}
 	}
-	
-	
+
+
 	////////////////////////////////////////////////////////////////
 	// Keep-alive and connection drop-down mechanism management
 	////////////////////////////////////////////////////////////////
-	
+
 	/**
 	 * Refresh the keep-alive timer.
 	 * Mutual exclusion with updateKeepAlive() and updateConnectionDropDown()
@@ -693,7 +698,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			kaTimer = td.add(new Timer(System.currentTimeMillis()+keepAliveTime, this));
 		}
 	}
-	
+
 	/**
 	 * Refresh the connection drop-down timer.
 	 * Mutual exclusion with updateKeepAlive(), updateConnectionDropDown() and doTimeOut()
@@ -707,7 +712,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			cdTimer = td.add(new Timer(System.currentTimeMillis()+connectionDropDownTime, this));
 		}
 	}
-	
+
 	/**
 	 * Mutual exclusion with updateKeepAlive(), updateConnectionDropDown() and doTimeOut()
 	 */	
@@ -720,7 +725,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			dropDownConnection();
 		}
 	}
-	
+
 	/**
 	   Send a KEEP_ALIVE packet to the BE.
 	   This is executed within a synchronized block --> Mutual exclusion
@@ -751,7 +756,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			// [WATCHDOG] stopWatchDog(); 
 		}*/
 	}  
-	
+
 	/**
 	 Send a DROP_DOWN packet to the BE. The latter will also close
 	 the INP connection.
@@ -766,7 +771,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				writePacket(pkt, myConnection);
 				JICPPacket rsp = waitForResponse(-1, RESPONSE_TIMEOUT);
 				myLogger.log(Logger.INFO, "DROP_DOWN response received");
-				
+
 				if (rsp.getType() != JICPProtocol.ERROR_TYPE) {
 					// Now close the Connection
 					synchronized (connectionLock) {
@@ -794,17 +799,17 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			}	  	
 		}
 	}
-	
+
 	protected JICPPacket prepareDropDownRequest() {
 		return new JICPPacket(JICPProtocol.DROP_DOWN_TYPE, JICPProtocol.DEFAULT_INFO, null);
 	}
-	
+
 	protected void undrop() {
 		connectionDropped = false;
 		handleDisconnection();
 	}	
-	
-	
+
+
 	//////////////////////////////////////////////////////////////////
 	// Asynchronous command serving part
 	//////////////////////////////////////////////////////////////////
@@ -815,7 +820,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		}
 		myCommandServer.serve(command);
 	}
-	
+
 	/**
 	 * Inner class IncomingCommandServer
 	 * Serving incoming commands asynchronously is necessary to support commands whose serving process 
@@ -826,14 +831,14 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	private class IncomingCommandServer extends Thread {
 		private JICPPacket currentCommand = null;
 		private JICPPacket lastResponse = null;
-		
+
 		public IncomingCommandServer() {
 			super();
 			//#MIDP_EXCLUDE_BEGIN
 			setName("CommandServer");
 			//#MIDP_EXCLUDE_END
 		}
-		
+
 		public synchronized void serve(JICPPacket command) {
 			try {
 				while (currentCommand != null) {
@@ -844,17 +849,17 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			currentCommand = command;
 			notifyAll();
 		}
-		
+
 		public void run() {
 			while (active) {
-				myLogger.log(Logger.INFO, "CS Waiting for next command to serve");
+				myLogger.log(Logger.INFO, myMediatorID+" - CS Waiting for next command to serve");
 				acquireCurrentCommand();
-				
+
 				byte sid = currentCommand.getSessionID();
-				myLogger.log(Logger.INFO, "CS Starting serving command, SID="+sid);
+				myLogger.log(Logger.INFO, myMediatorID+" - CS Start serving command, SID="+sid);
 				if (sid == lastSid) {
 					// Duplicated incoming packet
-					myLogger.log(Logger.WARNING, "Duplicated command from BE: info="+currentCommand.getInfo()+", SID="+sid);
+					myLogger.log(Logger.WARNING, myMediatorID+" - Duplicated command from BE: info="+currentCommand.getInfo()+", SID="+sid);
 				}
 				else {
 					lastResponse = handleIncomingCommand(currentCommand);
@@ -865,18 +870,19 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 					lastResponse.setSessionID(sid);
 					lastSid = sid;
 				}
-				myLogger.log(Logger.INFO, "CS COMMAND served");
+				myLogger.log(Logger.INFO, myMediatorID+" - CS COMMAND served");
 				try {
 					writePacket(lastResponse, myConnection);
+					myLogger.log(Logger.INFO, myMediatorID+" - CS responce sent back");
 				}
 				catch (Exception e) {
-		      		myLogger.log(Logger.WARNING, "Communication error sending back response. "+e);	
+					myLogger.log(Logger.WARNING, myMediatorID+" - Communication error sending back response. "+e);	
 				}
-				
+
 				releaseCurrentCommand();
 			}
 		}
-		
+
 		private synchronized void acquireCurrentCommand() {
 			try {
 				while (currentCommand == null) {
@@ -885,7 +891,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			}
 			catch (Exception e) {}
 		}
-		
+
 		private synchronized void releaseCurrentCommand() {
 			currentCommand = null;
 			notifyAll();

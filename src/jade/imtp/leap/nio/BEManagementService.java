@@ -413,7 +413,8 @@ public class BEManagementService extends BaseService {
 			// Register for asynchronous IO events
 			myLogger.log(Logger.CONFIG, myLogPrefix + "Registering for asynchronous IO events.");
 
-			// Register with the selector
+			// Register the Selector of one (the less loaded) of the LoopManager to the ServerSocketChannel to be notified about ACCEPT operations.
+			// NOTE that registrations to Socket Channels for READ operations must be done as long as SocketChannel are created
 			mySSChannel.register(getLooper().getSelector(), SelectionKey.OP_ACCEPT);
 			myLogger.log(Logger.INFO, myLogPrefix + "Ready to accept I/O events on address " + myProtocol.buildAddress(host, String.valueOf(port), null, null));
 
@@ -421,6 +422,35 @@ public class BEManagementService extends BaseService {
 			for (int i = 0; i < loopers.length; ++i) {
 				loopers[i].start();
 			}
+		}
+		
+		void replaceLoopManager(int index, LoopManager newLoopManager) {
+			LoopManager oldLoopManager = loopers[index];
+			Map<SelectableChannel, KeyManager> managers = new HashMap<SelectableChannel, KeyManager>();
+			Iterator<SelectionKey> it = oldLoopManager.getSelector().keys().iterator();
+			while (it.hasNext()) {
+				SelectionKey selectionKey = it.next();
+				int interestOps = selectionKey.interestOps();
+				SelectableChannel channel = selectionKey.channel();
+				managers.put(channel, (KeyManager)selectionKey.attachment());
+				try {
+					channel.register(newLoopManager.getSelector(), interestOps);
+					myLogger.log(Logger.INFO, Thread.currentThread().getName() + "- New Selector "+newLoopManager.getSelector()+" successfully registered to Channel "+channel+" with interest options = "+interestOps);
+				}
+				catch (Exception e) {
+					myLogger.log(Logger.SEVERE, Thread.currentThread().getName() + "- Error registering new Selector "+newLoopManager.getSelector()+" to Channel "+channel+" with interest options = "+interestOps+"["+e+"]");
+				}
+			}
+			
+			it = newLoopManager.getSelector().keys().iterator();
+			while (it.hasNext()) {
+				SelectionKey newKey = it.next();
+				newKey.attach(managers.get(newKey.channel()));
+			}
+			
+			loopers[index] = newLoopManager;
+			newLoopManager.start();
+			oldLoopManager.stop();
 		}
 
 		/**
@@ -987,6 +1017,7 @@ public class BEManagementService extends BaseService {
 		private int myIndex;
 		private String displayId;
 		private int state = INIT_STATE;
+		private int replaceCnt;
 		private Selector mySelector;
 		private Thread myThread;
 		private IOEventServer myServer;
@@ -998,7 +1029,23 @@ public class BEManagementService extends BaseService {
 			myIndex = index;
 			String id = myServer.getID();
 			displayId = "BEManagementService" + (PREFIX.startsWith(id) ? "" : "-" + id);
+			replaceCnt = 0;
 
+			try {
+				mySelector = Selector.open();
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+			}
+		}
+		
+		private LoopManager(LoopManager lm) {
+			myServer = lm.myServer;
+			myIndex = lm.myIndex;
+			displayId = lm.displayId;
+			pendingChannelPresent = lm.pendingChannelPresent;
+			pendingChannels = lm.pendingChannels;
+			replaceCnt = lm.replaceCnt + 1;
+			
 			try {
 				mySelector = Selector.open();
 			} catch (IOException ioe) {
@@ -1008,10 +1055,8 @@ public class BEManagementService extends BaseService {
 
 		public void start() {
 			state = ACTIVE_STATE;
-			String id = myServer.getID();
-			String serverId = (PREFIX.startsWith(id) ? "" : "-" + id);
 			myThread = new Thread(this);
-			myThread.setName(displayId + "-T" + myIndex);
+			myThread.setName(displayId + "-T" + myIndex + "-R" + replaceCnt);
 			myThread.start();
 		}
 
@@ -1025,6 +1070,12 @@ public class BEManagementService extends BaseService {
 		}
 
 		public void run() {
+			myLogger.log(Logger.INFO, "Thread " + Thread.currentThread().getName() + " started");
+			
+			// This call is necessary if this is a replaced LoopManager. It has no effects otherwise
+			handlePendingChannels();
+			
+			int selectBugCounter = 0;
 			while (state == ACTIVE_STATE) {
 				int n = 0;
 				try {
@@ -1044,6 +1095,7 @@ public class BEManagementService extends BaseService {
 				}
 				if (state == ACTIVE_STATE) {
 					if (n > 0) {
+						selectBugCounter = 0;
 						Set keys = mySelector.selectedKeys();
 						Iterator it = keys.iterator();
 						while (it.hasNext()) {
@@ -1070,13 +1122,36 @@ public class BEManagementService extends BaseService {
 							it.remove();
 						}
 					} else {
-						myLogger.log(Logger.INFO, "Exit from select() with zero numbers of updated keys");
+						selectBugCounter++;
+
+						if (selectBugCounter > 100) {
+							// This means that we are looping due to problems in the select() (known Linux JVM bug) 
+							handleSelectBug();
+						}
 					}
 					handlePendingChannels();
 				}
 			} // END of while
 
+			try {
+				mySelector.close();
+			}
+			catch (Exception e) {}
 			state = TERMINATED_STATE;
+			
+			myLogger.log(Logger.INFO, "Thread " + Thread.currentThread().getName() + " terminated");			
+		}
+		
+		
+		/**
+		 * JDK 1.6 in Linux has a BUG so that Selector.select() in certain cases do not block causing an infinite loop.
+		 * The workaround is to recreate the Selector. Actually we recreate the whole LoopManager
+		 */
+		private synchronized void handleSelectBug() {
+			// Mutual exclusion with register()
+			myLogger.log(Logger.WARNING, Thread.currentThread().getName() + " SELECT BUG OCCURRED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Replacing LoopManager");
+			LoopManager lm = new LoopManager(this);
+			myServer.replaceLoopManager(myIndex, lm); // This also makes the currentLoopManager terminate
 		}
 
 		private final void handleAcceptOp(SelectionKey key) {
@@ -1115,7 +1190,9 @@ public class BEManagementService extends BaseService {
 			if (pendingChannelPresent) {
 				for (int i = 0; i < pendingChannels.size(); ++i) {
 					SocketChannel sc = (SocketChannel) pendingChannels.get(i);
-					//System.out.println(Thread.currentThread().getName()+": Registering channel on Selector "+mySelector);
+					if (myLogger.isLoggable(Logger.FINE)) {
+						myLogger.log(Logger.FINE, Thread.currentThread().getName()+": Registering channel on Selector "+mySelector+" for READ operations");
+					}
 					try {
 						sc.register(mySelector, SelectionKey.OP_READ);
 						//System.out.println(Thread.currentThread().getName()+": Done");
@@ -1132,7 +1209,7 @@ public class BEManagementService extends BaseService {
 		public final Selector getSelector() {
 			return mySelector;
 		}
-
+		
 		public final int size() {
 			return mySelector.keys().size();
 		}

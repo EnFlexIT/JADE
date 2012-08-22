@@ -196,35 +196,41 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 	 * @return an indication to the JICPMediatorManager to keep the 
 	 * connection open.
 	 */
-	public synchronized boolean handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
-		checkTerminatedInfo(pkt);
-		
-		// Update keep-alive info
-		lastReceivedTime = System.currentTimeMillis();
-
-		if (peerActive) {
-			// In some cases the front-end disconnects and we do not detect that.
-			// When it reconnects, close the previous connection and notify any Thread waiting from
-			// responses on the old connection
-			if (myConnection != null && myConnection != c) {
-				inpManager.resetConnection();
-				try {
-					myConnection.close();
-				} catch(Exception e) {
-				}
-			}
-			
-			myConnection = c;
-			updateConnectedState();			
-			inpManager.setConnection(myConnection);
-			connectionDropped = false;
-			return true;
+	public boolean handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
+		if (pkt.getType() == JICPProtocol.CONNECT_MEDIATOR_TYPE) {
+			// Unblock any Thread waiting for a response. It will behave as if the response timeout was expired
+			inpManager.notifyIncomingResponseReceived(null);
 		}
-		else {
-			// The remote FrontEnd has terminated spontaneously -->
-			// Kill the above container (this will also kill this BackEndDispatcher).
-			kill();
-			return false;
+		synchronized (this) {
+			checkTerminatedInfo(pkt);
+			
+			// Update keep-alive info
+			lastReceivedTime = System.currentTimeMillis();
+	
+			if (peerActive) {
+				// In some cases the front-end disconnects and we do not detect that.
+				// When it reconnects, close the previous connection and notify any Thread waiting from
+				// responses on the old connection
+				if (myConnection != null && myConnection != c) {
+					inpManager.resetConnection();
+					try {
+						myConnection.close();
+					} catch(Exception e) {
+					}
+				}
+				
+				myConnection = c;
+				updateConnectedState();			
+				inpManager.setConnection(myConnection);
+				connectionDropped = false;
+				return true;
+			}
+			else {
+				// The remote FrontEnd has terminated spontaneously -->
+				// Kill the above container (this will also kill this BackEndDispatcher).
+				kill();
+				return false;
+			}
 		}
 	}
 	
@@ -510,7 +516,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		
 		/**
 		   Dispatch a JICP command to the FE and get back a reply.
-		 */
+		*/
 		final JICPPacket dispatch(JICPPacket pkt, boolean flush) throws ICPException {
 			dispatching = true;
 			try {
@@ -539,8 +545,6 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 								// Communication OK, but there was a JICP error on the peer
 								throw new ICPException(new String(pkt.getData()));
 							}
-							
-							checkTerminatedInfo(pkt);
 							if (!peerActive) {
 								// This is the response to an exit command --> Suicide, without
 								// killing the above container since it is already dying. 
@@ -661,6 +665,10 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			peerActive = false;
 			if (myLogger.isLoggable(Logger.INFO)) {
 				myLogger.log(Logger.INFO, myID+": Peer termination notification received");
+			}
+			if (pkt.getType() == JICPProtocol.COMMAND_TYPE) {
+				// Spontaneous FE termination. Unblock any Thread waiting for a response. It will behave as if the response timeout was expired
+				inpManager.notifyIncomingResponseReceived(null);
 			}
 		}
 		return peerActive;

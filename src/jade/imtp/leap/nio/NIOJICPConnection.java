@@ -41,7 +41,7 @@ public class NIOJICPConnection extends Connection {
 
 	public NIOJICPConnection() {
 	}
-
+	
 	/**
     Read a JICPPacket from the connection.
     The method is synchronized since we reuse the same Buffer object
@@ -296,7 +296,6 @@ public class NIOJICPConnection extends Connection {
 		this.myChannel = (SocketChannel) channel;
 	}
 
-
 	public void addBufferTransformer(BufferTransformer transformer) {
 		transformers.add(new BufferTransformerInfo(transformer));
 	}
@@ -344,7 +343,6 @@ public class NIOJICPConnection extends Connection {
 			return actualTransformationInput;
 		}
 	} // END of inner class BufferTransformerInfo
-
 
 }
 
