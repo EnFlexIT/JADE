@@ -343,13 +343,14 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			if (keepAliveTime > 0) {
 				if ((currentTime - lastReceivedTime) > (keepAliveTime + responseTimeoutOffset)) {
 					// Missing keep-alive.
-					// FIXME: to be implemented
+					myLogger.log(Logger.WARNING,  myID+": Missing keep-alive."); 
+					handleConnectionError(myConnection, null);
 				}
 			}
 			
 			// 2) Evaluate the max disconnection time
 			if (checkMaxDisconnectionTime(currentTime)) {
-				myLogger.log(Logger.SEVERE,  myID+": Max disconnection time expired."); 
+				myLogger.log(Logger.WARNING,  myID+": Max disconnection time expired. FrontEnd is likely dead --> Close BackEnd"); 
 				// Consider as if the FrontEnd has terminated spontaneously -->
 				// Kill the above container (this will also kill this BackEndDispatcher).
 				kill();
