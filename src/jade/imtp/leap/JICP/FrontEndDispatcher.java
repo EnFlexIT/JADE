@@ -64,8 +64,8 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	private String myMediatorID;
 	private long retryTime = JICPProtocol.DEFAULT_RETRY_TIME;
 	private long maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
-	//private long keepAliveTime = JICPProtocol.DEFAULT_KEEP_ALIVE_TIME;
-	private long keepAliveTime = -1;
+	private long keepAliveTime = JICPProtocol.DEFAULT_KEEP_ALIVE_TIME;
+	//private long keepAliveTime = -1;
 	private long connectionDropDownTime = -1;
 
 	private Timer kaTimer, cdTimer;
@@ -732,29 +732,28 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	   with dispatch() is guaranteed.
 	 */
 	protected void sendKeepAlive() {
-		/*if (myConnection != null) {
+		if (myConnection != null && !connectionDropped) {
 			JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
 			try {
-				if (myLogger.isLoggable(Logger.FINEST)) {
-					myLogger.log(Logger.FINEST, "Writing KA.");
+				if (myLogger.isLoggable(Logger.INFO)) {
+					myLogger.log(Logger.INFO, myMediatorID+" - Writing KA.");
 				}
 				writePacket(pkt, myConnection);
-				pkt = myConnection.readPacket();
-				// [WATCHDOG] stopWatchDog(); 
-				if ((pkt.getInfo() & JICPProtocol.RECONNECT_INFO) != 0) { 
-					// The BackEnd is considering the input connection no longer valid
-					refreshInp();
-				}	  				
+				JICPPacket rsp = waitForResponse(-1, RESPONSE_TIMEOUT);
+				if (rsp != null) {
+					myLogger.log(Logger.INFO, myMediatorID+" - KA response received");
+				}
+				else {
+					myLogger.log(Logger.WARNING, myMediatorID+" - KA Response timeout expired.");
+					handleDisconnection();
+				}
 			}
-			catch (IOException ioe) {
-				myLogger.log(Logger.WARNING, "IOException OC sending KA. "+ioe);
-				// [WATCHDOG] stopWatchDog(); 
-				refreshOut();
+			catch (Exception e) {
+				// Can't reach the BackEnd. 
+				myLogger.log(Logger.WARNING, myMediatorID+" - Error writing KA", e);
+				handleDisconnection();
 			}
 		}
-		else {
-			// [WATCHDOG] stopWatchDog(); 
-		}*/
 	}  
 
 	/**

@@ -1239,6 +1239,9 @@ public class BEManagementService extends BaseService {
 				try {
 					Thread.sleep(period);
 					long currentTime = System.currentTimeMillis();
+					if (myLogger.isLoggable(Logger.FINE)) {
+						myLogger.log(Logger.FINE,  "Ticker: Tick. Current time = "+currentTime);
+					}
 					Object[] ss = servers.values().toArray();
 					for (int i = 0; i < ss.length; ++i) {
 						((IOEventServer) ss[i]).tick(currentTime);

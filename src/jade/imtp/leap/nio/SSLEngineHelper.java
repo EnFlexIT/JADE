@@ -90,7 +90,7 @@ public final class SSLEngineHelper implements BufferTransformer {
 	 * closes the SSLEngine, tries to send a ssl close message
 	 * @throws IOException
 	 */
-	public void close() throws IOException {
+	public synchronized void close() throws IOException {
 		/*
 		 * try to nicely terminate ssl connection
 		 * 1 closeoutbound

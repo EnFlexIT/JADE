@@ -301,7 +301,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			}
 			break;
 		case JICPProtocol.KEEP_ALIVE_TYPE:
-			myLogger.log(Logger.INFO, "BE "+myID+" - KEEP_ALIVE received: "+pkt.getSessionID());
+			myLogger.log(Logger.INFO, "BE "+myID+" - KEEP_ALIVE received");
 			reply = outManager.handleKeepAlive(pkt);
 			break;
 		case JICPProtocol.RESPONSE_TYPE:
@@ -338,9 +338,12 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 	   the need of a dedicated thread or timer.
 	 */
 	public final void tick(long currentTime) {
+		if (myLogger.isLoggable(Logger.FINE)) {
+			myLogger.log(Logger.FINE,  myID+": Tick.");
+		}
 		if (active && !connectionDropped) {
 			// 1) Evaluate the keep alive
-			if (keepAliveTime > 0) {
+			if (keepAliveTime > 0 && myConnection != null) {
 				if ((currentTime - lastReceivedTime) > (keepAliveTime + responseTimeoutOffset)) {
 					// Missing keep-alive.
 					myLogger.log(Logger.WARNING,  myID+": Missing keep-alive."); 
