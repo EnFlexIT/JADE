@@ -31,6 +31,7 @@ import jade.content.Concept;
 import jade.content.abs.AbsAggregate;
 import jade.content.abs.AbsHelper;
 import jade.content.abs.AbsObject;
+import jade.content.schema.AggregateSchema;
 import jade.content.schema.ConceptSlotFunctionSchema;
 import jade.content.schema.ObjectSchema;
 import jade.content.schema.AgentActionSchema;
@@ -1035,6 +1036,36 @@ public class Ontology implements Serializable {
 		} 
 		
 		return referenceOnto.toObject(abs);
+	}
+	
+	private static void addReferencedSchemas(ObjectSchema schema, List<ObjectSchema> schemas) throws OntologyException {
+		ObjectSchema[] superSchemas = schema.getSuperSchemas();
+		for (ObjectSchema superSchema : superSchemas) {
+			addReferencedSchemas(superSchema, schemas);
+		}
+
+		if (schema instanceof AggregateSchema) {
+			ObjectSchema elementsSchema = ((AggregateSchema)schema).getElementsSchema();
+			if (elementsSchema != null) {
+				addReferencedSchemas(elementsSchema, schemas);
+			}
+		}
+		else if (schema instanceof ConceptSchema) {
+			if (!schemas.contains(schema)) {
+				schemas.add(schema);
+			}
+			
+			for (String slotName : schema.getNames()) {
+				ObjectSchema slotSchema = schema.getSchema(slotName);
+				addReferencedSchemas(slotSchema, schemas);
+			}
+		}
+	}
+
+	public static List<ObjectSchema> getReferencedSchemas(ObjectSchema rootSchema) throws OntologyException {
+		List<ObjectSchema> schemas = new ArrayList<ObjectSchema>();
+		addReferencedSchemas(rootSchema, schemas);
+		return schemas;
 	}
 	
 	//#J2ME_EXCLUDE_BEGIN	
