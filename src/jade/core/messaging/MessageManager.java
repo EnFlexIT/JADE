@@ -264,7 +264,7 @@ class MessageManager {
 			return sb.toString();
 		}
 		else {
-			return ("unavailable");
+			return ("\"Unavailable\"");
 		}
 	}
 

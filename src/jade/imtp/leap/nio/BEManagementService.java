@@ -731,7 +731,7 @@ public class BEManagementService extends BaseService {
 				} // END of switch
 			} catch (Exception e) {
 				// Error handling the received packet
-				myLogger.log(Logger.WARNING, myLogPrefix + "Error handling incoming packet. ", e);
+				myLogger.log(Logger.WARNING, myLogPrefix + stringify(mediator) + "Error handling incoming packet. ", e);
 				// If the incoming packet was a request, send back a generic error response
 				if (type == JICPProtocol.COMMAND_TYPE ||
 						type == JICPProtocol.CREATE_MEDIATOR_TYPE ||
@@ -746,7 +746,7 @@ public class BEManagementService extends BaseService {
 				try {
 					connection.writePacket(reply);
 				} catch (IOException ioe) {
-					myLogger.log(Logger.WARNING, myLogPrefix + "Communication error writing return packet to " + address + ":" + port + " [" + ioe + "]", ioe);
+					myLogger.log(Logger.WARNING, myLogPrefix + stringify(mediator) + "Communication error writing return packet to " + address + ":" + port + " [" + ioe + "]", ioe);
 					closeConnection = true;
 				}
 			} else {
@@ -759,19 +759,23 @@ public class BEManagementService extends BaseService {
 				try {
 					// Close connection
 					if (myLogger.isLoggable(Logger.FINEST)) {
-						myLogger.log(Logger.FINEST, myLogPrefix + "Closing connection with " + address + ":" + port);
+						myLogger.log(Logger.FINEST, myLogPrefix + stringify(mediator) + "Closing connection with " + address + ":" + port);
 					}
 					connection.close();
 				} catch (IOException io) {
-					myLogger.log(Logger.WARNING, myLogPrefix + "I/O error while closing connection with " + address + ":" + port);
+					myLogger.log(Logger.WARNING, myLogPrefix + stringify(mediator) + "I/O error while closing connection with " + address + ":" + port);
 					io.printStackTrace();
 				}
 			}
 
 			long end = System.currentTimeMillis();
-			if ((end - start) > 100) {
-				System.out.println("Serve time = " + (end - start));
+			if ((end - start) > 1000) {
+				myLogger.log(Logger.INFO, myLogPrefix + stringify(mediator) + "Serve time = " + (end - start));
 			}
+		}
+		
+		private String stringify(NIOMediator mediator) {
+			return (mediator != null ? mediator.getID()+" - " : "");
 		}
 
 		private void configureBlocking(JICPPacket pkt, SelectionKey key) {
@@ -931,7 +935,7 @@ public class BEManagementService extends BaseService {
 			}
 			NIOMediator m = (NIOMediator) Class.forName(className).newInstance();
 			mergeProperties(p, leapProps);
-			myLogger.log(Logger.CONFIG, myLogPrefix + "Initializing mediator " + id + " with properties " + p);
+			myLogger.log(Logger.INFO, myLogPrefix + "Initializing mediator " + id + " with properties " + p);
 			m.init(this, id, p);
 			return m;
 		}

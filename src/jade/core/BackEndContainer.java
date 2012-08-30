@@ -255,6 +255,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	 */
 	public void deadAgent(String name) throws IMTPException {
 		AID id = new AID(name, AID.ISLOCALNAME);
+		myLogger.log(Logger.INFO, getID() + " - Handling termination of agent "+id.getLocalName());
 		handleEnd(id);
 	}
 	
@@ -297,6 +298,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 			}
 		}
 		
+		myLogger.log(Logger.INFO, getID() + " - Delivering OUT message "+ACLMessage.getPerformative(msg.getPerformative()));
 		handleSend(msg, id, false);
 	}
 	
@@ -438,6 +440,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 				
 				try {
 					// Forward the message to the FrontEnd
+					myLogger.log(Logger.INFO, getID() + " - Delivering IN message "+ACLMessage.getPerformative(msg.getPerformative()));
 					myFrontEnd.messageIn(msg, receiverID.getLocalName());
 					handlePosted(receiverID, msg);
 					return true;

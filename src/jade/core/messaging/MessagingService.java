@@ -1350,7 +1350,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 						msg.setTimeStamp(((Long) params[3]).longValue()); 
 					}
 					if (msg.getTraceID() != null) {
-						myLogger.log(Logger.INFO, "MessagingService slice received message "+MessageManager.stringify(msg)+" for receiver "+receiverID.getLocalName()+". Trace ID = "+msg.getTraceID());
+						myLogger.log(Logger.INFO, "MessagingService-slice: received message "+MessageManager.stringify(msg)+" for receiver "+receiverID.getLocalName()+". Trace ID = "+msg.getTraceID());
 					}
 					gCmd.addParam(senderAID);
 					gCmd.addParam(msg);
