@@ -61,6 +61,8 @@ public final class SSLEngineHelper implements BufferTransformer {
 		setBufferSizes();
 
 		this.connection = connection;
+		
+		log.log(Level.INFO, "Create SSLEngine " + ssle + " of connection " + connection);
 	}
 
 	private void setBufferSizes() {
@@ -100,11 +102,18 @@ public final class SSLEngineHelper implements BufferTransformer {
 		 * 5 don't let all this frustrate the channel closing
 		 */
 		if (ssle != null) {
+			log.log(Level.INFO, "Close SSLEngine " + ssle + " of connection " + connection);
+			
 			ssle.closeOutbound();
 	
 			sendSSLClose();
 	
-			ssle.closeInbound();
+			try {
+				ssle.closeInbound();
+			} catch(Exception e) {
+				log.log(Level.WARNING, "Error in closeInbound, SSLEH="+this);
+			}
+			
 			// give gc a chance to cleanup
 			ssle = null;
 		}
@@ -308,5 +317,10 @@ public final class SSLEngineHelper implements BufferTransformer {
 
 	public boolean needSocketData() {
 		return false;
+	}
+	
+	@Override
+	public String toString() {
+		return super.toString()+"SSLE="+ssle;
 	}
 }

@@ -220,6 +220,8 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 				}
 				
 				myConnection = c;
+				myLogger.log(Logger.INFO, myID+": Connection = "+myConnection);
+				
 				updateConnectedState();			
 				inpManager.setConnection(myConnection);
 				connectionDropped = false;

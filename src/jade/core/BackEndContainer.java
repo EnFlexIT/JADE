@@ -298,7 +298,13 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 			}
 		}
 		
-		myLogger.log(Logger.INFO, getID() + " - Delivering OUT message "+ACLMessage.getPerformative(msg.getPerformative()));
+		int size;
+		if (msg.hasByteSequenceContent()) {
+			size = msg.getByteSequenceContent().length;
+		} else {
+			size = msg.getContent() != null ? msg.getContent().length() : 0;
+		}
+		myLogger.log(Logger.INFO, getID() + " - Delivering OUT message "+ACLMessage.getPerformative(msg.getPerformative()) + ", size=" + size);
 		handleSend(msg, id, false);
 	}
 	
@@ -440,7 +446,13 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 				
 				try {
 					// Forward the message to the FrontEnd
-					myLogger.log(Logger.INFO, getID() + " - Delivering IN message "+ACLMessage.getPerformative(msg.getPerformative()));
+					int size;
+					if (msg.hasByteSequenceContent()) {
+						size = msg.getByteSequenceContent().length;
+					} else {
+						size = msg.getContent() != null ? msg.getContent().length() : 0;
+					}
+					myLogger.log(Logger.INFO, getID() + " - Delivering IN message "+ACLMessage.getPerformative(msg.getPerformative()) + ", size=" + size);
 					myFrontEnd.messageIn(msg, receiverID.getLocalName());
 					handlePosted(receiverID, msg);
 					return true;

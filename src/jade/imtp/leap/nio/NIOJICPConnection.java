@@ -42,6 +42,10 @@ public class NIOJICPConnection extends Connection {
 	public NIOJICPConnection() {
 	}
 	
+	public SocketChannel getChannel() {
+		return myChannel;
+	}
+	
 	/**
     Read a JICPPacket from the connection.
     The method is synchronized since we reuse the same Buffer object

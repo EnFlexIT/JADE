@@ -66,5 +66,9 @@ public class NIOJICPSConnection extends NIOJICPConnection {
 		
 		super.close();
 	}
-
+	
+	@Override
+	public String toString() {
+		return super.toString() + "-CH="+getChannel()+"-SSLEH="+helper;
+	}
 }
