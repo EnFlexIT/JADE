@@ -775,7 +775,7 @@ public class BEManagementService extends BaseService {
 		}
 		
 		private String stringify(NIOMediator mediator) {
-			return (mediator != null ? mediator.getID()+" - " : "");
+			return (mediator != null ? mediator.getID()+" - " : "null");
 		}
 
 		private void configureBlocking(JICPPacket pkt, SelectionKey key) {
@@ -988,28 +988,14 @@ public class BEManagementService extends BaseService {
 			} catch (PacketIncompleteException pie) {
 				// The data ready to be read is not enough to complete
 				// a packet. Just do nothing and wait until more data is ready
-				if (myLogger.isLoggable(Logger.FINE)) {
-					myLogger.log(Logger.FINE, "waiting for more data..");
+				if (myLogger.isLoggable(Logger.INFO)) {
+					myLogger.log(Logger.INFO, "Incomplete JICPPacket from connection " + connection + ". Wait for more data..");
 				}
 			} catch (Exception e) {
 				server.serveException(this, e);
 			}
 		}
 
-		// TO BE REMOVED
-		public void handleExtraData() {
-			System.out.println("####### handleExtraData()");
-			//final Exception e = new Exception("DUMMY!!!!!!!!!!!");
-			Thread t = new Thread(new Runnable() {
-
-				public void run() {
-					read();
-					//e.printStackTrace();
-				}
-			});
-			t.setName(Thread.currentThread().getName()+"HED");
-			t.start();
-		}
 	} // END of inner class KeyManager
 
 
@@ -1075,9 +1061,10 @@ public class BEManagementService extends BaseService {
 
 		public void run() {
 			myLogger.log(Logger.INFO, "Thread " + Thread.currentThread().getName() + " started");
+			String prefix = myServer.getLogPrefix() + "LM-" + myIndex +": ";
 			
 			// This call is necessary if this is a replaced LoopManager. It has no effects otherwise
-			handlePendingChannels();
+			handlePendingChannels(prefix);
 			
 			int selectBugCounter = 0;
 			while (state == ACTIVE_STATE) {
@@ -1098,9 +1085,12 @@ public class BEManagementService extends BaseService {
 					}
 				}
 				if (state == ACTIVE_STATE) {
-					if (n > 0) {
+					Set keys = mySelector.selectedKeys();
+					int keysSize = keys.size();
+					myLogger.log(Logger.INFO, prefix + " n=" + n + " selected-keys=" + keysSize + (n != keysSize ? "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" : ""));
+					if (n > 0 && keysSize > 0) {
+						// NOTE that the check on keys.size() is redundant and is there just to handle the "select bug" (see handelSelectBug())
 						selectBugCounter = 0;
-						Set keys = mySelector.selectedKeys();
 						Iterator it = keys.iterator();
 						while (it.hasNext()) {
 							SelectionKey key = (SelectionKey) it.next();
@@ -1117,11 +1107,17 @@ public class BEManagementService extends BaseService {
 										if (myLogger.isLoggable(Logger.FINER)) {
 											myLogger.log(Logger.FINER, myServer.getLogPrefix() + "READ_OP on key "+key);
 										}
-										handleReadOp(key);
+										handleReadOp(key, prefix);
 									} catch (ICPException ex) {
 										myLogger.log(Logger.SEVERE, "failed to read from socket", ex);
 									}
 								}
+								else {
+									myLogger.log(Logger.WARNING, prefix + "SelectedKey "+key+" has unknown OPTIONS "+key.readyOps());
+								}
+							}
+							else {
+								myLogger.log(Logger.WARNING, prefix + "SelectedKey "+key+" NOT VALID");
 							}
 							it.remove();
 						}
@@ -1133,7 +1129,7 @@ public class BEManagementService extends BaseService {
 							handleSelectBug();
 						}
 					}
-					handlePendingChannels();
+					handlePendingChannels(prefix);
 				}
 			} // END of while
 
@@ -1170,16 +1166,17 @@ public class BEManagementService extends BaseService {
 			} catch (JADESecurityException jse) {
 				myLogger.log(Logger.WARNING, myServer.getLogPrefix() + "Connection attempt from malicious address " + jse.getMessage());
 			} catch (Exception e) {
-				myLogger.log(Logger.WARNING, myServer.getLogPrefix() + "Error accepting incoming connection. " + e);
-				e.printStackTrace();
+				myLogger.log(Logger.WARNING, myServer.getLogPrefix() + "Error accepting incoming connection. ", e);
 			}
 		}
 
-		private final void handleReadOp(SelectionKey key) throws ICPException {
+		private final void handleReadOp(SelectionKey key, String prefix) throws ICPException {
 			KeyManager mgr = (KeyManager) key.attachment();
 			if (mgr == null) {
-				mgr = new KeyManager(key, myServer.createConnection(key), myServer);
+				NIOJICPConnection c = myServer.createConnection(key);
+				mgr = new KeyManager(key, c, myServer);
 				key.attach(mgr);
+				myLogger.log(Logger.INFO, prefix + "Connection " + c + " created and associated to KeyManager "+mgr);
 			}
 			mgr.read();
 		}
@@ -1190,19 +1187,18 @@ public class BEManagementService extends BaseService {
 			mySelector.wakeup();
 		}
 
-		private synchronized final void handlePendingChannels() {
+		private synchronized final void handlePendingChannels(String prefix) {
 			if (pendingChannelPresent) {
 				for (int i = 0; i < pendingChannels.size(); ++i) {
 					SocketChannel sc = (SocketChannel) pendingChannels.get(i);
-					if (myLogger.isLoggable(Logger.FINE)) {
-						myLogger.log(Logger.FINE, Thread.currentThread().getName()+": Registering channel on Selector "+mySelector+" for READ operations");
+					if (myLogger.isLoggable(Logger.INFO)) {
+						myLogger.log(Logger.INFO, prefix+": Registering Selector "+mySelector+" on channel " + sc  +" for READ operations");
 					}
 					try {
 						sc.register(mySelector, SelectionKey.OP_READ);
 						//System.out.println(Thread.currentThread().getName()+": Done");
 					} catch (Exception e) {
-						myLogger.log(Logger.WARNING, myServer.getLogPrefix() + "Error registering socket channel for asynchronous IO. " + e);
-						e.printStackTrace();
+						myLogger.log(Logger.WARNING, prefix + "Error registering socket channel for asynchronous IO. ", e);
 					}
 				}
 				pendingChannels.clear();
@@ -1252,7 +1248,7 @@ public class BEManagementService extends BaseService {
 					}
 				} catch (Throwable t) {
 					if (active) {
-						myLogger.log(Logger.WARNING, "BEManagementService-Ticker: Unexpected exception " + t);
+						myLogger.log(Logger.WARNING, "BEManagementService-Ticker: Unexpected exception ", t);
 					}
 				}
 			}
