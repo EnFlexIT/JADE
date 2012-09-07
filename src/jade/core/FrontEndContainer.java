@@ -714,7 +714,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 				failure.setContent(content);
 				
 				try {
-					messageIn(msg, sender);
+					messageIn(failure, sender);
 				} catch (Exception e1) {
 					logger.log(Logger.SEVERE, "Error delivering FAILURE message.", e1);
 				}
