@@ -202,7 +202,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 
 			// Create the BackEnd in the fixed network
 			mySkel = new FrontEndSkel(fe);
-			myStub = new BackEndStub(this);
+			myStub = new BackEndStub(this, props);
 
 			Connection c = createBackEnd();
 			active = true;

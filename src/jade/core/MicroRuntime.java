@@ -84,6 +84,14 @@ public class MicroRuntime {
 	 */
 	public static final String PROTO_KEY = "proto";
 		
+	/**
+	 The configuration property key that, when set to <code>true</>, disables the store-and-forward
+	 mechanism implemented by the Front-End that postpones ACLMessages to be delivered when the 
+	 FE-BE connection is down. If this mechanism is disabled, whenever an ACLMessage is sent while 
+	 the connection is down, a FAILURE message is sent back to the sender as usual.
+	 */
+	public static final String DISABLE_STORE_AND_FORWARD_KEY = "disable-store-and-forward";
+		
     public static final String SOCKET_PROTOCOL = "socket";
     public static final String SSL_PROTOCOL = "ssl";
     public static final String HTTP_PROTOCOL = "http";

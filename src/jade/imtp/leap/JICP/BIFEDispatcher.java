@@ -185,7 +185,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
             }
 
             // Create the BackEnd stub and the FrontEnd skeleton
-            myStub = new BackEndStub(this);
+            myStub = new BackEndStub(this, props);
             mySkel = new FrontEndSkel(fe);
 
             outConnection = createBackEnd();

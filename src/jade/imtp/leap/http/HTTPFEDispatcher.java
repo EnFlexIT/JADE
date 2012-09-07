@@ -171,7 +171,7 @@ public class HTTPFEDispatcher implements FEConnectionManager, Dispatcher, TimerL
 		owner = props.getProperty("owner");
 
 		// Create the BackEnd stub and the FrontEnd skeleton
-		myStub = new BackEndStub(this);
+		myStub = new BackEndStub(this, props);
 		mySkel = new FrontEndSkel(fe);
 
 		// Start the InputManager

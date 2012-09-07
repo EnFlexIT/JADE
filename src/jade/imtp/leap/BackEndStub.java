@@ -49,8 +49,12 @@ public class BackEndStub extends MicroStub implements BackEnd {
 	static final int MESSAGE_OUT = 24;
 	static final int SERVICE_INVOKATION = 25;
 
-	public BackEndStub(Dispatcher d) {
+	private Properties props;
+	
+	public BackEndStub(Dispatcher d, Properties props) {
 		super(d);
+		
+		this.props = props;
 	}	
 
 	/**
@@ -118,7 +122,14 @@ public class BackEndStub extends MicroStub implements BackEnd {
 		Command c = new Command(MESSAGE_OUT);
 		c.addParam(msg);
 		c.addParam(sender);
-		Command r = executeRemotely(c, -1);
+		
+		long timeout = -1;
+		String disableStoreAndForward = props.getProperty(MicroRuntime.DISABLE_STORE_AND_FORWARD_KEY, "false");
+		if ("true".equalsIgnoreCase(disableStoreAndForward)) {
+			timeout = 0;
+		}
+		
+		Command r = executeRemotely(c, timeout);
 		if (r != null && r.getCode() == Command.ERROR) {
 			// One of the expected exceptions occurred in the remote BackEnd
 			// --> It must be a NotFoundException --> throw it

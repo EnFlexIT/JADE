@@ -33,6 +33,7 @@ import jade.security.JADESecurityException;
 import jade.core.behaviours.Behaviour;
 import jade.core.event.ContainerEvent;
 import jade.core.event.JADEEvent;
+import jade.domain.FIPANames;
 import jade.security.*;
 //#MIDP_EXCLUDE_END
 
@@ -697,9 +698,26 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 				myBackEnd.messageOut(msg, sender);
 			}
 			catch (Exception e) {
-				// Should never happen. Note that "NotFound" here is referred 
-				// to the sender.
-				logger.log(Logger.SEVERE,e.toString());
+				// This may only happen if the store-and-forward mechanism is disabled (note that "NotFound" here is referred 
+				// to the sender).
+				logger.log(Logger.SEVERE, "Error delivering message.", e);
+				
+				// Send back a failure message
+				ACLMessage failure = msg.createReply();
+				failure.setPerformative(ACLMessage.FAILURE);
+				failure.setSender(getAMS());
+				failure.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
+
+				String receiver = msg.getAllReceiver().next().toString();
+				String content = "( (action " + sender;
+				content = content + " (ACLMessage) ) (MTS-error "+receiver+" "+e.getMessage() + ") )";
+				failure.setContent(content);
+				
+				try {
+					messageIn(msg, sender);
+				} catch (Exception e1) {
+					logger.log(Logger.SEVERE, "Error delivering FAILURE message.", e1);
+				}
 			}
 			
 			// Notify terminating agents (if any) waiting for their messages to be delivered

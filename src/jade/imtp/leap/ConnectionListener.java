@@ -28,12 +28,12 @@ package jade.imtp.leap;
    by the JADE runtime (front-end of a split container) when connection 
    specific events happen on the device.
    Application developers wishing to handle these events may provide
-   a class implementating this interface and set the 
+   a class implementing this interface and set the 
    <code>connection-listener</code> property to the fully qualified name 
    of that class. ConnectionListener implementation classes must have 
    an accessible default constructor;<br>
    Alternatively an object implementing the ConnectionListener interface 
-   may be put in the activation <code>Properties</code> specified ad
+   may be put in the activation <code>Properties</code> specified at
    JADE runtime activation.
    @author Giovanni Caire - TILAB
  */
