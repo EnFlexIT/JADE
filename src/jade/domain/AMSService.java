@@ -499,7 +499,7 @@ public class AMSService extends FIPAService {
 			}
 			start = content.indexOf(ExceptionVocabulary.INTERNALERROR, start);
 			start = content.indexOf('"', start);
-			int end = content.indexOf('"', start);
+			int end = content.indexOf('"', start+1);
 			content = content.substring(start, end);
 
 			if (content.startsWith(ACLMessage.AMS_FAILURE_AGENT_NOT_FOUND)) {

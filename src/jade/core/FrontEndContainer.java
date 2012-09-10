@@ -710,9 +710,9 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 
 				String receiver = msg.getAllReceiver().next().toString();
 				String content = "( (action " + sender;
-				content = content + " (ACLMessage) ) (MTS-error "+receiver+" "+e.getMessage() + ") )";
+		        content = content + " (ACLMessage) ) (MTS-error " + receiver + " \"" + e.getMessage() + "\") )";
 				failure.setContent(content);
-				
+
 				try {
 					messageIn(failure, sender);
 				} catch (Exception e1) {
