@@ -208,6 +208,7 @@ public class BackEndStub extends MicroStub implements BackEnd {
 		appendProp(sb, MicroRuntime.PLATFORM_KEY, pp.getProperty(MicroRuntime.PLATFORM_KEY));
 		appendProp(sb, JICPProtocol.MSISDN_KEY, pp.getProperty(JICPProtocol.MSISDN_KEY));
 		appendProp(sb, JICPProtocol.VERSION_KEY, pp.getProperty(JICPProtocol.VERSION_KEY));
+		appendProp(sb, MicroRuntime.DISABLE_STORE_AND_FORWARD_KEY, pp.getProperty(MicroRuntime.DISABLE_STORE_AND_FORWARD_KEY));
 		return sb;
 	}
 

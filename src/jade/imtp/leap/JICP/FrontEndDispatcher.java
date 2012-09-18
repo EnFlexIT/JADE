@@ -67,6 +67,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	private long keepAliveTime = JICPProtocol.DEFAULT_KEEP_ALIVE_TIME;
 	//private long keepAliveTime = -1;
 	private long connectionDropDownTime = -1;
+	private boolean disableStoreAndForward;
 
 	private Timer kaTimer, cdTimer;
 
@@ -99,6 +100,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	public BackEnd getBackEnd(FrontEnd fe, Properties props) throws IMTPException {
 		myProperties = props;
 		myMediatorID = myProperties.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
+		disableStoreAndForward = Boolean.parseBoolean(myProperties.getProperty(MicroRuntime.DISABLE_STORE_AND_FORWARD_KEY, "false"));
 		try {
 
 			String tmp = props.getProperty(FrontEnd.REMOTE_BACK_END_ADDRESSES);
@@ -363,7 +365,9 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 							// Communication OK, but there was a JICP error on the peer
 							throw new ICPException(new String(response.getData()));
 						}
-						outCnt = (outCnt+1) & 0x0f;
+						if (!disableStoreAndForward) {
+							outCnt = (outCnt+1) & 0x0f;
+						}
 						return response.getData();
 					}
 					else {
@@ -377,6 +381,11 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 					myLogger.log(Logger.WARNING, myMediatorID+" - Error writing command. SID = "+pkt.getSessionID(), ioe);
 					handleDisconnection();
 					throw new ICPException("Dispatching error.", ioe);
+				}
+				finally {
+					if (disableStoreAndForward) {
+						outCnt = (outCnt+1) & 0x0f;
+					}
 				}
 			}
 			else {
