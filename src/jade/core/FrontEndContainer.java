@@ -374,6 +374,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	 */
 	public final void exit(boolean self) throws IMTPException {
 		if (!exiting) {
+			waitUntilStarted();
+			
 			exiting = true;
 			logger.log(Logger.INFO,"Container shut down activated");
 			
