@@ -212,7 +212,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 				// When it reconnects, close the previous connection and notify any Thread waiting from
 				// responses on the old connection
 				if (myConnection != null && myConnection != c) {
-					inpManager.resetConnection();
+					inpManager.handleConnectionClosed();
 					try {
 						myConnection.close();
 					} catch(Exception e) {
@@ -223,7 +223,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 				myLogger.log(Logger.INFO, myID+": Connection = "+myConnection);
 				
 				updateConnectedState();			
-				inpManager.setConnection(myConnection);
+				inpManager.handleNewConnection();
 				connectionDropped = false;
 				return true;
 			}
@@ -248,7 +248,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			if (c == myConnection) {
 				myConnection = null;
 				updateConnectedState();
-				inpManager.resetConnection();
+				inpManager.handleConnectionClosed();
 				myLogger.log(Logger.WARNING, myID+": Disconnection detected");
 				setExpirationDeadline();
 			}
@@ -256,6 +256,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		try {
 			c.close();
 		} catch(Exception e1) {
+			myLogger.log(Logger.WARNING, myID+": Unexpected error closing Connection = "+c, e1);
 		}
 	}
 	
@@ -304,6 +305,9 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			break;
 		case JICPProtocol.KEEP_ALIVE_TYPE:
 			myLogger.log(Logger.INFO, "BE "+myID+" - KEEP_ALIVE received");
+			if (!isConnected()) {
+				myLogger.log(Logger.WARNING, "BE "+myID+" - KEEP_ALIVE received with connection closed!!!!!!!!!!!!!!!!!!!!!!!!!");
+			}
 			reply = outManager.handleKeepAlive(pkt);
 			break;
 		case JICPProtocol.RESPONSE_TYPE:
@@ -433,7 +437,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 				
 				myConnection = null;
 				updateConnectedState();
-				inpManager.resetConnection();
+				inpManager.handleConnectionClosed();
 				connectionDropped = true;
 			}
 			else {
@@ -482,7 +486,6 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 	   This class manages the delivery of commands to the FrontEnd
 	 */
 	protected class InputManager {
-		private Connection myConnection;
 		private boolean dispatching = false;
 		private boolean waitingForFlush;
 		private JICPPacket lastIncomingResponse;
@@ -499,13 +502,11 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			return myStub;
 		}
 		
-		void setConnection(Connection c) {
-			myConnection = c;
+		void handleNewConnection() {
 			waitingForFlush = myStub.flush();
 		}
 		
-		synchronized void resetConnection() {
-			myConnection = null;
+		synchronized void handleConnectionClosed() {
 			// If there was someone waiting for a response on the connection notify it.
 			notifyAll();
 		}
@@ -517,7 +518,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		}
 		
 		void shutdown() {
-			resetConnection();
+			handleConnectionClosed();
 		}
 		
 		/**
@@ -526,7 +527,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		final JICPPacket dispatch(JICPPacket pkt, boolean flush) throws ICPException {
 			dispatching = true;
 			try {
-				if (active && myConnection != null) {
+				if (active && isConnected()) { 
 					if (waitingForFlush && !flush) {
 						throw new ICPException("Upsetting dispatching order");
 					}
@@ -560,7 +561,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 							return pkt;
 						}
 						else {
-							myLogger.log(Logger.WARNING, myID+": Response timeout expired");
+							myLogger.log(Logger.WARNING, "[Thread="+Thread.currentThread().getName()+"] BE "+myID+": Response timeout expired");
 							handleConnectionError(myConnection, null);
 							throw new ICPException("Response timeout expired");
 						}
@@ -568,7 +569,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 					catch (IOException ioe) {
 						// There was an IO exception writing data to the connection
 						// --> reset the connection.
-						myLogger.log(Logger.WARNING, myID+": "+ioe);
+						myLogger.log(Logger.WARNING, "[Thread="+Thread.currentThread().getName()+"] BE "+myID+": "+ioe);
 						handleConnectionError(myConnection, ioe);
 						throw new ICPException("Dispatching error.", ioe);
 					}

@@ -10,6 +10,7 @@ package jade.imtp.leap.nio;
 import jade.imtp.leap.ICPException;
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -24,8 +25,13 @@ public class NIOHTTPSConnection extends NIOHTTPConnection {
     public void close() throws IOException {
         try {
             helper.close();
-        } catch (IOException ex) {
-        }
+        } 
+        catch (IOException ex) {
+        } 
+        catch (Exception e) {
+			log.log(Level.WARNING, "Unexpected error closing SSLHelper.", e);
+		}
+		
         super.close();
     }
 
