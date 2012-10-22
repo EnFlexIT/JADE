@@ -225,6 +225,7 @@ public class NIOJICPConnection extends Connection {
 	public final synchronized int writePacket(JICPPacket pkt) throws IOException {
 		int step = 0; // Debug only
 		ByteBuffer bb = null;
+		int totalToWrite = 0;
 		try {
 			ByteArrayOutputStream os = new ByteArrayOutputStream();
 			int n = pkt.writeTo(os);
@@ -242,7 +243,7 @@ public class NIOJICPConnection extends Connection {
 				throw new IOException("still need to transform: " + toSend.remaining());
 			}
 			int totalWrited = 0;
-			int totalToWrite = bb.remaining();
+			totalToWrite = bb.remaining();
 			step++; //4
 			while (bb.hasRemaining()) {
 				int toWrite = bb.remaining();
@@ -261,7 +262,7 @@ public class NIOJICPConnection extends Connection {
 			return totalWrited;
 
 		} catch (NullPointerException npe1) {
-			log.log(Level.WARNING, "writePacket: First NullPointerException occurred in step="+step, npe1);
+			log.log(Level.WARNING, "writePacket: First NullPointerException occurred in step="+step+", totalToWrite="+totalToWrite+", Connection="+this, npe1);
 			
 			// Tutto questo blocco di catch  e' a solo scopo di debug.
 			// Se la NullPointer avviene nella writeToChannel() aspetta 1s e ci riprova
@@ -277,7 +278,7 @@ public class NIOJICPConnection extends Connection {
 					bb.rewind();
 					
 					int totalWrited = 0;
-					int totalToWrite = bb.remaining();
+					totalToWrite = bb.remaining();
 					step++; //1
 					while (bb.hasRemaining()) {
 						int toWrite = bb.remaining();
@@ -292,7 +293,7 @@ public class NIOJICPConnection extends Connection {
 					return totalWrited;
 	
 				} catch (NullPointerException npe2) {
-					log.log(Level.WARNING, "writePacket: Second NullPointerException occurred in step="+step, npe2);
+					log.log(Level.WARNING, "writePacket: Second NullPointerException occurred in step="+step+", totalToWrite="+totalToWrite+", Connection="+this, npe2);
 				
 					throw npe2;
 				}
