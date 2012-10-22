@@ -223,34 +223,40 @@ public class NIOJICPConnection extends Connection {
 	 * @return number of application bytes written to the socket
 	 */
 	public final synchronized int writePacket(JICPPacket pkt) throws IOException {
-		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		int n = pkt.writeTo(os);
-		if (log.isLoggable(Level.FINE)) {
-			log.fine("writePacket: number of bytes before preprocessing: " + n);
-		}
-		ByteBuffer toSend = ByteBuffer.wrap(os.toByteArray());
-		ByteBuffer bb = transformBeforeWrite(toSend);
-		if (toSend.hasRemaining() && transformers.size() > 0) {
-			// for direct JICPConnections the data from the packet are used directly
-			// for subclasses the subsequent transformers must transform all data from the packet before sending
-			throw new IOException("still need to transform: " + toSend.remaining());
-		}
-		int totalWrited = 0;
-		int totalToWrite = bb.remaining();
-		while (bb.hasRemaining()) {
-			int toWrite = bb.remaining();
-			int writed = writeToChannel(bb);
-			totalWrited += writed;
+		try {
+			ByteArrayOutputStream os = new ByteArrayOutputStream();
+			int n = pkt.writeTo(os);
 			if (log.isLoggable(Level.FINE)) {
-				log.fine("writePacket: bytes written " + writed + ", needed to write: " + toWrite);
+				log.fine("writePacket: number of bytes before preprocessing: " + n);
 			}
-		}
-		
-		if (log.isLoggable(Level.FINE)) {
-			log.fine("writePacket: total bytes written " + totalWrited + ", total needed to write: " + totalToWrite);
-		}
+			ByteBuffer toSend = ByteBuffer.wrap(os.toByteArray());
+			ByteBuffer bb = transformBeforeWrite(toSend);
+			if (toSend.hasRemaining() && transformers.size() > 0) {
+				// for direct JICPConnections the data from the packet are used directly
+				// for subclasses the subsequent transformers must transform all data from the packet before sending
+				throw new IOException("still need to transform: " + toSend.remaining());
+			}
+			int totalWrited = 0;
+			int totalToWrite = bb.remaining();
+			while (bb.hasRemaining()) {
+				int toWrite = bb.remaining();
+				int writed = writeToChannel(bb);
+				totalWrited += writed;
+				if (log.isLoggable(Level.FINE)) {
+					log.fine("writePacket: bytes written " + writed + ", needed to write: " + toWrite);
+				}
+			}
+			
+			if (log.isLoggable(Level.FINE)) {
+				log.fine("writePacket: total bytes written " + totalWrited + ", total needed to write: " + totalToWrite);
+			}
 
-		return totalWrited;
+			return totalWrited;
+
+		} catch (NullPointerException npe) {
+			log.log(Level.WARNING, "writePacket: NullPointerException", npe);
+			throw npe;
+		}
 	}
 
 	private ByteBuffer transformBeforeWrite(ByteBuffer data) throws IOException {
