@@ -223,14 +223,19 @@ public class NIOJICPConnection extends Connection {
 	 * @return number of application bytes written to the socket
 	 */
 	public final synchronized int writePacket(JICPPacket pkt) throws IOException {
+		int step = 0; // Debug only
+		ByteBuffer bb = null;
 		try {
 			ByteArrayOutputStream os = new ByteArrayOutputStream();
 			int n = pkt.writeTo(os);
+			step++; //1
 			if (log.isLoggable(Level.FINE)) {
 				log.fine("writePacket: number of bytes before preprocessing: " + n);
 			}
 			ByteBuffer toSend = ByteBuffer.wrap(os.toByteArray());
-			ByteBuffer bb = transformBeforeWrite(toSend);
+			step++; //2
+			bb = transformBeforeWrite(toSend);
+			step++; //3
 			if (toSend.hasRemaining() && transformers.size() > 0) {
 				// for direct JICPConnections the data from the packet are used directly
 				// for subclasses the subsequent transformers must transform all data from the packet before sending
@@ -238,6 +243,7 @@ public class NIOJICPConnection extends Connection {
 			}
 			int totalWrited = 0;
 			int totalToWrite = bb.remaining();
+			step++; //4
 			while (bb.hasRemaining()) {
 				int toWrite = bb.remaining();
 				int writed = writeToChannel(bb);
@@ -245,6 +251,7 @@ public class NIOJICPConnection extends Connection {
 				if (log.isLoggable(Level.FINE)) {
 					log.fine("writePacket: bytes written " + writed + ", needed to write: " + toWrite);
 				}
+				step++; //>=5
 			}
 			
 			if (log.isLoggable(Level.FINE)) {
@@ -253,9 +260,45 @@ public class NIOJICPConnection extends Connection {
 
 			return totalWrited;
 
-		} catch (NullPointerException npe) {
-			log.log(Level.WARNING, "writePacket: NullPointerException", npe);
-			throw npe;
+		} catch (NullPointerException npe1) {
+			log.log(Level.WARNING, "writePacket: First NullPointerException occurred in step="+step, npe1);
+			
+			// Tutto questo blocco di catch  e' a solo scopo di debug.
+			// Se la NullPointer avviene nella writeToChannel() aspetta 1s e ci riprova
+			// In ogni caso l'exception originale viene ritirata
+			if (step >= 4) {
+				// Wait a bit
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {}
+				
+				step = 0;
+				try {
+					bb.rewind();
+					
+					int totalWrited = 0;
+					int totalToWrite = bb.remaining();
+					step++; //1
+					while (bb.hasRemaining()) {
+						int toWrite = bb.remaining();
+						int writed = writeToChannel(bb);
+						totalWrited += writed;
+						if (log.isLoggable(Level.FINE)) {
+							log.fine("writePacket: bytes written " + writed + ", needed to write: " + toWrite);
+						}
+						step++; //>=2
+					}
+
+					return totalWrited;
+	
+				} catch (NullPointerException npe2) {
+					log.log(Level.WARNING, "writePacket: Second NullPointerException occurred in step="+step, npe2);
+				
+					throw npe2;
+				}
+			} else {
+				throw npe1;
+			}
 		}
 	}
 
