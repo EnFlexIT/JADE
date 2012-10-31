@@ -34,6 +34,7 @@ import jade.core.TimerListener;
 import jade.core.TimerDispatcher;
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.BackEndStub;
+import jade.imtp.leap.ConnectionDroppedException;
 import jade.imtp.leap.MicroSkeleton;
 import jade.imtp.leap.FrontEndSkel;
 import jade.imtp.leap.Dispatcher;
@@ -51,6 +52,7 @@ import java.util.Vector;
  */
 public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, TimerListener, Runnable {
 	private static final int RESPONSE_TIMEOUT = 30000;
+	private static final int KEEP_ALIVE_RESPONSE_TIMEOUT = 10000;
 
 	private MicroSkeleton mySkel = null;
 	private BackEndStub myStub = null;
@@ -336,7 +338,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		if (connectionDropped) {
 			myLogger.log(Logger.INFO, myMediatorID+" - Dispatching with connection dropped. Reconnecting...");
 			undrop();
-			throw new ICPException("Connection dropped");
+			throw new ConnectionDroppedException("Connection dropped");
 		}
 		else {
 			if (myConnection != null) {
@@ -748,7 +750,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 					myLogger.log(Logger.INFO, myMediatorID+" - Writing KA.");
 				}
 				writePacket(pkt, myConnection);
-				JICPPacket rsp = waitForResponse(-1, RESPONSE_TIMEOUT);
+				JICPPacket rsp = waitForResponse(-1, KEEP_ALIVE_RESPONSE_TIMEOUT);
 				if (rsp != null) {
 					myLogger.log(Logger.INFO, myMediatorID+" - KA response received");
 				}
