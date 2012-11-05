@@ -749,6 +749,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				if (myLogger.isLoggable(Logger.INFO)) {
 					myLogger.log(Logger.INFO, myMediatorID+" - Writing KA.");
 				}
+				lastOutgoingResponse = null;
 				writePacket(pkt, myConnection);
 				JICPPacket rsp = waitForResponse(-1, KEEP_ALIVE_RESPONSE_TIMEOUT);
 				if (rsp != null) {
@@ -778,6 +779,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			myLogger.log(Logger.INFO, "Writing DROP_DOWN request");
 			JICPPacket pkt = prepareDropDownRequest();
 			try {
+				lastOutgoingResponse = null;
 				writePacket(pkt, myConnection);
 				JICPPacket rsp = waitForResponse(-1, RESPONSE_TIMEOUT);
 				myLogger.log(Logger.INFO, "DROP_DOWN response received");
