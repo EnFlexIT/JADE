@@ -10,7 +10,6 @@ import jade.core.Profile;
 import jade.core.ProfileException;
 import jade.core.IMTPException;
 import jade.imtp.leap.BackEndSkel;
-import jade.imtp.leap.ConnectionDroppedException;
 import jade.imtp.leap.FrontEndStub;
 import jade.imtp.leap.Dispatcher;
 import jade.imtp.leap.ICPException;
@@ -409,7 +408,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			// Move from DROPPED state to DISCONNECTED state and wait 
 			// for the FE to reconnect
 			droppedToDisconnected();
-			throw new ConnectionDroppedException("Connection dropped");
+			throw new ICPException("Connection dropped");
 		}
 		else {
 			// Normal dispatch

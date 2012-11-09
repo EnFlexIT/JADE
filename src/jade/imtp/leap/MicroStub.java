@@ -70,9 +70,8 @@ public class MicroStub {
 		}
 		catch (ICPException icpe) {
 			// The destination is unreachable.
-			// Postpone the command if store-and-forward is enabled (timeout > 0) or
-			// the exception not is a ConnectionDroppedException
-			if (timeout == 0 && !(icpe instanceof ConnectionDroppedException)) {
+			// Postpone the command if store-and-forward is enabled (timeout > 0)
+			if (timeout == 0) {
 				// The command can't be postponed
 				throw new IMTPException("Destination unreachable", icpe);
 			}

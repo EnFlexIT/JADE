@@ -34,7 +34,6 @@ import jade.core.TimerListener;
 import jade.core.TimerDispatcher;
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.BackEndStub;
-import jade.imtp.leap.ConnectionDroppedException;
 import jade.imtp.leap.MicroSkeleton;
 import jade.imtp.leap.FrontEndSkel;
 import jade.imtp.leap.Dispatcher;
@@ -338,61 +337,59 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		if (connectionDropped) {
 			myLogger.log(Logger.INFO, myMediatorID+" - Dispatching with connection dropped. Reconnecting...");
 			undrop();
-			throw new ConnectionDroppedException("Connection dropped");
 		}
-		else {
-			if (myConnection != null) {
-				if (waitingForFlush && !flush) {
-					throw new ICPException("Upsetting dispatching order");
-				}
-				waitingForFlush = false;
 
-				if (myLogger.isLoggable(Logger.INFO)) {
-					myLogger.log(Logger.INFO, myMediatorID+" - Issuing outgoing command "+outCnt);
-				}
-				JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
-				pkt.setSessionID((byte) outCnt);
-				try {
-					lastOutgoingResponse = null;
-					//System.out.println("Sending command to BE "+pkt.getSessionID());
-					writePacket(pkt, myConnection);
-					myLogger.log(Logger.INFO, myMediatorID+" - Waiting for response, SID = "+pkt.getSessionID());
-					JICPPacket response = waitForResponse(outCnt, RESPONSE_TIMEOUT);
-					if (response != null) {
-						//System.out.println("Response received from BE "+response.getSessionID());
-						if (myLogger.isLoggable(Logger.INFO)) {
-							myLogger.log(Logger.INFO, myMediatorID+" - Response received "+response.getSessionID());
-						}
-						if (response.getType() == JICPProtocol.ERROR_TYPE) {
-							// Communication OK, but there was a JICP error on the peer
-							throw new ICPException(new String(response.getData()));
-						}
-						if (!disableStoreAndForward) {
-							outCnt = (outCnt+1) & 0x0f;
-						}
-						return response.getData();
+		if (myConnection != null) {
+			if (waitingForFlush && !flush) {
+				throw new ICPException("Upsetting dispatching order");
+			}
+			waitingForFlush = false;
+
+			if (myLogger.isLoggable(Logger.INFO)) {
+				myLogger.log(Logger.INFO, myMediatorID+" - Issuing outgoing command "+outCnt);
+			}
+			JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
+			pkt.setSessionID((byte) outCnt);
+			try {
+				lastOutgoingResponse = null;
+				//System.out.println("Sending command to BE "+pkt.getSessionID());
+				writePacket(pkt, myConnection);
+				myLogger.log(Logger.INFO, myMediatorID+" - Waiting for response, SID = "+pkt.getSessionID());
+				JICPPacket response = waitForResponse(outCnt, RESPONSE_TIMEOUT);
+				if (response != null) {
+					//System.out.println("Response received from BE "+response.getSessionID());
+					if (myLogger.isLoggable(Logger.INFO)) {
+						myLogger.log(Logger.INFO, myMediatorID+" - Response received "+response.getSessionID());
 					}
-					else {
-						myLogger.log(Logger.WARNING, myMediatorID+" - Response timeout expired. SID = "+pkt.getSessionID());
-						handleDisconnection();
-						throw new ICPException("Response timeout expired");
+					if (response.getType() == JICPProtocol.ERROR_TYPE) {
+						// Communication OK, but there was a JICP error on the peer
+						throw new ICPException(new String(response.getData()));
 					}
-				}
-				catch (IOException ioe) {
-					// Can't reach the BackEnd. 
-					myLogger.log(Logger.WARNING, myMediatorID+" - Error writing command. SID = "+pkt.getSessionID(), ioe);
-					handleDisconnection();
-					throw new ICPException("Dispatching error.", ioe);
-				}
-				finally {
-					if (disableStoreAndForward) {
+					if (!disableStoreAndForward) {
 						outCnt = (outCnt+1) & 0x0f;
 					}
+					return response.getData();
+				}
+				else {
+					myLogger.log(Logger.WARNING, myMediatorID+" - Response timeout expired. SID = "+pkt.getSessionID());
+					handleDisconnection();
+					throw new ICPException("Response timeout expired");
 				}
 			}
-			else {
-				throw new ICPException("Unreachable");
+			catch (IOException ioe) {
+				// Can't reach the BackEnd. 
+				myLogger.log(Logger.WARNING, myMediatorID+" - Error writing command. SID = "+pkt.getSessionID(), ioe);
+				handleDisconnection();
+				throw new ICPException("Dispatching error.", ioe);
 			}
+			finally {
+				if (disableStoreAndForward) {
+					outCnt = (outCnt+1) & 0x0f;
+				}
+			}
+		}
+		else {
+			throw new ICPException("Unreachable");
 		}
 	} 
 
@@ -569,57 +566,23 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	// Reconnection related methods
 	///////////////////////////////////////////////////////
 	public void run() {
-		int cnt = 0;
+		int attemptCnt = 0;
 		long startTime = System.currentTimeMillis();
-		boolean backEndExists = true;
 		while (active) {
 			try {
-				if (backEndExists) {
-					myLogger.log(Logger.INFO, myMediatorID+" - Connecting to " + mediatorTA.getHost() + ":" + mediatorTA.getPort() + " " + cnt);
-					Connection c = openConnection(mediatorTA);
-					myLogger.log(Logger.INFO, myMediatorID+" - Connection opened");
-					JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorTA.getFile(), null);
-					writePacket(pkt, c);
-					myLogger.log(Logger.INFO, myMediatorID+" - Connect maediator packet written");
-					pkt = c.readPacket();
-					myLogger.log(Logger.INFO, myMediatorID+" - Connect maediator responce received");
-					if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
-						String errorMsg = new String(pkt.getData());
-						c.close();
-						if (errorMsg.equals(JICPProtocol.NOT_FOUND_ERROR)) {
-							// The JICPMediatorManager didn't find my Mediator anymore. Either 
-							// there was a fault or max disconnection time expired. 
-							// Try to recreate the BackEnd
-							handleBENotFound();
-							backEndExists = false;
-							continue;
-						} 
-						else {
-							// There was a JICP error. Abort  
-							handleReconnectionError("JICP Error. " + errorMsg);
-							return;
-						}
-					} 
-					else {
-						// The local-host address may have changed
-						myProperties.setProperty(JICPProtocol.LOCAL_HOST_KEY, new String(pkt.getData()));
-						myLogger.log(Logger.INFO, myMediatorID+" - Connect OK");
-						handleReconnection(c);
-						return;
-					}
-				} 
-				else {
-					// Try to recreate the BE
-					Connection c = createBackEnd();
-					handleReconnection(c);
-					return;
-				}
-			} 
+				connect(attemptCnt);
+				return;
+			}
 			catch (IOException ioe) {
 				myLogger.log(Logger.WARNING, myMediatorID+" - Connect failed. " + ioe);
 			} 
 			catch (IMTPException imtpe) {
 				myLogger.log(Logger.WARNING, myMediatorID+" - BE recreation failed.");
+			}
+			catch (ICPException icpe) {
+				// NO need to try further
+				handleReconnectionError("JICP Error. " + icpe.getMessage());
+				return;
 			}
 
 			if ((System.currentTimeMillis() - startTime) > maxDisconnectionTime) {
@@ -628,9 +591,45 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			}
 
 			// Wait a bit before trying again
-			cnt++;
+			attemptCnt++;
 			waitABit(retryTime);
 		}	
+	}
+	
+	private void connect(int attemptCnt) throws IOException, IMTPException, ICPException {
+		myLogger.log(Logger.INFO, myMediatorID+" - Connecting to " + mediatorTA.getHost() + ":" + mediatorTA.getPort() + " " + attemptCnt);
+		Connection c = openConnection(mediatorTA);
+		myLogger.log(Logger.INFO, myMediatorID+" - Connection opened");
+		JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorTA.getFile(), null);
+		writePacket(pkt, c);
+		myLogger.log(Logger.INFO, myMediatorID+" - Connect maediator packet written");
+		pkt = c.readPacket();
+		myLogger.log(Logger.INFO, myMediatorID+" - Connect maediator responce received");
+		if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
+			String errorMsg = new String(pkt.getData());
+			c.close();
+			if (errorMsg.equals(JICPProtocol.NOT_FOUND_ERROR)) {
+				// The JICPMediatorManager didn't find my Mediator anymore. Either 
+				// there was a fault or max disconnection time expired. 
+				// Try to recreate the BackEnd
+				handleBENotFound();
+				// Try to recreate the BE
+				c = createBackEnd();  
+				handleReconnection(c);
+				return;
+			} 
+			else {
+				// There was a JICP error. Abort
+				throw new ICPException(errorMsg);
+			}
+		} 
+		else {
+			// Connect successful. The local-host address may have changed
+			myProperties.setProperty(JICPProtocol.LOCAL_HOST_KEY, new String(pkt.getData()));
+			myLogger.log(Logger.INFO, myMediatorID+" - Connect OK");
+			handleReconnection(c);
+			return;
+		}
 	}
 
 	/**
@@ -816,9 +815,15 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		return new JICPPacket(JICPProtocol.DROP_DOWN_TYPE, JICPProtocol.DEFAULT_INFO, null);
 	}
 
-	protected void undrop() {
+	protected void undrop() throws ICPException {
 		connectionDropped = false;
-		handleDisconnection();
+		try {
+			connect(0);
+		} catch (Exception e) {
+			handleDisconnection();
+			throw new ICPException("Connection error", e);
+		}
+		
 	}	
 
 

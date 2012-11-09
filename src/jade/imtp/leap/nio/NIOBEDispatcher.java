@@ -9,7 +9,6 @@ import jade.core.Profile;
 import jade.core.ProfileException;
 import jade.core.IMTPException;
 import jade.imtp.leap.BackEndSkel;
-import jade.imtp.leap.ConnectionDroppedException;
 import jade.imtp.leap.FrontEndStub;
 import jade.imtp.leap.Dispatcher;
 import jade.imtp.leap.ICPException;
@@ -386,7 +385,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
             // for the FE to reconnect
             droppedToDisconnected();
             requestRefresh();
-            throw new ConnectionDroppedException("Connection dropped");
+            throw new ICPException("Connection dropped");
         } else {
             // Normal dispatch
             JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);

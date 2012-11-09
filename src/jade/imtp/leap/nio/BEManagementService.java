@@ -989,7 +989,7 @@ public class BEManagementService extends BaseService {
 				// The data ready to be read is not enough to complete
 				// a packet. Just do nothing and wait until more data is ready
 				if (myLogger.isLoggable(Logger.INFO)) {
-					myLogger.log(Logger.INFO, "Incomplete JICPPacket from connection " + connection + ". Wait for more data..");
+					myLogger.log(Logger.INFO, "Incomplete JICPPacket (" + pie.getMessage() + ") from connection " + connection + ". Wait for more data..");
 				}
 			} catch (Exception e) {
 				server.serveException(this, e);

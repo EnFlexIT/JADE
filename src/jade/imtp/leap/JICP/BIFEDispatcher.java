@@ -33,7 +33,6 @@ import jade.core.TimerListener;
 import jade.core.Specifier;
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.BackEndStub;
-import jade.imtp.leap.ConnectionDroppedException;
 import jade.imtp.leap.MicroSkeleton;
 import jade.imtp.leap.FrontEndSkel;
 import jade.imtp.leap.Dispatcher;
@@ -303,7 +302,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
     public synchronized byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
         if (connectionDropped) {
             dispatchWhileDropped();
-            throw new ConnectionDroppedException("Connection dropped");
+            throw new ICPException("Connection dropped");
         } else {
             if (outConnection != null) {
                 if (waitingForFlush && !flush) {

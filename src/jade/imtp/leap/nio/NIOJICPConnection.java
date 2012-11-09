@@ -58,7 +58,9 @@ public class NIOJICPConnection extends Connection {
 	 */
 	public final synchronized JICPPacket readPacket() throws IOException {
 		read();
+		int availableBytes = socketData.limit();
 		ByteBuffer jicpData = transformAfterRead(socketData);
+		int transformedBytes = jicpData.limit();
 		if (jicpData.hasRemaining()) {
 			// JICP data actually available after transformations
 			if (!headerReceived) {
@@ -101,7 +103,7 @@ public class NIOJICPConnection extends Connection {
 
 					if (payloadBuf.hasRemaining()) {
 						// Payload not completely received. Wait for next round 
-						throw new PacketIncompleteException();
+						throw new PacketIncompleteException("Available bytes="+availableBytes+", trasnsformed bytes="+transformedBytes);
 					} else {
 						return buildPacket();
 					}
@@ -114,7 +116,7 @@ public class NIOJICPConnection extends Connection {
 				NIOHelper.copyAsMuchAsFits(payloadBuf, jicpData);
 				if (payloadBuf.hasRemaining()) {
 					// Payload not completely received. Wait for next round 
-					throw new PacketIncompleteException();
+					throw new PacketIncompleteException("Available bytes="+availableBytes+", trasnsformed bytes="+transformedBytes);
 				} else {
 					return buildPacket();
 				}
@@ -122,7 +124,7 @@ public class NIOJICPConnection extends Connection {
 		}
 		else {
 			// No JICP data available at this round. Wait for next 
-			throw new PacketIncompleteException();
+			throw new PacketIncompleteException("Available bytes="+availableBytes+", trasnsformed bytes="+transformedBytes);
 		}
 	}
 
