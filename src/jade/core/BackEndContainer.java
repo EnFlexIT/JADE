@@ -151,7 +151,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 					myProfile.setParameter(MicroRuntime.PLATFORM_ADDRESSES_KEY, sb.toString());
 				}
 				if ("true".equals(myProfile.getParameter(RESYNCH, "false"))) {
-					myLogger.log(Logger.INFO, "BackEnd container "+ myProfile.getParameter(Profile.CONTAINER_NAME, null)+" re-synching ...");
+					myLogger.log(Logger.INFO, "BackEnd container "+ myProfile.getParameter(Profile.CONTAINER_NAME, null)+" activating re-synch ...");
 					resynch();
 				}
 				else {
@@ -700,9 +700,13 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 			public void run() {
 				while (!terminating) {
 					try {
+						// Wait a bit also before the first attempt to avoid sending the synch 
+						// command in the middle of the BE creation procedure
+						try {Thread.sleep(1000);} catch (Exception e) {}
+						myLogger.log(Logger.INFO, "BackEnd container "+ here().getName()+" - Sending SYNCH command to FE ...");
 						myFrontEnd.synch();
 						notifySynchronized();
-						myLogger.log(Logger.INFO, "Resynch completed");
+						myLogger.log(Logger.INFO, "BackEnd container "+ here().getName()+" - Resynch completed");
 						break;
 					}
 					catch (IMTPException imtpe) {
@@ -712,10 +716,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 						
 						// The input connection is down again (or there was an IMTP
 						// error resynching). Go back waiting
-						if (myLogger.isLoggable(Logger.FINE)) {
-							myLogger.log(Logger.FINE, "Can't issue SYNCH command to FE. Wait a bit and retry...");
-						}
-						try {Thread.sleep(1000);} catch (Exception e) {}
+						myLogger.log(Logger.WARNING, "BackEnd container "+ here().getName()+" - IMTP Exception in resynch. Wait a bit and retry...");
 					}
 				}
 			}

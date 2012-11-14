@@ -190,6 +190,20 @@ class InternalMessageQueue implements MessageQueue {
 	Object[] getAllMessages() {
 		return list.toArray();
 	}
+	
+	void cleanOldMessages(long maxTime, MessageTemplate pattern) {
+		long now = System.currentTimeMillis();
+		int cnt = 0;
+		for (Iterator messages = iterator(); messages.hasNext(); cnt++) {
+			ACLMessage msg = (ACLMessage)messages.next();
+			long postTime = msg.getPostTimeStamp();
+			if (postTime > 0 && ((now - postTime) > maxTime)) {
+				if (pattern == null || pattern.match(msg)) {
+					messages.remove();
+				}
+			}
+		}
+	}
 	//#MIDP_EXCLUDE_END
 
 }

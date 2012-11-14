@@ -151,7 +151,9 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
 		return tickCount;
 	}
 	
-	
+	protected long getPeriod() {
+		return period;
+	}
 	//#MIDP_EXCLUDE_BEGIN
 	
 	// For persistence service
@@ -162,11 +164,6 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
 	// For persistence service
 	private void setPeriod(long p) {
 		period = p;
-	}
-	
-	// For persistence service
-	private long getPeriod() {
-		return period;
 	}
 	
 	// For persistence service

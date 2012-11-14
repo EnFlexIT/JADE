@@ -2110,6 +2110,7 @@ public class Agent implements Runnable, Serializable
 	 @see jade.core.Agent#send(ACLMessage msg)
 	 */
 	public final void postMessage(final ACLMessage msg) {
+		msg.setPostTimeStamp();
 		synchronized (msgQueue) {
 			if (msg != null) {
 				//#MIDP_EXCLUDE_BEGIN

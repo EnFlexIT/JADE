@@ -290,7 +290,7 @@ public class BEManagementService extends BaseService {
 		private String myLogPrefix;
 		private int state = INIT_STATE;
 		private ServerSocketChannel mySSChannel;
-		private int mediatorCnt = 1;
+		private long mediatorCnt = 1;
 		private Hashtable mediators = new Hashtable();
 		private Vector deregisteredMediators = new Vector();
 		private String host;
@@ -514,6 +514,10 @@ public class BEManagementService extends BaseService {
 		final String getLogPrefix() {
 			return myLogPrefix;
 		}
+		
+		final synchronized long nextMediatorCnt() {
+			return mediatorCnt++;
+		}
 
 		/**
         Get the LoopManager with the minimum number of registered
@@ -621,7 +625,7 @@ public class BEManagementService extends BaseService {
 							id = msisdn;
 							if (id == null) {
 								// Construct a default id using the string representation of the server's TCP endpoint
-								id = "BE-" + getLocalHost() + '_' + getLocalPort() + '-' + String.valueOf(mediatorCnt++);
+								id = "BE-" + getLocalHost() + '_' + getLocalPort() + '-' + nextMediatorCnt();
 							}
 						}
 

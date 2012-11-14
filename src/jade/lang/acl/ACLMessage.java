@@ -282,6 +282,9 @@ public class ACLMessage implements Serializable {
 	private String conversation_id = null;
 	
 	private Properties userDefProps = null; 
+	
+	private long postTimeStamp = -1;
+	
 	//#CUSTOM_EXCLUDE_BEGIN
 	private Envelope messageEnvelope;
 	//#CUSTOM_EXCLUDE_END
@@ -931,6 +934,14 @@ public class ACLMessage implements Serializable {
 			return null;
 		else
 			return userDefProps.remove(key);
+	}
+	
+	public void setPostTimeStamp() {
+		postTimeStamp = System.currentTimeMillis();
+	}
+	
+	public long getPostTimeStamp() {
+		return postTimeStamp;
 	}
 	
 //	#CUSTOM_EXCLUDE_BEGIN
