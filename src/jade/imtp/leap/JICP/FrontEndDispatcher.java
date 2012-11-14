@@ -389,6 +389,10 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			}
 		}
 		else {
+			if (!refreshingConnection) {
+				// The previous attempt to reconnect failed. Activate the reconnection mechanism again 
+				handleDisconnection();
+			}
 			throw new ICPException("Unreachable");
 		}
 	} 
@@ -399,7 +403,6 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	//////////////////////////////////////////////////
 	private void startConnectionReader(Connection c) {
 		myConnection = c;
-		refreshingConnection = false;
 		myConnectionReader = new ConnectionReader(myConnection);
 		myConnectionReader.start();
 	}
@@ -662,6 +665,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	protected void handleReconnection(Connection c) {
 		synchronized (connectionLock) {
 			startConnectionReader(c);
+			refreshingConnection = false;
 			waitingForFlush = myStub.flush();
 			if (myConnectionListener != null) {
 				myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTED, null);
@@ -672,10 +676,10 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	private void handleReconnectionError(String msg) {
 		myLogger.log(Logger.SEVERE, "Can't reconnect: "+msg);
 
+		refreshingConnection = false;
 		if (myConnectionListener != null) {
 			myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTION_FAILURE, null);
 		}
-		active = false;
 	}
 
 	private void handleBENotFound() {
@@ -898,6 +902,8 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 
 				releaseCurrentCommand();
 			}
+			myLogger.log(Logger.INFO, myMediatorID+" - CS terminated");
+			myCommandServer = null;
 		}
 
 		private synchronized void acquireCurrentCommand() {
