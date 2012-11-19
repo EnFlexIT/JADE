@@ -299,7 +299,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
     Deliver a serialized command to the BackEnd.
     @return The serialized response
      */
-    public synchronized byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
+    public synchronized byte[] dispatch(byte[] payload, boolean flush, int oldSessionId) throws ICPException {
         if (connectionDropped) {
             dispatchWhileDropped();
             throw new ICPException("Connection dropped");
@@ -311,11 +311,16 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
                 waitingForFlush = false;
 
                 int status = 0;
-                if (myLogger.isLoggable(Logger.FINE)) {
-                    myLogger.log(Logger.FINE, "Issuing outgoing command " + outCnt);
-                }
                 JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
+    			if (flush && oldSessionId != -1) {
+    				// This is a postponed command whose previous dispatch failed --> Use the
+    				// old sessionId, so that if the server already received it (previous dispatch 
+    				// failed due to a response delivering error) the command will be recognized 
+    				// as duplicated and properly managed
+    				outCnt = oldSessionId;
+    			}
                 pkt.setSessionID((byte) outCnt);
+                myLogger.log(Logger.FINE, "Issuing outgoing command " + outCnt);
                 try {
                     writePacket(pkt, outConnection);
                     status = 1;
@@ -335,13 +340,15 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
                         // The BackEnd is considering the input connection no longer valid
                         refreshInp();
                     }
-                    outCnt = (outCnt + 1) & 0x0f;
                     return pkt.getData();
                 } catch (IOException ioe) {
                     // Can't reach the BackEnd.
                     myLogger.log(Logger.WARNING, "IOException OC[" + status + "]" + ioe);
                     refreshOut();
                     throw new ICPException("Dispatching error.", ioe);
+                }
+                finally {
+                    outCnt = (outCnt + 1) & 0x0f;
                 }
             } else {
                 System.out.println("Out Connection null: refreshingOut = " + refreshingOutput);

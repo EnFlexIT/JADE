@@ -171,12 +171,6 @@ public class ACLMessage implements Serializable {
 	public static final String IGNORE_FAILURE = "JADE-ignore-failure";
 	
 	/**
-	 * User defined parameter key specifying that the corresponding value must be replaced by the JADE runtime
-	 * by an ISO8601 encoded time-stamp at posting time.
-	 */
-	public static final String POST_TIME_STAMP = "JADE-post-ts";
-	
-	/**
 	 * User defined parameter key specifying that the JADE tracing mechanism should be activated for this message.
 	 */
 	public static final String TRACE = "JADE-trace";
@@ -199,6 +193,15 @@ public class ACLMessage implements Serializable {
 	 * sender.
 	 */
 	public static final String REAL_SENDER = "JADE-real-sender";
+
+	/**
+	 * User defined parameter key specifying that this message must be stored for a
+	 * given timeout (in ms) in case it is sent to/from a temporarily disconnected split 
+	 * container. After that timeout a FAILURE message will be sent back to the sender.<br> 
+	 * 0 means store and forward disabled
+	 * -1 means infinite timeout
+	 */
+	public static final String SF_TIMEOUT = "JADE-SF-timeout";
 
 	/**
 	 * AMS failure reasons 

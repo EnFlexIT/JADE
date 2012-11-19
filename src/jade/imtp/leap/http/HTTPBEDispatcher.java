@@ -219,9 +219,9 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
     Mutual exclusion with itself to ensure one command at a time
     is dispatched.
 	 */
-	public synchronized byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
+	public synchronized byte[] dispatch(byte[] payload, boolean flush, int oldSessionId) throws ICPException {
 		JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
-		pkt = myOutgoingsHandler.deliverCommand(pkt, flush);
+		pkt = myOutgoingsHandler.deliverCommand(pkt, flush, oldSessionId);
 		if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
 			// Communication OK, but there was a JICP error on the peer
 			throw new ICPException(new String(pkt.getData()));
@@ -338,7 +338,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
         is set to CONNECTING).
         Called by HTTPBEDispatcher#dispatch()
 		 */
-		public synchronized JICPPacket deliverCommand(JICPPacket cmd, boolean flush) throws ICPException {
+		public synchronized JICPPacket deliverCommand(JICPPacket cmd, boolean flush, int oldSessionId) throws ICPException {
 			if (frontEndStatus == REACHABLE) {
 				// The following check preserves dispatching order when the
 				// front-end has just reconnected but flushing of postponed commands has not started yet
@@ -348,6 +348,13 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 				waitingForFlush = false;
 
 				// 1) Schedule the command for delivery
+				if (flush && oldSessionId != -1) {
+					// This is a postponed command whose previous dispatch failed --> Use the
+					// old sessionId, so that if the server already received it (previous dispatch 
+					// failed due to a response delivering error) the command will be recognized 
+					// as duplicated and properly managed
+					outCnt = oldSessionId;
+				}
 				int sid = outCnt;
 				outCnt = (outCnt + 1) & MAX_SID;
 				if (myLogger.isLoggable(Logger.FINE)) {

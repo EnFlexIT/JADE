@@ -24,8 +24,11 @@
 package jade.imtp.leap;
 
 import jade.core.IMTPException;
+import jade.core.Timer;
+import jade.core.TimerDispatcher;
+import jade.core.TimerListener;
+
 import java.util.Vector;
-import java.util.Enumeration;
 import jade.util.Logger;
 
 /**
@@ -33,6 +36,8 @@ import jade.util.Logger;
  * @author Giovanni Caire - TILAB
  */
 public class MicroStub {
+	public static final long MINIMUM_TIMEOUT = 3000; // 3 sec
+	
 	protected Dispatcher myDispatcher;
 	protected Vector pendingCommands = new Vector();
 	private int activeCnt = 0;
@@ -46,11 +51,16 @@ public class MicroStub {
 	}
 	
 	protected Command executeRemotely(Command c, long timeout) throws IMTPException {
+		return executeRemotely(c, timeout, -1);
+	}
+	
+	private Command executeRemotely(Command c, long timeout, int sessionId) throws IMTPException {
+		long start = System.currentTimeMillis();
 		try {
 			disableFlush();
 			byte[] cmd = SerializationEngine.serialize(c);
-			logger.log(Logger.FINE, "Dispatching command "+c.getCode());
-			byte[] rsp = myDispatcher.dispatch(cmd, flushing);
+			logger.log(Logger.INFO, "Dispatching command "+c.getCode()+". SF timeout = "+timeout);
+			byte[] rsp = myDispatcher.dispatch(cmd, flushing, sessionId);
 			if (pendingCommands.size() > 0) {
 				logger.log(Logger.FINE, "############# Dispatch succeeded with "+pendingCommands.size()+" pending commands.");
 			}
@@ -70,15 +80,25 @@ public class MicroStub {
 		}
 		catch (ICPException icpe) {
 			// The destination is unreachable.
-			// Postpone the command if store-and-forward is enabled (timeout > 0)
+			// Postpone the command if store-and-forward is enabled (timeout > 0 or -1 i.e. INFNITE)
 			if (timeout == 0) {
 				// The command can't be postponed
 				throw new IMTPException("Destination unreachable", icpe);
 			}
 			else {
 				logger.log(Logger.WARNING, "Dispatch failed. Command postponed. "+icpe.getMessage());
-				// FIXME: if timeout > 0 we should add a timer
-				postpone(c);
+				if (timeout > 0) {
+					// If we must store the command for N sec, but M sec have already been spent 
+					// trying to dispatch the command, wait for N-M sec only  
+					long elapsedTime = System.currentTimeMillis() - start;
+					long remainingTime = timeout - elapsedTime;
+					timeout = (remainingTime > MINIMUM_TIMEOUT ? remainingTime : MINIMUM_TIMEOUT);
+				}
+				int dispatchSessionId = -1;
+				if (icpe instanceof ICPDispatchException) {
+					dispatchSessionId = ((ICPDispatchException) icpe).getSessionId();
+				}
+				postpone(c, timeout, dispatchSessionId);
 				return null;
 			}
 		}
@@ -90,11 +110,26 @@ public class MicroStub {
 		}
 	}
 	
-	private void postpone(Command c) {
+	private void postpone(Command c, long timeout, int sessionId) {
 		if (logger.isLoggable(Logger.FINE)) {
-			logger.log(Logger.FINE,Thread.currentThread().toString()+": Command "+c.getCode()+" postponed");
+			logger.log(Logger.FINE, Thread.currentThread().toString()+": Command "+c.getCode()+" postponed");
 		}
-		pendingCommands.addElement(c);
+		final PostponedCommand pc = new PostponedCommand(c, sessionId);
+		pendingCommands.addElement(pc);
+		if (timeout > 0) {
+			logger.log(Logger.INFO, Thread.currentThread().toString()+": Activating Timer for Command "+c.getCode());
+			pc.timer = TimerDispatcher.getTimerDispatcher().add(new Timer(System.currentTimeMillis()+timeout, new TimerListener() {
+				public void doTimeOut(Timer t) {
+					// Timeout expired --> Remove the related postponed command and
+					// let subclasses react properly 
+					if (t == pc.timer) {
+						logger.log(Logger.INFO, Thread.currentThread().toString()+": Timer for Command "+pc.command.getCode()+" expired!!!");
+						manageTimerExpired(pc);
+					}
+				}
+			}));
+		}
+		
 		int size = pendingCommands.size();
 		if (size > 100 && size < 110) {
 			logger.log(Logger.WARNING,size+" postponed commands");
@@ -125,16 +160,20 @@ public class MicroStub {
 					// 2) Flush the buffer of pending commands
 					logger.log(Logger.INFO,"Start flushing");					
 					int flushedCnt = 0;
-					Command c = null;
-					while ((c = removeFirst()) != null) {
+					PostponedCommand pc = null;
+					while ((pc = removeFirst()) != null) {
 						// Exceptions and return values of commands whose delivery
 						// was delayed for disconnection problems can and must not
 						// be handled!!!
 						try {
 							if (logger.isLoggable(Logger.FINE)) {
-								logger.log(Logger.FINE,"Flushing command: code = "+c.getCode());
+								logger.log(Logger.FINE,"Flushing command: code = "+pc.command.getCode());
 							}
-							Command r = executeRemotely(c, 0);
+							Command r = executeRemotely(pc.command, 0, pc.sessionId);
+							// Command delivered. Remove the Timer associated to it if any 
+							if (pc.timer != null) {
+								TimerDispatcher.getTimerDispatcher().remove(pc.timer);
+							}
 							flushedCnt++;
 							if (r.getCode() == Command.ERROR) {
 								logger.log(Logger.SEVERE,"Remote exception in command asynchronous delivery. "+r.getParamAt(2));
@@ -143,8 +182,11 @@ public class MicroStub {
 						catch (Exception ex) {
 							logger.log(Logger.WARNING,"Exception in command asynchronous delivery. "+ex);
 							// We are disconnected again --> put the command back in the queue of postponed commands
-							// and stop flushing
-							pendingCommands.insertElementAt(c, 0);
+							// and stop flushing. If there was a Timer it is still there --> No need to do anything
+							if (ex instanceof ICPDispatchException) {
+								pc.sessionId = ((ICPDispatchException) ex).getSessionId();
+							}
+							pendingCommands.insertElementAt(pc, 0);
 							break;
 						}
 					}
@@ -166,6 +208,10 @@ public class MicroStub {
 	
 	public boolean isEmpty() {
 		return ((pendingCommands.size() == 0) && (!flushing));
+	}
+	
+	protected void handlePostponedCommandExpired(Command c) {
+		// Do nothing by default. Subclasses may redefine this to react properly
 	}
 	
 	/**
@@ -200,14 +246,48 @@ public class MicroStub {
 		}
 	}		
 	
-	private Command removeFirst() {
+	private PostponedCommand removeFirst() {
 		synchronized (pendingCommands) {
-			Command c = null;
+			PostponedCommand pc = null;
 			if (pendingCommands.size() > 0) {
-				c = (Command) pendingCommands.elementAt(0);
+				pc = (PostponedCommand) pendingCommands.elementAt(0);
 				pendingCommands.removeElementAt(0);
 			}
-			return c;
+			return pc;
+		}
+	}
+	
+	private void manageTimerExpired(final PostponedCommand pc) {
+		// This is invoked by the TimerDispatcher Thread. Since the operation may be 
+		// long, do it in a dedicated Thread
+		Thread t = new Thread() {
+			public void run() {
+				// Removing expired pending commands cannot be done while flushing to 
+				// avoid cases like:
+				// - Flushing starts and postponed command dispatching begins
+				// - Timer expires and FAILURE is sent back
+				// - Delivering succeeds
+				disableFlush();
+				boolean found = pendingCommands.remove(pc);
+				enableFlush();
+				// The command may have been processed while we were waiting to disable flush.
+				// Do nothing in this case
+				if (found) {
+					handlePostponedCommandExpired(pc.command);
+				}
+			}
+		};
+		t.start();
+	}
+	
+	private class PostponedCommand {
+		private Command command;
+		private int sessionId;
+		private Timer timer;
+		
+		public PostponedCommand(Command c, int sessionId) {
+			this.command = c;
+			this.sessionId = sessionId;
 		}
 	}
 }

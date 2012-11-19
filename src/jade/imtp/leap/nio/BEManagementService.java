@@ -138,6 +138,9 @@ public class BEManagementService extends BaseService {
 	// FIXME: The mechanism for filling/clearing this list is not yet
 	// defined/implemented
 	private Vector maliciousAddresses = new Vector();
+	
+	private String configOptionsFileName = "feOptions.properties";
+	
 	private Logger myLogger = Logger.getJADELogger(getClass().getName());
 
 	/**
@@ -276,6 +279,13 @@ public class BEManagementService extends BaseService {
 			myHelper = new BEManagementHelperImpl();
 		}
 		return myHelper;
+	}
+	
+	private String encodeConfigOptionsResponse() throws Exception {
+		Properties pp = new Properties();
+		// Search first in the file system and then in the classpath
+		pp.load(configOptionsFileName);
+		return FrontEndStub.encodeProperties(pp);
 	}
 
 	/**
@@ -578,7 +588,14 @@ public class BEManagementService extends BaseService {
 				case JICPProtocol.GET_ADDRESS_TYPE: {
 					// Respond sending back the caller address
 					myLogger.log(Logger.INFO, myLogPrefix + "GET_ADDRESS request received from " + address + ":" + port);
-					reply = new JICPPacket(JICPProtocol.GET_ADDRESS_TYPE, JICPProtocol.DEFAULT_INFO, address.getHostAddress().getBytes());
+					reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, address.getHostAddress().getBytes());
+					break;
+				}
+				case JICPProtocol.GET_CONFIG_OPTIONS_TYPE: {
+					// Respond sending back the configuration options
+					myLogger.log(Logger.INFO, myLogPrefix + "GET_CONFIGURATION_OPTIONS request received from " + address + ":" + port);
+					String replyMsg = encodeConfigOptionsResponse();
+					reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, replyMsg.getBytes());
 					break;
 				}
 				case JICPProtocol.CREATE_MEDIATOR_TYPE: {

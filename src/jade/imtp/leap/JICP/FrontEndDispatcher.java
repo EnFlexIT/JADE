@@ -66,9 +66,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	private long retryTime = JICPProtocol.DEFAULT_RETRY_TIME;
 	private long maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
 	private long keepAliveTime = JICPProtocol.DEFAULT_KEEP_ALIVE_TIME;
-	//private long keepAliveTime = -1;
 	private long connectionDropDownTime = -1;
-	private boolean disableStoreAndForward;
 
 	private Timer kaTimer, cdTimer;
 
@@ -100,10 +98,9 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	 */
 	public BackEnd getBackEnd(FrontEnd fe, Properties props) throws IMTPException {
 		myProperties = props;
+		//manageRemoteConfig();
 		myMediatorID = myProperties.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
-		disableStoreAndForward = Boolean.parseBoolean(myProperties.getProperty(MicroRuntime.DISABLE_STORE_AND_FORWARD_KEY, "false"));
 		try {
-
 			String tmp = props.getProperty(FrontEnd.REMOTE_BACK_END_ADDRESSES);
 			backEndAddresses = parseBackEndAddresses(tmp);
 
@@ -217,6 +214,26 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			throw new IMTPException("Connection error", icpe);
 		}
 	}
+	
+	/*private void manageRemoteConfig() throws IMTPException {
+		String remoteConfigHost = myProperties.getProperty(MicroRuntime.REMOTE_CONFIG_HOST_KEY);
+		String remoteConfigPort = myProperties.getProperty(MicroRuntime.REMOTE_CONFIG_PORT_KEY);
+		if (remoteConfigHost != null && remoteConfigPort != null) {
+			// Remote configuration options specified: Retrieve connectivity related
+			// configurations from the indicated host and port
+			JICPConnection c = getConnection(new JICPAddress(remoteConfigHost, remoteConfigPort, myMediatorID, ""));
+			JICPPacket pkt = new JICPPacket(JICPProtocol.GET_CONFIG_OPTIONS_TYPE, JICPProtocol.DEFAULT_INFO, null);
+			writePacket(pkt, c);
+			pkt = c.readPacket();
+			c.close();
+			...
+			String replyMsg = new String(pkt.getData());
+			if (pkt.getType() != JICPProtocol.ERROR_TYPE) {
+				// BackEnd creation successful
+				BackEndStub.parseCreateMediatorResponse(replyMsg, myProperties);
+
+		}
+	}*/
 
 	/**
 	   Send the CREATE_MEDIATOR command with the necessary parameter
@@ -333,7 +350,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	 Deliver a serialized command to the BackEnd.
 	 @return The serialized response
 	 */
-	public synchronized byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
+	public synchronized byte[] dispatch(byte[] payload, boolean flush, int oldSessionId) throws ICPException {
 		if (connectionDropped) {
 			myLogger.log(Logger.INFO, myMediatorID+" - Dispatching with connection dropped. Reconnecting...");
 			undrop();
@@ -344,12 +361,17 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				throw new ICPException("Upsetting dispatching order");
 			}
 			waitingForFlush = false;
-
-			if (myLogger.isLoggable(Logger.INFO)) {
-				myLogger.log(Logger.INFO, myMediatorID+" - Issuing outgoing command "+outCnt);
-			}
+			
 			JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
+			if (flush && oldSessionId != -1) {
+				// This is a postponed command whose previous dispatch failed --> Use the
+				// old sessionId, so that if the server already received it (previous dispatch 
+				// failed due to a response delivering error) the command will be recognized 
+				// as duplicated and properly managed
+				outCnt = oldSessionId;
+			}
 			pkt.setSessionID((byte) outCnt);
+			myLogger.log(Logger.INFO, myMediatorID+" - Issuing outgoing command "+outCnt);
 			try {
 				lastOutgoingResponse = null;
 				//System.out.println("Sending command to BE "+pkt.getSessionID());
@@ -364,9 +386,6 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 					if (response.getType() == JICPProtocol.ERROR_TYPE) {
 						// Communication OK, but there was a JICP error on the peer
 						throw new ICPException(new String(response.getData()));
-					}
-					if (!disableStoreAndForward) {
-						outCnt = (outCnt+1) & 0x0f;
 					}
 					return response.getData();
 				}
@@ -383,9 +402,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				throw new ICPException("Dispatching error.", ioe);
 			}
 			finally {
-				if (disableStoreAndForward) {
-					outCnt = (outCnt+1) & 0x0f;
-				}
+				outCnt = (outCnt+1) & 0x0f;
 			}
 		}
 		else {
@@ -595,7 +612,12 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 
 			// Wait a bit before trying again
 			attemptCnt++;
-			waitABit(retryTime);
+			if (attemptCnt < 10) {
+				waitABit(500);
+			}
+			else {
+				waitABit(retryTime);
+			}
 		}	
 	}
 	

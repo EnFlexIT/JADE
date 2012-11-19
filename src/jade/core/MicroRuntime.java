@@ -23,7 +23,10 @@
 
 package jade.core;
 
+import jade.domain.FIPANames;
+import jade.lang.acl.ACLMessage;
 import jade.util.Logger;
+import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
 //#MIDP_EXCLUDE_BEGIN
 import jade.wrapper.AgentController;
@@ -85,13 +88,18 @@ public class MicroRuntime {
 	public static final String PROTO_KEY = "proto";
 		
 	/**
-	 The configuration property key that, when set to <code>true</>, disables the store-and-forward
-	 mechanism implemented by the Front-End that postpones ACLMessages to be delivered when the 
-	 FE-BE connection is down. If this mechanism is disabled, whenever an ACLMessage is sent while 
-	 the connection is down, a FAILURE message is sent back to the sender as usual.
+	 * The configuration property key that specifies how much time by default a command that is 
+	 * being delivered during a temporary disconnection must be stored waiting for the FE
+	 * to reconnect. After that time the command fails (in case of a message delivery command,
+	 * a FAILURE is sent back to the sender).<br> 
+	 * 0 means store and forward disabled
+	 * -1 means infinite timeout
 	 */
-	public static final String DISABLE_STORE_AND_FORWARD_KEY = "disable-store-and-forward";
+	public static final String DEFAULT_SF_TIMEOUT_KEY = "default-sf-timeout";
 		
+	public static final String REMOTE_CONFIG_HOST_KEY = "remote-config-host";
+	public static final String REMOTE_CONFIG_PORT_KEY = "remote-config-port";
+	
     public static final String SOCKET_PROTOCOL = "socket";
     public static final String SSL_PROTOCOL = "ssl";
     public static final String HTTP_PROTOCOL = "http";
@@ -115,6 +123,8 @@ public class MicroRuntime {
 	private static Runnable terminator;
 	private static FrontEndContainer myFrontEnd;
 	private static boolean terminated;
+	
+	private static Logger logger = Logger.getJADELogger(MicroRuntime.class.getName());
 
 	/**
 	 Start up the JADE runtime. This method launches a JADE
@@ -304,6 +314,34 @@ public class MicroRuntime {
 			myFrontEnd.detach();
 		}
 	}
+	
+	//#APIDOC_EXCLUDE_BEGIN
+	public static void notifyFailureToSender(ACLMessage msg, String sender, String error) {
+		if (myFrontEnd != null) {
+			// Send back a failure message
+			try {
+				Iterator it = msg.getAllReceiver();
+				while (it.hasNext()) {
+					AID receiver = (AID) it.next();
+					// If this receiver is local, the message has certainly been delivered 
+					// successfully --> Do not send any FAILURE back for this receiver
+					if (myFrontEnd.getLocalAgent(receiver.getLocalName()) == null) { 
+						ACLMessage failure = msg.createReply();
+						failure.setPerformative(ACLMessage.FAILURE);
+						failure.setSender(myFrontEnd.getAMS());
+						failure.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
+						String content = "( (action " + sender;
+				        content = content + " (ACLMessage) ) (MTS-error " + receiver + " \"" + error + "\") )";
+						failure.setContent(content);
+						myFrontEnd.messageIn(failure, sender);
+					}
+				}
+			} catch (Exception e1) {
+				logger.log(Logger.SEVERE, "Error delivering FAILURE message.", e1);
+			}
+		}		
+	}
+	//#APIDOC_EXCLUDE_END
 	
 	/**
 	 Activate the Java environment terminator when the JADE runtime

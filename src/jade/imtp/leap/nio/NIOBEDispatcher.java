@@ -379,7 +379,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
     //////////////////////////////////////////
     // Dispatcher interface implementation
     //////////////////////////////////////////
-    public byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
+    public byte[] dispatch(byte[] payload, boolean flush, int oldSessionId) throws ICPException {
         if (connectionDropped) {
             // Move from DROPPED state to DISCONNECTED state and wait
             // for the FE to reconnect
@@ -389,7 +389,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
         } else {
             // Normal dispatch
             JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
-            pkt = inpManager.dispatch(pkt, flush);
+            pkt = inpManager.dispatch(pkt, flush, oldSessionId);
             return pkt.getData();
         }
     }
@@ -526,7 +526,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
         setConnection() and resetConnection() since it performs a
         blocking read operation --> It can't just be declared synchronized.
          */
-        final JICPPacket dispatch(JICPPacket pkt, boolean flush) throws ICPException {
+        final JICPPacket dispatch(JICPPacket pkt, boolean flush, int oldSessionId) throws ICPException {
             synchronized (dispatchLock) {
                 dispatching = true;
                 try {
@@ -543,6 +543,13 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
                     }
 
                     try {
+            			if (flush && oldSessionId != -1) {
+            				// This is a postponed command whose previous dispatch failed --> Use the
+            				// old sessionId, so that if the server already received it (previous dispatch 
+            				// failed due to a response delivering error) the command will be recognized 
+            				// as duplicated and properly managed
+            				inpCnt = oldSessionId;
+            			}
                         pkt.setSessionID((byte) inpCnt);
                         if (myLogger.isLoggable(Logger.FINE)) {
                             myLogger.log(Logger.FINE, myID + ": Sending command " + inpCnt + " to FE");
@@ -571,7 +578,6 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
                             // killing the above container since it is already dying.
                             NIOBEDispatcher.this.shutdown();
                         }
-                        inpCnt = (inpCnt + 1) & 0x0f;
                         return reply;
                     } catch (NullPointerException npe) {
                         // This can happen if a resetConnection() occurs just before
@@ -589,6 +595,9 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
                         readStartTime = -1;
                         throw new ICPException("Dispatching error.", ioe);
                     }
+                    finally {
+                        inpCnt = (inpCnt + 1) & 0x0f;
+                    }
                 } finally {
                     dispatching = false;
                 }
@@ -604,7 +613,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 
         public void sendServerKeepAlive() throws ICPException {
             JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
-            dispatch(pkt, false);
+            dispatch(pkt, false, -1);
         }
         /* Asynch-reply
         final synchronized void handleResponse(Connection c, JICPPacket reply) throws ICPException {

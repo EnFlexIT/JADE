@@ -403,7 +403,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 	//////////////////////////////////////////
 	// Dispatcher interface implementation
 	//////////////////////////////////////////
-	public synchronized byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
+	public synchronized byte[] dispatch(byte[] payload, boolean flush, int oldSessionId) throws ICPException {
 		if (connectionDropped) {
 			// Move from DROPPED state to DISCONNECTED state and wait 
 			// for the FE to reconnect
@@ -413,7 +413,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		else {
 			// Normal dispatch
 			JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
-			pkt = inpManager.dispatch(pkt, flush);
+			pkt = inpManager.dispatch(pkt, flush, oldSessionId);
 			return pkt.getData();
 		}
 	}
@@ -524,7 +524,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		/**
 		   Dispatch a JICP command to the FE and get back a reply.
 		*/
-		final JICPPacket dispatch(JICPPacket pkt, boolean flush) throws ICPException {
+		final JICPPacket dispatch(JICPPacket pkt, boolean flush, int oldSessionId) throws ICPException {
 			dispatching = true;
 			try {
 				if (active && isConnected()) { 
@@ -533,8 +533,12 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 					}
 					waitingForFlush = false;
 				
-					if (myLogger.isLoggable(Logger.FINE)) {
-						myLogger.log(Logger.FINE, myID+": Sending command "+inpCnt+" to FE");
+					if (flush && oldSessionId != -1) {
+						// This is a postponed command whose previous dispatch failed --> Use the
+						// old sessionId, so that if the server already received it (previous dispatch 
+						// failed due to a response delivering error) the command will be recognized 
+						// as duplicated and properly managed
+						inpCnt = oldSessionId;
 					}
 					pkt.setSessionID((byte) inpCnt);
 					try {
@@ -557,7 +561,6 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 								// killing the above container since it is already dying. 
 								BackEndDispatcher.this.shutdown();
 							}
-							inpCnt = (inpCnt+1) & 0x0f;
 							return pkt;
 						}
 						else {
@@ -572,6 +575,9 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 						myLogger.log(Logger.WARNING, "[Thread="+Thread.currentThread().getName()+"] BE "+myID+": "+ioe);
 						handleConnectionError(myConnection, ioe);
 						throw new ICPException("Dispatching error.", ioe);
+					}
+					finally {
+						inpCnt = (inpCnt+1) & 0x0f;
 					}
 				}
 				else {

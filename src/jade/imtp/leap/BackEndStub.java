@@ -50,11 +50,19 @@ public class BackEndStub extends MicroStub implements BackEnd {
 	static final int SERVICE_INVOKATION = 25;
 
 	private Properties props;
+	private long defaultMessageStoreAndForwardTimeout = -1; // INFINITE by default
 	
 	public BackEndStub(Dispatcher d, Properties props) {
 		super(d);
 		
 		this.props = props;
+		try {
+			String str = props.getProperty(MicroRuntime.DEFAULT_SF_TIMEOUT_KEY, "-1");
+			defaultMessageStoreAndForwardTimeout = Long.parseLong(str);
+		}
+		catch (Exception e) {
+			// Keep default
+		}
 	}	
 
 	/**
@@ -122,13 +130,17 @@ public class BackEndStub extends MicroStub implements BackEnd {
 		Command c = new Command(MESSAGE_OUT);
 		c.addParam(msg);
 		c.addParam(sender);
-		
-		long timeout = -1;
-		String disableStoreAndForward = props.getProperty(MicroRuntime.DISABLE_STORE_AND_FORWARD_KEY, "false");
-		if ("true".equalsIgnoreCase(disableStoreAndForward)) {
-			timeout = 0;
+				
+		long timeout = defaultMessageStoreAndForwardTimeout;
+		String messageSFTimeout = msg.getUserDefinedParameter(ACLMessage.SF_TIMEOUT);
+		if (messageSFTimeout != null) {
+			try {
+				timeout = Long.parseLong(messageSFTimeout);
+			}
+			catch (Exception e) {
+				// Keep default
+			}
 		}
-		
 		Command r = executeRemotely(c, timeout);
 		if (r != null && r.getCode() == Command.ERROR) {
 			// One of the expected exceptions occurred in the remote BackEnd
@@ -168,6 +180,15 @@ public class BackEndStub extends MicroStub implements BackEnd {
 		}
 	}
 
+	protected void handlePostponedCommandExpired(Command c) {
+		// If this was a MESSAGE_OUT, send back a failure to the sender
+		if (c.getCode() == MESSAGE_OUT) {
+			ACLMessage msg = (ACLMessage) c.getParamAt(0);
+			String sender = (String) c.getParamAt(1);
+			MicroRuntime.notifyFailureToSender(msg, sender, "Cannot deliver message in due time");
+		}
+	}
+	
 	public static final void parseCreateMediatorResponse(String responseMessage, Properties pp) {
 		Vector v = Specifier.parseList(responseMessage, '#');
 		for (int i = 0; i < v.size(); ++i) {

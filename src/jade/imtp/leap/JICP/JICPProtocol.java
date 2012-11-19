@@ -64,6 +64,8 @@ public class JICPProtocol extends TransportProtocol {
 	/** ID code for packets carrying keep-alive  */
 	public static final byte          KEEP_ALIVE_TYPE = 2;
 	/** ID code for packets carrying requests to get the local address */
+	public static final byte          GET_CONFIG_OPTIONS_TYPE = 20;
+	/** ID code for packets carrying requests to get the local address */
 	public static final byte          GET_ADDRESS_TYPE = 21;
 	/** ID code for packets carrying requests to create a Mediator */
 	public static final byte          CREATE_MEDIATOR_TYPE = 22;

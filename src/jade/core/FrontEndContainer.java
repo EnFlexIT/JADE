@@ -534,7 +534,9 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 				hasRemoteReceivers = true;
 			}
 		}
-		// If some receiver is remote --> pass the message to the BackEnd		
+		// If some receiver is remote --> pass the message to the BackEnd
+		// Do not change the list of receiver. If some receiver was local the BackEnd
+		// will not deliver the message back (see BackEndContainer.postMessageMessageToLocalAgent())
 		if (hasRemoteReceivers) {
 			post(msg, sender.getLocalName());
 		}
@@ -700,26 +702,12 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 				myBackEnd.messageOut(msg, sender);
 			}
 			catch (Exception e) {
-				// This may only happen if the store-and-forward mechanism is disabled (note that "NotFound" here is referred 
-				// to the sender).
+				// This may only happen if the store-and-forward mechanism is disabled 
+				// (note that "NotFound" here is referred to the sender).
 				logger.log(Logger.SEVERE, "Error delivering message.", e);
 				
 				// Send back a failure message
-				ACLMessage failure = msg.createReply();
-				failure.setPerformative(ACLMessage.FAILURE);
-				failure.setSender(getAMS());
-				failure.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
-
-				String receiver = msg.getAllReceiver().next().toString();
-				String content = "( (action " + sender;
-		        content = content + " (ACLMessage) ) (MTS-error " + receiver + " \"" + e.getMessage() + "\") )";
-				failure.setContent(content);
-
-				try {
-					messageIn(failure, sender);
-				} catch (Exception e1) {
-					logger.log(Logger.SEVERE, "Error delivering FAILURE message.", e1);
-				}
+				MicroRuntime.notifyFailureToSender(msg, sender, e.getMessage());
 			}
 			
 			// Notify terminating agents (if any) waiting for their messages to be delivered

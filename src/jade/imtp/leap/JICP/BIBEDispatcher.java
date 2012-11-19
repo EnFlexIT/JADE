@@ -248,7 +248,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 						public void run() {
 							try {
 								JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
-								dispatchPacket(pkt, false);
+								dispatchPacket(pkt, false, -1);
 								if(myLogger.isLoggable(Logger.FINE))
 									myLogger.log(Logger.FINE, myID+" - IC valid");
 							}
@@ -299,18 +299,26 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 	}
 
 	//////////////////////////////////////////
-	// Dispatcher interface implementation
+	// Dispatcher interface implementation 
 	//////////////////////////////////////////
-	public byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
+	public byte[] dispatch(byte[] payload, boolean flush, int oldSessionId) throws ICPException {
 		JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
-		pkt = dispatchPacket(pkt, flush);
+		pkt = dispatchPacket(pkt, flush, oldSessionId);
 		return pkt.getData();
 	}
 
-	private synchronized JICPPacket dispatchPacket(JICPPacket pkt, boolean flush) throws ICPException {
+	private synchronized JICPPacket dispatchPacket(JICPPacket pkt, boolean flush, int oldSessionId) throws ICPException {
 		Connection inpConnection = inpHolder.getConnection(flush);
 		if (inpConnection != null && active) {
 			int status = 0;
+			if (flush && oldSessionId != -1) {
+				// This is a postponed command whose previous dispatch failed --> Use the
+				// old sessionId, so that if the server already received it (previous dispatch 
+				// failed due to a response delivering error) the command will be recognized 
+				// as duplicated and properly managed
+				inpCnt = oldSessionId;
+			}
+			pkt.setSessionID((byte) inpCnt);
 			if (pkt.getType() == JICPProtocol.KEEP_ALIVE_TYPE) {
 				if(myLogger.isLoggable(Logger.FINER)) {
 					myLogger.log(Logger.FINER,myID+" - Issuing Keep-alive to FE "+inpCnt);
@@ -321,7 +329,6 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 					myLogger.log(Logger.FINER,myID+" - Issuing command to FE "+inpCnt);
 				}
 			}
-			pkt.setSessionID((byte) inpCnt);
 			try {
 				inpConnection.writePacket(pkt);
 				status = 1;
@@ -344,7 +351,6 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 					// This is the response to an exit command --> Suicide
 					shutdown();
 				}
-				inpCnt = (inpCnt+1) & 0x0f;
 				return pkt;
 			}
 			catch (IOException ioe) {
@@ -354,6 +360,9 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 
 				inpHolder.resetConnection(false);
 				throw new ICPException("Dispatching error.", ioe);
+			}
+			finally {
+				inpCnt = (inpCnt+1) & 0x0f;
 			}
 		}
 		else {

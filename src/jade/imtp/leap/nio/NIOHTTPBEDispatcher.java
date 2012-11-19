@@ -303,7 +303,7 @@ public class NIOHTTPBEDispatcher implements NIOMediator, Dispatcher, BEConnectio
 	 * This is called by the Stub using this Dispatcher to dispatch a serialized command to the FrontEnd.
 	 * Mutual exclusion with itself to ensure one command at a time is dispatched.
 	 */
-	public synchronized byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
+	public synchronized byte[] dispatch(byte[] payload, boolean flush, int oldSessionId) throws ICPException {
 		if (status == ACTIVE) {
 			if (frontEndStatus == CONNECTED) {
 				// The following check preserves dispatching order when the
@@ -318,12 +318,19 @@ public class NIOHTTPBEDispatcher implements NIOMediator, Dispatcher, BEConnectio
 	
 				// Send the command to the front-end
 				JICPPacket cmd = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
+				if (flush && oldSessionId != -1) {
+					// This is a postponed command whose previous dispatch failed --> Use the
+					// old sessionId, so that if the server already received it (previous dispatch 
+					// failed due to a response delivering error) the command will be recognized 
+					// as duplicated and properly managed
+					nextOutgoingCommandSid = oldSessionId;
+				}
 				int sid = nextOutgoingCommandSid;
 				nextOutgoingCommandSid = increment(nextOutgoingCommandSid);
+				cmd.setSessionID((byte) sid);
 				if (myLogger.isLoggable(Logger.FINE)) {
 					myLogger.log(Logger.FINE, myID+" - Delivering outgoing command to front-end. SID = " + sid);
 				}
-				cmd.setSessionID((byte) sid);
 				boolean deliverOK = false;
 				try {
 					c.writePacket(cmd);

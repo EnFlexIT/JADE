@@ -281,7 +281,7 @@ public class HTTPFEDispatcher implements FEConnectionManager, Dispatcher, TimerL
 	 * Dispatch a serialized command to the BackEnd and get back a serialized response.
 	 * Mutual exclusion with itself to preserve dispatching order 
 	 */
-	public synchronized byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
+	public synchronized byte[] dispatch(byte[] payload, boolean flush, int oldSessionId) throws ICPException {
 		// Note that we don't even try to dispatch packets while the
 		// device is not reachable to preserve dispatching order.
 		// If dispatching succeeded in fact this command would overcome
@@ -294,6 +294,13 @@ public class HTTPFEDispatcher implements FEConnectionManager, Dispatcher, TimerL
 			}
 			waitingForFlush = false;
 
+			if (flush && oldSessionId != -1) {
+				// This is a postponed command whose previous dispatch failed --> Use the
+				// old sessionId, so that if the server already received it (previous dispatch 
+				// failed due to a response delivering error) the command will be recognized 
+				// as duplicated and properly managed
+				outCnt = oldSessionId;
+			}
 			int sid = outCnt;
 			outCnt = (outCnt+1) & 0x0f;
 			myLogger.log(Logger.FINE, "Issuing outgoing command "+sid);

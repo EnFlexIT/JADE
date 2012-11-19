@@ -186,6 +186,16 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
 		return sb.toString();
 	}
 
+	public static final String encodeProperties(Properties pp) {
+		StringBuffer sb = new StringBuffer();
+		Enumeration en = pp.keys();
+		while (en.hasMoreElements()) {
+			String key = (String) en.nextElement();
+			appendProp(sb, key, pp, en.hasMoreElements());
+		}
+		return sb.toString();
+	}
+	
 	private static final void appendProp(StringBuffer sb, String key, Properties pp) {
 		appendProp(sb, key, pp, true);
 	}
