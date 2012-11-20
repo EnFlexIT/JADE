@@ -85,6 +85,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	private int outCnt = 0;
 	private JICPPacket lastOutgoingResponse = null;
 	private Thread terminator;
+	private int reconnectionAttemptCnt = 0;
 
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 
@@ -406,6 +407,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			}
 		}
 		else {
+			reconnectionAttemptCnt = 0;
 			if (!refreshingConnection) {
 				// The previous attempt to reconnect failed. Activate the reconnection mechanism again 
 				handleDisconnection();
@@ -586,11 +588,15 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	// Reconnection related methods
 	///////////////////////////////////////////////////////
 	public void run() {
-		int attemptCnt = 0;
+		// This is for logging purpose only
+		int cnt = 0; 
+		// This is used to switch between short and large interval between successive reconnection attempts. 
+		// It is put back to 0 whenever a new dispatching failure occurs 
+		reconnectionAttemptCnt = 0; 
 		long startTime = System.currentTimeMillis();
 		while (active) {
 			try {
-				connect(attemptCnt);
+				connect(cnt);
 				return;
 			}
 			catch (IOException ioe) {
@@ -610,12 +616,10 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				return;
 			}
 
-			// Wait a bit before trying again
-			attemptCnt++;
-			if (attemptCnt < 10) {
-				waitABit(500);
-			}
-			else {
+			// 10 "fast" attempts to reconnect then wait a bit before trying again
+			cnt++;
+			reconnectionAttemptCnt++;
+			if (reconnectionAttemptCnt > 10) {
 				waitABit(retryTime);
 			}
 		}	
