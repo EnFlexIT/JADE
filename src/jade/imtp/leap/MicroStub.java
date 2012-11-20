@@ -59,7 +59,7 @@ public class MicroStub {
 		try {
 			disableFlush();
 			byte[] cmd = SerializationEngine.serialize(c);
-			logger.log(Logger.INFO, "Dispatching command "+c.getCode()+". SF timeout = "+timeout);
+			logger.log(Logger.INFO, "Dispatching command "+c.getCode()+". SF-timeout="+timeout+", old-SID="+sessionId);
 			byte[] rsp = myDispatcher.dispatch(cmd, flushing, sessionId);
 			if (pendingCommands.size() > 0) {
 				logger.log(Logger.FINE, "############# Dispatch succeeded with "+pendingCommands.size()+" pending commands.");
@@ -86,7 +86,6 @@ public class MicroStub {
 				throw new IMTPException("Destination unreachable", icpe);
 			}
 			else {
-				logger.log(Logger.WARNING, "Dispatch failed. Command postponed. "+icpe.getMessage());
 				if (timeout > 0) {
 					// If we must store the command for N sec, but M sec have already been spent 
 					// trying to dispatch the command, wait for N-M sec only  
@@ -99,6 +98,7 @@ public class MicroStub {
 					dispatchSessionId = ((ICPDispatchException) icpe).getSessionId();
 				}
 				postpone(c, timeout, dispatchSessionId);
+				logger.log(Logger.WARNING, "Dispatch failed. Command postponed [SF-timeout="+timeout+", SID="+dispatchSessionId+"]. "+icpe.getMessage());
 				return null;
 			}
 		}
@@ -138,25 +138,15 @@ public class MicroStub {
 	
 	
 	public boolean flush() {
-		if (pendingCommands.size() > 0) {
+		// 1) Lock the buffer of pending commands to ensure mutual exclusion with executeRemotely() (see comment in disableFlush())
+		disableCommandDelivery();
+		
+		if (!pendingCommands.isEmpty()) {
 			// This is called by the main thread of the underlying EndPoint
 			// --> The actual flushing must be done asynchronously to avoid
 			// deadlock
 			flusher = new Thread() {
 				public void run() {
-					// 1) Lock the buffer of pending commands to avoid calling 
-					// remote methods while flushing
-					synchronized (pendingCommands) {
-						while (activeCnt > 0) {
-							try {
-								pendingCommands.wait();
-							}
-							catch (InterruptedException ie) {
-							}
-						}
-						flushing = true;
-					}
-					
 					// 2) Flush the buffer of pending commands
 					logger.log(Logger.INFO,"Start flushing");					
 					int flushedCnt = 0;
@@ -193,17 +183,18 @@ public class MicroStub {
 					
 					// 3) Unlock the buffer of pending commands
 					logger.log(Logger.FINE, "########## "+pendingCommands.size()+" pending commands after flush");
-					synchronized (pendingCommands) {
-						flushing = false;
-						pendingCommands.notifyAll();
-					}
+					enableCommandDelivery();
 					logger.log(Logger.INFO,"Flushing thread terminated ("+flushedCnt+")");
 				}
 			};
 			flusher.start();
 			return true;
 		}
-		return false;
+		else {
+			// Nothing to flush
+			enableCommandDelivery();
+			return false;
+		}
 	}
 	
 	public boolean isEmpty() {
@@ -244,7 +235,27 @@ public class MicroStub {
 				}
 			}
 		}
-	}		
+	}	
+	
+	private void disableCommandDelivery() {
+		synchronized (pendingCommands) {
+			while (activeCnt > 0) {
+				try {
+					pendingCommands.wait();
+				}
+				catch (InterruptedException ie) {
+				}
+			}
+			flushing = true;
+		}
+	}
+	
+	private void enableCommandDelivery() {
+		synchronized (pendingCommands) {
+			flushing = false;
+			pendingCommands.notifyAll();
+		}
+	}
 	
 	private PostponedCommand removeFirst() {
 		synchronized (pendingCommands) {

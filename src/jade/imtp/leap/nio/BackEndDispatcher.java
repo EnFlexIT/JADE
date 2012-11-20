@@ -12,6 +12,7 @@ import jade.core.IMTPException;
 import jade.imtp.leap.BackEndSkel;
 import jade.imtp.leap.FrontEndStub;
 import jade.imtp.leap.Dispatcher;
+import jade.imtp.leap.ICPDispatchException;
 import jade.imtp.leap.ICPException;
 import jade.imtp.leap.JICP.JICPProtocol;
 import jade.imtp.leap.JICP.JICPMediatorManager;
@@ -566,7 +567,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 						else {
 							myLogger.log(Logger.WARNING, "[Thread="+Thread.currentThread().getName()+"] BE "+myID+": Response timeout expired");
 							handleConnectionError(myConnection, null);
-							throw new ICPException("Response timeout expired");
+							throw new ICPDispatchException("Response timeout expired", inpCnt);
 						}
 					}
 					catch (IOException ioe) {
@@ -574,7 +575,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 						// --> reset the connection.
 						myLogger.log(Logger.WARNING, "[Thread="+Thread.currentThread().getName()+"] BE "+myID+": "+ioe);
 						handleConnectionError(myConnection, ioe);
-						throw new ICPException("Dispatching error.", ioe);
+						throw new ICPDispatchException("Dispatching error.", ioe, inpCnt);
 					}
 					finally {
 						inpCnt = (inpCnt+1) & 0x0f;

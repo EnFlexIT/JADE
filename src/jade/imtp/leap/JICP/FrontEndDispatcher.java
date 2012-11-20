@@ -34,6 +34,7 @@ import jade.core.TimerListener;
 import jade.core.TimerDispatcher;
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.BackEndStub;
+import jade.imtp.leap.ICPDispatchException;
 import jade.imtp.leap.MicroSkeleton;
 import jade.imtp.leap.FrontEndSkel;
 import jade.imtp.leap.Dispatcher;
@@ -50,7 +51,6 @@ import java.util.Vector;
  * @author Giovanni Caire - TILAB
  */
 public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, TimerListener, Runnable {
-	private static final int RESPONSE_TIMEOUT = 30000;
 	private static final int KEEP_ALIVE_RESPONSE_TIMEOUT = 10000;
 
 	private MicroSkeleton mySkel = null;
@@ -378,7 +378,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				//System.out.println("Sending command to BE "+pkt.getSessionID());
 				writePacket(pkt, myConnection);
 				myLogger.log(Logger.INFO, myMediatorID+" - Waiting for response, SID = "+pkt.getSessionID());
-				JICPPacket response = waitForResponse(outCnt, RESPONSE_TIMEOUT);
+				JICPPacket response = waitForResponse(outCnt, JICPProtocol.DEFAULT_RESPONSE_TIMEOUT_OFFSET);
 				if (response != null) {
 					//System.out.println("Response received from BE "+response.getSessionID());
 					if (myLogger.isLoggable(Logger.INFO)) {
@@ -393,14 +393,14 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				else {
 					myLogger.log(Logger.WARNING, myMediatorID+" - Response timeout expired. SID = "+pkt.getSessionID());
 					handleDisconnection();
-					throw new ICPException("Response timeout expired");
+					throw new ICPDispatchException("Response timeout expired", pkt.getSessionID());
 				}
 			}
 			catch (IOException ioe) {
 				// Can't reach the BackEnd. 
 				myLogger.log(Logger.WARNING, myMediatorID+" - Error writing command. SID = "+pkt.getSessionID(), ioe);
 				handleDisconnection();
-				throw new ICPException("Dispatching error.", ioe);
+				throw new ICPDispatchException("Dispatching error.", ioe, pkt.getSessionID());
 			}
 			finally {
 				outCnt = (outCnt+1) & 0x0f;
@@ -810,7 +810,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			try {
 				lastOutgoingResponse = null;
 				writePacket(pkt, myConnection);
-				JICPPacket rsp = waitForResponse(-1, RESPONSE_TIMEOUT);
+				JICPPacket rsp = waitForResponse(-1, JICPProtocol.DEFAULT_RESPONSE_TIMEOUT_OFFSET);
 				myLogger.log(Logger.INFO, "DROP_DOWN response received");
 
 				if (rsp.getType() != JICPProtocol.ERROR_TYPE) {
