@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Vector;
 import java.util.Enumeration;
 
+// FIXME: Aggiornare il Javadoc a fronte dell'introduzione dell'opzione di accept
 /**
 This service handles BEContainer creation requests and manages IO operations
 for data exchanged between the created BEContainers and their FEContainers

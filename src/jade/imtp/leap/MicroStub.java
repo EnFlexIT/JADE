@@ -40,9 +40,9 @@ public class MicroStub {
 	
 	protected Dispatcher myDispatcher;
 	protected Vector pendingCommands = new Vector();
-	private int activeCnt = 0;
 	private boolean flushing = false;
-	private Thread flusher;
+	private Thread flushingThread;
+	private Vector dispatchingThreads = new Vector();
 	protected Logger logger;
 	
 	public MicroStub(Dispatcher d) {
@@ -57,7 +57,7 @@ public class MicroStub {
 	private Command executeRemotely(Command c, long timeout, int sessionId) throws IMTPException {
 		long start = System.currentTimeMillis();
 		try {
-			disableFlush();
+			beginDispatch();
 			byte[] cmd = SerializationEngine.serialize(c);
 			logger.log(Logger.INFO, "Dispatching command "+c.getCode()+". SF-timeout="+timeout+", old-SID="+sessionId);
 			byte[] rsp = myDispatcher.dispatch(cmd, flushing, sessionId);
@@ -102,11 +102,14 @@ public class MicroStub {
 				return null;
 			}
 		}
+		catch (FlushDeadlock fd) {
+			throw new IMTPException("Flush deadlock detected. Try again later");
+		}
 		catch (LEAPSerializationException lse) {
 			throw new IMTPException("Serialization error", lse);
 		}
 		finally {
-			enableFlush();
+			endDispatch();
 		}
 	}
 	
@@ -138,14 +141,11 @@ public class MicroStub {
 	
 	
 	public boolean flush() {
-		// 1) Lock the buffer of pending commands to ensure mutual exclusion with executeRemotely() (see comment in disableFlush())
-		disableCommandDelivery();
-		
-		if (!pendingCommands.isEmpty()) {
+		// 1) Lock the buffer of pending commands to ensure mutual exclusion with executeRemotely() (see comment in beginDispatch())
+		if (beginFlush()) {
 			// This is called by the main thread of the underlying EndPoint
-			// --> The actual flushing must be done asynchronously to avoid
-			// deadlock
-			flusher = new Thread() {
+			// --> The actual flushing must be done asynchronously to avoid deadlock
+			flushingThread = new Thread() {
 				public void run() {
 					// 2) Flush the buffer of pending commands
 					logger.log(Logger.INFO,"Start flushing");					
@@ -183,16 +183,15 @@ public class MicroStub {
 					
 					// 3) Unlock the buffer of pending commands
 					logger.log(Logger.FINE, "########## "+pendingCommands.size()+" pending commands after flush");
-					enableCommandDelivery();
+					endFlush();
 					logger.log(Logger.INFO,"Flushing thread terminated ("+flushedCnt+")");
 				}
 			};
-			flusher.start();
+			flushingThread.start();
 			return true;
 		}
 		else {
-			// Nothing to flush
-			enableCommandDelivery();
+			// Flushing did not start --> no need to call endFlush()
 			return false;
 		}
 	}
@@ -211,8 +210,9 @@ public class MicroStub {
 	 can be dispatched in parallel. This is the reason for this
 	 lock/unlock mechanism instead of a simple synchronization.
 	 */
-	private void disableFlush() {
-		if (Thread.currentThread() != flusher) {
+	private void beginDispatch() {
+		// If this is the flushingThread (of course flush is in progress) do not block it 
+		if (Thread.currentThread() != flushingThread) {
 			synchronized (pendingCommands) {
 				while (flushing) {
 					try {
@@ -221,36 +221,48 @@ public class MicroStub {
 					catch (InterruptedException ie) {
 					}
 				}
-				activeCnt++;
+				dispatchingThreads.add(Thread.currentThread());
 			}
 		}
 	}
 	
-	private void enableFlush() {
-		if (Thread.currentThread() != flusher) {
+	private void endDispatch() {
+		if (Thread.currentThread() != flushingThread) {
 			synchronized (pendingCommands) {
-				activeCnt--;
-				if (activeCnt == 0) {
+				dispatchingThreads.remove(Thread.currentThread());
+				if (dispatchingThreads.isEmpty()) {
 					pendingCommands.notifyAll();
 				}
 			}
 		}
 	}	
 	
-	private void disableCommandDelivery() {
+	private boolean beginFlush() {
 		synchronized (pendingCommands) {
-			while (activeCnt > 0) {
-				try {
-					pendingCommands.wait();
-				}
-				catch (InterruptedException ie) {
-				}
+			if (pendingCommands.isEmpty()) {
+				// Nothing to flush. Do not block the Thread even if a dispatching process is ongoing
+				return false;
 			}
-			flushing = true;
+			else {
+				if (dispatchingThreads.contains(Thread.currentThread())) {
+					// If this is a dispatching Thread we will enter a deadlock. 
+					// Throw a suitable exception to avoid that.
+					throw new FlushDeadlock();
+				}
+				while (dispatchingThreads.size() > 0) {
+					try {
+						pendingCommands.wait();
+					}
+					catch (InterruptedException ie) {
+					}
+				}
+				flushing = true;
+				return true;
+			}
 		}
 	}
 	
-	private void enableCommandDelivery() {
+	private void endFlush() {
 		synchronized (pendingCommands) {
 			flushing = false;
 			pendingCommands.notifyAll();
@@ -278,9 +290,9 @@ public class MicroStub {
 				// - Flushing starts and postponed command dispatching begins
 				// - Timer expires and FAILURE is sent back
 				// - Delivering succeeds
-				disableFlush();
+				beginDispatch();
 				boolean found = pendingCommands.remove(pc);
-				enableFlush();
+				endDispatch();
 				// The command may have been processed while we were waiting to disable flush.
 				// Do nothing in this case
 				if (found) {
@@ -291,7 +303,7 @@ public class MicroStub {
 		t.start();
 	}
 	
-	private class PostponedCommand {
+	protected class PostponedCommand {
 		private Command command;
 		private int sessionId;
 		private Timer timer;
@@ -299,6 +311,16 @@ public class MicroStub {
 		public PostponedCommand(Command c, int sessionId) {
 			this.command = c;
 			this.sessionId = sessionId;
+		}
+		
+		public Command getCommand() {
+			return command;
+		}
+	}
+	
+	private class FlushDeadlock extends RuntimeException {
+		public FlushDeadlock() {
+			super();
 		}
 	}
 }

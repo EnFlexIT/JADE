@@ -155,7 +155,8 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
 			List commands = new ArrayList();
 			Enumeration e = pendingCommands.elements();
 			while (e.hasMoreElements()) {
-				Command c = (Command) e.nextElement();
+				PostponedCommand pc = (PostponedCommand) e.nextElement();
+				Command c = pc.getCommand();
 				if (c.getCode() == FrontEndSkel.MESSAGE_IN) {
 					ACLMessage msg = (ACLMessage) c.getParamAt(0);
 					if (template.match(msg)) {
