@@ -33,6 +33,7 @@ import jade.core.IMTPException;
 import jade.core.Profile;
 import jade.core.ProfileException;
 import jade.imtp.leap.FrontEndStub;
+import jade.imtp.leap.ICPDispatchException;
 import jade.imtp.leap.MicroSkeleton;
 import jade.imtp.leap.BackEndSkel;
 import jade.imtp.leap.Dispatcher;
@@ -130,7 +131,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 			// Keep default
 		}
 
-		// lastSid
+		/* lastSid
 		try {
 			lastSid = (byte) (Integer.parseInt(props.getProperty("outcnt")) -1);
 			if (lastSid < 0) {
@@ -139,7 +140,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 		}
 		catch (Exception e) {
 			// Keep default
-		}
+		}*/
 
 		// Start the embedded thread dealing with outgoing commands
 		start();
@@ -359,7 +360,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 					myLogger.log(Logger.WARNING,myID+" - IOException IC["+status+"]"+ioe);
 
 				inpHolder.resetConnection(false);
-				throw new ICPException("Dispatching error.", ioe);
+				throw new ICPDispatchException("Dispatching error.", ioe, inpCnt);
 			}
 			finally {
 				inpCnt = (inpCnt+1) & 0x0f;
@@ -437,7 +438,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 				return null;
 			}
 			byte sid = pkt.getSessionID();
-			if (sid == lastSid) {
+			if (sid == lastSid && lastResponse != null) {
 				if(myLogger.isLoggable(Logger.WARNING))
 					myLogger.log(Logger.WARNING,myID+" - Duplicated command from FE "+sid);
 

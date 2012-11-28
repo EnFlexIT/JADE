@@ -81,8 +81,8 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	private boolean active = true;
 	private boolean connectionDropped = false;
 	private boolean waitingForFlush = false;
-	private byte lastSid = 0x0f;
-	private int outCnt = 0;
+	private byte lastSid = 0x0f; // SID of the last successfully processed incoming COMMAND
+	private int outCnt = 0; // Counter used set SIDs of commands for the BE
 	private JICPPacket lastOutgoingResponse = null;
 	private Thread terminator;
 	private int reconnectionAttemptCnt = 0;

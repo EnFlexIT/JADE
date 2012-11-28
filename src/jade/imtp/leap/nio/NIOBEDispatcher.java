@@ -11,6 +11,7 @@ import jade.core.IMTPException;
 import jade.imtp.leap.BackEndSkel;
 import jade.imtp.leap.FrontEndStub;
 import jade.imtp.leap.Dispatcher;
+import jade.imtp.leap.ICPDispatchException;
 import jade.imtp.leap.ICPException;
 import jade.imtp.leap.JICP.JICPProtocol;
 import jade.imtp.leap.JICP.JICPMediatorManager;
@@ -101,7 +102,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
         }
         System.out.println("Next command for FE will have sessionID " + inpCnt);
 
-        // lastSid
+        /* lastSid
         int lastSid = 0x0f;
         try {
             lastSid = (byte) (Integer.parseInt(props.getProperty("outcnt")) - 1);
@@ -110,13 +111,13 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
             }
         } catch (Exception e) {
             // Keep default
-        }
+        }*/
 
         FrontEndStub st = new FrontEndStub(this);
         inpManager = new InputManager(inpCnt, st);
 
         BackEndSkel sk = startBackEndContainer(props);
-        outManager = new OutputManager(lastSid, sk, maxDisconnectionTime);
+        outManager = new OutputManager(0x0f, sk, maxDisconnectionTime);
     }
 
     protected final BackEndSkel startBackEndContainer(Properties props) throws ICPException {
@@ -593,7 +594,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
                             }
                         }
                         readStartTime = -1;
-                        throw new ICPException("Dispatching error.", ioe);
+                        throw new ICPDispatchException("Dispatching error.", ioe, inpCnt);
                     }
                     finally {
                         inpCnt = (inpCnt + 1) & 0x0f;
@@ -713,7 +714,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
             checkConnection(c);
             JICPPacket reply = null;
             byte sid = cmd.getSessionID();
-            if (sid == lastSid) {
+            if (sid == lastSid && lastResponse != null) {
                 myLogger.log(Logger.WARNING, myID + ": Duplicated command from FE " + sid);
                 reply = lastResponse;
             } else {

@@ -14,6 +14,7 @@ import jade.core.Timer;
 import jade.core.TimerListener;
 import jade.imtp.leap.BackEndSkel;
 import jade.imtp.leap.FrontEndStub;
+import jade.imtp.leap.ICPDispatchException;
 import jade.imtp.leap.ICPException;
 import jade.imtp.leap.MicroSkeleton;
 import jade.imtp.leap.Dispatcher;
@@ -127,7 +128,7 @@ public class NIOHTTPBEDispatcher implements NIOMediator, Dispatcher, BEConnectio
 		}
 		
 		myLogger.log(Logger.INFO, "Created NIOHTTPBEDispatcher V1.0. ID = " + myID + "\n- Max-disconnection-time = " + maxDisconnectionTime+ "\n- Keep-alive-time = " + keepAliveTime);
-		myLogger.log(Logger.CONFIG, myID+" - Next outgoing command SID = " + nextOutgoingCommandSid + ", Last incoming command SID = " + lastIncomingCommandSid);
+		myLogger.log(Logger.CONFIG, myID+" - Next command for FE will have SID = " + nextOutgoingCommandSid);
 
 		myStub = new FrontEndStub(this);
 		mySkel = startBackEndContainer(props);
@@ -204,7 +205,7 @@ public class NIOHTTPBEDispatcher implements NIOMediator, Dispatcher, BEConnectio
 					// NORMAL COMMAND
 					// Serve the incoming command and send back the response
 					byte sid = pkt.getSessionID();
-					if (sid == lastIncomingCommandSid) {
+					if (sid == lastIncomingCommandSid && lastResponse != null) {
 						myLogger.log(Logger.WARNING, myID+" - Duplicated command received. SID = " + sid);
 						response = lastResponse;
 					} else {
@@ -331,13 +332,11 @@ public class NIOHTTPBEDispatcher implements NIOMediator, Dispatcher, BEConnectio
 				if (myLogger.isLoggable(Logger.FINE)) {
 					myLogger.log(Logger.FINE, myID+" - Delivering outgoing command to front-end. SID = " + sid);
 				}
-				boolean deliverOK = false;
 				try {
 					c.writePacket(cmd);
 					close(c);
 					// Wait for the response 
 					JICPPacket response = getResponse(RESPONSE_TIMEOUT + RESPONSE_TIMEOUT_INCREMENT * (cmd.getLength() / 1024));
-					deliverOK = true;
 					if (myLogger.isLoggable(Logger.FINE)) {
 						myLogger.log(Logger.FINE, myID+" - Response got. SID = " + sid);
 					}
@@ -349,16 +348,11 @@ public class NIOHTTPBEDispatcher implements NIOMediator, Dispatcher, BEConnectio
 				}
 				catch (IOException ioe) {
 					setFrontEndDisconnected();
-					throw new ICPException("Error delivering outgoing command to front-end. ", ioe);
+					throw new ICPDispatchException("Error delivering outgoing command to front-end. ", cmd.getSessionID());
 				}
 				catch (ICPException icpe) {
 					// Note that in this case setFrontEndDisconnected() is already called within getResponse() or getOutgoingCommandsConnection()
-					throw icpe;
-				}
-				finally {
-					if (!deliverOK) {
-						nextOutgoingCommandSid = decrement(nextOutgoingCommandSid);
-					}
+					throw new ICPDispatchException(icpe.getMessage(), cmd.getSessionID());
 				}
 			}
 			else {

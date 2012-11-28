@@ -31,6 +31,7 @@ import jade.core.IMTPException;
 import jade.core.Profile;
 import jade.core.ProfileException;
 import jade.imtp.leap.FrontEndStub;
+import jade.imtp.leap.ICPDispatchException;
 import jade.imtp.leap.MicroSkeleton;
 import jade.imtp.leap.BackEndSkel;
 import jade.imtp.leap.Dispatcher;
@@ -153,7 +154,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 				// NORMAL COMMAND
 				// Serve the incoming command and send back the response
 				byte sid = pkt.getSessionID();
-				if (sid == lastSid) {
+				if (sid == lastSid && lastResponse != null) {
 					if (myLogger.isLoggable(Logger.WARNING)) {
 						myLogger.log(Logger.WARNING, "Duplicated command received " + sid + " " + from);
 					}
@@ -383,11 +384,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 									setUnreachable();
 								}
 							}
-							outCnt--;
-							if (outCnt < 0) {
-								outCnt = MAX_SID;
-							}
-							throw new ICPException("Missing response");
+							throw new ICPDispatchException("Missing response", cmd.getSessionID());
 						}
 					} catch (InterruptedException ie) {
 					}

@@ -124,8 +124,8 @@ public class JICPConnection extends Connection {
 				is = sc.getInputStream();
 				//#MIDP_EXCLUDE_END
 				/*#MIDP_INCLUDE_BEGIN
-	  		is = sc.openInputStream();
-	  		#MIDP_INCLUDE_END*/
+				is = sc.openInputStream();
+				#MIDP_INCLUDE_END*/
 			}
 			return JICPPacket.readFrom(is);
 		}
@@ -160,8 +160,8 @@ public class JICPConnection extends Connection {
 					realOs = sc.getOutputStream();
 					//#MIDP_EXCLUDE_END
 					/*#MIDP_INCLUDE_BEGIN
-		      realOs = sc.openOutputStream();
-		    	#MIDP_INCLUDE_END*/
+					realOs = sc.openOutputStream();
+					#MIDP_INCLUDE_END*/
 				}
 				realOs.write(buf, 0, count);
 				realOs.flush();

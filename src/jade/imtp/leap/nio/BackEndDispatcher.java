@@ -124,7 +124,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		}
 		myLogger.log(Logger.INFO, "Next command for FE will have sessionID "+inpCnt);
 		
-		// lastSid
+		/* lastSid
 		int lastSid = 0x0f;
 		try {
 			lastSid = (byte) (Integer.parseInt(props.getProperty("outcnt")) -1);
@@ -135,12 +135,13 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		catch (Exception e) {
 			// Keep default
 		}
-		
+		myLogger.log(Logger.INFO, "Last command successfully received from FE had sessionID "+lastSid);
+		*/
 		FrontEndStub st = new FrontEndStub(this);
 		inpManager = new InputManager(inpCnt, st);
 		
 		BackEndSkel sk = startBackEndContainer(props);
-		outManager = new OutputManager(lastSid, sk);
+		outManager = new OutputManager(0x0f, sk);
 	}
 	
 	protected final BackEndSkel startBackEndContainer(Properties props) throws ICPException {
@@ -317,7 +318,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			inpManager.notifyIncomingResponseReceived(pkt);
 			break;
 		default:
-			throw new ICPException("Unexpected packet type "+type);
+			myLogger.log(Logger.WARNING, "BE "+myID+" - Unexpected incoming packet type: "+type);
 		}
 		
 		if (reply != null) {
@@ -635,7 +636,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		final JICPPacket handleCommand(JICPPacket cmd) throws ICPException {
 			JICPPacket reply = null;
 			byte sid = cmd.getSessionID();
-			if (sid == lastSid) {
+			if (sid == lastSid && lastResponse != null) {
 				myLogger.log(Logger.WARNING, myID+": Duplicated packet from FE: pkt-type="+cmd.getType()+" info="+cmd.getInfo()+" SID="+sid);
 				reply = lastResponse;
 			}
@@ -676,13 +677,19 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 	
 	private final boolean checkTerminatedInfo(JICPPacket pkt) {
 		if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
-			peerActive = false;
-			if (myLogger.isLoggable(Logger.INFO)) {
-				myLogger.log(Logger.INFO, myID+": Peer termination notification received");
-			}
-			if (pkt.getType() == JICPProtocol.COMMAND_TYPE) {
-				// Spontaneous FE termination. Unblock any Thread waiting for a response. It will behave as if the response timeout was expired
-				inpManager.notifyIncomingResponseReceived(null);
+			// In some mysterious cases we receive dirty data from the network 
+			// If the second byte has bit 7 = 1, we may confuse such dirty data with a 
+			// termination packet --> Check that the packet is valid
+			int type = pkt.getType();
+			if (type == JICPProtocol.COMMAND_TYPE || type == JICPProtocol.RESPONSE_TYPE || type == JICPProtocol.CONNECT_MEDIATOR_TYPE) {
+				peerActive = false;
+				if (myLogger.isLoggable(Logger.INFO)) {
+					myLogger.log(Logger.INFO, myID+": Peer termination notification received");
+				}
+				if (pkt.getType() == JICPProtocol.COMMAND_TYPE) {
+					// Spontaneous FE termination. Unblock any Thread waiting for a response. It will behave as if the response timeout was expired
+					inpManager.notifyIncomingResponseReceived(null);
+				}
 			}
 		}
 		return peerActive;
