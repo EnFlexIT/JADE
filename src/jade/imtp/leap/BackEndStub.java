@@ -180,12 +180,21 @@ public class BackEndStub extends MicroStub implements BackEnd {
 		}
 	}
 
-	protected void handlePostponedCommandExpired(Command c) {
+	@Override
+	protected void handlePostponedCommandExpired(Command c, ICPException exception) {
 		// If this was a MESSAGE_OUT, send back a failure to the sender
 		if (c.getCode() == MESSAGE_OUT) {
 			ACLMessage msg = (ACLMessage) c.getParamAt(0);
 			String sender = (String) c.getParamAt(1);
-			MicroRuntime.notifyFailureToSender(msg, sender, "Cannot deliver message in due time");
+			String cause = exception != null ? ". Caused by - "+exception.getMessage() : "";
+			// If a code in the form ...[n]... is specified in the message, cut any message part after
+			// that code (this may be due to a nested exception)
+			int kOp = cause.indexOf('[');
+			int kCl = cause.indexOf(']');
+			if (kOp >= 0 && kCl == kOp+2) {
+				cause = cause.substring(0, kCl+1);
+			}
+			MicroRuntime.notifyFailureToSender(msg, sender, "Cannot deliver message in due time"+cause);
 		}
 	}
 	

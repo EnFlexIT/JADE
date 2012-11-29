@@ -97,7 +97,7 @@ public class MicroStub {
 				if (icpe instanceof ICPDispatchException) {
 					dispatchSessionId = ((ICPDispatchException) icpe).getSessionId();
 				}
-				postpone(c, timeout, dispatchSessionId);
+				postpone(c, timeout, dispatchSessionId, icpe);
 				logger.log(Logger.WARNING, "Dispatch failed. Command postponed [SF-timeout="+timeout+", SID="+dispatchSessionId+"]. "+icpe.getMessage());
 				return null;
 			}
@@ -113,11 +113,11 @@ public class MicroStub {
 		}
 	}
 	
-	private void postpone(Command c, long timeout, int sessionId) {
+	private void postpone(Command c, long timeout, int sessionId, ICPException icpe) {
 		if (logger.isLoggable(Logger.FINE)) {
 			logger.log(Logger.FINE, Thread.currentThread().toString()+": Command "+c.getCode()+" postponed");
 		}
-		final PostponedCommand pc = new PostponedCommand(c, sessionId);
+		final PostponedCommand pc = new PostponedCommand(c, sessionId, icpe);
 		pendingCommands.addElement(pc);
 		if (timeout > 0) {
 			logger.log(Logger.INFO, Thread.currentThread().toString()+": Activating Timer for Command "+c.getCode());
@@ -200,7 +200,7 @@ public class MicroStub {
 		return ((pendingCommands.size() == 0) && (!flushing));
 	}
 	
-	protected void handlePostponedCommandExpired(Command c) {
+	protected void handlePostponedCommandExpired(Command c, ICPException exception) {
 		// Do nothing by default. Subclasses may redefine this to react properly
 	}
 	
@@ -296,7 +296,7 @@ public class MicroStub {
 				// The command may have been processed while we were waiting to disable flush.
 				// Do nothing in this case
 				if (found) {
-					handlePostponedCommandExpired(pc.command);
+					handlePostponedCommandExpired(pc.command, pc.icpe);
 				}
 			}
 		};
@@ -306,15 +306,21 @@ public class MicroStub {
 	protected class PostponedCommand {
 		private Command command;
 		private int sessionId;
+		private ICPException icpe;
 		private Timer timer;
 		
-		public PostponedCommand(Command c, int sessionId) {
+		public PostponedCommand(Command c, int sessionId, ICPException icpe) {
 			this.command = c;
 			this.sessionId = sessionId;
+			this.icpe = icpe;
 		}
 		
 		public Command getCommand() {
 			return command;
+		}
+		
+		public ICPException getException() {
+			return icpe;
 		}
 	}
 	

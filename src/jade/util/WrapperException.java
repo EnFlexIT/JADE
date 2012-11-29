@@ -63,7 +63,7 @@ public abstract class WrapperException extends Exception {
 	 */
 	public String getMessage() {
 		if((nested != null)) {
-			return super.getMessage() + " [nested "+nested.toString() + "]";
+			return super.getMessage() + " - Caused by:  "+(nested.getMessage() != null ? nested.getMessage() : nested.toString());
 		}
 		return super.getMessage();
 	}

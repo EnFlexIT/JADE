@@ -359,7 +359,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 
 		if (myConnection != null) {
 			if (waitingForFlush && !flush) {
-				throw new ICPException("Upsetting dispatching order");
+				throw new ICPException("Upsetting dispatching order [4]");
 			}
 			waitingForFlush = false;
 			
@@ -393,14 +393,14 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				else {
 					myLogger.log(Logger.WARNING, myMediatorID+" - Response timeout expired. SID = "+pkt.getSessionID());
 					handleDisconnection();
-					throw new ICPDispatchException("Response timeout expired", pkt.getSessionID());
+					throw new ICPDispatchException("Response timeout expired [2]", pkt.getSessionID());
 				}
 			}
 			catch (IOException ioe) {
 				// Can't reach the BackEnd. 
 				myLogger.log(Logger.WARNING, myMediatorID+" - Error writing command. SID = "+pkt.getSessionID(), ioe);
 				handleDisconnection();
-				throw new ICPDispatchException("Dispatching error.", ioe, pkt.getSessionID());
+				throw new ICPDispatchException("I/O error [1]", ioe, pkt.getSessionID());
 			}
 			finally {
 				outCnt = (outCnt+1) & 0x0f;
@@ -412,7 +412,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				// The previous attempt to reconnect failed. Activate the reconnection mechanism again 
 				handleDisconnection();
 			}
-			throw new ICPException("Unreachable");
+			throw new ICPException("Unreachable [3]");
 		}
 	} 
 

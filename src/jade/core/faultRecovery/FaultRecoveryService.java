@@ -46,7 +46,6 @@ import jade.core.IMTPException;
 import jade.core.nodeMonitoring.NodeMonitoringService;
 import jade.core.nodeMonitoring.UDPNodeMonitoringService;
 import jade.core.replication.MainReplicationService;
-import jade.core.replication.MainReplicationSlice;
 
 import jade.util.Logger;
 
