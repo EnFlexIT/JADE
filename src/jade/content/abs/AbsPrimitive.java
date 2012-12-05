@@ -25,8 +25,6 @@
 package jade.content.abs;
 
 import jade.content.onto.*;
-import jade.content.schema.*;
-import java.io.PrintStream;
 
 import java.util.Date;
 
