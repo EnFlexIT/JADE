@@ -424,9 +424,9 @@ public class BEManagementService extends BaseService {
 			// Register for asynchronous IO events
 			myLogger.log(Logger.CONFIG, myLogPrefix + "Registering for asynchronous IO events.");
 
-			// Register the Selector of one (the less loaded) of the LoopManager to the ServerSocketChannel to be notified about ACCEPT operations.
+			// Register the Selector of LoopManager 0 to the ServerSocketChannel to be notified about ACCEPT operations.
 			// NOTE that registrations to Socket Channels for READ operations must be done as long as SocketChannel are created
-			mySSChannel.register(getLooper().getSelector(), SelectionKey.OP_ACCEPT);
+			mySSChannel.register(loopers[0].getSelector(), SelectionKey.OP_ACCEPT);
 			myLogger.log(Logger.INFO, myLogPrefix + "Ready to accept I/O events on address " + myProtocol.buildAddress(host, String.valueOf(port), null, null));
 
 			// Start the loop managers
@@ -534,15 +534,22 @@ public class BEManagementService extends BaseService {
         Get the LoopManager with the minimum number of registered
         keys.
 		 */
-		final LoopManager getLooper() {
+		final LoopManager getLooper() throws NotFoundException {
 			int minSize = 999999; // Big value;
 			int index = -1;
-			for (int i = 0; i < loopers.length; ++i) {
-				int size = loopers[i].size();
-				if (size < minSize) {
-					minSize = size;
-					index = i;
+			// Start from 1: LM-0 is dedicated to handle ACCEPT-OP on the ServerSocketChannel
+			for (int i = 1; i < loopers.length; ++i) {
+				if (!loopers[i].isStuck()) {
+					int size = loopers[i].size();
+					if (size < minSize) {
+						minSize = size;
+						index = i;
+					}
 				}
+			}
+			if (index < 0) {
+				// No LoopManager selected
+				throw new NotFoundException("NO LoopManager selected");
 			}
 			return loopers[index];
 		}
@@ -885,6 +892,35 @@ public class BEManagementService extends BaseService {
 					}
 				}
 			}
+			// Check if some LoopManager is stuck 
+			for (LoopManager lm : loopers) {
+				if (!lm.isStuck()) {
+					if (lm.getReadElapsedTime(currentTime) > 60000) {
+						// LoopManager stuck!!
+						Thread lmThread = lm.myThread;
+						if (lmThread.isInterrupted()) {
+							// This LoopManager was already interrupted once and did not recover --> There is nothing we can do. Mark it as STUCK
+							lm.setStuck();
+							int runningLoopersCnt = countRunningLoopers();
+							myLogger.log(Logger.WARNING, "LM-"+lm.myIndex+" did not recover after interrupt attempt --> Mark is as STUCK. "+runningLoopersCnt+" LoopManagers still working properly");
+							if (runningLoopersCnt < (loopers.length / 2)) {
+								// More than 50% of LoopManagers are stuck --> Kill JVM
+								myLogger.log(Logger.SEVERE, "More than 50% of LoopManagers are stuck --> Kill JVM!!!!!!!!!!!!!!!!!!!!!!!!!");
+								System.exit(300);
+							}
+						}
+						else {
+							StackTraceElement[] stackTrace = lmThread.getStackTrace();
+							StringBuffer sb = new StringBuffer();
+							for(int i=0; i<stackTrace.length; i++) {
+								sb.append("\t at " + stackTrace[i] + "\n");
+							}
+							myLogger.log(Logger.WARNING, "LM-"+lm.myIndex+" appears to be stuck in handling incoming data from the network. Try to kill it!!!!!!!!!!!!!!!! Thread stack trace is\n"+sb.toString());
+							lmThread.interrupt();
+						}
+					}
+				}
+			}
 		}
 
 		///////////////////////////////////////
@@ -961,6 +997,16 @@ public class BEManagementService extends BaseService {
 			m.init(this, id, p);
 			return m;
 		}
+		
+		private int countRunningLoopers() {
+			int cnt = 0;
+			for (LoopManager lm : loopers) {
+				if (!lm.isStuck()) {
+					cnt++;
+				}
+			}
+			return cnt;
+		}
 	} // END of inner class IOEventServer
 
 
@@ -1004,6 +1050,7 @@ public class BEManagementService extends BaseService {
         and let the IOEventServer serve it
 		 */
 		public final void read() {
+			
 			try {
 				JICPPacket pkt = connection.readPacket();
 				server.servePacket(this, pkt);
@@ -1020,7 +1067,6 @@ public class BEManagementService extends BaseService {
 
 	} // END of inner class KeyManager
 
-
 	/**
 	 * Inner class LoopManager
 	 */
@@ -1035,6 +1081,9 @@ public class BEManagementService extends BaseService {
 		private IOEventServer myServer;
 		private boolean pendingChannelPresent = false;
 		private List pendingChannels = new ArrayList();
+		
+		private long readStartTime = -1;
+		private boolean stuck = false;
 
 		public LoopManager(IOEventServer server, int index) {
 			myServer = server;
@@ -1185,24 +1234,34 @@ public class BEManagementService extends BaseService {
 				sc.configureBlocking(false);
 				LoopManager lm = myServer.getLooper();
 				lm.register(sc);
+				myLogger.log(Logger.INFO, myServer.getLogPrefix() + "Incoming socket " + sc + " assigned to LM-"+lm.myIndex+" ("+lm.size()+")");
 			} catch (JADESecurityException jse) {
 				myLogger.log(Logger.WARNING, myServer.getLogPrefix() + "Connection attempt from malicious address " + jse.getMessage());
+			} catch (NotFoundException nfe) {
+				myLogger.log(Logger.SEVERE, myServer.getLogPrefix() + "NO LoopManager available to handle incoming socket!!!!!!!!!");
 			} catch (Exception e) {
 				myLogger.log(Logger.WARNING, myServer.getLogPrefix() + "Error accepting incoming connection. ", e);
 			}
 		}
 
 		private final void handleReadOp(SelectionKey key, String prefix) throws ICPException {
-			KeyManager mgr = (KeyManager) key.attachment();
-			if (mgr == null) {
-				NIOJICPConnection c = myServer.createConnection(key);
-				mgr = new KeyManager(key, c, myServer);
-				key.attach(mgr);
-				myLogger.log(Logger.INFO, prefix + "Connection " + c + " created and associated to KeyManager "+mgr);
+			readStartTime = System.currentTimeMillis();
+			try {
+				KeyManager mgr = (KeyManager) key.attachment();
+				if (mgr == null) {
+					NIOJICPConnection c = myServer.createConnection(key);
+					mgr = new KeyManager(key, c, myServer);
+					key.attach(mgr);
+					myLogger.log(Logger.INFO, prefix + "Connection " + c + " created and associated to KeyManager "+mgr);
+				}
+				mgr.read();
 			}
-			mgr.read();
+			finally {
+				readStartTime = -1;
+			}
 		}
 
+		// This is called by LM-0 following an ACCEPT-OP
 		private synchronized final void register(SocketChannel sc) {
 			pendingChannels.add(sc);
 			pendingChannelPresent = true;
@@ -1233,7 +1292,24 @@ public class BEManagementService extends BaseService {
 		}
 		
 		public final int size() {
-			return mySelector.keys().size();
+			return mySelector.keys().size() + pendingChannels.size();
+		}
+		
+		public final long getReadElapsedTime(long now) {
+			if (readStartTime > 0) {
+				return now - readStartTime;
+			}
+			else {
+				return -1;
+			}
+		}
+		
+		public final boolean isStuck() {
+			return stuck;
+		}
+		
+		public final void setStuck() {
+			stuck = true;
 		}
 	} // END of inner class LoopManager
 

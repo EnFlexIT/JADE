@@ -40,6 +40,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 	private boolean active = true;
 	private boolean peerActive = true;
 	private boolean connectionDropped = false;
+	private long dropTimeStamp = -1;
 	
 	private JICPMediatorManager myMediatorManager;
 	private String myID;
@@ -349,22 +350,31 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		if (myLogger.isLoggable(Logger.FINE)) {
 			myLogger.log(Logger.FINE,  myID+": Tick.");
 		}
-		if (active && !connectionDropped) {
-			// 1) Evaluate the keep alive
-			if (keepAliveTime > 0 && myConnection != null) {
-				if ((currentTime - lastReceivedTime) > (keepAliveTime + responseTimeoutOffset)) {
-					// Missing keep-alive.
-					myLogger.log(Logger.WARNING,  myID+": Missing keep-alive."); 
-					handleConnectionError(myConnection, null);
+		if (active) {
+			if (!connectionDropped) {
+				// 1) Evaluate the keep alive
+				if (keepAliveTime > 0 && myConnection != null) {
+					if ((currentTime - lastReceivedTime) > (keepAliveTime + responseTimeoutOffset)) {
+						// Missing keep-alive.
+						myLogger.log(Logger.WARNING,  myID+": Missing keep-alive."); 
+						handleConnectionError(myConnection, null);
+					}
+				}
+				
+				// 2) Evaluate the max disconnection time
+				if (checkMaxDisconnectionTime(currentTime)) {
+					myLogger.log(Logger.WARNING,  myID+": Max disconnection time expired. FrontEnd is likely dead --> Close BackEnd"); 
+					// Consider as if the FrontEnd has terminated spontaneously -->
+					// Kill the above container (this will also kill this BackEndDispatcher).
+					kill();
 				}
 			}
-			
-			// 2) Evaluate the max disconnection time
-			if (checkMaxDisconnectionTime(currentTime)) {
-				myLogger.log(Logger.WARNING,  myID+": Max disconnection time expired. FrontEnd is likely dead --> Close BackEnd"); 
-				// Consider as if the FrontEnd has terminated spontaneously -->
-				// Kill the above container (this will also kill this BackEndDispatcher).
-				kill();
+			else {
+				// If the FE stays dropped for to much time (1h), very likely it dead  --> kill the above container
+				if ((currentTime - dropTimeStamp) > 3600000) {
+					myLogger.log(Logger.WARNING,  myID+": Max drop-down time expired. FrontEnd is likely dead --> Close BackEnd"); 
+					kill();
+				}
 			}
 		}
 	}
@@ -441,6 +451,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 				updateConnectedState();
 				inpManager.handleConnectionClosed();
 				connectionDropped = true;
+				dropTimeStamp = System.currentTimeMillis();
 			}
 			else {
 				// If we have some postponed command to flush, refuse dropping the connection
