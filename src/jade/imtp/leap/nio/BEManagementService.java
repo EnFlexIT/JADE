@@ -26,6 +26,7 @@ package jade.imtp.leap.nio;
 import jade.core.*;
 import jade.imtp.leap.ICPException;
 import jade.util.Logger;
+import jade.util.ThreadDumpManager;
 import jade.util.leap.Properties;
 import jade.imtp.leap.TransportProtocol;
 import jade.imtp.leap.FrontEndStub;
@@ -169,6 +170,9 @@ public class BEManagementService extends BaseService {
 		BackEndManager.getInstance(p);
 
 		handleAcceptOption(p);
+		
+		// Just for debugging purpose
+		//StuckSimulator.init();
 	}
 
 	private void handleAcceptOption(Profile p) throws ProfileException {
@@ -240,7 +244,7 @@ public class BEManagementService extends BaseService {
 		}
 
 		// Activate the ticker
-		long tickTime = 30000;
+		long tickTime = 60000;
 		try {
 			tickTime = Long.parseLong(p.getParameter(PREFIX + "ticktime", null));
 		} catch (Exception ex) {
@@ -302,8 +306,8 @@ public class BEManagementService extends BaseService {
 		private int state = INIT_STATE;
 		private ServerSocketChannel mySSChannel;
 		private long mediatorCnt = 1;
-		private Hashtable mediators = new Hashtable();
-		private Vector deregisteredMediators = new Vector();
+		private Hashtable<String, NIOMediator> mediators = new Hashtable<String, NIOMediator>();
+		private Vector<String> deregisteredMediators = new Vector<String>();
 		private String host;
 		private int port;
 		private Properties leapProps = new Properties();
@@ -507,9 +511,7 @@ public class BEManagementService extends BaseService {
 
 			// Close all mediators
 			synchronized (mediators) {
-				Iterator it = mediators.values().iterator();
-				while (it.hasNext()) {
-					NIOMediator m = (NIOMediator) it.next();
+				for (NIOMediator m : mediators.values()) {
 					myLogger.log(Logger.FINE, myLogPrefix + "Killing mediator " + m.getID());
 					m.kill();
 				}
@@ -658,7 +660,7 @@ public class BEManagementService extends BaseService {
 						// BackEnd may still exist as a zombie. In case ids are assigned
 						// using the MSISDN the new name is equals to the old one.
 						if (id.equals(msisdn)) {
-							NIOMediator old = (NIOMediator) mediators.get(id);
+							NIOMediator old = mediators.get(id);
 							if (old != null) {
 								// This is a zombie mediator --> kill it
 								myLogger.log(Logger.INFO, myLogPrefix + "Replacing old mediator " + id);
@@ -848,7 +850,7 @@ public class BEManagementService extends BaseService {
 
 		public NIOMediator getFromID(String id) {
 			if (id != null) {
-				return (NIOMediator) mediators.get(id);
+				return mediators.get(id);
 			}
 			return null;
 		}
@@ -859,7 +861,7 @@ public class BEManagementService extends BaseService {
         directly removing the deregistering mediator from the mediators table
         would cause a ConcurrentModificationException --> We just add
         the deregistering mediator to a queue of mediators to be removed.
-        The actual remotion will occur at the next tick in asynchronized
+        The actual remotion will occur at the next tick in a synchronized
         way.
 		 */
 		public void deregisterMediator(String id) {
@@ -868,31 +870,8 @@ public class BEManagementService extends BaseService {
 		}
 
 		public void tick(long currentTime) {
-			// Forward the tick to all mediators
-			synchronized (mediators) {
-				Iterator it = mediators.values().iterator();
-				while (it.hasNext()) {
-					NIOMediator m = (NIOMediator) it.next();
-					m.tick(currentTime);
-				}
-			}
-			// Remove mediators that have deregistered since the last tick
-			Object[] dms = null;
-			synchronized (deregisteredMediators) {
-				dms = deregisteredMediators.toArray();
-				deregisteredMediators.clear();
-			}
-			for (int i = 0; i < dms.length; ++i) {
-				synchronized (mediators) {
-					NIOMediator m = (NIOMediator) mediators.remove(dms[i]);
-					if (m.getID() != null) {
-						// A new mediator with the same ID started in the meanwhile.
-						// It must not be removed.
-						mediators.put(m.getID(), m);
-					}
-				}
-			}
-			// Check if some LoopManager is stuck 
+			// 1) Check if some LoopManager is stuck 
+			int newStuckLMCnt = 0;
 			for (LoopManager lm : loopers) {
 				if (!lm.isStuck()) {
 					if (lm.getReadElapsedTime(currentTime) > 60000) {
@@ -902,7 +881,7 @@ public class BEManagementService extends BaseService {
 							// This LoopManager was already interrupted once and did not recover --> There is nothing we can do. Mark it as STUCK
 							lm.setStuck();
 							int runningLoopersCnt = countRunningLoopers();
-							myLogger.log(Logger.WARNING, "LM-"+lm.myIndex+" did not recover after interrupt attempt --> Mark is as STUCK. "+runningLoopersCnt+" LoopManagers still working properly");
+							myLogger.log(Logger.WARNING, "LM-"+lm.myIndex+" did not recover after last interrupt --> Mark it as STUCK. "+runningLoopersCnt+" LoopManagers still working properly");
 							if (runningLoopersCnt < (loopers.length / 2)) {
 								// More than 50% of LoopManagers are stuck --> Kill JVM
 								myLogger.log(Logger.SEVERE, "More than 50% of LoopManagers are stuck --> Kill JVM!!!!!!!!!!!!!!!!!!!!!!!!!");
@@ -910,6 +889,7 @@ public class BEManagementService extends BaseService {
 							}
 						}
 						else {
+							newStuckLMCnt++;
 							StackTraceElement[] stackTrace = lmThread.getStackTrace();
 							StringBuffer sb = new StringBuffer();
 							for(int i=0; i<stackTrace.length; i++) {
@@ -918,6 +898,33 @@ public class BEManagementService extends BaseService {
 							myLogger.log(Logger.WARNING, "LM-"+lm.myIndex+" appears to be stuck in handling incoming data from the network. Try to kill it!!!!!!!!!!!!!!!! Thread stack trace is\n"+sb.toString());
 							lmThread.interrupt();
 						}
+					}
+				}
+			}
+			if (newStuckLMCnt > 0) {
+				myLogger.log(Logger.WARNING, "Full thread dump\n----------------------------------\n"+ThreadDumpManager.dumpAllThreads());
+			}
+			// 2) Forward the tick to all mediators
+			NIOMediator[] mm = null;
+			synchronized (mediators) {
+				mm = mediators.values().toArray(new NIOMediator[0]);
+			}
+			for (NIOMediator m : mm) {
+				m.tick(currentTime);
+			}
+			// 3) Remove mediators that have deregistered since the last tick
+			String[] dms = null;
+			synchronized (deregisteredMediators) {
+				dms = deregisteredMediators.toArray(new String[0]);
+				deregisteredMediators.clear();
+			}
+			for (String id : dms) {
+				synchronized (mediators) {
+					NIOMediator m = mediators.remove(id);
+					if (m.getID() != null) {
+						// A new mediator with the same ID started in the meanwhile.
+						// It must not be removed.
+						mediators.put(m.getID(), m);
 					}
 				}
 			}
@@ -1117,7 +1124,7 @@ public class BEManagementService extends BaseService {
 		public void start() {
 			state = ACTIVE_STATE;
 			myThread = new Thread(this);
-			myThread.setName(displayId + "-T" + myIndex + "-R" + replaceCnt);
+			myThread.setName(displayId + "-LM" + myIndex + "-R" + replaceCnt);
 			myThread.start();
 		}
 
@@ -1328,7 +1335,7 @@ public class BEManagementService extends BaseService {
 
 		public void start() {
 			active = true;
-			setName("BEManagementService-ticker");
+			setName("BEManagementService-ticker-master");
 			super.start();
 		}
 
@@ -1336,14 +1343,20 @@ public class BEManagementService extends BaseService {
 			while (active) {
 				try {
 					Thread.sleep(period);
-					long currentTime = System.currentTimeMillis();
-					if (myLogger.isLoggable(Logger.FINE)) {
-						myLogger.log(Logger.FINE,  "Ticker: Tick. Current time = "+currentTime);
-					}
-					Object[] ss = servers.values().toArray();
-					for (int i = 0; i < ss.length; ++i) {
-						((IOEventServer) ss[i]).tick(currentTime);
-					}
+					final long currentTime = System.currentTimeMillis();
+					myLogger.log(Logger.INFO,  "Ticker: Tick begin. Current time = "+currentTime);
+					Thread t = new Thread() {
+						public void run() {
+							Object[] ss = servers.values().toArray();
+							for (int i = 0; i < ss.length; ++i) {
+								((IOEventServer) ss[i]).tick(currentTime);
+							}
+							myLogger.log(Logger.INFO,  "Ticker: Tick end. Current time = "+currentTime);
+						}
+					};
+					t.setName("BEManagementService-ticker-"+currentTime);
+					t.setDaemon(true);
+					t.start();
 				} catch (Throwable t) {
 					if (active) {
 						myLogger.log(Logger.WARNING, "BEManagementService-Ticker: Unexpected exception ", t);

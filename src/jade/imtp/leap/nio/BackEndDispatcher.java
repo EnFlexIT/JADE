@@ -258,6 +258,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		}
 		try {
 			c.close();
+			//StuckSimulator.stuck();
 		} catch(Exception e1) {
 			myLogger.log(Logger.WARNING, myID+": Unexpected error closing Connection = "+c, e1);
 		}
@@ -705,6 +706,5 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		}
 		return peerActive;
 	}
-	
 }
 
