@@ -270,9 +270,11 @@ class TopicTable {
 		
 		private final void removeIfEmpty() {
 			if (interestedAgents.isEmpty() && templateInterestedAgents.isEmpty() && children.isEmpty()) {
-				parent.children.remove(name);
-				if (parent != root) {
-					parent.removeIfEmpty();
+				if (parent != null) {
+					parent.children.remove(name);
+					if (parent != root) {
+						parent.removeIfEmpty();
+					}
 				}
 			}
 		}
