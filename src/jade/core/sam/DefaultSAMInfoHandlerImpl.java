@@ -45,7 +45,7 @@ class DefaultSAMInfoHandlerImpl implements SAMInfoHandler {
 	private Map<String, CounterInfo> counters = new HashMap<String, CounterInfo>();
 	
 	private SimpleDateFormat timeStampFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-	private String csvSeparator = "| ";
+	private String csvSeparator;
 	
 	private File samInfoDirectory;
 	private String fileSeparator;
@@ -55,6 +55,7 @@ class DefaultSAMInfoHandlerImpl implements SAMInfoHandler {
 	public void initialize(Profile p) throws Exception {
 		fileSeparator = System.getProperty("file.separator");
 		
+		// Read (and create if necessary) the directory where to store SAM files.
 		String samInfoDirectoryName = p.getParameter("jade_core_sam_SAMService_csvdirectory", ".");
 		samInfoDirectory = new File(samInfoDirectoryName);
 		if (!samInfoDirectory.exists()) {
@@ -67,6 +68,9 @@ class DefaultSAMInfoHandlerImpl implements SAMInfoHandler {
 		else if (!samInfoDirectory.isDirectory()) {
 			throw new IOException("SAM csv location "+samInfoDirectoryName+" is not a directory.");
 		}		
+		
+		// Read the CSV separator character
+		csvSeparator = p.getParameter("jade_core_sam_SAMService_csvseparator", ";");
 	}
 
 	public void shutdown() {
