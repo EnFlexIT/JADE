@@ -309,9 +309,6 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			break;
 		case JICPProtocol.KEEP_ALIVE_TYPE:
 			myLogger.log(Logger.INFO, "BE "+myID+" - KEEP_ALIVE received");
-			if (!isConnected()) {
-				myLogger.log(Logger.WARNING, "BE "+myID+" - KEEP_ALIVE received with connection closed!!!!!!!!!!!!!!!!!!!!!!!!!");
-			}
 			reply = outManager.handleKeepAlive(pkt);
 			break;
 		case JICPProtocol.RESPONSE_TYPE:

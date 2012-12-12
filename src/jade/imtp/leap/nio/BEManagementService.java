@@ -24,6 +24,10 @@ package jade.imtp.leap.nio;
 
 //#J2ME_EXCLUDE_FILE
 import jade.core.*;
+import jade.core.sam.AverageMeasureProviderImpl;
+import jade.core.sam.CounterValueProvider;
+import jade.core.sam.MeasureProvider;
+import jade.core.sam.SAMHelper;
 import jade.imtp.leap.ICPException;
 import jade.util.Logger;
 import jade.util.ThreadDumpManager;
@@ -143,6 +147,22 @@ public class BEManagementService extends BaseService {
 	
 	private String configOptionsFileName = "feOptions.properties";
 	
+	private AgentContainer myContainer;
+	
+	// SAM related variables
+	private int createMediatorCounter = 0;
+	private int connectMediatorCounter = 0;
+	private int mediatorNotFoundCounter = 0;
+	private int incomingCommandCounter = 0;
+	private int keepAliveCounter = 0;
+	private int dropDownCounter = 0;
+	private int processingTimeGT1SecCounter = 0;
+	private int processingTimeGT10SecCounter = 0;
+	private int incomingPacketServingErrorCounter = 0;
+	private int incomingPacketReadingErrorCounter = 0;
+	private AverageMeasureProviderImpl dataProcessingTimeProvider = null;
+	private AverageMeasureProviderImpl waitForDataTimeProvider = null;
+	
 	private Logger myLogger = Logger.getJADELogger(getClass().getName());
 
 	/**
@@ -165,6 +185,7 @@ public class BEManagementService extends BaseService {
 		super.init(ac, p);
 
 		platformName = ac.getPlatformID();
+		myContainer = ac;
 
 		// Initialize the BE-Manager
 		BackEndManager.getInstance(p);
@@ -256,6 +277,145 @@ public class BEManagementService extends BaseService {
 		}
 		myTicker = new Ticker(tickTime);
 		myTicker.start();
+		
+		// Initialize messaging-related System Activity Monitoring
+		initializeSAM();
+	}
+
+	private void initializeSAM() {
+		try {
+			Service sam = myContainer.getServiceFinder().findService(SAMHelper.SERVICE_NAME);
+			if (sam != null) {
+				SAMHelper samHelper = (SAMHelper) sam.getHelper(null);
+		
+				// Average data processing time
+				dataProcessingTimeProvider = new AverageMeasureProviderImpl();
+				samHelper.addEntityMeasureProvider("Avg_Data_Processing_Time", dataProcessingTimeProvider);
+				
+				// Average time a LoopManager spends waiting for network data to process
+				waitForDataTimeProvider = new AverageMeasureProviderImpl();
+				samHelper.addEntityMeasureProvider("Avg_Wait_For_Data_Time", waitForDataTimeProvider);
+	
+				// Counter of packets whose processing required more than 1 sec and less than 10 sec
+				samHelper.addCounterValueProvider("Processing_Time_GT1Sec_Count", new CounterValueProvider() {
+					public long getValue() {
+						return processingTimeGT1SecCounter;
+					}
+					public boolean isDifferential() {
+						return false;
+					}
+				});
+	
+				// Counter of packets whose processing required more than 10 sec
+				samHelper.addCounterValueProvider("Processing_Time_GT10Sec_Count", new CounterValueProvider() {
+					public long getValue() {
+						return processingTimeGT10SecCounter;
+					}
+					public boolean isDifferential() {
+						return false;
+					}
+				});
+	
+				// Number of active BackEnds
+				samHelper.addEntityMeasureProvider("BackEnd_Number", new MeasureProvider() {
+					public Number getValue() {
+						int cnt = 0;
+						Iterator it = servers.values().iterator();
+						while (it.hasNext()) {
+							cnt += ((IOEventServer) it.next()).mediators.values().size();
+						}
+						return cnt;
+					}
+				});
+				
+				// Number of opened socket
+				samHelper.addEntityMeasureProvider("Socket_Number", new MeasureProvider() {
+					public Number getValue() {
+						int cnt = 0;
+						Iterator it = servers.values().iterator();
+						while (it.hasNext()) {
+							cnt += ((IOEventServer) it.next()).getSocketCnt();
+						}
+						return cnt;
+					}
+				});
+
+				// JICP event counters
+				samHelper.addCounterValueProvider("Create_Mediator_Count", new CounterValueProvider() {
+					public long getValue() {
+						return createMediatorCounter;
+					}
+					public boolean isDifferential() {
+						return false;
+					}
+				});
+				samHelper.addCounterValueProvider("Connect_Mediator_Count", new CounterValueProvider() {
+					public long getValue() {
+						return connectMediatorCounter;
+					}
+					public boolean isDifferential() {
+						return false;
+					}
+				});
+				samHelper.addCounterValueProvider("Mediator_Not_Found_Count", new CounterValueProvider() {
+					public long getValue() {
+						return mediatorNotFoundCounter;
+					}
+					public boolean isDifferential() {
+						return false;
+					}
+				});
+				samHelper.addCounterValueProvider("Incoming_Command_Count", new CounterValueProvider() {
+					public long getValue() {
+						return incomingCommandCounter;
+					}
+					public boolean isDifferential() {
+						return false;
+					}
+				});
+				samHelper.addCounterValueProvider("Keep_Alive_Count", new CounterValueProvider() {
+					public long getValue() {
+						return keepAliveCounter;
+					}
+					public boolean isDifferential() {
+						return false;
+					}
+				});
+				samHelper.addCounterValueProvider("Drop_Down_Count", new CounterValueProvider() {
+					public long getValue() {
+						return dropDownCounter;
+					}
+					public boolean isDifferential() {
+						return false;
+					}
+				});
+				
+				// Error counters
+				samHelper.addCounterValueProvider("Incoming_Packet_Reading_Error_Count", new CounterValueProvider() {
+					public long getValue() {
+						return incomingPacketReadingErrorCounter;
+					}
+					public boolean isDifferential() {
+						return false;
+					}
+				});
+				samHelper.addCounterValueProvider("Incoming_Packet_Serving_Error_Count", new CounterValueProvider() {
+					public long getValue() {
+						return incomingPacketServingErrorCounter;
+					}
+					public boolean isDifferential() {
+						return false;
+					}
+				});
+			}
+		}
+		catch (ServiceNotActiveException snae) {
+			// SAMService not active --> just do nothing
+		}
+		catch (Exception e) {
+			// Should never happen
+			myLogger.log(Logger.WARNING, "Error accessing the local SAMService.", e);
+		}
 	}
 
 	/**
@@ -575,7 +735,6 @@ public class BEManagementService extends BaseService {
 			if (pkt == null) {
 				return;
 			}
-			long start = System.currentTimeMillis();
 
 			SelectionKey key = mgr.getKey();
 			SocketChannel sc = (SocketChannel) key.channel();
@@ -609,6 +768,7 @@ public class BEManagementService extends BaseService {
 					break;
 				}
 				case JICPProtocol.CREATE_MEDIATOR_TYPE: {
+					createMediatorCounter++;
 					if (mediator == null) {
 						// Create a new Mediator
 						myLogger.log(Logger.INFO, myLogPrefix + "CREATE_MEDIATOR request received from " + address + ":" + port);
@@ -695,6 +855,7 @@ public class BEManagementService extends BaseService {
 					break;
 				}
 				case JICPProtocol.CONNECT_MEDIATOR_TYPE: {
+					connectMediatorCounter++;
 					if (mediator == null) {
 						myLogger.log(Logger.INFO, myLogPrefix + "CONNECT_MEDIATOR request received from " + address + ":" + port + ". ID=" + recipientID);
 
@@ -731,6 +892,7 @@ public class BEManagementService extends BaseService {
 							}
 							reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, address.getHostAddress().getBytes());
 						} else {
+							mediatorNotFoundCounter++;
 							myLogger.log(Logger.WARNING, myLogPrefix + "Mediator " + recipientID + " not found");
 							reply = new JICPPacket(JICPProtocol.NOT_FOUND_ERROR, null);
 						}
@@ -741,8 +903,17 @@ public class BEManagementService extends BaseService {
 					break;
 				}
 				default: {
-					// Pass all other JICP packets (commands, responses, keep-alives ...)
-					// to the proper mediator.
+					// Pass all other JICP packets (commands, responses, keep-alives ...) to the proper mediator.
+					if (type == JICPProtocol.COMMAND_TYPE) {
+						incomingCommandCounter++;
+					}
+					else if (type == JICPProtocol.KEEP_ALIVE_TYPE) {
+						keepAliveCounter++;
+					}
+					else if (type == JICPProtocol.DROP_DOWN_TYPE) {
+						dropDownCounter++;
+					}
+					
 					if (mediator == null) {
 						mediator = getFromID(recipientID);
 					}
@@ -762,6 +933,7 @@ public class BEManagementService extends BaseService {
 				} // END of switch
 			} catch (Exception e) {
 				// Error handling the received packet
+				incomingPacketServingErrorCounter++;
 				myLogger.log(Logger.WARNING, myLogPrefix + stringify(mediator) + "Error handling incoming packet. ", e);
 				// If the incoming packet was a request, send back a generic error response
 				if (type == JICPProtocol.COMMAND_TYPE ||
@@ -798,11 +970,6 @@ public class BEManagementService extends BaseService {
 					io.printStackTrace();
 				}
 			}
-
-			long end = System.currentTimeMillis();
-			if ((end - start) > 1000) {
-				myLogger.log(Logger.INFO, myLogPrefix + stringify(mediator) + "Serve time = " + (end - start));
-			}
 		}
 		
 		private String stringify(NIOMediator mediator) {
@@ -828,6 +995,7 @@ public class BEManagementService extends BaseService {
 			NIOJICPConnection connection = mgr.getConnection();
 			// If we are closing the connection do not even print the warning
 			if (!connection.isClosed()) {
+				incomingPacketReadingErrorCounter++;
 				NIOMediator mediator = mgr.getMediator();
 				if (mediator != null) {
 					mediator.handleConnectionError(connection, e);
@@ -1014,6 +1182,15 @@ public class BEManagementService extends BaseService {
 			}
 			return cnt;
 		}
+		
+		public int getSocketCnt() {
+			int cnt = 0;
+			// Start from 1: LM 0 does not manage sockets
+			for (int i = 1; i < loopers.length; ++i) {
+				cnt += loopers[i].size();
+			}
+			return cnt;
+		}
 	} // END of inner class IOEventServer
 
 
@@ -1149,7 +1326,11 @@ public class BEManagementService extends BaseService {
 				int n = 0;
 				try {
 					// Wait for the next IO events
+					long startSelect = System.currentTimeMillis();
 					n = mySelector.select();
+					if (waitForDataTimeProvider != null) {
+						waitForDataTimeProvider.addSample(System.currentTimeMillis() - startSelect);
+					}
 				} catch (NullPointerException npe) {
 					// There seems to be a bug in java.nio (http://www.limewire.org/techdocs/nio2.html).
 					// Just retry.
@@ -1157,7 +1338,7 @@ public class BEManagementService extends BaseService {
 					continue;
 				} catch (Exception e) {
 					if (state == ACTIVE_STATE) {
-						myLogger.log(Logger.WARNING, myServer.getLogPrefix() + "Error selecting next IO event. ", e);
+						myLogger.log(Logger.SEVERE, myServer.getLogPrefix() + "Error selecting next IO event. ", e);
 						// Abort
 						state = ERROR_STATE;
 					}
@@ -1176,14 +1357,14 @@ public class BEManagementService extends BaseService {
 								if ((key.readyOps() & SelectionKey.OP_ACCEPT) != 0) {
 									// This is an incoming connection. The channel must be the SerevrSocketChannel server
 									if (myLogger.isLoggable(Logger.FINER)) {
-										myLogger.log(Logger.FINER, myServer.getLogPrefix() + "------------------ ACCEPT_OP on key "+key);
+										myLogger.log(Logger.FINER, prefix + "------------------ ACCEPT_OP on key "+key);
 									}
-									handleAcceptOp(key);
+									handleAcceptOp(key, prefix);
 								} else if ((key.readyOps() & SelectionKey.OP_READ) != 0) {
 									try {
 										// This is some incoming data for one of the BE
 										if (myLogger.isLoggable(Logger.FINER)) {
-											myLogger.log(Logger.FINER, myServer.getLogPrefix() + "READ_OP on key "+key);
+											myLogger.log(Logger.FINER, prefix + "READ_OP on key "+key);
 										}
 										handleReadOp(key, prefix);
 									} catch (ICPException ex) {
@@ -1232,7 +1413,7 @@ public class BEManagementService extends BaseService {
 			myServer.replaceLoopManager(myIndex, lm); // This also makes the currentLoopManager terminate
 		}
 
-		private final void handleAcceptOp(SelectionKey key) {
+		private final void handleAcceptOp(SelectionKey key, String prefix) {
 			try {
 				SocketChannel sc = ((ServerSocketChannel) key.channel()).accept();
 
@@ -1241,13 +1422,13 @@ public class BEManagementService extends BaseService {
 				sc.configureBlocking(false);
 				LoopManager lm = myServer.getLooper();
 				lm.register(sc);
-				myLogger.log(Logger.INFO, myServer.getLogPrefix() + "Incoming socket " + sc + " assigned to LM-"+lm.myIndex+" ("+lm.size()+")");
+				myLogger.log(Logger.INFO, prefix + "Incoming socket " + sc + " assigned to LM-"+lm.myIndex+" ("+lm.size()+")");
 			} catch (JADESecurityException jse) {
-				myLogger.log(Logger.WARNING, myServer.getLogPrefix() + "Connection attempt from malicious address " + jse.getMessage());
+				myLogger.log(Logger.WARNING, prefix + "Connection attempt from malicious address " + jse.getMessage());
 			} catch (NotFoundException nfe) {
-				myLogger.log(Logger.SEVERE, myServer.getLogPrefix() + "NO LoopManager available to handle incoming socket!!!!!!!!!");
+				myLogger.log(Logger.SEVERE, prefix + "NO LoopManager available to handle incoming socket!!!!!!!!!");
 			} catch (Exception e) {
-				myLogger.log(Logger.WARNING, myServer.getLogPrefix() + "Error accepting incoming connection. ", e);
+				myLogger.log(Logger.WARNING, prefix + "Error accepting incoming connection. ", e);
 			}
 		}
 
@@ -1264,6 +1445,19 @@ public class BEManagementService extends BaseService {
 				mgr.read();
 			}
 			finally {
+				long elapsedTime = System.currentTimeMillis() - readStartTime;
+				if (dataProcessingTimeProvider != null) {
+					dataProcessingTimeProvider.addSample(elapsedTime);
+				}
+				if (elapsedTime > 1000) {
+					myLogger.log(Logger.WARNING, prefix + "Serve time = "+elapsedTime);
+					if (elapsedTime > 10000) {
+						processingTimeGT10SecCounter++;
+					}
+					else {
+						processingTimeGT1SecCounter++;
+					}
+				}
 				readStartTime = -1;
 			}
 		}
@@ -1280,7 +1474,7 @@ public class BEManagementService extends BaseService {
 				for (int i = 0; i < pendingChannels.size(); ++i) {
 					SocketChannel sc = (SocketChannel) pendingChannels.get(i);
 					if (myLogger.isLoggable(Logger.INFO)) {
-						myLogger.log(Logger.INFO, prefix+": Registering Selector "+mySelector+" on channel " + sc  +" for READ operations");
+						myLogger.log(Logger.INFO, prefix+"Registering Selector "+mySelector+" on channel " + sc  +" for READ operations");
 					}
 					try {
 						sc.register(mySelector, SelectionKey.OP_READ);

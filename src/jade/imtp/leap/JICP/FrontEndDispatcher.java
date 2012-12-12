@@ -206,6 +206,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			myStub = new BackEndStub(this, props);
 
 			Connection c = createBackEnd();
+			updateTimers();
 			active = true;
 			startConnectionReader(c);
 
@@ -315,6 +316,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	public synchronized void shutdown() {
 		if (active) {
 			active = false;
+			clearTimers();
 
 			terminator = Thread.currentThread();
 			if (terminator != myCommandServer) {
@@ -375,11 +377,12 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			myLogger.log(Logger.INFO, myMediatorID+" - Issuing outgoing command "+outCnt);
 			try {
 				lastOutgoingResponse = null;
-				//System.out.println("Sending command to BE "+pkt.getSessionID());
+				clearTimers();
 				writePacket(pkt, myConnection);
 				myLogger.log(Logger.INFO, myMediatorID+" - Waiting for response, SID = "+pkt.getSessionID());
 				JICPPacket response = waitForResponse(outCnt, JICPProtocol.DEFAULT_RESPONSE_TIMEOUT_OFFSET);
 				if (response != null) {
+					updateTimers();
 					//System.out.println("Response received from BE "+response.getSessionID());
 					if (myLogger.isLoggable(Logger.INFO)) {
 						myLogger.log(Logger.INFO, myMediatorID+" - Response received "+response.getSessionID());
@@ -486,10 +489,13 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			switch(pkt.getType()) {
 			case JICPProtocol.COMMAND_TYPE:
 				myLogger.log(Logger.INFO, myMediatorID+" - CR-"+myId+" COMMAND received from BE, SID="+pkt.getSessionID());
+				updateTimers();
 				serveCommand(pkt);
 				myLogger.log(Logger.INFO, myMediatorID+" - CR-"+myId+" Incoming command passed to asynchronous command server");
 				break;
 			case JICPProtocol.KEEP_ALIVE_TYPE:
+				// Server-side initiated keep-alive
+				updateKeepAlive();
 				return handleIncomingKeepAlive(pkt);
 			case JICPProtocol.RESPONSE_TYPE:
 			case JICPProtocol.ERROR_TYPE:
@@ -547,12 +553,12 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		if (Thread.currentThread() == terminator) {
 			myConnection.close();
 		}
-		else {
+		/*else {
 			updateKeepAlive();
 			if (pkt.getType() != JICPProtocol.KEEP_ALIVE_TYPE && pkt.getType() != JICPProtocol.DROP_DOWN_TYPE) {
 				updateConnectionDropDown();
 			}
-		}
+		}*/
 	}
 
 	private JICPPacket waitForResponse(int sessionID, long timeout) {
@@ -597,6 +603,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		while (active) {
 			try {
 				connect(cnt);
+				updateTimers();
 				return;
 			}
 			catch (IOException ioe) {
@@ -609,6 +616,10 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				// NO need to try further
 				handleReconnectionError("JICP Error. " + icpe.getMessage());
 				return;
+			}
+			catch (Exception imtpe) {
+				// Unexpected error. This may be due to strange situations where for instance a spurious KA response is interpreted as a CONNECT_MEDIATOR response
+				myLogger.log(Logger.WARNING, myMediatorID+" - Unexpected error trying to connect", imtpe);
 			}
 
 			if ((System.currentTimeMillis() - startTime) > maxDisconnectionTime) {
@@ -724,6 +735,20 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	////////////////////////////////////////////////////////////////
 	// Keep-alive and connection drop-down mechanism management
 	////////////////////////////////////////////////////////////////
+	private void updateTimers() {
+		updateKeepAlive();
+		updateConnectionDropDown();
+	}
+	
+	private synchronized void clearTimers() {
+		TimerDispatcher td = TimerDispatcher.getTimerDispatcher();
+		if (kaTimer != null) {
+			td.remove(kaTimer);
+		}
+		if (cdTimer != null) {
+			td.remove(cdTimer);
+		}
+	}
 
 	/**
 	 * Refresh the keep-alive timer.
@@ -783,6 +808,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				JICPPacket rsp = waitForResponse(-1, KEEP_ALIVE_RESPONSE_TIMEOUT);
 				if (rsp != null) {
 					myLogger.log(Logger.INFO, myMediatorID+" - KA response received");
+					updateKeepAlive();
 				}
 				else {
 					myLogger.log(Logger.WARNING, myMediatorID+" - KA Response timeout expired.");
