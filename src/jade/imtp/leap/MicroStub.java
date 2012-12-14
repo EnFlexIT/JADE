@@ -141,6 +141,17 @@ public class MicroStub {
 	
 	
 	public boolean flush() {
+		Thread t = checkFlush();
+		if (t != null) {
+			t.start();
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	public Thread checkFlush() {
 		// 1) Lock the buffer of pending commands to ensure mutual exclusion with executeRemotely() (see comment in beginDispatch())
 		if (beginFlush()) {
 			// This is called by the main thread of the underlying EndPoint
@@ -187,12 +198,11 @@ public class MicroStub {
 					logger.log(Logger.INFO,"Flushing thread terminated ("+flushedCnt+")");
 				}
 			};
-			flushingThread.start();
-			return true;
+			return flushingThread;
 		}
 		else {
-			// Flushing did not start --> no need to call endFlush()
-			return false;
+			// Flushing will not start --> no need to call endFlush()
+			return null;
 		}
 	}
 	
@@ -262,7 +272,7 @@ public class MicroStub {
 		}
 	}
 	
-	private void endFlush() {
+	public void endFlush() {
 		synchronized (pendingCommands) {
 			flushing = false;
 			pendingCommands.notifyAll();

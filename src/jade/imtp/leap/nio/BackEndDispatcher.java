@@ -204,6 +204,13 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			// Unblock any Thread waiting for a response. It will behave as if the response timeout was expired
 			inpManager.notifyIncomingResponseReceived(null);
 		}
+		
+		// Lock the buffer of pending commands (if any) for flushing (MicroStub.beginFlush()) 
+		// before entering the synchronized block to avoid deadlock with a dispatching Thread
+		// that already locked the buffer of pending commands for dispatching (MicroStub.beginDispatch()),
+		// but did not enter the dispatch() method yet
+		Thread flusher = inpManager.prepareFlush();
+		
 		synchronized (this) {
 			checkTerminatedInfo(pkt);
 			
@@ -225,12 +232,20 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 				myConnection = c;
 				myLogger.log(Logger.INFO, myID+": Connection = "+myConnection);
 				
-				updateConnectedState();			
-				inpManager.handleNewConnection();
+				updateConnectedState();	
 				connectionDropped = false;
+				
+				// Activate flushing (if needed) only when the connection has been fully re-established
+				if (flusher != null) {
+					flusher.start();
+				}
 				return true;
 			}
 			else {
+				// The FrontEnd has terminated --> No need to flush anything
+				if (flusher != null) {
+					inpManager.abortFlush();
+				}
 				// The remote FrontEnd has terminated spontaneously -->
 				// Kill the above container (this will also kill this BackEndDispatcher).
 				kill();
@@ -513,8 +528,14 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			return myStub;
 		}
 		
-		void handleNewConnection() {
-			waitingForFlush = myStub.flush();
+		Thread prepareFlush() {
+			Thread flusher = myStub.checkFlush();
+			waitingForFlush = flusher != null;
+			return flusher;
+		}
+		
+		void abortFlush() {
+			myStub.endFlush();
 		}
 		
 		synchronized void handleConnectionClosed() {
