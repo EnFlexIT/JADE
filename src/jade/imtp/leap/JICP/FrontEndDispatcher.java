@@ -34,6 +34,7 @@ import jade.core.TimerListener;
 import jade.core.TimerDispatcher;
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.BackEndStub;
+import jade.imtp.leap.ConnectionDropped;
 import jade.imtp.leap.ICPDispatchException;
 import jade.imtp.leap.MicroSkeleton;
 import jade.imtp.leap.FrontEndSkel;
@@ -919,14 +920,12 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	}
 
 	protected void undrop() throws ICPException {
+		// NOTE that reconnecting inside a dispatch process would cause a
+		// deadlock between dispatch and flush --> Make the MicroStub postpone 
+		// the command and start the reconnection process 
 		connectionDropped = false;
-		try {
-			connect(0);
-		} catch (Exception e) {
-			handleDisconnection();
-			throw new ICPException("Connection error", e);
-		}
-		
+		handleDisconnection();
+		throw new ConnectionDropped();		
 	}	
 
 

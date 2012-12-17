@@ -79,6 +79,12 @@ public class MicroStub {
 			return r;
 		}
 		catch (ICPException icpe) {
+			if (timeout == 0 && (icpe instanceof ConnectionDropped)) {
+				// If the exception just depends on the fact that the connection was
+				// dropped, use a non-null timeout waiting for the connection to be undropped 
+				timeout = 30000;
+			}
+			
 			// The destination is unreachable.
 			// Postpone the command if store-and-forward is enabled (timeout > 0 or -1 i.e. INFNITE)
 			if (timeout == 0) {
@@ -249,23 +255,23 @@ public class MicroStub {
 	
 	private boolean beginFlush() {
 		synchronized (pendingCommands) {
+			if (dispatchingThreads.contains(Thread.currentThread())) {
+				// If this is a dispatching Thread we will enter a deadlock. 
+				// Throw a suitable exception to avoid that.
+				throw new FlushDeadlock();
+			}
+			while (dispatchingThreads.size() > 0) {
+				try {
+					pendingCommands.wait();
+				}
+				catch (InterruptedException ie) {
+				}
+			}
 			if (pendingCommands.isEmpty()) {
-				// Nothing to flush. Do not block the Thread even if a dispatching process is ongoing
+				// Nothing to flush. 
 				return false;
 			}
 			else {
-				if (dispatchingThreads.contains(Thread.currentThread())) {
-					// If this is a dispatching Thread we will enter a deadlock. 
-					// Throw a suitable exception to avoid that.
-					throw new FlushDeadlock();
-				}
-				while (dispatchingThreads.size() > 0) {
-					try {
-						pendingCommands.wait();
-					}
-					catch (InterruptedException ie) {
-					}
-				}
 				flushing = true;
 				return true;
 			}
