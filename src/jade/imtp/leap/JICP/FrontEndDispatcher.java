@@ -69,13 +69,18 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	private long connectionDropDownTime = -1;
 
 	private Timer kaTimer, cdTimer;
+	// Lock used to synchronize sections managing timers for KEEP_ALIVE and DROP_DOWN. 
+	// Such sections never contain possibly blocking code --> Cannot cause deadlock
+	private Object timersLock = new Object(); 
 
 	private IncomingCommandServer myCommandServer;
 	private ConnectionReader myConnectionReader;
 	private Connection myConnection = null;
 	public boolean refreshingConnection = false;
 	private Object connectionLock = new Object();
-	private Object responseLock = new Object();
+	// Lock used to synchronize threads waiting for a response with the ConnectionReader thread 
+	// receiving data from the network --> Cannot cause deadlock
+	private Object responseLock = new Object();  
 	private ConnectionListener myConnectionListener;
 
 	private boolean active = true;
@@ -740,63 +745,92 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		updateConnectionDropDown();
 	}
 	
-	private synchronized void clearTimers() {
-		TimerDispatcher td = TimerDispatcher.getTimerDispatcher();
-		if (kaTimer != null) {
-			td.remove(kaTimer);
-		}
-		if (cdTimer != null) {
-			td.remove(cdTimer);
+	/**
+	 * Clear the keep-alive and drop-down timers.
+	 * Mutual exclusion with updateKeepAlive(), updateConnectionDropDown() and doTimeOut()
+	 */
+	private void clearTimers() {
+		synchronized (timersLock) { 
+			TimerDispatcher td = TimerDispatcher.getTimerDispatcher();
+			if (kaTimer != null) {
+				td.remove(kaTimer);
+			}
+			if (cdTimer != null) {
+				td.remove(cdTimer);
+			}
 		}
 	}
 
 	/**
 	 * Refresh the keep-alive timer.
-	 * Mutual exclusion with updateKeepAlive() and updateConnectionDropDown()
+	 * Mutual exclusion with clearTimers(), updateConnectionDropDown() and doTimeOut()
 	 */
-	private synchronized void updateKeepAlive() {
-		if (keepAliveTime > 0) {
-			TimerDispatcher td = TimerDispatcher.getTimerDispatcher();
-			if (kaTimer != null) {
-				td.remove(kaTimer);
+	private void updateKeepAlive() {
+		synchronized (timersLock) {
+			if (keepAliveTime > 0) {
+				TimerDispatcher td = TimerDispatcher.getTimerDispatcher();
+				if (kaTimer != null) {
+					td.remove(kaTimer);
+				}
+				kaTimer = td.add(new Timer(System.currentTimeMillis()+keepAliveTime, this));
 			}
-			kaTimer = td.add(new Timer(System.currentTimeMillis()+keepAliveTime, this));
 		}
 	}
 
 	/**
 	 * Refresh the connection drop-down timer.
-	 * Mutual exclusion with updateKeepAlive(), updateConnectionDropDown() and doTimeOut()
+	 * Mutual exclusion with clearTimers(), updateKeepAlive() and doTimeOut()
 	 */
-	private synchronized void updateConnectionDropDown() {
-		if (connectionDropDownTime > 0) {
-			TimerDispatcher td = TimerDispatcher.getTimerDispatcher();
-			if (cdTimer != null) {
-				td.remove(cdTimer);
+	private void updateConnectionDropDown() {
+		synchronized (timersLock) {
+			if (connectionDropDownTime > 0) {
+				TimerDispatcher td = TimerDispatcher.getTimerDispatcher();
+				if (cdTimer != null) {
+					td.remove(cdTimer);
+				}
+				cdTimer = td.add(new Timer(System.currentTimeMillis()+connectionDropDownTime, this));
 			}
-			cdTimer = td.add(new Timer(System.currentTimeMillis()+connectionDropDownTime, this));
 		}
 	}
 
 	/**
-	 * Mutual exclusion with updateKeepAlive(), updateConnectionDropDown() and doTimeOut()
+	 * Mutual exclusion with updateKeepAlive(), updateConnectionDropDown() and clearTimers()
 	 */	
-	public synchronized void doTimeOut(Timer t) {
-		if (t == kaTimer) { 
-			// [WATCHDOG] startWatchDog(outConnection); 
-			sendKeepAlive();
-		}
-		else if (t == cdTimer) {
-			dropDownConnection();
+	public void doTimeOut(final Timer t) {
+		synchronized (timersLock) {
+			if (t == kaTimer) {
+				// Send KEEP_ALIVE may take time --> Do it in a dedicated Thread 
+				Thread thr = new Thread() {
+					public void run() {
+						sendKeepAlive(t);
+					}
+				};
+				thr.start();
+			}
+			else if (t == cdTimer) {
+				// Send DROP_DOWN may take time --> Do it in a dedicated Thread 
+				Thread thr = new Thread() {
+					public void run() {
+						dropDownConnection(t);
+					}
+				};
+				thr.start();
+			}
 		}
 	}
 
 	/**
-	   Send a KEEP_ALIVE packet to the BE.
-	   This is executed within a synchronized block --> Mutual exclusion
-	   with dispatch() is guaranteed.
+	 * Send a KEEP_ALIVE packet to the BE.
+	 * Mutual exclusion with dispatch() and dropDownConnection().
 	 */
-	protected void sendKeepAlive() {
+	private synchronized void sendKeepAlive(Timer t) {
+		if (t != kaTimer) {
+			// Some data was exchanged just after t was expired --> just do nothing
+			// NOTE: See comment in dropDownConnection(). In this case the point is even 
+			// less important since in the worst case we send an un-necessary KA 
+			return;
+		}
+		
 		if (myConnection != null && !connectionDropped) {
 			JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
 			try {
@@ -824,12 +858,25 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	}  
 
 	/**
-	 Send a DROP_DOWN packet to the BE. The latter will also close
-	 the INP connection.
-	 This is executed within a synchronized block --> Mutual exclusion
-	 with dispatch() is guaranteed.
+	 * Send a DROP_DOWN packet to the BE and close the connection.
+	 * Mutual exclusion with dispatch() and sendKeepAlive().
 	 */
-	private void dropDownConnection() {
+	private synchronized void dropDownConnection(Timer t) {
+		if (t != cdTimer) {
+			// Some data was exchanged just after t was expired --> Do nothing!
+			// NOTE: This check is important for data sent by the FE to the BE since:
+			// - Data sent 1 sec before t expiration --> Connection NOT dropped
+			// - Data sent just after t expiration --> Connection dropped
+			// - Data sent 1 sec after t expiration --> Connection dropped, but immediately restored --> NOT dropped
+			// In such case the check works properly thanks to the fact that dropDownConnection() 
+			// and dispatch() are executed in mutual exclusion.
+			// On the contrary, for data sent by the BE to the FE the check may not work since 
+			// the ConnectionReader is not (and must not be) synchronized. In that case however
+			// the check is not important since:
+			// - Data received 1 sec before t expiration --> Connection NOT dropped
+			// - Data issued by BE 1 sec after t expiration --> Connection dropped (data cannot be received)
+			return;
+		}
 		if (myConnection != null && !connectionDropped) {
 			myLogger.log(Logger.INFO, "Writing DROP_DOWN request");
 			JICPPacket pkt = prepareDropDownRequest();
