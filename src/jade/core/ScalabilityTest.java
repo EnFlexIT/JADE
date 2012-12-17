@@ -6,29 +6,50 @@ package jade.core;
 import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.util.ExtendedProperties;
 import jade.util.leap.Properties;
 import jade.imtp.leap.JICP.PDPContextManager;
 import jade.imtp.leap.JICP.JICPProtocol;
 
 import java.io.*;
+import java.util.Random;
 
+// All JADE configuration options must be specified prefixing them with "jade."
+// Command line example:
+// java -cp .... -jade.port 2099 -jade.proto ssl -i 100 -s 10000 -t 5000 -n 10 -measure rtt
+// Launch the Round Trip Time measure using 10 sender-receiver couples performing 100
+// send-receive iterations, using messages with a content of 10K and waiting 5 secs after each
+// iteration. 
+// FrontEnds connect to the local host (default) on port 2099 and using the ssl protocol.  
 public class ScalabilityTest {
+	// Size of the content of each message exchanged during the test
 	private static final String CONTENT_SIZE = "s";
 	private static final int DEFAULT_CONTENT_SIZE = 1000;
 
+	// Time between two successive iterations
 	private static final String TIME_INTERVAL = "t";
 	private static final long DEFAULT_TIME_INTERVAL = 1000;
 	private static final long STEPBYSTEP_TIME_INTERVAL = -1;
 
+	// Number of iterations
 	private static final String N_ITERATIONS = "i";
 	private static final int DEFAULT_N_ITERATIONS = -1;
 
+	// Number of sender-receiver couples
 	private static final String N_COUPLES = "n";
 	private static final int DEFAULT_N_COUPLES = 10;
 
+	// Base cnt for assigning names to agents. This allows launching more than one
+	// ScalabilityTest in parallel without conflicts in agent names 
 	private static final String BASE = "base";
 	private static final int DEFAULT_BASE = 0;
 
+	// Test initialization mode 
+	// - Ready-go mode: All agents starts and, when they are all ready, the user is prompted 
+	// to start the test by pressing Enter (default and suggested mode)
+	// - Fast mode: All agents begin the test as soon as they are started
+	// - Slow mode: Wait a bit after each sender-receiver couple initialization 
+	// - Step-by-step mode: Prompt the user after each sender-receiver couple initialization
 	private static final String MODE = "mode";
 	private static final String FAST_MODE_S = "fast";
 	private static final String SLOW_MODE_S = "slow";
@@ -38,7 +59,12 @@ public class ScalabilityTest {
 	private static final int SLOW_MODE = 1;
 	private static final int STEP_BY_STEP_MODE = 2;
 	private static final int READY_GO_MODE = 3;
+	
+	// If specified makes agents begin the test scattered randomly within a time interval.
+	// Has no effect if time-interval is <= 0 (e.g. step-by-step mode)
+	private static final String RANDOM_START_S = "randomstart";
 
+	// Target measure: bitrate or round trip time
 	private static final String MEASURE = "measure";
 	private static final String BITRATE_MEASURE_S = "bitrate";
 	private static final String RTT_MEASURE_S = "rtt";
@@ -55,6 +81,7 @@ public class ScalabilityTest {
 	private static int nCouples;
 	private static int base;
 	private static int mode; 
+	private static boolean randomStart;
 	private static int measure;
 	private static int readyCnt = 0;
 	private static int terminatedCnt = 0;
@@ -62,11 +89,13 @@ public class ScalabilityTest {
 	private static long totalTime = 0;
 	private static long totalTime2 = 0;
 
-	private static Object lock = new Object();
 	private static BufferedReader inputReader;
+	
+	private static Random random = new Random();
 
 	public static void main(String[] args) {
-		Properties pp = parseArguments(args);
+		ExtendedProperties pp = parseArguments(args);
+		Properties jadeProps = pp.extractSubset("jade.");
 
 		int contentSize = DEFAULT_CONTENT_SIZE;
 		try {
@@ -88,6 +117,14 @@ public class ScalabilityTest {
 		nIterations = DEFAULT_N_ITERATIONS;
 		try {
 			nIterations = Integer.parseInt(pp.getProperty(N_ITERATIONS));
+		}
+		catch (Exception e) {
+			// Keep default
+		}
+
+		nCouples = DEFAULT_N_COUPLES;
+		try {
+			nCouples = Integer.parseInt(pp.getProperty(N_COUPLES));
 		}
 		catch (Exception e) {
 			// Keep default
@@ -121,14 +158,9 @@ public class ScalabilityTest {
 		if (mode == READY_GO_MODE || mode == STEP_BY_STEP_MODE) {
 			inputReader = new BufferedReader(new InputStreamReader(System.in));
 		}
-
-		nCouples = DEFAULT_N_COUPLES;
-		try {
-			nCouples = Integer.parseInt(pp.getProperty(N_COUPLES));
-		}
-		catch (Exception e) {
-			// Keep default
-		}
+		
+		randomStart = "true".equals(pp.getProperty(RANDOM_START_S, "false"));
+		
 
 		measure = BITRATE_MEASURE;
 		try {
@@ -143,7 +175,7 @@ public class ScalabilityTest {
 
 		String prefix = Profile.getDefaultNetworkName();
 		for (int i = base; i < base+nCouples; i++) {
-			initCouple(pp.getProperty(MicroRuntime.HOST_KEY), pp.getProperty(MicroRuntime.PORT_KEY), pp.getProperty(MicroRuntime.PROTO_KEY), pp.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY), prefix, i);
+			initCouple(jadeProps, prefix, i);
 			switch (mode) {
 			case SLOW_MODE:
 				waitABit();
@@ -212,13 +244,15 @@ public class ScalabilityTest {
 	}
 
 
-	private static void waitABit() {
-		synchronized (lock) {
-			try {
-				lock.wait(1000);
-			}
-			catch (Exception e) {}
+	private static void waitABit(long timeout) {
+		try {
+			Thread.sleep(timeout);
 		}
+		catch (Exception e) {}
+	}
+	
+	private static void waitABit() {
+		waitABit(1000);
 	}
 
 	private static void prompt(String msg) {
@@ -230,8 +264,8 @@ public class ScalabilityTest {
 		}
 	}
 
-	private static Properties parseArguments(String[] args) {
-		Properties props = new Properties();
+	private static ExtendedProperties parseArguments(String[] args) {
+		ExtendedProperties props = new ExtendedProperties();
 		int i = 0;
 		while (i < args.length) {
 			if (args[i].startsWith("-")) {
@@ -253,7 +287,7 @@ public class ScalabilityTest {
 		return props;
 	}
 
-	private static void initCouple(String host, String port, String proto, String maxDiscTime, String prefix, int index) {
+	private static void initCouple(Properties basePP, String prefix, int index) {
 		String senderClass = "jade.core.ScalabilityTest$BitrateSenderAgent";
 		String receiverClass = "jade.core.ScalabilityTest$BitrateReceiverAgent";
 		if (measure == RTT_MEASURE) {
@@ -261,7 +295,8 @@ public class ScalabilityTest {
 			receiverClass = "jade.core.ScalabilityTest$RTTReceiverAgent";
 		}
 
-		Properties pp = new Properties();
+		Properties pp = (Properties) basePP.clone();
+		/*Properties pp = new Properties();
 		if (host != null) {
 			pp.setProperty(MicroRuntime.HOST_KEY, host);
 		}
@@ -273,7 +308,7 @@ public class ScalabilityTest {
 		}
 		if (maxDiscTime != null) {
 			pp.setProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY, maxDiscTime);
-		}
+		}*/
 		String sName = "S-"+prefix+"-"+index;
 		pp.setProperty(PDPContextManager.MSISDN, sName);
 		String rName = "R-"+prefix+"-"+index;
@@ -283,7 +318,8 @@ public class ScalabilityTest {
 		FrontEndContainer fes = new FrontEndContainer();
 		fes.start(pp);
 
-		pp = new Properties();
+		pp = (Properties) basePP.clone();
+		/*pp = new Properties();
 		if (host != null) {
 			pp.setProperty(MicroRuntime.HOST_KEY, host);
 		}
@@ -295,7 +331,7 @@ public class ScalabilityTest {
 		}
 		if (maxDiscTime != null) {
 			pp.setProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY, maxDiscTime);
-		}
+		}*/
 		pp.setProperty(PDPContextManager.MSISDN, rName);
 		prop = rName+":"+receiverClass;
 		pp.setProperty(MicroRuntime.AGENTS_KEY, prop);
@@ -328,13 +364,28 @@ public class ScalabilityTest {
 			}
 		}
 	}
+	
+	private static long getRandomTime(long max) {
+		float f = random.nextFloat();
+		// f is a random value between 0.0 and 1.0
+		if (f == 0) {
+			// Avoid returning 0
+			return 10;
+		}
+		return (long) f * max;
+	}
 
 
 	/**
 	   Inner class BitrateSenderAgent
+	   Send messages to the corresponding receiver.
+	   When the receiver gets message 0 takes the START time. 
+	   When the receiver gets message N (number of iterations) takes the END time  
+	   and completes
 	 */
 	public static class BitrateSenderAgent extends Agent {
 		private ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+		private boolean firstRound = true;
 		private AID myReceiver;
 
 		protected void setup() {
@@ -350,9 +401,13 @@ public class ScalabilityTest {
 			msg.addReceiver(myReceiver);
 			msg.setByteSequenceContent(content);
 
-			System.out.println("Sender "+getName()+" ready: my receiver is "+myReceiver.getName());
+			System.out.println("BitRate-Sender "+getName()+" ready: my receiver is "+myReceiver.getName());
 			notifyReady();
 
+			if (randomStart && timeInterval > 0) {
+				waitABit(getRandomTime(timeInterval));
+			}
+			
 			if (timeInterval > 0) {
 				addBehaviour(new TickerBehaviour(this, timeInterval) {
 					public void onTick() {
@@ -370,6 +425,12 @@ public class ScalabilityTest {
 		}
 
 		private void job() {
+			if (firstRound) {
+				long time = System.currentTimeMillis();
+				// Insert the start-time ion the protocol field
+				msg.setProtocol(String.valueOf(time));
+				firstRound = false;
+			}
 			send(msg);
 			if (timeInterval == STEPBYSTEP_TIME_INTERVAL) {
 				notifyReady();
@@ -392,19 +453,24 @@ public class ScalabilityTest {
 				public void action() {
 					ACLMessage msg = myAgent.receive();
 					if (msg != null) {
+						cnt++;
 						if (!firstReceived) {
 							firstReceived = true;
-							startTime = System.currentTimeMillis();
+							// First message: get startTime from the protocol field 
+							startTime = Long.parseLong(msg.getProtocol());
 						}
 						if (!terminated) {
 							if (nIterations > 0 && cnt >= nIterations) {
 								long endTime = System.currentTimeMillis();
 								long totalCoupleTime = endTime - startTime;
+								// Unless we are in step-by-step mode, take time interval between iterations into account
+								if (timeInterval != STEPBYSTEP_TIME_INTERVAL) {
+									totalCoupleTime -= (nIterations - 1) * timeInterval;
+								}
 								long totalCoupleTime2 = totalCoupleTime*totalCoupleTime;
 								notifyTerminated(totalCoupleTime, totalCoupleTime2);
 								terminated = true;
 							}
-							cnt++;
 						}
 					}
 					else {
@@ -418,6 +484,8 @@ public class ScalabilityTest {
 
 	/**
 	   Inner class RTTSenderAgent
+	   Send messages to the corresponding receiver. For each message waits for the
+	   response and compute the round trip time.
 	 */
 	public static class RTTSenderAgent extends Agent {
 		private ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -444,6 +512,7 @@ public class ScalabilityTest {
 			msg.setByteSequenceContent(content);
 			myTemplate = MessageTemplate.MatchSender(myReceiver);
 
+			System.out.println("RTT-Sender "+getName()+" ready: my receiver is "+myReceiver.getName());
 			notifyReady();
 
 			if (timeInterval > 0) {
@@ -469,6 +538,7 @@ public class ScalabilityTest {
 			long time = System.currentTimeMillis() - start;
 
 			if (!terminated) {
+				System.out.println("Agent "+getLocalName()+" "+cnt+" OK");
 				totalCoupleTime += time;
 				totalCoupleTime2 += (time*time);
 				if (nIterations > 0 && (++cnt) >= nIterations) {
@@ -487,6 +557,7 @@ public class ScalabilityTest {
 	   Inner class RTTReceiverAgent
 	 */
 	public static class RTTReceiverAgent extends Agent {
+		private int cnt = 0;
 		protected void setup() {
 			addBehaviour(new CyclicBehaviour(this) {
 				public void action() {
@@ -496,6 +567,8 @@ public class ScalabilityTest {
 						reply.setPerformative(ACLMessage.INFORM);
 						reply.setByteSequenceContent(msg.getByteSequenceContent());
 						myAgent.send(reply);
+						System.out.println("Agent "+getLocalName()+" message "+cnt+" received");
+						cnt++;
 					}
 					else {
 						block();

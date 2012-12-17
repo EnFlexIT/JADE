@@ -21,7 +21,8 @@ import java.util.logging.Logger;
 public class NIOJICPConnection extends Connection {
 	// type+info+session+recipient-length+recipient(255)+payload-length(4)
 	public static final int MAX_HEADER_SIZE = 263;
-	// TODO 5k, why? configurable?
+	// TODO 10k, why? configurable?
+	//public static final int INITIAL_BUFFER_SIZE = 16 * 1024;
 	public static final int INITIAL_BUFFER_SIZE = 1024;
 	private SocketChannel myChannel;
 	private ByteBuffer socketData = ByteBuffer.allocateDirect(INITIAL_BUFFER_SIZE);
@@ -150,6 +151,10 @@ public class NIOJICPConnection extends Connection {
 	}
 
 
+	/*int availableData() throws IOException {
+		return myChannel.socket().getInputStream().available();
+	}*/
+	
 	/**
 	 * reads data from the socket into a buffer
 	 * @param b
@@ -350,6 +355,14 @@ public class NIOJICPConnection extends Connection {
 	 */
 	void init(SocketChannel channel) throws ICPException {
 		this.myChannel = (SocketChannel) channel;
+		java.net.Socket s = this.myChannel.socket();
+		try {
+			//s.setReceiveBufferSize(64 * 1024);
+			System.out.println("%%%%%%%%%%%%%%%% Receive buffer size = "+s.getReceiveBufferSize());
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void addBufferTransformer(BufferTransformer transformer) {
