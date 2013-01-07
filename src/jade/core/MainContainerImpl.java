@@ -78,12 +78,14 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	 * case of fault of the master Main Contaier
 	 */
 	private static final String REPLICATED_AGENTS = "jade_core_MainContainerImpl_replicatedagents";
+	private static final String IGNORE_CHILD_NODES_ON_SHUTDOWN = "jade_core_MainContainerImpl_ignorechildnodes";
 	
 	// The two mandatory system agents.
 	private ams theAMS;
 	private df defaultDF;
 	private Map replicatedAgents = new HashMap();
 	private Vector replicatedAgentClasses;
+	private boolean ignoreChildNodesOnShutdown;
 	
 	private ContainerID localContainerID;
 	private PlatformManagerImpl myPlatformManager;
@@ -102,6 +104,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	public MainContainerImpl(Profile p, PlatformManagerImpl pm) throws ProfileException {
 		myCommandProcessor = p.getCommandProcessor();
 		replicatedAgentClasses = Specifier.parseList(p.getParameter(REPLICATED_AGENTS, ""), ';');
+		ignoreChildNodesOnShutdown = "true".equals(p.getParameter(IGNORE_CHILD_NODES_ON_SHUTDOWN, "false"));
 		myPlatformManager = pm;
 		// The AMS must be instantiated before the installation of kernel services to
 		// avoid NullPointerException in case a service provides an AMS-behaviour 
@@ -805,40 +808,59 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			myLogger.log(Logger.CONFIG, "Shutting down agent platform.");
 		}
 		
-		// FIXME: Here we probably need to issue a KILL_PLATFORM VCommand for security check.
+		// Issue a SHUTDOWN_PLATFORM VCommand for information and security check.
 		// In facts, even if the requester does not have the permission to kill the whole platform
-		// auxiliary nodes are killed in any case
+		// auxiliary nodes are killed anyway
+		GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.SHUTDOWN_PLATFORM, jade.core.management.AgentManagementSlice.NAME, null);
+		cmd.setPrincipal(requesterPrincipal);
+		cmd.setCredentials(requesterCredentials);
+		Object ret = myCommandProcessor.processOutgoing(cmd);
+		if (ret != null) {
+			if (ret instanceof JADESecurityException) {
+				throw (JADESecurityException)ret;
+			}
+			else if (ret instanceof Throwable) {
+				// In methods called by the AMS to serve agents requests we throw
+				// a RuntimeException that will result in a FAILURE message sent
+				// back to the requester
+				throw new RuntimeException(ret.toString());
+			}
+		}
+
+		int cnt = 0;
+		ContainerID[] allContainers = null;
 		
 		// First kill all containers held by child nodes 
-		int cnt = 0;
-		ContainerID[] allContainers = containers.names();
-		for(int i = 0; i < allContainers.length; i++) {
-			ContainerID targetID = allContainers[i];
-			NodeDescriptor dsc = myPlatformManager.getDescriptor(targetID.getName());
-			if (dsc != null) {
-				if (dsc.getParentNode() != null) {
-					shutdownContainer(targetID, "Container", requesterPrincipal, requesterCredentials);
-					cnt++;
+		if (!ignoreChildNodesOnShutdown) {
+			allContainers = containers.names();
+			for(int i = 0; i < allContainers.length; i++) {
+				ContainerID targetID = allContainers[i];
+				NodeDescriptor dsc = myPlatformManager.getDescriptor(targetID.getName());
+				if (dsc != null) {
+					if (dsc.getParentNode() != null) {
+						shutdownContainer(targetID, "Container", requesterPrincipal, requesterCredentials);
+						cnt++;
+					}
+				}
+				else {
+					// A zombie container. Just remove it from the container table
+					removeRemoteContainer(targetID);
 				}
 			}
-			else {
-				// A zombie container. Just remove it from the container table
-				removeRemoteContainer(targetID);
+		
+			if (cnt > 0 && myLogger.isLoggable(Logger.FINE)) {
+				myLogger.log(Logger.FINE, "Containers on child nodes shutdown completed.");
 			}
 		}
 		
-		if (cnt > 0 && myLogger.isLoggable(Logger.FINE)) {
-			myLogger.log(Logger.FINE, "Containers on child nodes shutdown completed.");
-		}
-		
-		// Then kill all remaining peripheral containers  
+		// Then kill all remaining peripheral (non-child) containers  
 		cnt = 0;
 		allContainers = containers.names();
 		for(int i = 0; i < allContainers.length; i++) {
 			ContainerID targetID = allContainers[i];
 			NodeDescriptor dsc = myPlatformManager.getDescriptor(targetID.getName());
 			if (dsc != null) {
-				if (!dsc.getNode().hasPlatformManager()) {
+				if (dsc.getParentNode() == null && !dsc.getNode().hasPlatformManager()) {
 					shutdownContainer(targetID, "Container", requesterPrincipal, requesterCredentials);
 					cnt++;
 				}
