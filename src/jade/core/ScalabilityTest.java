@@ -96,6 +96,7 @@ public class ScalabilityTest {
 	public static void main(String[] args) {
 		ExtendedProperties pp = parseArguments(args);
 		Properties jadeProps = pp.extractSubset("jade.");
+		System.out.println("JADE PROPERTIES: "+jadeProps);
 
 		int contentSize = DEFAULT_CONTENT_SIZE;
 		try {
@@ -314,7 +315,7 @@ public class ScalabilityTest {
 		String rName = "R-"+prefix+"-"+index;
 		String prop = sName+":"+senderClass+"("+rName+")";
 		pp.setProperty(MicroRuntime.AGENTS_KEY, prop);
-		pp.setProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY, "-1");
+		//pp.setProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY, "-1");
 		FrontEndContainer fes = new FrontEndContainer();
 		fes.start(pp);
 
@@ -335,7 +336,7 @@ public class ScalabilityTest {
 		pp.setProperty(PDPContextManager.MSISDN, rName);
 		prop = rName+":"+receiverClass;
 		pp.setProperty(MicroRuntime.AGENTS_KEY, prop);
-		pp.setProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY, "-1");
+		//pp.setProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY, "-1");
 		FrontEndContainer fer = new FrontEndContainer();
 		fer.start(pp);
 	}

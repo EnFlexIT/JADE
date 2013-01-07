@@ -52,8 +52,6 @@ import jade.core.NameClashException;
 
 import jade.core.AID;
 import jade.core.ContainerID;
-import jade.core.messaging.MessagingService;
-import jade.core.messaging.MessagingSlice;
 
 import jade.domain.AMSEventQueueFeeder;
 import jade.domain.FIPAAgentManagement.AMSAgentDescription;

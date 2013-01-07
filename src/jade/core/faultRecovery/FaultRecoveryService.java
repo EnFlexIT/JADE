@@ -469,7 +469,7 @@ public class FaultRecoveryService extends BaseService {
 					}
 				}
 				else {
-					myLogger.log(Logger.CONFIG, "Orphan node "+nodeName+" not found in persistent storage");
+					myLogger.log(Logger.INFO, "Orphan node "+nodeName+" not found in persistent storage");
 				}
 			}
 			catch (Exception e) {
