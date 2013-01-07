@@ -506,14 +506,14 @@ public class DFDBKB extends DBKB {
 		
 		createTable(ONTOLOGY, new String[] {
 				"descrid VARCHAR(" + MAX_PROP_LENGTH + ")",
-				"ontology VARCHAR(32)",
+				"ontology VARCHAR(64)",
 				"PRIMARY KEY( descrid, ontology )",
 				"FOREIGN KEY( descrid ) REFERENCES dfagentdescr( id )"
 		});
 		
 		createTable(PROTOCOL, new String[] {
 				"descrid VARCHAR(" + MAX_PROP_LENGTH + ")",
-				"protocol VARCHAR(32)", 
+				"protocol VARCHAR(64)", 
 				"PRIMARY KEY( descrid, protocol )", 
 				"FOREIGN KEY( descrid ) REFERENCES dfagentdescr( id )"
 		});
@@ -537,13 +537,13 @@ public class DFDBKB extends DBKB {
 		
 		createTable(SERVICEPROTOCOL, new String[] {
 				"serviceid VARCHAR(" + MAX_PROP_LENGTH + ")",
-				"protocol VARCHAR(32)",
+				"protocol VARCHAR(64)",
 				"PRIMARY KEY( serviceid, protocol )",
 				"FOREIGN KEY( serviceid ) REFERENCES service( id )"});
 		
 		createTable(SERVICEONTOLOGY, new String[] {
 				"serviceid VARCHAR(" + MAX_PROP_LENGTH + ")",
-				"ontology VARCHAR(32)",
+				"ontology VARCHAR(64)",
 				"PRIMARY KEY( serviceid, ontology )",
 				"FOREIGN KEY( serviceid ) REFERENCES service( id )"});
 		
