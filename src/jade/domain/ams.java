@@ -1071,22 +1071,25 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 					if (! amsd.getState().equals(AMSAgentDescription.LATENT)) {
 
 						ContainerID c = myPlatform.getContainerID(agentName);
-	
-						BornAgent ba = new BornAgent();
-						// Note that "agentName" may not include agent addresses
-						AID id = agentName;
-						if (amsd != null) {
-							if (amsd.getName() != null) {
-								id = amsd.getName();
+						// ContainerID is null in case of foreign agents registered with this AMS or virtual agents
+						// FIXME: Should we notify anything for such agents?
+						if (c != null) {
+							BornAgent ba = new BornAgent();
+							// Note that "agentName" may not include agent addresses
+							AID id = agentName;
+							if (amsd != null) {
+								if (amsd.getName() != null) {
+									id = amsd.getName();
+								}
+								ba.setState(amsd.getState());
+								ba.setOwnership(amsd.getOwnership());
 							}
-							ba.setState(amsd.getState());
-							ba.setOwnership(amsd.getOwnership());
+							ba.setAgent(id);
+							ba.setWhere(c);
+		
+							er = new EventRecord(ba, here());
+							eventQueue.put(er);
 						}
-						ba.setAgent(id);
-						ba.setWhere(c);
-	
-						er = new EventRecord(ba, here());
-						eventQueue.put(er);
 					}
 				}
 			} catch (NotFoundException nfe) {

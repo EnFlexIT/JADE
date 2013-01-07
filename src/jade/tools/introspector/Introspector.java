@@ -185,14 +185,18 @@ public class Introspector extends ToolAgent {
 				public void handle(Event ev) {
 					BornAgent ba = (BornAgent)ev;
 					ContainerID cid = ba.getWhere();
-					String container = cid.getName();
-					AID agent = ba.getAgent();
-					allAgents.add(agent);
-					myGUI.addAgent(container, agent);
-					if( preloadContains( agent.getName() ) != null )
-						Introspector.this.addAgent( agent );
-					if(agent.equals(getAID()))
-						myContainerName = container;
+					// ContainerID is null in case of foreign agents registered with the local AMS or virtual agents
+					// FIXME: Such agents should be shown somewhere
+					if (cid != null) {
+						String container = cid.getName();
+						AID agent = ba.getAgent();
+						allAgents.add(agent);
+						myGUI.addAgent(container, agent);
+						if( preloadContains( agent.getName() ) != null )
+							Introspector.this.addAgent( agent );
+						if(agent.equals(getAID()))
+							myContainerName = container;
+					}
 				}
 			});
 			
@@ -200,15 +204,18 @@ public class Introspector extends ToolAgent {
 				public void handle(Event ev) {
 					DeadAgent da = (DeadAgent)ev;
 					ContainerID cid = da.getWhere();
-					String container = cid.getName();
-					AID agent = da.getAgent();
-					allAgents.remove(agent);
-					MainWindow m = (MainWindow)windowMap.get(agent);
-					if(m != null) {
-						myGUI.closeInternal(m);
-						windowMap.remove(agent);
+					// ContainerID is null in case of foreign agents registered with the local AMS or virtual agents
+					if (cid != null) {
+						String container = cid.getName();
+						AID agent = da.getAgent();
+						allAgents.remove(agent);
+						MainWindow m = (MainWindow)windowMap.get(agent);
+						if(m != null) {
+							myGUI.closeInternal(m);
+							windowMap.remove(agent);
+						}
+						myGUI.removeAgent(container, agent);
 					}
-					myGUI.removeAgent(container, agent);
 				}
 			});
 			

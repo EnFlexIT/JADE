@@ -209,11 +209,15 @@ public class rma extends ToolAgent {
 				public void handle(Event ev) {
 					BornAgent ba = (BornAgent)ev;
 					ContainerID cid = ba.getWhere();
-					String container = cid.getName();
-					AID agent = ba.getAgent();
-					myGUI.addAgent(container, agent, ba.getState(), ba.getOwnership());
-					if (agent.equals(getAID()))
-						myContainerName = container;
+					// ContainerID is null in case of foreign agents registered with the local AMS or virtual agents
+					// FIXME: Such agents should be shown somewhere
+					if (cid != null) {
+						String container = cid.getName();
+						AID agent = ba.getAgent();
+						myGUI.addAgent(container, agent, ba.getState(), ba.getOwnership());
+						if (agent.equals(getAID()))
+							myContainerName = container;
+					}
 				}
 			});
 			
@@ -221,9 +225,12 @@ public class rma extends ToolAgent {
 				public void handle(Event ev) {
 					DeadAgent da = (DeadAgent)ev;
 					ContainerID cid = da.getWhere();
-					String container = cid.getName();
-					AID agent = da.getAgent();
-					myGUI.removeAgent(container, agent);
+					// ContainerID is null in case of foreign agents registered with the local AMS or virtual agents
+					if (cid != null) {
+						String container = cid.getName();
+						AID agent = da.getAgent();
+						myGUI.removeAgent(container, agent);
+					}
 				}
 			});
 			
