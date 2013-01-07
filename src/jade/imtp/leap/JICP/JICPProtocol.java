@@ -81,7 +81,7 @@ public class JICPProtocol extends TransportProtocol {
 	 * bit encoded data info constants
 	 */
 	public static final byte DEFAULT_INFO = 0;                  // All bits = 0
-	public static final byte COMPRESSED_INFO = 1;               // bit 1 == 1
+	public static final byte COMPRESSED_INFO = 1;               // bit 1 == 1  (less significant bit)
 	public static final byte RECIPIENT_ID_PRESENT_INFO = 2;     // bit 2 == 1
 	public static final byte SESSION_ID_PRESENT_INFO = 4;       // bit 3 == 1
 	public static final byte DATA_PRESENT_INFO = 8;             // bit 4 == 1
