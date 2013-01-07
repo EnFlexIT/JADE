@@ -219,10 +219,8 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 	
 			if (peerActive) {
 				// In some cases the front-end disconnects and we do not detect that.
-				// When it reconnects, close the previous connection and notify any Thread waiting from
-				// responses on the old connection
+				// When it reconnects, close the previous connection if still there.
 				if (myConnection != null && myConnection != c) {
-					inpManager.handleConnectionClosed();
 					try {
 						myConnection.close();
 					} catch(Exception e) {
@@ -261,21 +259,24 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 	   packets from 
 	   connections on its own (the JICPMediatorManager does that in general).
 	 */
-	public synchronized void handleConnectionError(Connection c, Exception e) {
-		if (active && peerActive) {
-			if (c == myConnection) {
-				myConnection = null;
-				updateConnectedState();
-				inpManager.handleConnectionClosed();
-				myLogger.log(Logger.WARNING, myID+": Disconnection detected");
-				setExpirationDeadline();
+	public void handleConnectionError(Connection c, Exception e) {
+		// In case someone was waiting for a response notify it the response will never arrive
+		inpManager.notifyIncomingResponseReceived(null);
+		
+		synchronized (this) {
+			if (active && peerActive) {
+				if (c == myConnection) {
+					myConnection = null;
+					updateConnectedState();
+					myLogger.log(Logger.WARNING, myID+": Disconnection detected");
+					setExpirationDeadline();
+				}
 			}
-		}
-		try {
-			c.close();
-			//StuckSimulator.stuck();
-		} catch(Exception e1) {
-			myLogger.log(Logger.WARNING, myID+": Unexpected error closing Connection = "+c, e1);
+			try {
+				c.close();
+			} catch(Exception e1) {
+				myLogger.log(Logger.WARNING, myID+": Unexpected error closing Connection = "+c, e1);
+			}
 		}
 	}
 	
@@ -460,9 +461,12 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 				JICPPacket rsp = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
 				writePacket(c, rsp);
 				
+				// Should never happen (the inpManager would not be empty), but, in case someone was waiting for a
+				// response notify it the response will never arrive
+				inpManager.notifyIncomingResponseReceived(null);
+				
 				myConnection = null;
 				updateConnectedState();
-				inpManager.handleConnectionClosed();
 				connectionDropped = true;
 				dropTimeStamp = System.currentTimeMillis();
 			}
@@ -538,11 +542,6 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			myStub.endFlush();
 		}
 		
-		synchronized void handleConnectionClosed() {
-			// If there was someone waiting for a response on the connection notify it.
-			notifyAll();
-		}
-		
 		final boolean isEmpty() {
 			// We are empty if we are not dispatching a JICPPacket and our stub 
 			// has no postponed commands waiting to be delivered.
@@ -550,7 +549,8 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		}
 		
 		void shutdown() {
-			handleConnectionClosed();
+			// In case someone was waiting for a response notify it the response will never arrive
+			notifyIncomingResponseReceived(null);
 		}
 		
 		/**

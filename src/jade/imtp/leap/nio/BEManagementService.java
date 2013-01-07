@@ -1236,8 +1236,10 @@ public class BEManagementService extends BaseService {
 		public final void read() {
 			
 			try {
-				JICPPacket pkt = connection.readPacket();
-				server.servePacket(this, pkt);
+				do {
+					JICPPacket pkt = connection.readPacket();
+					server.servePacket(this, pkt);
+				} while (connection.moreDataAvailable());
 			} catch (PacketIncompleteException pie) {
 				// The data ready to be read is not enough to complete
 				// a packet. Just do nothing and wait until more data is ready
@@ -1248,7 +1250,6 @@ public class BEManagementService extends BaseService {
 				server.serveException(this, e);
 			}
 		}
-
 	} // END of inner class KeyManager
 
 	/**
@@ -1478,7 +1479,6 @@ public class BEManagementService extends BaseService {
 					}
 					try {
 						sc.register(mySelector, SelectionKey.OP_READ);
-						//System.out.println(Thread.currentThread().getName()+": Done");
 					} catch (Exception e) {
 						myLogger.log(Logger.WARNING, prefix + "Error registering socket channel for asynchronous IO. ", e);
 					}

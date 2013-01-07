@@ -25,8 +25,9 @@ public class NIOJICPConnection extends Connection {
 	//public static final int INITIAL_BUFFER_SIZE = 16 * 1024;
 	public static final int INITIAL_BUFFER_SIZE = 1024;
 	private SocketChannel myChannel;
-	private ByteBuffer socketData = ByteBuffer.allocateDirect(INITIAL_BUFFER_SIZE);
+	private ByteBuffer socketData = ByteBuffer.allocateDirect(INITIAL_BUFFER_SIZE); 
 	private ByteBuffer payloadBuf = ByteBuffer.allocateDirect(INITIAL_BUFFER_SIZE);
+	private ByteBuffer unmanagedJicpData = null;
 
 	private byte type;
 	private byte info;
@@ -34,6 +35,7 @@ public class NIOJICPConnection extends Connection {
 	private String recipientID;
 
 	private boolean headerReceived = false;
+	
 	private boolean closed = false; 
 
 	private List<BufferTransformerInfo> transformers = new LinkedList<BufferTransformerInfo>();
@@ -58,10 +60,34 @@ public class NIOJICPConnection extends Connection {
     fully read the packet.
 	 */
 	public final synchronized JICPPacket readPacket() throws IOException {
-		read();
-		int availableBytes = socketData.limit();
-		ByteBuffer jicpData = transformAfterRead(socketData);
-		int transformedBytes = jicpData.limit();
+		ByteBuffer jicpData = null;
+		if (unmanagedJicpData == null) { 
+			// No JICP data to be processed from previous round --> Read new data from the network
+			read();
+			jicpData = transformAfterRead(socketData);
+			// NOTE: Transformers are expected to transform ALL (not just the first one) units they
+			// are able to manage --> At this point we have:
+			// - socketData empty!
+			// - unprocessedData inside transformers (see the BufferTransformerInfo inner class) 
+			// possibly containing some bytes representing a portion of a transformation unit (more 
+			// data from the network is necessary to transform them)
+			// - jicpData containing one of the following:
+			//   1) Nothing (no bytes were fully transformed)
+			//   2) The first part of a JICPPacket (Header plus a portion of the payload)
+			//   3) Exactly 1 JICPPacket or the remaining part of the payload in case at previous 
+			//      round we fell in case 2 or 4.b 
+			//   4) Case 3 plus 0 or more complete JICPPacket plus, optionally, the first part of a JICPPacket (case 4.b) 
+			// In case 1 and 2 the method throws PacketIncompleteException.
+			// In case 3 the method returns the reconstructed JICPPacket.
+			// In case 4 the method returns the first reconstructed packet and store remaining JICP
+			// data. When that occurs the moreDataAvailable() method returns true to indicate that 
+			// the readPacket() method must be called again before going back to wait for network data.
+		}
+		else {
+			// Some JICP data still need to be processed from previous round --> do it.
+			jicpData = unmanagedJicpData;
+		}
+		
 		if (jicpData.hasRemaining()) {
 			// JICP data actually available after transformations
 			if (!headerReceived) {
@@ -83,7 +109,6 @@ public class NIOJICPConnection extends Connection {
 					byte[] bb = new byte[recipientIDLength];
 					jicpData.get(bb);
 					recipientID = new String(bb);
-					//System.out.println("RecipientID = "+recipientID);
 				}
 				if ((info & JICPProtocol.DATA_PRESENT_INFO) != 0) {
 					int b1 = (int) jicpData.get();
@@ -99,17 +124,17 @@ public class NIOJICPConnection extends Connection {
 
 					resizePayloadBuffer(payloadLength);
 
-					// jicpData may already contain some payload bytes --> copy them into the payload buffer
+					// jicpData likely already contains some payload bytes --> copy them into the payload buffer
 					NIOHelper.copyAsMuchAsFits(payloadBuf, jicpData);
 
 					if (payloadBuf.hasRemaining()) {
 						// Payload not completely received. Wait for next round 
-						throw new PacketIncompleteException("Available bytes="+availableBytes+", trasnsformed bytes="+transformedBytes);
+						throw new PacketIncompleteException("Missing "+payloadBuf.remaining()+" payload bytes");
 					} else {
-						return buildPacket();
+						return buildPacket(jicpData);
 					}
 				} else {
-					return buildPacket();
+					return buildPacket(jicpData);
 				}
 			}
 			else {
@@ -117,16 +142,20 @@ public class NIOJICPConnection extends Connection {
 				NIOHelper.copyAsMuchAsFits(payloadBuf, jicpData);
 				if (payloadBuf.hasRemaining()) {
 					// Payload not completely received. Wait for next round 
-					throw new PacketIncompleteException("Available bytes="+availableBytes+", trasnsformed bytes="+transformedBytes);
+					throw new PacketIncompleteException("Missing "+payloadBuf.remaining()+" payload bytes");
 				} else {
-					return buildPacket();
+					return buildPacket(jicpData);
 				}
 			}
 		}
 		else {
-			// No JICP data available at this round. Wait for next 
-			throw new PacketIncompleteException("Available bytes="+availableBytes+", trasnsformed bytes="+transformedBytes);
+			// No JICP data available at this round. Wait for next one
+			throw new PacketIncompleteException(socketData.limit()+" bytes read from the network. No JICP data transformed");
 		}
+	}
+	
+	public boolean moreDataAvailable() {
+		return unmanagedJicpData != null;
 	}
 
 	private void read() throws IOException {
@@ -150,10 +179,6 @@ public class NIOJICPConnection extends Connection {
 			log.fine("------- READ "+socketData.remaining()+" bytes from the network");
 	}
 
-
-	/*int availableData() throws IOException {
-		return myChannel.socket().getInputStream().available();
-	}*/
 	
 	/**
 	 * reads data from the socket into a buffer
@@ -209,7 +234,7 @@ public class NIOJICPConnection extends Connection {
 		}
 	}
 
-	private JICPPacket buildPacket() {
+	private JICPPacket buildPacket(ByteBuffer jicpData) {
 		payloadBuf.flip();
 		byte[] payload = new byte[payloadBuf.remaining()];
 		payloadBuf.get(payload, 0, payload.length);
@@ -220,6 +245,16 @@ public class NIOJICPConnection extends Connection {
 		headerReceived = false;
 		recipientID = null;
 		payloadBuf.clear();
+		
+		// Before returning the reconstructed packet check if some JICP data still need
+		// to be processed and store it in that case
+		if (jicpData.hasRemaining()) {
+			unmanagedJicpData = jicpData;
+		}
+		else {
+			unmanagedJicpData = null;
+		}
+		
 		return pkt;
 	}
 
@@ -355,14 +390,6 @@ public class NIOJICPConnection extends Connection {
 	 */
 	void init(SocketChannel channel) throws ICPException {
 		this.myChannel = (SocketChannel) channel;
-		java.net.Socket s = this.myChannel.socket();
-		try {
-			//s.setReceiveBufferSize(64 * 1024);
-			System.out.println("%%%%%%%%%%%%%%%% Receive buffer size = "+s.getReceiveBufferSize());
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	public void addBufferTransformer(BufferTransformer transformer) {
