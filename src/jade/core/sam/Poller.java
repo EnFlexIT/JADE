@@ -59,7 +59,7 @@ class Poller extends Thread {
 	}
 	
 	public void run() {
-		myLogger.log(Logger.CONFIG, "SAMService poller thread started");
+		myLogger.log(Logger.INFO, "SAMService poller thread started");
 		try {
 			while (active) {
 				Thread.sleep(period);

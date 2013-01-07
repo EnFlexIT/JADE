@@ -32,16 +32,22 @@ import java.util.Map;
 import java.util.Vector;
 
 import jade.core.Agent;
+import jade.core.AgentContainer;
 import jade.core.BaseService;
+import jade.core.Filter;
 import jade.core.HorizontalCommand;
 import jade.core.IMTPException;
 import jade.core.Node;
 import jade.core.Profile;
+import jade.core.ProfileException;
 import jade.core.Service;
 import jade.core.ServiceException;
 import jade.core.ServiceHelper;
 import jade.core.Specifier;
 import jade.core.VerticalCommand;
+import jade.core.nodeMonitoring.NodeMonitoringService;
+import jade.core.replication.MainReplicationService;
+import jade.core.replication.MainReplicationSlice;
 import jade.util.Logger;
 
 /**
@@ -61,6 +67,9 @@ public class SAMService extends BaseService {
 
 	private SAMHelper myHelper = new SAMHelperImpl();
 	private ServiceComponent localSlice = new ServiceComponent();
+	private Filter bmOutgoingFilter = null;
+	
+	private Profile myProfile;
 	
 	
 	public String getName() {
@@ -68,35 +77,67 @@ public class SAMService extends BaseService {
 	}
 	
 	@Override
+	public void init(AgentContainer ac, Profile p) throws ProfileException {
+		super.init(ac, p);
+		if (p.isBackupMain()) {
+			// This is a backup Main Container --> prepare to register an OUTGOING
+			// filter to intercept the LEADERSHIP_ACQUIRED V-Command and start 
+			// polling when that happen
+			bmOutgoingFilter = new Filter() {
+				@Override
+				public boolean accept(VerticalCommand cmd) {
+					String name = cmd.getName();
+					try {
+						if (name.equals(MainReplicationSlice.LEADERSHIP_ACQUIRED)) {
+							startPolling();
+						}
+					}
+					catch (Exception e) {
+						myLogger.log(Logger.WARNING, "Error processing command "+name+". ", e);
+					}
+					
+					// Never veto a command
+					return true;
+				}
+			};
+		}
+	}
+	
+	@Override
 	public void boot(Profile p) throws ServiceException {
 		super.boot(p);
-		if (p.isMasterMain()) {
-			int periodMinutes = POLLING_PERIOD_DEFAULT;
-			try {
-				periodMinutes = Integer.parseInt(p.getParameter(POLLING_PERIOD, null));
+		myProfile = p;
+		if (myProfile.isMasterMain()) {
+			startPolling();
+		}
+	}
+	
+	private void startPolling() throws ServiceException {
+		int periodMinutes = POLLING_PERIOD_DEFAULT;
+		try {
+			periodMinutes = Integer.parseInt(myProfile.getParameter(POLLING_PERIOD, null));
+		}
+		catch (Exception e) {
+			// Keep default;
+		}
+		myLogger.log(Logger.CONFIG, "Polling period = "+periodMinutes+" minutes");
+		
+		try {
+			String hh = myProfile.getParameter(SAM_INFO_HANDLERS, SAM_INFO_HANDLERS_DEFAULT);
+			Vector handlerClasses = Specifier.parseList(hh, ';');
+			SAMInfoHandler[] handlers = new SAMInfoHandler[handlerClasses.size()];
+			for (int i = 0; i < handlerClasses.size(); ++i) {
+				String className = (String) handlerClasses.get(i);
+				myLogger.log(Logger.CONFIG, "Loading SAMInfoHandler class = "+className+"...");
+				handlers[i] = (SAMInfoHandler) Class.forName(className).newInstance();
+				handlers[i].initialize(myProfile);
+				myLogger.log(Logger.CONFIG, "SAMInfoHandler of class = "+className+" successfully initialized");
 			}
-			catch (Exception e) {
-				// Keep default;
-			}
-			myLogger.log(Logger.CONFIG, "Polling period = "+periodMinutes+" minutes");
-			
-			try {
-				String hh = p.getParameter(SAM_INFO_HANDLERS, SAM_INFO_HANDLERS_DEFAULT);
-				Vector handlerClasses = Specifier.parseList(hh, ';');
-				SAMInfoHandler[] handlers = new SAMInfoHandler[handlerClasses.size()];
-				for (int i = 0; i < handlerClasses.size(); ++i) {
-					String className = (String) handlerClasses.get(i);
-					myLogger.log(Logger.CONFIG, "Loading SAMInfoHandler class = "+className+"...");
-					handlers[i] = (SAMInfoHandler) Class.forName(className).newInstance();
-					handlers[i].initialize(p);
-					myLogger.log(Logger.CONFIG, "SAMInfoHandler of class = "+className+" successfully initialized");
-				}
-				poller = new Poller(this, periodMinutes * 60000, handlers);
-				poller.startPolling();
-			}
-			catch (Exception e) {
-				throw new ServiceException("Error initializing SAMInfoHandler", e);
-			}
+			poller = new Poller(this, periodMinutes * 60000, handlers);
+			poller.startPolling();
+		}
+		catch (Exception e) {
+			throw new ServiceException("Error initializing SAMInfoHandler", e);
 		}
 	}
 	
@@ -108,6 +149,15 @@ public class SAMService extends BaseService {
 		super.shutdown();
 	}
 	
+	@Override
+	public Filter getCommandFilter(boolean direction) {
+		if (direction == Filter.OUTGOING) {
+			return bmOutgoingFilter;
+		} else {
+			return null;
+		}
+	}
+
 	@Override
 	public ServiceHelper getHelper(Agent a) {
 		return myHelper;
