@@ -176,4 +176,8 @@ class UDPNodeFailureMonitor extends NodeFailureMonitor {
 	void setLastPing(long time) {
 		lastPing = time;
 	}
+	
+	public String requireService() {
+		return UDPNodeMonitoringService.NAME;
+	}
 }

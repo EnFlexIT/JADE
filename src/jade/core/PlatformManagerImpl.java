@@ -968,6 +968,21 @@ public class PlatformManagerImpl implements PlatformManager {
 
 		// Start a new node failure monitor
 		NodeFailureMonitor failureMonitor = NodeFailureMonitor.getFailureMonitor();
+		// If this failure monitor require a specific service, check that service is 
+		// actually installed in the target node
+		String requiredService = failureMonitor.requireService();
+		if (requiredService != null) {
+			Service.Slice s = null;
+			try {
+				s = findSlice(requiredService, target.getName());
+			}
+			catch (Exception e) {}
+			if (s == null) {
+				// Required service not installed in the target node --> Use default monitoring
+				myLogger.log(Logger.WARNING, "Service "+requiredService+" not found in node "+target.getName()+" --> Use default node monitoring");
+				failureMonitor = NodeFailureMonitor.getDefaultFailureMonitor();
+			}
+		}
 		failureMonitor.start(target, listener);
 		monitors.put(target.getName(), failureMonitor);
 
