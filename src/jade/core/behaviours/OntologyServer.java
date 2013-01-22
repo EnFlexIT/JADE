@@ -82,7 +82,7 @@ public class OntologyServer extends CyclicBehaviour {
 	private ConversationList ignoredConversations;
 	private MessageTemplate template;
 	
-	private Map<String, Method> cachedMethods = new HashMap<String, Method>();
+	private transient Map<String, Method> cachedMethods = new HashMap<String, Method>();
 	private ContentElement receivedContentElement;
 	
 	protected Logger myLogger = Logger.getMyLogger(getClass().getName());
@@ -275,6 +275,10 @@ public class OntologyServer extends CyclicBehaviour {
 		Class c = cel.getClass();
 		String performativeName = performativeNames[performative];
 		String key = c.getSimpleName()+performativeName;
+		// NOTE: cachedMethods is transient --> If the agent has just moved it must be recreated
+		if (cachedMethods == null) {
+			cachedMethods = new HashMap<String, Method>();
+		}
 		Method m = (Method) cachedMethods.get(key);
 		if (m != null) {
 			// Cache hit!
