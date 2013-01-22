@@ -23,7 +23,13 @@ public class FrontEndSDispatcher extends FrontEndDispatcher {
      * @throws IOException
      */
     protected JICPConnection getConnection(TransportAddress ta) throws IOException {
-        return new JICPSConnection(ta);
+		// Specify -Dsimulate-unreliable-network=true to simulate an unreliable underlying network  
+		if ("true".equals(System.getProperty("simulate-unreliable-network"))) {
+			return new UnrelJICPSConnection(ta);
+		}
+		else {
+	        return new JICPSConnection(ta);
+		}
     }
 
 }
