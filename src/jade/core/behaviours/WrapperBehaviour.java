@@ -52,6 +52,32 @@ public class WrapperBehaviour extends Behaviour {
 		});
 	}
 	
+	//#APIDOC_EXCLUDE_BEGIN
+	/**
+	 * This method is used internally by the framework. Developer should not call or redefine it.
+	 */
+	protected void handleBlockEvent() {
+		// Notify upwards
+		super.handleBlockEvent();
+
+		// Then notify downwards
+		myEvent.init(false, NOTIFY_DOWN);
+		handle(myEvent);
+	}
+
+	/**
+	 * This method is used internally by the framework. Developer should not call or redefine it.
+	 */
+	public void handleRestartEvent() {
+		// Notify downwards
+		myEvent.init(true, NOTIFY_DOWN);
+		handle(myEvent);
+
+		// Then notify upwards
+		super.handleRestartEvent();
+	}
+	//#APIDOC_EXCLUDE_END
+	
 	protected void handle(RunnableChangedEvent rce) {
 		super.handle(rce);
 		// If the event is downwards, propagate it to the wrapped-behaviour 
