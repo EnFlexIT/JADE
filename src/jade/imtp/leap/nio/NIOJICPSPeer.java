@@ -20,25 +20,18 @@ import java.net.Socket;
  */
 public class NIOJICPSPeer extends NIOJICPPeer {
 
-	public ConnectionFactory getConnectionFactory() {
-		return new ConnectionFactory() {
+    public ConnectionFactory getConnectionFactory() {
+        return new ConnectionFactory() {
 
-			public Connection createConnection(Socket s) {
-				// Specify -Dsimulate-unreliable-network=true to simulate an unreliable underlying network  
-				if ("true".equals(System.getProperty("simulate-unreliable-network"))) {
-					return new UnrelNIOJICPSConnection();
-				}
-				else {
-					return new NIOJICPSConnection();
-				}
-			}
+            public Connection createConnection(Socket s) {
+                return new NIOJICPSConnection();
+            }
 
-			public Connection createConnection(TransportAddress ta) throws IOException {
-
-				return new NIOJICPSConnection();
-			}
-		};
-	}
+            public Connection createConnection(TransportAddress ta) throws IOException {
+                return new NIOJICPSConnection();
+            }
+        };
+    }
 
 
 
