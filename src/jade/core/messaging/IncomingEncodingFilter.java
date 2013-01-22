@@ -150,8 +150,7 @@ public class IncomingEncodingFilter extends Filter {
 			if (codec != null) {
 				// Supported Codec
 				String charset;
-				if ((env == null) ||
-						((charset = env.getPayloadEncoding()) == null)) {
+				if ((env == null) || ((charset = env.getPayloadEncoding()) == null)) {
 					charset = ACLCodec.DEFAULT_CHARSET;
 				}
 				return codec.decode(payload,charset);

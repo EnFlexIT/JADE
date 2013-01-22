@@ -40,28 +40,28 @@ import jade.util.leap.Serializable;
  */
 public interface Service {
 	/**
-	   Service independent vertical command issued on the Main 
+	   Service independent incoming vertical command issued on the Main 
 	   container whenever a new node is added
 	 */
 	public static final String NEW_NODE = "New-Node";
 	/**
-	   Service independent vertical command issued on the Main 
+	   Service independent incoming vertical command issued on the Main 
 	   container whenever a node is removed
 	 */
 	public static final String DEAD_NODE = "Dead-Node";
 	/**
-	   Service independent vertical command issued on the Main 
+	   Service independent incoming vertical command issued on the Main 
 	   container whenever a node that was monitored by a Main container
 	   replica is adopted (i.e. the local Main container starts monitoring it) 
 	 */
 	public static final String ADOPTED_NODE = "Adopted-Node";
 	/**
-	   Service independent vertical command issued on the Main 
+	   Service independent incoming vertical command issued on the Main 
 	   container whenever a new slice of a given service is added
 	 */
 	public static final String NEW_SLICE = "New-Slice";
 	/**
-	   Service independent vertical command issued on the Main 
+	   Service independent incoming vertical command issued on the Main 
 	   container whenever a slice of a given service is removed
 	 */
 	public static final String DEAD_SLICE = "Dead-Slice";
@@ -71,23 +71,23 @@ public interface Service {
 	 */
 	public static final String NEW_REPLICA = "New-Replica";
 	/**
-	   Service independent vertical command issued on the Main 
+	   Service independent incoming vertical command issued on the Main 
 	   container whenever a main replica is removed
 	 */
 	public static final String DEAD_REPLICA = "Dead-Replica";
 	/**
-	   Service independent vertical command issued on a peripheral 
+	   Service independent incoming vertical command issued on a peripheral 
 	   container when a fault of the PlatformManager is detected 
 	 */
 	public static final String DEAD_PLATFORM_MANAGER = "Dead-Platform-Manager";
 	/**
-	   Service independent vertical command issued on a peripheral 
-	   container when it re-attaches to a recovered Main Container
+	   Service independent incoming vertical command issued on a peripheral 
+	   container when it re-attaches to a recovered Main Container (see the FaultRecoveryService)
 	 */
 	public static final String REATTACHED = "Reattached";
 	/**
-	   Service independent vertical command issued on a peripheral 
-	   container when it reconnects to a new master Main Container 
+	   Service independent incoming vertical command issued on a peripheral 
+	   container when it reconnects to a new master Main Container (see the MainReplicationService)
 	 */
 	public static final String RECONNECTED = "Reconnected";
 

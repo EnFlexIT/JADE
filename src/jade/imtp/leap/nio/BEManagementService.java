@@ -55,7 +55,7 @@ import java.util.Enumeration;
 /**
 This service handles BEContainer creation requests and manages IO operations
 for data exchanged between the created BEContainers and their FEContainers
-using java.nio
+in an asynchronous way using java.nio
 <br><br>
 Having this functionality implemented as a service allows propagating
 (through the ServiceHelper) BackEnd related events (e.g. disconnections and 
@@ -99,6 +99,7 @@ this server to manage IO events.
 
 @author Giovanni Caire - TILAB
  */
+// FIXME: Complete javadoc describing the accept option
 public class BEManagementService extends BaseService {
 
 	public static final String NAME = "BEManagement";

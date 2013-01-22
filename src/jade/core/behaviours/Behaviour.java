@@ -377,8 +377,8 @@ public abstract class Behaviour implements Serializable {
 	/**
 	 Handler for block/restart events. This method handles
 	 notification by copying its runnable state and then by simply
-	 forwarding the event when it is travelling upwards and by doing
-	 nothing when it is travelling downwards, since an ordinary
+	 forwarding the event when it is traveling upwards and by doing
+	 nothing when it is traveling downwards, since an ordinary
 	 behaviour has no children.
 	 @param rce The event to handle
 	 */
