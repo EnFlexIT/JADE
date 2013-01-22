@@ -78,7 +78,19 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	 * case of fault of the master Main Contaier
 	 */
 	private static final String REPLICATED_AGENTS = "jade_core_MainContainerImpl_replicatedagents";
+	/**
+	 * Profile option that specifies whether or not child nodes such as BackEnd containers 
+	 * managed by the BEManagementService must be considered when shutting down the platform.
+	 * Considering that there can be thousands of such nodes, explicitly killing them all
+	 * may lead to very long shut down time. 
+	 * Possible values: true, false (default)
+	 */
 	private static final String IGNORE_CHILD_NODES_ON_SHUTDOWN = "jade_core_MainContainerImpl_ignorechildnodes";
+	/**
+	 * Profile option that specifies the implementation class of the DF agent.
+	 * Such class must extend the jade.domain.df standard class.
+	 */
+	private static final String DF_CLASS = "jade_core_MainContainerImpl_dfclass";
 	
 	// The two mandatory system agents.
 	private ams theAMS;
@@ -109,7 +121,18 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		// The AMS must be instantiated before the installation of kernel services to
 		// avoid NullPointerException in case a service provides an AMS-behaviour 
 		theAMS = new ams(this);
-		defaultDF = new df();
+		String dfClass = p.getParameter(DF_CLASS, null);
+		if (dfClass == null) {
+			defaultDF = new df();
+		}
+		else {
+			try {
+				defaultDF = (df) Class.forName(dfClass).newInstance();
+			}
+			catch (Exception e) {
+				throw new ProfileException("Error loading DF agent", e);
+			}
+		}
 	}
 	
 	public PlatformManager getPlatformManager() {
@@ -284,7 +307,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		if(old != null) {
 			// There's already an agent with name 'name'
 			if (old.isNative()) {
-				// The old agent lives in the platform. Restor it and throw a NameClashException unless 
+				// The old agent lives in the platform. Restore it and throw a NameClashException unless 
 				// either we are requested to replace it or it is LATENT
 				if(forceReplacement) {
 					myLogger.log(Logger.WARNING, "Replacing dead agent "+aid.getName()+"...");
@@ -304,10 +327,15 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			}
 		}
 		
-		checkReplication(aid, cid);
+		// Cid is null in case of foreign or virtual agents --> These are not involved in replication
+		if (cid != null) {
+			checkReplication(aid, cid);
+		}
 		
 		// Notify listeners
-		fireBornAgent(cid, aid, ownership);
+		if (cid != null) {
+			fireBornAgent(cid, aid, ownership);
+		}
 	}
 	
 	/**
@@ -323,7 +351,9 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		replicatedAgents.remove(name);
 		
 		// Notify listeners
-		fireDeadAgent(cid, name, containerRemoved);
+		if (cid != null) {
+			fireDeadAgent(cid, name, containerRemoved);
+		}
 	}
 	
 	/**
@@ -1643,24 +1673,30 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			AgentDescriptor ad = platformAgents.acquire(aid);
 			if (ad != null) {
 				ContainerID id = ad.getContainerID();
-				if(CaseInsensitiveString.equalsIgnoreCase(id.getName(), name)) {
-					String localName = aid.getLocalName();
-					if (localName.equals(FIPANames.AMS) || localName.equals(FIPANames.DEFAULT_DF) || replicatedAgents.containsKey(aid)) {
-						ad.getDescription().setState(AMSAgentDescription.LATENT);
-						platformAgents.release(aid);
-						// GC-ADD-18022007-START
-						// Notify listeners 
-						// fireDeadAgent(cid, aid, true);
-						// GC-ADD-18022007-END
+				// id can be null in case of foreign agents registerd to the local AMS or virtual agents
+				if (id != null) {
+					if(CaseInsensitiveString.equalsIgnoreCase(id.getName(), name)) {
+						String localName = aid.getLocalName();
+						if (localName.equals(FIPANames.AMS) || localName.equals(FIPANames.DEFAULT_DF) || replicatedAgents.containsKey(aid)) {
+							ad.getDescription().setState(AMSAgentDescription.LATENT);
+							platformAgents.release(aid);
+							// GC-ADD-18022007-START
+							// Notify listeners 
+							// fireDeadAgent(cid, aid, true);
+							// GC-ADD-18022007-END
+						}
+						else {
+							platformAgents.release(aid);
+							try {
+								deadAgent(aid, true);
+							}
+							catch(NotFoundException nfe) {
+								nfe.printStackTrace();
+							}
+						}
 					}
 					else {
 						platformAgents.release(aid);
-						try {
-							deadAgent(aid, true);
-						}
-						catch(NotFoundException nfe) {
-							nfe.printStackTrace();
-						}
 					}
 				}
 				else {
