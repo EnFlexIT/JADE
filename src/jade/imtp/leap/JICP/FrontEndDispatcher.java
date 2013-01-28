@@ -64,6 +64,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	private String[] backEndAddresses;
 	private TransportAddress mediatorTA;
 	private String myMediatorID;
+	private int creationAttempts = JICPProtocol.DEFAULT_CREATION_ATTEMPTS;
 	private long retryTime = JICPProtocol.DEFAULT_RETRY_TIME;
 	private long maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
 	private long keepAliveTime = JICPProtocol.DEFAULT_KEEP_ALIVE_TIME;
@@ -144,6 +145,17 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			}
 			if (myLogger.isLoggable(Logger.CONFIG)) {
 				myLogger.log(Logger.CONFIG, "Mediator class="+myMediatorClass);
+			}
+
+			// Creation attempts
+			tmp = props.getProperty(JICPProtocol.CREATION_ATTEMPTS_KEY);
+			try {
+				creationAttempts = Integer.parseInt(tmp);
+			} catch (Exception e) {
+				// Use default
+			}
+			if (myLogger.isLoggable(Logger.CONFIG)) {
+				myLogger.log(Logger.CONFIG, "Creation attempts="+creationAttempts);
 			}
 
 			// (re)connection retry time
@@ -272,38 +284,50 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				mediatorTA = new JICPAddress(host, port, myMediatorID, "");
 			}
 
-			try {
-				myLogger.log(Logger.INFO, "Creating BackEnd on jicp://"+mediatorTA.getHost()+":"+mediatorTA.getPort());				
-				JICPConnection con = openConnection(mediatorTA);
-
-				writePacket(pkt, con);
-				pkt = con.readPacket();
-
-				String replyMsg = new String(pkt.getData());
-				if (pkt.getType() != JICPProtocol.ERROR_TYPE) {
-					// BackEnd creation successful
-					BackEndStub.parseCreateMediatorResponse(replyMsg, myProperties);
-					myMediatorID = myProperties.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
-					// Complete the mediator address with the mediator ID
-					mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), myMediatorID, null);
-					myLogger.log(Logger.INFO, "BackEnd OK: mediator-id = "+myMediatorID);
-					return con;	      
+			for (int k = 0; k < creationAttempts; k++) {
+				try {
+					return create(pkt);
 				}
-				else {
-					myLogger.log(Logger.WARNING, "Mediator error: "+replyMsg);
-					if (myConnectionListener != null && replyMsg != null && replyMsg.startsWith(JICPProtocol.NOT_AUTHORIZED_ERROR)) {
-						myConnectionListener.handleConnectionEvent(ConnectionListener.NOT_AUTHORIZED, replyMsg);
-					}
+				catch (IOException ioe) {
+					// Connection error --> Retry 5 times then move to next address
+					myLogger.log(Logger.WARNING, "Connection error. "+ioe.toString());
 				}
-			}
-			catch (IOException ioe) {
-				// Ignore it, and try the next address...
-				myLogger.log(Logger.WARNING, "Connection error. "+ioe.toString());
+				catch (ICPException icpe) {
+					// JICP Error --> No need to try again with this address
+					myLogger.log(Logger.WARNING, "BackEnd creation error: "+icpe.getMessage());
+					break;
+				}
 			}
 		}
 
 		// No address succeeded: try to handle the problem...
 		throw new IMTPException("Error creating the BackEnd.");
+	}
+	
+	private JICPConnection create(JICPPacket createPkt) throws IOException, ICPException {
+		myLogger.log(Logger.INFO, "Creating BackEnd on jicp://"+mediatorTA.getHost()+":"+mediatorTA.getPort());				
+		JICPConnection con = openConnection(mediatorTA);
+
+		writePacket(createPkt, con);
+		JICPPacket createRsp = con.readPacket();
+
+		String replyMsg = new String(createRsp.getData());
+		if (createRsp.getType() != JICPProtocol.ERROR_TYPE) {
+			// BackEnd creation successful
+			BackEndStub.parseCreateMediatorResponse(replyMsg, myProperties);
+			myMediatorID = myProperties.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
+			// Complete the mediator address with the mediator ID
+			mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), myMediatorID, null);
+			myLogger.log(Logger.INFO, "BackEnd creation OK: mediator-id = "+myMediatorID);
+			return con;	      
+		}
+		else {
+			// JICP Error
+			if (myConnectionListener != null && replyMsg != null && replyMsg.startsWith(JICPProtocol.NOT_AUTHORIZED_ERROR)) {
+				myConnectionListener.handleConnectionEvent(ConnectionListener.NOT_AUTHORIZED, replyMsg);
+			}
+			throw new ICPException(replyMsg);
+		}
 	}
 
 	private String[] parseBackEndAddresses(String addressesText) {

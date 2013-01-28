@@ -97,6 +97,7 @@ public class JICPProtocol extends TransportProtocol {
 	 */
 	public static final String  DEFAULT_RECIPIENT_ID = "";
 
+	public static final int DEFAULT_CREATION_ATTEMPTS = 1; // No retry
 	/**
 	 * Default MaxDisconnection and retry times for the mediator mechanism
 	 */
@@ -114,6 +115,8 @@ public class JICPProtocol extends TransportProtocol {
 	// In case it is not possible to get the local host address, it is possible to specify a remote URL where to find it by means of the GET_ADDRESS JICP command
 	public static final String REMOTE_URL_KEY = "remote-url";
 	public static final String UNREACHABLE_KEY = "unreachable";
+	// How many attempts to create the BackEnd in case the CREATE_MEDIATOR fails due to network problems  
+	public static final String CREATION_ATTEMPTS_KEY = "creation-attempts";
 	public static final String RECONNECTION_RETRY_TIME_KEY = "reconnection-retry-time";
 	public static final String MAX_DISCONNECTION_TIME_KEY = "max-disconnection-time";
 	public static final String KEEP_ALIVE_TIME_KEY = "keep-alive-time";
