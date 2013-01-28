@@ -61,7 +61,6 @@ public class AgentReplicationService extends BaseService {
 	private Map<String, Method> cachedAgentMethods = new HashMap<String, Method>();
 
 
-	@Override
 	public String getName() {
 		return NAME;
 	}
@@ -143,7 +142,6 @@ public class AgentReplicationService extends BaseService {
 		private List<ReplicaInfo> peerReplicas = new ArrayList<ReplicaInfo>();
 		private ReplicaInfo[] peerReplicasArray = new ReplicaInfo[0];
 
-		@Override
 		public void init(Agent a) {
 			myAid = a.getAID();
 
@@ -176,7 +174,6 @@ public class AgentReplicationService extends BaseService {
 			}
 		}
 
-		@Override
 		public AID makeVirtual(String virtualName, int replicationMode) throws ServiceException {
 			if (virtualAid == null) {
 				virtualAid = new AID(virtualName, AID.ISLOCALNAME);
@@ -205,7 +202,6 @@ public class AgentReplicationService extends BaseService {
 			}
 		}
 
-		@Override
 		public void createReplica(String replicaName, Location where) throws ServiceException {
 			if (virtualAid != null) {
 				if (isMaster()) {
@@ -256,12 +252,10 @@ public class AgentReplicationService extends BaseService {
 			}
 		}
 
-		@Override
 		public AID getVirtualAid() {
 			return virtualAid;
 		}
 
-		@Override
 		public AID getMasterAid() {
 			if (virtualAid != null) {
 				GlobalReplicationInfo info = globalReplications.get(virtualAid);
@@ -270,7 +264,6 @@ public class AgentReplicationService extends BaseService {
 			return null;
 		}
 
-		@Override
 		public boolean isMaster() {
 			if (virtualAid != null) {
 				GlobalReplicationInfo info = globalReplications.get(virtualAid);
@@ -279,13 +272,11 @@ public class AgentReplicationService extends BaseService {
 			return false;
 		}
 		
-		@Override
 		public Map<AID, Location> getReplicas() {
 			// FIXME: To be implemented
 			return null;
 		}
 
-		@Override
 		public void invokeReplicatedMethod(String methodName, Object[] arguments) {
 			ReplicaInfo[] tmp = peerReplicasArray;
 			for (ReplicaInfo r : tmp) {

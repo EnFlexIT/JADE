@@ -13,7 +13,6 @@ import jade.core.SliceProxy;
 
 public class AgentReplicationProxy extends SliceProxy implements AgentReplicationSlice {
 
-	@Override
 	public void invokeAgentMethod(AID aid, String methodName, Object[] arguments) throws IMTPException, ServiceException, NotFoundException {
 		GenericCommand cmd = new GenericCommand(H_INVOKEAGENTMETHOD, AgentReplicationService.NAME, null);
 		cmd.addParam(aid);
@@ -38,7 +37,6 @@ public class AgentReplicationProxy extends SliceProxy implements AgentReplicatio
 		}
 	}
 	
-	@Override
 	public ContainerID getAgentLocation(AID aid) throws IMTPException, NotFoundException {
 		GenericCommand cmd = new GenericCommand(H_GETAGENTLOCATION, AgentReplicationService.NAME, null);
 		cmd.addParam(aid);
@@ -64,7 +62,6 @@ public class AgentReplicationProxy extends SliceProxy implements AgentReplicatio
 		}
 	}
 	
-	@Override
 	public void replicaCreationRequested(AID virtualAid, AID replicaAid) throws IMTPException {
 		GenericCommand cmd = new GenericCommand(H_REPLICACREATIONREQUESTED, AgentReplicationService.NAME, null);
 		cmd.addParam(virtualAid);
@@ -87,7 +84,6 @@ public class AgentReplicationProxy extends SliceProxy implements AgentReplicatio
 		}
 	}
 
-	@Override
 	public void synchReplication(GlobalReplicationInfo info) throws IMTPException {
 		GenericCommand cmd = new GenericCommand(H_SYNCHREPLICATION, AgentReplicationService.NAME, null);
 		cmd.addParam(info.getVirtual());
@@ -112,7 +108,6 @@ public class AgentReplicationProxy extends SliceProxy implements AgentReplicatio
 		}
 	}
 
-	@Override
 	public void notifyBecomeMaster(AID masterAid) throws IMTPException {
 		GenericCommand cmd = new GenericCommand(H_NOTIFYBECOMEMASTER, AgentReplicationService.NAME, null);
 		cmd.addParam(masterAid);
