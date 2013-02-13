@@ -178,7 +178,7 @@ public class SimpleSLCodec extends StringCodec {
 	}
 
 	/**
-	 * Decodes the content to an abstract description using a
+	 * Decodes a content expression to an abstract description using a
 	 * given ontology.
 	 * @param ontology the ontology.
 	 * @param content the content as a string.
@@ -201,6 +201,16 @@ public class SimpleSLCodec extends StringCodec {
 			}
 			p.consumeChar(')');
 			return abs;
+		}
+		catch (ClassCastException cce) {
+			throw new CodecException("Error converting to AbsContentElement", cce);
+		}
+	}
+
+	public AbsObject decodeObject(Ontology ontology, String content) throws CodecException {
+		SimpleSLTokenizer p = new SimpleSLTokenizer(content);
+		try {
+			return parse(p, ontology);
 		}
 		catch (ClassCastException cce) {
 			throw new CodecException("Error converting to AbsContentElement", cce);
