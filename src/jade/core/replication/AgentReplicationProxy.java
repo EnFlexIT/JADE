@@ -130,7 +130,6 @@ public class AgentReplicationProxy extends SliceProxy implements AgentReplicatio
 		}
 	}
 
-	@Override
 	public void notifyReplicaRemoved(AID masterAid, AID removedReplica, Location where) throws IMTPException {
 		GenericCommand cmd = new GenericCommand(H_NOTIFYREPLICAREMOVED, AgentReplicationService.NAME, null);
 		cmd.addParam(masterAid);
