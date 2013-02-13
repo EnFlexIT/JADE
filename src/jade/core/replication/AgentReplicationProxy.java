@@ -6,6 +6,7 @@ import jade.core.AID;
 import jade.core.ContainerID;
 import jade.core.GenericCommand;
 import jade.core.IMTPException;
+import jade.core.Location;
 import jade.core.Node;
 import jade.core.NotFoundException;
 import jade.core.ServiceException;
@@ -111,6 +112,30 @@ public class AgentReplicationProxy extends SliceProxy implements AgentReplicatio
 	public void notifyBecomeMaster(AID masterAid) throws IMTPException {
 		GenericCommand cmd = new GenericCommand(H_NOTIFYBECOMEMASTER, AgentReplicationService.NAME, null);
 		cmd.addParam(masterAid);
+		
+		try {
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if ((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
+		}
+		catch (ServiceException se) {
+			throw new IMTPException("Error accessing remote node", se);
+		}
+	}
+
+	@Override
+	public void notifyReplicaRemoved(AID masterAid, AID removedReplica, Location where) throws IMTPException {
+		GenericCommand cmd = new GenericCommand(H_NOTIFYREPLICAREMOVED, AgentReplicationService.NAME, null);
+		cmd.addParam(masterAid);
+		cmd.addParam(removedReplica);
+		cmd.addParam(where);
 		
 		try {
 			Node n = getNode();

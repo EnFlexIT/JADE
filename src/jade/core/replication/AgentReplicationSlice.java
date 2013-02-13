@@ -5,6 +5,7 @@ package jade.core.replication;
 import jade.core.AID;
 import jade.core.ContainerID;
 import jade.core.IMTPException;
+import jade.core.Location;
 import jade.core.NotFoundException;
 import jade.core.Service.Slice;
 import jade.core.ServiceException;
@@ -17,7 +18,7 @@ public interface AgentReplicationSlice extends Slice {
 	static final String H_SYNCHREPLICATION = "S";
 	
 	static final String H_NOTIFYBECOMEMASTER = "NB";
-	static final String H_NOTIFYREMOVEDREPLICA = "NR";
+	static final String H_NOTIFYREPLICAREMOVED = "NR";
 	
 	// NOTE: These HCommands are always broadcasted --> no need to a dedicated method
 	static final String H_NEWVIRTUALAGENT = "NE";
@@ -39,4 +40,5 @@ public interface AgentReplicationSlice extends Slice {
 	void synchReplication(GlobalReplicationInfo info) throws IMTPException;
 	
 	void notifyBecomeMaster(AID masterAid) throws IMTPException;
+	void notifyReplicaRemoved(AID masterAid, AID removedReplica, Location where) throws IMTPException;
 }

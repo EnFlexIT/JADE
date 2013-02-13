@@ -78,12 +78,14 @@ public class AgentReplicationHandle {
 	}
 	
 	static void enterReplicatedCall() {
-		myLogger.log(Logger.INFO, "Entering replicated call...");
+		if (myLogger.isLoggable(Logger.FINER))
+			myLogger.log(Logger.FINER, "Entering replicated call...");
 		replicatedCalls.set(true);
 	}
 	
 	static void exitReplicatedCall() {
 		replicatedCalls.remove();
-		myLogger.log(Logger.INFO, "Exited from replicated call...");
+		if (myLogger.isLoggable(Logger.FINER))
+			myLogger.log(Logger.FINER, "Exited from replicated call...");
 	}
 }

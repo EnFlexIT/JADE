@@ -279,6 +279,7 @@ public class AgentReplicationService extends BaseService {
 
 		public void invokeReplicatedMethod(String methodName, Object[] arguments) {
 			ReplicaInfo[] tmp = peerReplicasArray;
+			myLogger.log(Logger.INFO, "Invoking method "+methodName+" on "+tmp.length+" replica(s)");
 			for (ReplicaInfo r : tmp) {
 				try {
 					if (!invokeOnReplica(methodName, arguments, r)) {
@@ -297,40 +298,45 @@ public class AgentReplicationService extends BaseService {
 		}
 
 		private boolean invokeOnReplica(String methodName, Object[] arguments, ReplicaInfo r) throws Exception {
-			// If we get NotFoundException, refresh the location of the replica (it 
-			// may have moved) and retry until OK.
+			myLogger.log(Logger.INFO, "Invoking method "+methodName+" on replica "+r.replicaAid.getLocalName());
+			// If we get an Exception, refresh the location of the replica (it 
+			// may have moved or be recreated somewhere else) and retry until OK.
 			// If not found in Main Container --> Ignore: replica has terminated in the meanwhile
-			boolean retry = false;
 			do {
-				retry = false;
 				AgentReplicationSlice slice = (AgentReplicationSlice) getSlice(r.where.getName());
 				if (slice != null) {
 					try {
 						try {
 							slice.invokeAgentMethod(r.replicaAid, methodName, arguments);
+							// Done: Jump out
+							break;
 						}
 						catch (IMTPException imtpe) {
 							// Try to get a newer slice and repeat...
 							slice = (AgentReplicationSlice) getFreshSlice(r.where.getName());
 							slice.invokeAgentMethod(r.replicaAid, methodName, arguments);
+							// Done: Jump out
+							break;
 						}
 					}
 					catch (NotFoundException nfe) {
 						// The replica agent was not found on the container where it was supposed to be
 						// Possibly it has moved elsewhere --> Check with the Main Container
-						try {
-							Location l = getLocation(r.replicaAid);
-							// The replica agent is alive: update its location and retry
-							r.where = l;
-							retry = true;
-						}
-						catch (NotFoundException nfe1) {
-							// The replica agent does not exist anymore --> silently remove it
-							return false;
-						}
 					}
 				}
-			} while (retry);
+				
+				// Not done: Update the replica location and retry
+				try {
+					myLogger.log(Logger.INFO, "Updating location of replica "+r.replicaAid.getLocalName());
+					Location l = getLocation(r.replicaAid);
+					// The replica agent is alive: update its location and retry
+					r.where = l;
+				}
+				catch (NotFoundException nfe1) {
+					// The replica agent does not exist anymore in the whole platform --> silently remove it
+					return false;
+				}
+			} while (true);
 
 			return true;
 		}
@@ -520,7 +526,7 @@ public class AgentReplicationService extends BaseService {
 					}
 					else {
 						// The dead agent is a non-master replica --> Just notify the master
-						// FIXME: To be implemented
+						notifyReplicaRemovedToMaster(info.getMaster(), deadAid, null);
 					}
 				}
 			}
@@ -619,25 +625,53 @@ public class AgentReplicationService extends BaseService {
 	}
 	
 	private void notifyReplicaRemovedToMaster(AID masterAid, AID removedReplica, Location where) {
-		// FIXME: To be implemented
+		try {
+			// This is always invoked on the Main Container
+			if (where == null) {
+				try {
+					where = getAgentLocation(removedReplica);
+				}
+				catch (NotFoundException nfe) {
+					// If this is triggered by a container fault, the GADT has already been cleaned.
+					// We are not able to fill the removed replica location. 
+				}
+			}
+			Location masterLocation = getAgentLocation(masterAid);
+			AgentReplicationSlice slice = (AgentReplicationSlice) getFreshSlice(masterLocation.getName());
+			slice.notifyReplicaRemoved(masterAid, removedReplica, where);
+		}
+		catch (Exception e) {
+			// Should never happen as this masterAid has just been selected (and checked) as new master
+			myLogger.log(Logger.WARNING, "Error notifying master replica "+masterAid.getLocalName()+" that replica "+removedReplica.getLocalName()+" has been removed", e);
+		}
 	}
 
 	private void localNotifyReplicaRemovedToMaster(AID masterAid, AID removedReplica, Location where) {
-		// FIXME: To be implemented
+		Agent agent = myContainer.acquireLocalAgent(masterAid);
+		if (agent != null) {
+			myContainer.releaseLocalAgent(masterAid);
+			try {
+				if (agent instanceof AgentReplicationHelper.Listener) {
+					((AgentReplicationHelper.Listener) agent).replicaRemoved(removedReplica, where);
+				}
+			}
+			catch (Exception e) {
+				myLogger.log(Logger.WARNING, "Unexpected exception notifying master agent (becomeMaster())", e);
+			}
+		}
 	}
 
 	private void notifyBecomeMasterToMaster(AID masterAid) {
 		try {
 			// This is always invoked on the Main Container
-			Location where = getAgentLocation(masterAid);
-			AgentReplicationSlice slice = (AgentReplicationSlice) getFreshSlice(where.getName());
+			Location masterLocation = getAgentLocation(masterAid);
+			AgentReplicationSlice slice = (AgentReplicationSlice) getFreshSlice(masterLocation.getName());
 			slice.notifyBecomeMaster(masterAid);
 		}
 		catch (Exception e) {
 			// Should never happen as this masterAid has just been selected (and checked) as new master
 			myLogger.log(Logger.WARNING, "Error notifying new master replica "+masterAid.getLocalName()+" it just took the leadership", e);
 		}
-		
 	}
 
 	private void localNotifyBecomeMasterToMaster(AID masterAid) {
@@ -942,7 +976,7 @@ public class AgentReplicationService extends BaseService {
 		do {
 			AID newMasterAid = info.masterReplicaDead();
 			if (newMasterAid != null) {
-				// New master replica selecetd. Check if it is actually alive. Otherwise try again
+				// New master replica selected. Check if it is actually alive. Otherwise try again
 				if (impl.acquireAgentDescriptor(newMasterAid) != null) {
 					// New master replica alive --> Broadcast the change to all other slices 
 					impl.releaseAgentDescriptor(newMasterAid);
@@ -967,14 +1001,15 @@ public class AgentReplicationService extends BaseService {
 	}
 	
 	private void checkAllReplications() {
+		// No need to check if impl is null since this can only be executed on a Main Container
+		MainContainer impl = myContainer.getMain();
 		// For each virtual agent 
 		// - check if the related master replica is still alive.
 		// If not handle the dead master replica case.
 		// - then for each replica check if it is still alive. If not notify the master
 		GlobalReplicationInfo[] gg = globalReplications.values().toArray(new GlobalReplicationInfo[0]);
 		for (GlobalReplicationInfo info : gg) {
-			// No need to check if impl is null since this can only be executed on a Main Container
-			MainContainer impl = myContainer.getMain();
+			// Check master
 			AID masterAid = info.getMaster();
 			if (impl.acquireAgentDescriptor(masterAid) != null) {
 				// Master replica still there --> nothing to do
@@ -984,8 +1019,24 @@ public class AgentReplicationService extends BaseService {
 			else {
 				// Master replica is not there anymore --> DEAD
 				handleMasterReplicaDead(info);
+				masterAid = info.getMaster();
 			}
-			// FIXME: manage other non-master replicas
+			
+			// Check other replicas
+			AID[] allReplicas = info.getAllReplicas();
+			for (AID replicaAid : allReplicas) {
+				if (!replicaAid.equals(masterAid)) {
+					if (impl.acquireAgentDescriptor(replicaAid) != null) {
+						// Replica still there --> nothing to do
+						impl.releaseAgentDescriptor(replicaAid);
+						myLogger.log(Logger.INFO, "Replica "+replicaAid.getLocalName()+" of virtual agent "+info.getVirtual().getLocalName()+" ALIVE");
+					}
+					else {
+						// Replica is not there anymore --> DEAD
+						notifyReplicaRemovedToMaster(masterAid, replicaAid, null);
+					}
+				}
+			}
 		}
 	}
 
@@ -1061,14 +1112,20 @@ public class AgentReplicationService extends BaseService {
 						info.masterReplicaChanged(newMasterAid);
 					}
 				}
-				else if(cmdName.equals(AgentReplicationSlice.H_NOTIFYBECOMEMASTER)) {
-					AID newMasterAid = (AID) cmd.getParam(0);
-					localNotifyBecomeMasterToMaster(newMasterAid);
-				}
 				else if(cmdName.equals(AgentReplicationSlice.H_VIRTUALAGENTDEAD)) {
 					AID virtualAid = (AID) cmd.getParam(0);
 					globalReplications.remove(virtualAid);
 					myLogger.log(Logger.INFO, "Virtual agent "+virtualAid.getLocalName()+" removed");
+				}
+				else if(cmdName.equals(AgentReplicationSlice.H_NOTIFYBECOMEMASTER)) {
+					AID newMasterAid = (AID) cmd.getParam(0);
+					localNotifyBecomeMasterToMaster(newMasterAid);
+				}
+				else if(cmdName.equals(AgentReplicationSlice.H_NOTIFYREPLICAREMOVED)) {
+					AID masterAid = (AID) cmd.getParam(0);
+					AID removedReplica = (AID) cmd.getParam(1);
+					Location where = (Location) cmd.getParam(2);
+					localNotifyReplicaRemovedToMaster(masterAid, removedReplica, where);
 				}
 			}
 			catch (Throwable t) {
