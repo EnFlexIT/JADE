@@ -370,9 +370,19 @@ public class TopicManagementService extends BaseService {
 			broadcastRegistration(aid, topic, slices);
 		}
 		
+		public void register(AID id, AID topic) throws ServiceException {
+			Service.Slice[] slices = getAllSlices();
+			broadcastRegistration(id, topic, slices);
+		}
+		
 		public void deregister(AID topic) throws ServiceException {
 			Service.Slice[] slices = getAllSlices();
 			broadcastDeregistration(aid, topic, slices);
+		}
+		
+		public void deregister(AID id, AID topic) throws ServiceException {
+			Service.Slice[] slices = getAllSlices();
+			broadcastDeregistration(id, topic, slices);
 		}
 	}  // END of inner class TopicHelperImpl
 	

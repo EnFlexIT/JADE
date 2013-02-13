@@ -27,6 +27,7 @@ package jade.core;
 //#APIDOC_EXCLUDE_FILE
 
 import jade.imtp.leap.JICP.JICPProtocol;
+import jade.imtp.leap.nio.BEManagementService;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.domain.FIPAAgentManagement.Envelope;
@@ -91,9 +92,15 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 		pp.setProperty(Profile.MAIN, "false");
 		
 		// Set default additional services if not already set
-		if (pp.getProperty(Profile.SERVICES) == null) {
-			pp.setProperty(Profile.SERVICES, "jade.core.event.NotificationService");
+		String services = pp.getProperty(Profile.SERVICES);
+		if (services == null) {
+			services = "jade.core.event.NotificationService";
 		}
+		String additionalServices = pp.getProperty(BEManagementService.ADDITIONAL_SERVICES);
+		if (additionalServices != null) {
+			services += ";"+additionalServices;
+		}
+		pp.setProperty(Profile.SERVICES, services);
 		
 		// Merge back-end and front-end services
 		String feServices = pp.getProperty(MicroRuntime.BE_REQUIRED_SERVICES_KEY);
@@ -345,9 +352,10 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 		}
 	}
 	
-	private boolean isCompatible(Method method, Object[] decodedParams) {
-		// FIXME: To be implemented
-		return true;
+	private boolean isCompatible(Method method, Object[] params) {
+		// FIXME: At present we just check the number of parameters. Implement types compatibility
+		int length = params != null ? params.length : 0;
+		return (method.getParameterTypes().length == length);
 	}
 
 	private BECodec getBECodec(String serviceName) {

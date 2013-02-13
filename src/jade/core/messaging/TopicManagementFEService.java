@@ -65,7 +65,19 @@ public class TopicManagementFEService extends FEService {
 					invoke(myAgent.getLocalName(), "register", new Object[]{topic});
 				}
 				catch (NotFoundException nfe) {
-					throw new ServiceException("Registering agent "+myAgent.getLocalName()+" not found on the back-end");
+					throw new ServiceException("Local agent "+myAgent.getLocalName()+" not found on the back-end");
+				}
+				catch (IMTPException imtpe) {
+					throw new ServiceException("Communication error: "+imtpe.getMessage(), imtpe);
+				}
+			}
+			
+			public void register(AID id, AID topic) throws ServiceException {
+				try {
+					invoke(myAgent.getLocalName(), "register", new Object[]{id, topic});
+				}
+				catch (NotFoundException nfe) {
+					throw new ServiceException("Local agent "+myAgent.getLocalName()+" not found on the back-end");
 				}
 				catch (IMTPException imtpe) {
 					throw new ServiceException("Communication error: "+imtpe.getMessage(), imtpe);
@@ -77,7 +89,19 @@ public class TopicManagementFEService extends FEService {
 					invoke(myAgent.getLocalName(), "deregister", new Object[]{topic});
 				}
 				catch (NotFoundException nfe) {
-					throw new ServiceException("Deregistering agent "+myAgent.getLocalName()+" not found on the back-end");
+					throw new ServiceException("Local agent "+myAgent.getLocalName()+" not found on the back-end");
+				}
+				catch (IMTPException imtpe) {
+					throw new ServiceException("Communication error: "+imtpe.getMessage(), imtpe);
+				}
+			}
+			
+			public void deregister(AID id, AID topic) throws ServiceException {
+				try {
+					invoke(myAgent.getLocalName(), "deregister", new Object[]{id, topic});
+				}
+				catch (NotFoundException nfe) {
+					throw new ServiceException("Local agent "+myAgent.getLocalName()+" not found on the back-end");
 				}
 				catch (IMTPException imtpe) {
 					throw new ServiceException("Communication error: "+imtpe.getMessage(), imtpe);

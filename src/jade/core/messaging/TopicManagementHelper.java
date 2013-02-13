@@ -67,9 +67,26 @@ public interface TopicManagementHelper extends ServiceHelper {
 	void register(AID topic) throws ServiceException;
 	
 	/**
+	 * Register a given AID to a given topic. Registering a specific AID 
+	 * instead of the agent AID, allows registering an Alias or a Virtual agent AID 
+	 * @param aid The AID that is going to be registered
+	 * @param topic The topic to register to
+	 * @throws ServiceException If some error occurs during the registration
+	 */
+	void register(AID aid, AID topic) throws ServiceException;
+	
+	/**
 	 * De-register the agent associated to this helper from a given topic
 	 * @param topic The topic to de-register from
 	 * @throws ServiceException If some error occurs during the de-registration
 	 */
 	void deregister(AID topic) throws ServiceException;
+	
+	/**
+	 * De-register a given AID from a given topic
+	 * @param aid The AID that is going to be de-registered
+	 * @param topic The topic to de-register from
+	 * @throws ServiceException If some error occurs during the de-registration
+	 */
+	void deregister(AID aid, AID topic) throws ServiceException;
 }
