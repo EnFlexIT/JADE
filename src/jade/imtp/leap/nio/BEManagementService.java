@@ -88,6 +88,11 @@ server in the form of <code>jade.imtp.leap.JICP.ProtocolManager<code>
 class
 </li>
 <li>
+<code>serverid_additional-services</code>: Specifies additional services 
+that have to be activated in each BackEnd Container started by the indicated
+server  
+</li>
+<li>
 <code>serverid_leap-property-file</code>: Specifies the leap-property
 file to be used by this server.
 </li>
@@ -108,6 +113,8 @@ public class BEManagementService extends BaseService {
 
 	public static final String ACCEPT = PREFIX+"accept";
 	public static final String SERVERS = PREFIX+"servers";
+	
+	public static final String ADDITIONAL_SERVICES = "additional-services";
 
 	private static final int DEFAULT_PORT = 2099;
 	private static final int DEFAULT_POOL_SIZE = 5;
@@ -116,7 +123,9 @@ public class BEManagementService extends BaseService {
 	private static final int TERMINATING_STATE = 2;
 	private static final int TERMINATED_STATE = 3;
 	private static final int ERROR_STATE = -1;
+	
 	public static final String INCOMING_CONNECTION = "Incoming-Connection";
+	
 	// since this is the only service dealing with NIO it is ok to set the size used for enlarging buffers here
 	private static int bufferIncreaseSize = 1024;
 	/**
@@ -151,16 +160,16 @@ public class BEManagementService extends BaseService {
 	private AgentContainer myContainer;
 	
 	// SAM related variables
-	private int createMediatorCounter = 0;
-	private int connectMediatorCounter = 0;
-	private int mediatorNotFoundCounter = 0;
-	private int incomingCommandCounter = 0;
-	private int keepAliveCounter = 0;
-	private int dropDownCounter = 0;
-	private int processingTimeGT1SecCounter = 0;
-	private int processingTimeGT10SecCounter = 0;
-	private int incomingPacketServingErrorCounter = 0;
-	private int incomingPacketReadingErrorCounter = 0;
+	private long createMediatorCounter = 0;
+	private long connectMediatorCounter = 0;
+	private long mediatorNotFoundCounter = 0;
+	private long incomingCommandCounter = 0;
+	private long keepAliveCounter = 0;
+	private long dropDownCounter = 0;
+	private long processingTimeGT1SecCounter = 0;
+	private long processingTimeGT10SecCounter = 0;
+	private long incomingPacketServingErrorCounter = 0;
+	private long incomingPacketReadingErrorCounter = 0;
 	private AverageMeasureProviderImpl dataProcessingTimeProvider = null;
 	private AverageMeasureProviderImpl waitForDataTimeProvider = null;
 	
@@ -532,6 +541,7 @@ public class BEManagementService extends BaseService {
 				// Ignore: no back end properties specified
 			}
 			leapProps.setProperty(BackEndContainer.USE_BACKEND_MANAGER, "true");
+			leapProps.setProperty(ADDITIONAL_SERVICES, p.getParameter(id + '_' + ADDITIONAL_SERVICES, null));
 
 			// Initialize the PDPContextManager if specified
 			String pdpContextManagerClass = leapProps.getProperty(PDP_CONTEXT_MANAGER_CLASS);
@@ -542,8 +552,7 @@ public class BEManagementService extends BaseService {
 					myPDPContextManager.init(leapProps);
 					myPDPContextManager.registerListener(this);
 				} catch (Throwable t) {
-					myLogger.log(Logger.WARNING, myLogPrefix + "Cannot load PDPContext manager " + pdpContextManagerClass);
-					t.printStackTrace();
+					myLogger.log(Logger.WARNING, myLogPrefix + "Cannot load PDPContext manager " + pdpContextManagerClass, t);
 					myPDPContextManager = null;
 				}
 			} else {
