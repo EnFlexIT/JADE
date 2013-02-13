@@ -23,9 +23,6 @@
 
 package jade.core.sam;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * A default ready-made implementation of the AverageMeasureProvider interface that offers 
  * methods to add measure samples and automatically computes an  <code>AverageMeasure</code>
