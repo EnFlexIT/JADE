@@ -541,7 +541,11 @@ public class BEManagementService extends BaseService {
 				// Ignore: no back end properties specified
 			}
 			leapProps.setProperty(BackEndContainer.USE_BACKEND_MANAGER, "true");
-			leapProps.setProperty(ADDITIONAL_SERVICES, p.getParameter(id + '_' + ADDITIONAL_SERVICES, null));
+			
+			String additionalService = p.getParameter(id + '_' + ADDITIONAL_SERVICES, null);
+			if (additionalService != null) {
+				leapProps.setProperty(ADDITIONAL_SERVICES, additionalService);
+			}
 
 			// Initialize the PDPContextManager if specified
 			String pdpContextManagerClass = leapProps.getProperty(PDP_CONTEXT_MANAGER_CLASS);
