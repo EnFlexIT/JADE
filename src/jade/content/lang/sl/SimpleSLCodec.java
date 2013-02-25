@@ -237,15 +237,20 @@ public class SimpleSLCodec extends StringCodec {
 		++indent;
 		try {
 			ObjectSchema s = o.getSchema(name);
-			abs = s.newInstance();
-			if (abs instanceof AbsAggregate) {
-				fillAggregate((AbsAggregate) abs, p, o);
-			}
-			else if (p.nextToken().startsWith(":")) {
-				fillSlotsByName((AbsConcept) abs, p, o);
+			if (s != null) {
+				abs = s.newInstance();
+				if (abs instanceof AbsAggregate) {
+					fillAggregate((AbsAggregate) abs, p, o);
+				}
+				else if (p.nextToken().startsWith(":")) {
+					fillSlotsByName((AbsConcept) abs, p, o);
+				}
+				else {
+					fillSlotsByOrder(abs, s, p, o);
+				}
 			}
 			else {
-				fillSlotsByOrder(abs, s, p, o);
+				throw new CodecException("No schema found for element "+name);
 			}
 		}
 		catch (CodecException ce) {
