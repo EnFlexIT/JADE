@@ -805,7 +805,7 @@ public class BEManagementService extends BaseService {
 							Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(address, owner);
 							mergeProperties(p, pdpContextInfo);
 						} catch (JADESecurityException jse) {
-							myLogger.log(Logger.WARNING, myLogPrefix + "Security attack! CREATE_MEDIATOR request from non authorized address: " + address);
+							myLogger.log(Logger.WARNING, myLogPrefix + "Security error! CREATE_MEDIATOR request from non authorized client [" + address + "]. "+jse.getMessage());
 							reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, jse);
 							break;
 						}
