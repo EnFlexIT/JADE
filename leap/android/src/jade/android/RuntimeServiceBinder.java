@@ -45,18 +45,15 @@ public class RuntimeServiceBinder extends Binder {
 		runtimeService.removeListener(listener);
 	}
 
-	public void createMainAgentContainer(
-			RuntimeCallback<AgentContainerHandler> callback) {
+	public void createMainAgentContainer(RuntimeCallback<AgentContainerHandler> callback) {
 		runtimeService.createMainAgentContainer(callback);
 	}
 
-	public void createAgentContainer(String host, int port,
-			RuntimeCallback<AgentContainerHandler> callback) {
+	public void createAgentContainer(String host, int port, RuntimeCallback<AgentContainerHandler> callback) {
 		runtimeService.createAgentContainer(host, port, callback);
 	}
 
-	public void createAgentContainer(Profile profile,
-			RuntimeCallback<AgentContainerHandler> callback) {
+	public void createAgentContainer(Profile profile, RuntimeCallback<AgentContainerHandler> callback) {
 		runtimeService.createAgentContainer(profile, callback);
 	}
 }

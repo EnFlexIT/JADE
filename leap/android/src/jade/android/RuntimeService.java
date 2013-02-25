@@ -134,8 +134,7 @@ public class RuntimeService extends Service {
 		}.start();
 	}
 
-	public void killAgent(AgentHandler agentHandler,
-			RuntimeCallback<Void> callback) {
+	public void killAgent(AgentHandler agentHandler, RuntimeCallback<Void> callback) {
 		final RuntimeCallback<Void> finalCallback = callback;
 
 		final AgentHandler finalAgentHandler = agentHandler;
@@ -253,15 +252,11 @@ public class RuntimeService extends Service {
 				try {
 					logger.log(Logger.INFO, "Creating new agent");
 
-					AgentContainer agentContainer = finalAgentContainerHandler
-							.getAgentContainer();
+					AgentContainer agentContainer = finalAgentContainerHandler.getAgentContainer();
 
-					AgentController agentController = agentContainer
-							.createNewAgent(finalNickname, finalClassName,
-									finalArgs);
+					AgentController agentController = agentContainer.createNewAgent(finalNickname, finalClassName, finalArgs);
 
-					AgentHandler agentHandler = new AgentHandler(
-							finalAgentContainerHandler, agentController);
+					AgentHandler agentHandler = new AgentHandler(finalAgentContainerHandler, agentController);
 
 					finalCallback.notifySuccess(logger, agentHandler);
 

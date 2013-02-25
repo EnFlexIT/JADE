@@ -34,14 +34,13 @@ public class AgentContainerHandler {
 
 	private RuntimeService runtimeService;
 
-	AgentContainerHandler(RuntimeService runtimeService,
-			AgentContainer agentContainer) {
+	AgentContainerHandler(RuntimeService runtimeService, AgentContainer agentContainer) {
 		this.runtimeService = runtimeService;
 
 		this.agentContainer = agentContainer;
 	}
 
-	AgentContainer getAgentContainer() {
+	public AgentContainer getAgentContainer() {
 		return agentContainer;
 	}
 
@@ -53,9 +52,7 @@ public class AgentContainerHandler {
 		runtimeService.killAgentContainer(this, callback);
 	}
 
-	public void createNewAgent(String nickname, String className,
-			Object[] args, RuntimeCallback<AgentHandler> callback) {
-		runtimeService
-				.createNewAgent(this, nickname, className, args, callback);
+	public void createNewAgent(String nickname, String className, Object[] args, RuntimeCallback<AgentHandler> callback) {
+		runtimeService.createNewAgent(this, nickname, className, args, callback);
 	}
 }

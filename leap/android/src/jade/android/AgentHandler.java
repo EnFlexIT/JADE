@@ -34,41 +34,36 @@ public class AgentHandler {
 
 	protected AgentContainerHandler agentContainerHandler;
 
-	AgentHandler(AgentContainerHandler agentContainerHandler,
-			AgentController agentController) {
+	AgentHandler(AgentContainerHandler agentContainerHandler, AgentController agentController) {
 		this.agentController = agentController;
 
 		this.agentContainerHandler = agentContainerHandler;
 	}
 
-	AgentController getAgentController() {
+	public AgentController getAgentController() {
 		return agentController;
 	}
 
 	public void start(RuntimeCallback<Void> callback) {
-		RuntimeService runtimeService = agentContainerHandler
-				.getRuntimeService();
+		RuntimeService runtimeService = agentContainerHandler.getRuntimeService();
 
 		runtimeService.startAgent(this, callback);
 	}
 
 	public void kill(RuntimeCallback<Void> callback) {
-		RuntimeService runtimeService = agentContainerHandler
-				.getRuntimeService();
+		RuntimeService runtimeService = agentContainerHandler.getRuntimeService();
 
 		runtimeService.killAgent(this, callback);
 	}
 
 	public void suspend(RuntimeCallback<Void> callback) {
-		RuntimeService runtimeService = agentContainerHandler
-				.getRuntimeService();
+		RuntimeService runtimeService = agentContainerHandler.getRuntimeService();
 
 		runtimeService.suspendAgent(this, callback);
 	}
 
 	public void activate(RuntimeCallback<Void> callback) {
-		RuntimeService runtimeService = agentContainerHandler
-				.getRuntimeService();
+		RuntimeService runtimeService = agentContainerHandler.getRuntimeService();
 
 		runtimeService.activateAgent(this, callback);
 	}
