@@ -289,6 +289,11 @@ public final class SSLEngineHelper implements BufferTransformer {
 
 	public synchronized ByteBuffer preprocessBufferToWrite(ByteBuffer dataToSend) throws IOException {
 		wrapData.clear();
+		
+		if (ssle == null) {
+			throw new IllegalStateException("SSLEngine previously closed. The connection must be reestablished.");
+		}
+		
 		while (dataToSend.hasRemaining()) {
 			SSLEngineResult res = ssle.wrap(dataToSend,wrapData);
 			if (log.isLoggable(Level.FINE)) {

@@ -523,7 +523,7 @@ public class BEManagementService extends BaseService {
 				pm = (ProtocolManager) Class.forName(protoManagerClass).newInstance();
 			} catch (Exception e) {
 				if (protoManagerClass != null) {
-					myLogger.log(Logger.WARNING, myLogPrefix + "Unable to load protocol-manager class " + protoManagerClass + ", fallback to default " + NIOJICPPeer.class.getName()+"!!!!");
+					myLogger.log(Logger.WARNING, myLogPrefix + "Unable to load protocol-manager class " + protoManagerClass + ", fallback to default " + NIOJICPPeer.class.getName()+"!");
 				}
 				pm = new NIOJICPPeer();
 			}
@@ -949,6 +949,7 @@ public class BEManagementService extends BaseService {
 				// Error handling the received packet
 				incomingPacketServingErrorCounter++;
 				myLogger.log(Logger.WARNING, myLogPrefix + stringify(mediator) + "Error handling incoming packet. ", e);
+				
 				// If the incoming packet was a request, send back a generic error response
 				if (type == JICPProtocol.COMMAND_TYPE ||
 						type == JICPProtocol.CREATE_MEDIATOR_TYPE ||
@@ -962,8 +963,9 @@ public class BEManagementService extends BaseService {
 			if (reply != null) {
 				try {
 					connection.writePacket(reply);
-				} catch (IOException ioe) {
-					myLogger.log(Logger.WARNING, myLogPrefix + stringify(mediator) + "Communication error writing return packet to " + address + ":" + port + " [" + ioe + "]", ioe);
+				} catch (Exception e) {
+					incomingPacketServingErrorCounter++;
+					myLogger.log(Logger.WARNING, myLogPrefix + stringify(mediator) + "Communication error writing return packet to " + address + ":" + port + " [" + e + "]", e);
 					closeConnection = true;
 				}
 			} else {
@@ -1066,7 +1068,7 @@ public class BEManagementService extends BaseService {
 							myLogger.log(Logger.WARNING, "LM-"+lm.myIndex+" did not recover after last interrupt --> Mark it as STUCK. "+runningLoopersCnt+" LoopManagers still working properly");
 							if (runningLoopersCnt < (loopers.length / 2)) {
 								// More than 50% of LoopManagers are stuck --> Kill JVM
-								myLogger.log(Logger.SEVERE, "More than 50% of LoopManagers are stuck --> Kill JVM!!!!!!!!!!!!!!!!!!!!!!!!!");
+								myLogger.log(Logger.SEVERE, "More than 50% of LoopManagers are stuck --> Kill JVM!");
 								System.exit(300);
 							}
 						}
@@ -1077,7 +1079,7 @@ public class BEManagementService extends BaseService {
 							for(int i=0; i<stackTrace.length; i++) {
 								sb.append("\t at " + stackTrace[i] + "\n");
 							}
-							myLogger.log(Logger.WARNING, "LM-"+lm.myIndex+" appears to be stuck in handling incoming data from the network. Try to kill it!!!!!!!!!!!!!!!! Thread stack trace is\n"+sb.toString());
+							myLogger.log(Logger.WARNING, "LM-"+lm.myIndex+" appears to be stuck in handling incoming data from the network. Try to kill it! Thread stack trace is\n"+sb.toString());
 							lmThread.interrupt();
 						}
 					}
@@ -1257,8 +1259,8 @@ public class BEManagementService extends BaseService {
 			} catch (PacketIncompleteException pie) {
 				// The data ready to be read is not enough to complete
 				// a packet. Just do nothing and wait until more data is ready
-				if (myLogger.isLoggable(Logger.INFO)) {
-					myLogger.log(Logger.INFO, "Incomplete JICPPacket (" + pie.getMessage() + ") from connection " + connection + ". Wait for more data..");
+				if (myLogger.isLoggable(Logger.FINE)) {
+					myLogger.log(Logger.FINE, "Incomplete JICPPacket (" + pie.getMessage() + ") from connection " + connection + ". Wait for more data..");
 				}
 			} catch (Exception e) {
 				server.serveException(this, e);
@@ -1361,7 +1363,9 @@ public class BEManagementService extends BaseService {
 				if (state == ACTIVE_STATE) {
 					Set keys = mySelector.selectedKeys();
 					int keysSize = keys.size();
-					myLogger.log(Logger.INFO, prefix + " n=" + n + " selected-keys=" + keysSize + (n != keysSize ? "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" : ""));
+					if(myLogger.isLoggable(Logger.FINE)) {
+						myLogger.log(Logger.FINE, prefix + " n=" + n + " selected-keys=" + keysSize + (n != keysSize ? " This is very strange!!!!" : ""));
+					}
 					if (n > 0 && keysSize > 0) {
 						// NOTE that the check on keys.size() is redundant and is there just to handle the "select bug" (see handelSelectBug())
 						selectBugCounter = 0;
@@ -1423,7 +1427,7 @@ public class BEManagementService extends BaseService {
 		 */
 		private synchronized void handleSelectBug() {
 			// Mutual exclusion with register()
-			myLogger.log(Logger.WARNING, Thread.currentThread().getName() + " SELECT BUG OCCURRED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Replacing LoopManager");
+			myLogger.log(Logger.WARNING, Thread.currentThread().getName() + " SELECT BUG OCCURRED!!!! Replacing LoopManager");
 			LoopManager lm = new LoopManager(this);
 			myServer.replaceLoopManager(myIndex, lm); // This also makes the currentLoopManager terminate
 		}
@@ -1441,7 +1445,7 @@ public class BEManagementService extends BaseService {
 			} catch (JADESecurityException jse) {
 				myLogger.log(Logger.WARNING, prefix + "Connection attempt from malicious address " + jse.getMessage());
 			} catch (NotFoundException nfe) {
-				myLogger.log(Logger.SEVERE, prefix + "NO LoopManager available to handle incoming socket!!!!!!!!!");
+				myLogger.log(Logger.SEVERE, prefix + "NO LoopManager available to handle incoming socket!!!!");
 			} catch (Exception e) {
 				myLogger.log(Logger.WARNING, prefix + "Error accepting incoming connection. ", e);
 			}
@@ -1488,8 +1492,8 @@ public class BEManagementService extends BaseService {
 			if (pendingChannelPresent) {
 				for (int i = 0; i < pendingChannels.size(); ++i) {
 					SocketChannel sc = (SocketChannel) pendingChannels.get(i);
-					if (myLogger.isLoggable(Logger.INFO)) {
-						myLogger.log(Logger.INFO, prefix+"Registering Selector "+mySelector+" on channel " + sc  +" for READ operations");
+					if (myLogger.isLoggable(Logger.FINE)) {
+						myLogger.log(Logger.FINE, prefix+"Registering Selector "+mySelector+" on channel " + sc  +" for READ operations");
 					}
 					try {
 						sc.register(mySelector, SelectionKey.OP_READ);
@@ -1552,14 +1556,18 @@ public class BEManagementService extends BaseService {
 				try {
 					Thread.sleep(period);
 					final long currentTime = System.currentTimeMillis();
-					myLogger.log(Logger.INFO,  "Ticker: Tick begin. Current time = "+currentTime);
+					if(myLogger.isLoggable(Logger.FINE)) {
+						myLogger.log(Logger.FINE,  "Ticker: Tick begin. Current time = "+currentTime);
+					}
 					Thread t = new Thread() {
 						public void run() {
 							Object[] ss = servers.values().toArray();
 							for (int i = 0; i < ss.length; ++i) {
 								((IOEventServer) ss[i]).tick(currentTime);
 							}
-							myLogger.log(Logger.INFO,  "Ticker: Tick end. Current time = "+currentTime);
+							if(myLogger.isLoggable(Logger.FINE)) {
+								myLogger.log(Logger.FINE,  "Ticker: Tick end. Current time = "+currentTime);
+							}
 						}
 					};
 					t.setName("BEManagementService-ticker-"+currentTime);

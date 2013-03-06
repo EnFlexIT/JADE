@@ -342,7 +342,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 				myLogger.log(Logger.INFO, "BE "+myID+" - RESPONSE sent back: "+reply.getSessionID());
 			}
 			catch (IOException ioe) {
-	      		myLogger.log(Logger.WARNING, myID+": Communication error sending back response. "+ioe);				
+	      		myLogger.log(Logger.WARNING, myID+": Communication error sending back response. "+ioe);
 			}
 		}
 		return null;
@@ -452,10 +452,6 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 	 Handle a connection DROP_DOWN request from the FE.
 	 */
 	protected void handleDropDown(Connection c, JICPPacket pkt, InetAddress addr, int port) {
-		if (myLogger.isLoggable(Logger.INFO)) {
-			myLogger.log(Logger.INFO,  myID+": DROP_DOWN request received.");
-		}
-		
 		try {
 			if (inpManager.isEmpty()) {
 				JICPPacket rsp = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
@@ -576,14 +572,20 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 					try {
 						lastIncomingResponse = null;
 						
-						myLogger.log(Logger.INFO, "[Thread="+Thread.currentThread().getName()+"] BE "+myID+" - Sending command to FE "+pkt.getSessionID());
+						if(myLogger.isLoggable(Logger.FINE)) {
+							myLogger.log(Logger.FINE, "[Thread="+Thread.currentThread().getName()+"] BE "+myID+" - Sending command to FE "+pkt.getSessionID());
+						}
 						writePacket(myConnection, pkt);
-						myLogger.log(Logger.INFO, "[Thread="+Thread.currentThread().getName()+"] BE "+myID+" - Waiting for response from FE "+pkt.getSessionID());
+						if(myLogger.isLoggable(Logger.FINE)) {
+							myLogger.log(Logger.FINE, "[Thread="+Thread.currentThread().getName()+"] BE "+myID+" - Waiting for response from FE "+pkt.getSessionID());
+						}
 						
 						long responseTimeout = responseTimeoutOffset + (long)(responseTimeoutMultiplicativeFactor * pkt.getLength());
 						pkt = waitForResponse(inpCnt, responseTimeout);
 						if (pkt != null) {
-							myLogger.log(Logger.INFO, "[Thread="+Thread.currentThread().getName()+"] BE "+myID+" - Response received from FE "+pkt.getSessionID());
+							if(myLogger.isLoggable(Logger.FINE)) {
+								myLogger.log(Logger.FINE, "[Thread="+Thread.currentThread().getName()+"] BE "+myID+" - Response received from FE "+pkt.getSessionID());
+							}
 							if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
 								// Communication OK, but there was a JICP error on the peer
 								throw new ICPException(new String(pkt.getData()));
