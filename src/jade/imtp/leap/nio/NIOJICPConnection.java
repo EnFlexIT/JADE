@@ -88,69 +88,78 @@ public class NIOJICPConnection extends Connection {
 			jicpData = unmanagedJicpData;
 		}
 		
-		if (jicpData.hasRemaining()) {
-			// JICP data actually available after transformations
-			if (!headerReceived) {
-				// Note that, since we require that a JICP-Header is never split, we 
-				// are sure that at least all header bytes are available
-				//System.out.println("Read "+jicpData.remaining()+" bytes");
-				headerReceived = true;
-				type = jicpData.get();
-				//System.out.println("type = "+type);
-				info = jicpData.get();
-				//System.out.println("info = "+info);
-				sessionID = -1;
-				if ((info & JICPProtocol.SESSION_ID_PRESENT_INFO) != 0) {
-					sessionID = jicpData.get();
-					//System.out.println("SessionID = "+sessionID);
-				}
-				if ((info & JICPProtocol.RECIPIENT_ID_PRESENT_INFO) != 0) {
-					byte recipientIDLength = jicpData.get();
-					byte[] bb = new byte[recipientIDLength];
-					jicpData.get(bb);
-					recipientID = new String(bb);
-				}
-				if ((info & JICPProtocol.DATA_PRESENT_INFO) != 0) {
-					int b1 = (int) jicpData.get();
-					int b2 = (int) jicpData.get();
-					int payloadLength = ((b2 << 8) & 0x0000ff00) | (b1 & 0x000000ff);
-					int b3 = (int) jicpData.get();
-					int b4 = (int) jicpData.get();
-					payloadLength |= ((b4 << 24) & 0xff000000) | ((b3 << 16) & 0x00ff0000);
-
-					if (payloadLength > JICPPacket.MAX_SIZE) {
-						throw new IOException("Packet size greater than maximum allowed size. " + payloadLength);
+		try {
+			if (jicpData.hasRemaining()) {
+				// JICP data actually available after transformations
+				if (!headerReceived) {
+					// Note that, since we require that a JICP-Header is never split, we 
+					// are sure that at least all header bytes are available
+					//System.out.println("Read "+jicpData.remaining()+" bytes");
+					headerReceived = true;
+					type = jicpData.get();
+					//System.out.println("type = "+type);
+					info = jicpData.get();
+					//System.out.println("info = "+info);
+					sessionID = -1;
+					if ((info & JICPProtocol.SESSION_ID_PRESENT_INFO) != 0) {
+						sessionID = jicpData.get();
+						//System.out.println("SessionID = "+sessionID);
 					}
-
-					resizePayloadBuffer(payloadLength);
-
-					// jicpData likely already contains some payload bytes --> copy them into the payload buffer
+					if ((info & JICPProtocol.RECIPIENT_ID_PRESENT_INFO) != 0) {
+						byte recipientIDLength = jicpData.get();
+						byte[] bb = new byte[recipientIDLength];
+						jicpData.get(bb);
+						recipientID = new String(bb);
+					}
+					if ((info & JICPProtocol.DATA_PRESENT_INFO) != 0) {
+						int b1 = (int) jicpData.get();
+						int b2 = (int) jicpData.get();
+						int payloadLength = ((b2 << 8) & 0x0000ff00) | (b1 & 0x000000ff);
+						int b3 = (int) jicpData.get();
+						int b4 = (int) jicpData.get();
+						payloadLength |= ((b4 << 24) & 0xff000000) | ((b3 << 16) & 0x00ff0000);
+	
+						if (payloadLength > JICPPacket.MAX_SIZE) {
+							throw new IOException("Packet size greater than maximum allowed size. " + payloadLength);
+						}
+	
+						resizePayloadBuffer(payloadLength);
+	
+						// jicpData likely already contains some payload bytes --> copy them into the payload buffer
+						NIOHelper.copyAsMuchAsFits(payloadBuf, jicpData);
+	
+						if (payloadBuf.hasRemaining()) {
+							// Payload not completely received. Wait for next round 
+							throw new PacketIncompleteException("Missing "+payloadBuf.remaining()+" payload bytes");
+						} else {
+							return buildPacket(jicpData);
+						}
+					} else {
+						return buildPacket(jicpData);
+					}
+				}
+				else {
+					// We are in the middle of reading the payload of a packet (the previous call to readPacket() resulted in a PacketIncompleteException)
 					NIOHelper.copyAsMuchAsFits(payloadBuf, jicpData);
-
 					if (payloadBuf.hasRemaining()) {
 						// Payload not completely received. Wait for next round 
 						throw new PacketIncompleteException("Missing "+payloadBuf.remaining()+" payload bytes");
 					} else {
 						return buildPacket(jicpData);
 					}
-				} else {
-					return buildPacket(jicpData);
 				}
 			}
 			else {
-				// We are in the middle of reading the payload of a packet (the previous call to readPacket() resulted in a PacketIncompleteException)
-				NIOHelper.copyAsMuchAsFits(payloadBuf, jicpData);
-				if (payloadBuf.hasRemaining()) {
-					// Payload not completely received. Wait for next round 
-					throw new PacketIncompleteException("Missing "+payloadBuf.remaining()+" payload bytes");
-				} else {
-					return buildPacket(jicpData);
-				}
+				// No JICP data available at this round. Wait for next one
+				throw new PacketIncompleteException(socketData.limit()+" bytes read from the network. No JICP data transformed");
 			}
 		}
-		else {
-			// No JICP data available at this round. Wait for next one
-			throw new PacketIncompleteException(socketData.limit()+" bytes read from the network. No JICP data transformed");
+		finally {
+			if (unmanagedJicpData != null && !unmanagedJicpData.hasRemaining()) {
+				// If we just fully processed some previous-round-unmanaged data, reset the unmanagedJicpData buffer
+				// so that we are sure to read bytes from the network at next round
+				unmanagedJicpData  = null;
+			}
 		}
 	}
 	
@@ -250,9 +259,6 @@ public class NIOJICPConnection extends Connection {
 		// to be processed and store it in that case
 		if (jicpData.hasRemaining()) {
 			unmanagedJicpData = jicpData;
-		}
-		else {
-			unmanagedJicpData = null;
 		}
 		
 		return pkt;
