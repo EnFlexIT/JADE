@@ -28,12 +28,13 @@ import jade.lang.acl.MessageTemplate.MatchExpression;
 import jade.util.Logger;
 
 /**
- * Ready made behaviour that for each incoming message automatically invoke a corresponding method of the form<br>
+ * Ready made behaviour that for each incoming message automatically invokes a corresponding method of the form<br>
  * <code>
  * public void serveCcccPppp(Cccc c, ACLMessage msg) throws Exception
  * </code>
  * <br>
- * where c represents the key content-element referenced by the incoming message msg.<br>
+ * where Cccc represents the key content-element referenced by the incoming message msg
+ * and Pppp represents the performative of the message.<br>
  * ContentElement-s representing SL0 operators action, done and result are automatically managed
  * so that for instance if an incoming REQUEST message is received carrying a content of type<br>
  * ((action (actor ...) (Sell ...)))<br>
@@ -129,8 +130,22 @@ public class OntologyServer extends CyclicBehaviour {
 		this.template = template;
 	}
 	
+	/**
+	 * Set the <code>ConversationList</code> used by this OntologyServer
+	 * to determine which conversations to ignore (if any).
+	 * Note: calling this method after the behaviour started has no effect
+	 * @see ignoreConversation(String)
+	 */
+	public void setIgnoredConversations(ConversationList l) {
+		if (ignoredConversations == null) {
+			ignoredConversations = l;
+		}
+	}
+	
 	public void onStart() {
-		ignoredConversations = new ConversationList(myAgent);
+		if (ignoredConversations == null) {
+			ignoredConversations = new ConversationList(myAgent);
+		}
 		
 		// Unless a template is explicitly set, we get messages matching the ontology, the served performatives.
 		if (template == null) {
@@ -302,10 +317,19 @@ public class OntologyServer extends CyclicBehaviour {
 		return m;
 	}
 	
+	/**
+	 * Makes this OntologyServer ignore all incoming messages belonging to a
+	 * given conversation i.e. marked with the indicated conversation-id
+	 */
 	public void ignoreConversation(String convId) {
 		ignoredConversations.registerConversation(convId);
 	}
-	
+
+	/**
+	 * Notifies this OntologyServer that a given conversation is finished and therefore
+	 * it must no longer ignore messages belonging to it.
+	 * @see ignoreConversation(String)
+	 */
 	public void conversationFinished(String convId) {
 		ignoredConversations.deregisterConversation(convId);
 	}
