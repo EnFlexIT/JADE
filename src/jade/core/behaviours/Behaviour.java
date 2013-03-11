@@ -545,8 +545,7 @@ public abstract class Behaviour implements Serializable {
 		myAgent = a;
 	}
 	
-	// For persistence service
-	private Agent getAgent() {
+	public Agent getAgent() {
 		return myAgent;
 	}
 	
