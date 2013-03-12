@@ -24,6 +24,10 @@
  */
 package jade.android;
 
+import jade.core.Profile;
+
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -34,6 +38,7 @@ import java.util.Enumeration;
  */
 public class AndroidHelper {
 	public static final String LOOPBACK = "127.0.0.1";
+	
 
 	public static boolean isEmulator() {
 		return android.os.Build.MODEL.toLowerCase().contains("sdk");
@@ -46,7 +51,23 @@ public class AndroidHelper {
 				for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
 					InetAddress inetAddress = enumIpAddr.nextElement();
 					if (!inetAddress.isLoopbackAddress()) {
-						return inetAddress.getHostAddress().toString();
+						int useIPVersion = Integer.parseInt(System.getProperty(Profile.IP_VERSION, Profile.DEFAULT_IPV));
+						if (!inetAddress.isLoopbackAddress()) {
+							switch (useIPVersion) {
+							case Profile.IPV4:
+								if (inetAddress instanceof Inet4Address) {
+									return  inetAddress.getHostAddress().toString();
+								}
+								break;
+							case Profile.IPV6:
+								if (inetAddress instanceof Inet6Address) {
+									return  inetAddress.getHostAddress().toString();
+								}
+								break;
+							default:
+								return  inetAddress.getHostAddress().toString();
+							}
+						}
 					}
 				}
 			}

@@ -28,6 +28,8 @@ import java.net.InetAddress;
 //#DOTNET_EXCLUDE_BEGIN
 import java.net.NetworkInterface;
 //#DOTNET_EXCLUDE_END
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
@@ -236,6 +238,16 @@ public abstract class Profile {
 	 **/
 	public static final String FILE_DIR = "file-dir";
 	
+	/**
+	 * This constant is the key of the property whose value contains
+	 * the version of IP address to use.
+	 */
+	public static final String IP_VERSION = "ip-version";
+	
+	public static final int IPV4 = 4;
+	public static final int IPV6 = 6;
+	public static final String DEFAULT_IPV = "0";
+
 	
 	public static final int DEFAULT_PORT = 1099;
 	
@@ -390,11 +402,30 @@ public abstract class Profile {
 		String host = LOCALHOST_CONSTANT;
 		//#MIDP_EXCLUDE_BEGIN
 		try {
-			host = java.net.InetAddress.getLocalHost().getHostAddress(); 
-			
-			if (LOOPBACK_ADDRESS_CONSTANT.equals(host)) {
-				// Try with the name
-				host = java.net.InetAddress.getLocalHost().getHostName();
+			for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+				NetworkInterface intf = en.nextElement();
+				for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+					InetAddress inetAddress = enumIpAddr.nextElement();
+					if (!inetAddress.isLoopbackAddress()) {
+						int useIPVersion = Integer.parseInt(System.getProperty(IP_VERSION, DEFAULT_IPV));
+						if (!inetAddress.isLoopbackAddress()) {
+							switch (useIPVersion) {
+							case IPV4:
+								if (inetAddress instanceof Inet4Address) {
+									return  inetAddress.getHostAddress().toString();
+								}
+								break;
+							case IPV6:
+								if (inetAddress instanceof Inet6Address) {
+									return  inetAddress.getHostAddress().toString();
+								}
+								break;
+							default:
+								return  inetAddress.getHostAddress().toString();
+							}
+						}
+					}
+				}
 			}
 		}
 		catch(Exception e) {
