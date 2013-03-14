@@ -57,8 +57,8 @@ public class BackEndStub extends MicroStub implements BackEnd {
 		
 		this.props = props;
 		try {
-			String str = props.getProperty(MicroRuntime.DEFAULT_SF_TIMEOUT_KEY, "-1");
-			defaultMessageStoreAndForwardTimeout = Long.parseLong(str);
+		    String str = props.getProperty(MicroRuntime.DEFAULT_SF_TIMEOUT_KEY);
+			defaultMessageStoreAndForwardTimeout = Long.parseLong(str!=null?str:"-1");
 		}
 		catch (Exception e) {
 			// Keep default
@@ -180,7 +180,6 @@ public class BackEndStub extends MicroStub implements BackEnd {
 		}
 	}
 
-	@Override
 	protected void handlePostponedCommandExpired(Command c, ICPException exception) {
 		// If this was a MESSAGE_OUT, send back a failure to the sender
 		if (c.getCode() == MESSAGE_OUT) {

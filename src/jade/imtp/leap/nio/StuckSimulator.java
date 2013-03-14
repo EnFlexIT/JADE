@@ -1,5 +1,7 @@
 package jade.imtp.leap.nio;
 
+//#J2ME_EXCLUDE_FILE
+
 // Class used for debugging purpose only
 class StuckSimulator {
 	

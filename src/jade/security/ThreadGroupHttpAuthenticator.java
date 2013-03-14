@@ -22,6 +22,8 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 package jade.security;
 
+//#J2ME_EXCLUDE_FILE
+
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.util.HashMap;

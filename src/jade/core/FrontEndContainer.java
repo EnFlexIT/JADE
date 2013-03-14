@@ -260,6 +260,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			}
 		}
 	}
+	//#MIDP_EXCLUDE_END
 	
 	/**
 	 * Request the FrontEnd to return a local agent reference by his local name
@@ -267,7 +268,6 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	final Agent getLocalAgent(String localName) {
 		return (Agent) localAgents.get(localName);
 	}
-	//#MIDP_EXCLUDE_END
 	
 	/////////////////////////////////////
 	// FrontEnd interface implementation

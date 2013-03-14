@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.replication;
 
+//#J2ME_EXCLUDE_FILE
+
 import java.util.Map;
 
 import jade.core.AID;

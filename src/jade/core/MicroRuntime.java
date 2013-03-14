@@ -120,12 +120,17 @@ public class MicroRuntime {
 	public static final String MIDP = "midp";
 	//#APIDOC_EXCLUDE_END
 
+	//#J2ME_EXCLUDE_BEGIN
+	private static Logger logger = Logger.getJADELogger(MicroRuntime.class.getName());
+	//#J2ME_EXCLUDE_END
+	/*#J2ME_INCLUDE_BEGIN
+	private static Logger logger = Logger.getJADELogger("jade.core.MicroRuntime");
+	#J2ME_INCLUDE_END*/
+
 	private static Runnable terminator;
 	private static FrontEndContainer myFrontEnd;
 	private static boolean terminated;
 	
-	private static Logger logger = Logger.getJADELogger(MicroRuntime.class.getName());
-
 	/**
 	 Start up the JADE runtime. This method launches a JADE
 	 Front End container. Since JADE supports only one container
@@ -364,7 +369,6 @@ public class MicroRuntime {
 						current.join();
 					}
 					catch (InterruptedException ie) {
-						Logger logger = Logger.getMyLogger(this.getClass().getName());
 						logger.log(Logger.SEVERE,"Interrupted in join");
 					}
 					if (terminator != null) {

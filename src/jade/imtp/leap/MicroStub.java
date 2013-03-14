@@ -237,7 +237,7 @@ public class MicroStub {
 					catch (InterruptedException ie) {
 					}
 				}
-				dispatchingThreads.add(Thread.currentThread());
+				dispatchingThreads.addElement(Thread.currentThread());
 			}
 		}
 	}
@@ -245,7 +245,7 @@ public class MicroStub {
 	private void endDispatch() {
 		if (Thread.currentThread() != flushingThread) {
 			synchronized (pendingCommands) {
-				dispatchingThreads.remove(Thread.currentThread());
+				dispatchingThreads.removeElement(Thread.currentThread());
 				if (dispatchingThreads.isEmpty()) {
 					pendingCommands.notifyAll();
 				}
@@ -307,7 +307,7 @@ public class MicroStub {
 				// - Timer expires and FAILURE is sent back
 				// - Delivering succeeds
 				beginDispatch();
-				boolean found = pendingCommands.remove(pc);
+				boolean found = pendingCommands.removeElement(pc);
 				endDispatch();
 				// The command may have been processed while we were waiting to disable flush.
 				// Do nothing in this case

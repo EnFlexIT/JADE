@@ -1037,7 +1037,8 @@ public class Ontology implements Serializable {
 		
 		return referenceOnto.toObject(abs);
 	}
-	
+
+	//#J2ME_EXCLUDE_BEGIN	
 	private static void addReferencedSchemas(ObjectSchema schema, List<ObjectSchema> schemas) throws OntologyException {
 		ObjectSchema[] superSchemas = schema.getSuperSchemas();
 		for (ObjectSchema superSchema : superSchemas) {
@@ -1068,7 +1069,6 @@ public class Ontology implements Serializable {
 		return schemas;
 	}
 	
-	//#J2ME_EXCLUDE_BEGIN	
 	/**
 	 * Dump ontology to default output stream
 	 */

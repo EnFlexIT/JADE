@@ -27,9 +27,9 @@ package jade.core;
 import java.net.InetAddress;
 //#DOTNET_EXCLUDE_BEGIN
 import java.net.NetworkInterface;
-//#DOTNET_EXCLUDE_END
 import java.net.Inet4Address;
 import java.net.Inet6Address;
+//#DOTNET_EXCLUDE_END
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
@@ -400,12 +400,13 @@ public abstract class Profile {
 	
 	public static String getDefaultNetworkName() {
 		String host = LOCALHOST_CONSTANT;
+		//#DOTNET_EXCLUDE_BEGIN
 		//#MIDP_EXCLUDE_BEGIN
 		try {
-			for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
-				NetworkInterface intf = en.nextElement();
-				for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
-					InetAddress inetAddress = enumIpAddr.nextElement();
+			for (Enumeration en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+				NetworkInterface intf = (NetworkInterface)en.nextElement();
+				for (Enumeration enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+					InetAddress inetAddress = (InetAddress)enumIpAddr.nextElement();
 					if (!inetAddress.isLoopbackAddress()) {
 						int useIPVersion = Integer.parseInt(System.getProperty(IP_VERSION, DEFAULT_IPV));
 						if (!inetAddress.isLoopbackAddress()) {
@@ -431,6 +432,7 @@ public abstract class Profile {
 		catch(Exception e) {
 		}
 		//#MIDP_EXCLUDE_END
+		//#DOTNET_EXCLUDE_END
 		return host;
 	}
 	
