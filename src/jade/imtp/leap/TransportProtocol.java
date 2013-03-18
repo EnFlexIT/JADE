@@ -36,8 +36,6 @@ package jade.imtp.leap;
 
 import jade.mtp.TransportAddress;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Vector;
 
 /**
