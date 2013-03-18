@@ -170,7 +170,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 							sp.setClassName(name);
 							sp.setArgs(null);
 						}catch(Exception e){
-							myLogger.log(Logger.SEVERE,"Error creating agent "  + sp.getName() + ". " + e);
+							myLogger.log(Logger.SEVERE,"Error creating agent "  + sp.getName(), e);
 							sp.setClassName(e.getClass().getName());
 							sp.setArgs(new Object[]{e.getMessage()});
 						}
