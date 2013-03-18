@@ -51,7 +51,7 @@ public class AndroidHelper {
 				for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
 					InetAddress inetAddress = enumIpAddr.nextElement();
 					if (!inetAddress.isLoopbackAddress()) {
-						int useIPVersion = Integer.parseInt(System.getProperty(Profile.IP_VERSION, Profile.DEFAULT_IPV));
+						int useIPVersion = Integer.parseInt(System.getProperty(Profile.IP_VERSION, String.valueOf(Profile.IPV4)));
 						if (!inetAddress.isLoopbackAddress()) {
 							switch (useIPVersion) {
 							case Profile.IPV4:

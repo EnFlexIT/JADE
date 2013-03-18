@@ -35,6 +35,9 @@
 package jade.imtp.leap;
 
 import jade.mtp.TransportAddress;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Vector;
 
 /**
@@ -79,7 +82,7 @@ public abstract class TransportProtocol {
 		if (url == null) {
 			throw new ICPException("Null URL");
 		} 
-
+		
 		String protocol = null;
 		String host = null;
 		String port = null;
@@ -101,7 +104,7 @@ public abstract class TransportProtocol {
 		fieldStart = fieldEnd+3;
 
 		// Host
-		fieldEnd = url.indexOf(COLON, fieldStart);
+		fieldEnd = url.lastIndexOf(COLON);
 
 		if (fieldEnd > 0) {
 
