@@ -246,8 +246,6 @@ public abstract class Profile {
 	
 	public static final int IPV4 = 4;
 	public static final int IPV6 = 6;
-	public static final String DEFAULT_IPV = "0";
-
 	
 	public static final int DEFAULT_PORT = 1099;
 	
@@ -408,7 +406,7 @@ public abstract class Profile {
 				for (Enumeration enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
 					InetAddress inetAddress = (InetAddress)enumIpAddr.nextElement();
 					if (!inetAddress.isLoopbackAddress()) {
-						int useIPVersion = Integer.parseInt(System.getProperty(IP_VERSION, DEFAULT_IPV));
+						int useIPVersion = Integer.parseInt(System.getProperty(IP_VERSION, String.valueOf(IPV4)));
 						if (!inetAddress.isLoopbackAddress()) {
 							switch (useIPVersion) {
 							case IPV4:
