@@ -197,7 +197,11 @@ ant dist - to create the distribution files
 	<!--  _______________________________________________
 	                           examples
 	      _______________________________________________ -->
-	<target name="examples" depends="lib,examples1,jessexamples" description="compile the examples "/>
+	<target name="examples" depends="lib,examples1,jessexamples" description="compile the examples ">
+		<jar jarfile="${lib}/jadeExamples.jar">
+			<fileset dir="${build}" includes="examples/**"/>
+		</jar>
+	</target>
 	<target name="examples1" depends="lib" description="compile all examples except the JESS-based examples">
 		<!-- Compile the java code from ${src} into ${build} -->
 		<javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="${javac.optimize}" debug="${javac.debug}" deprecation="off" includes="examples/**" excludes="examples/jess/**,examples/JadeJessProtege/**" classpath="${lib}/jade.jar"/>
@@ -267,6 +271,7 @@ ant dist - to create the distribution files
 		<delete file="${dist}/JADE-examples-${version}.zip" quiet="true"/>
 		<zip zipfile="${dist}/JADE-examples-${version}.zip">
 			<zipfileset dir="." prefix="jade">
+				<include name="lib/jadeExamples.jar"/>
 				<include name="src/examples/**"/>
 				<include name="src/demo/**"/>
 				<include name="demo/**"/>

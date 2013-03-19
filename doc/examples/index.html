@@ -47,29 +47,25 @@ vlink="#0000FF" alink="#0000FF">
 
 <p><span lang="EN-GB"> <br>
 <font face="Arial,Helvetica">Some examples are distributed with
-the JADE software, that&nbsp; show how to use some of the JADE
-features and some suggested programming idioms.&nbsp;&nbsp;</font>
+the JADE software, that&nbsp; show how to use the main features of the framework 
+ and some suggested programming idioms.&nbsp;&nbsp;</font>
 </span></p>
 
-<p> <font face="Arial,Helvetica"><span lang="EN-GB"> All the examples must be
-compiled because only their source code has been distributed. The ant file 'build.xml'
-in the JADE root directory includes the target 'examples' that allows to compile
-the examples by using the 'ant' program (i.e. just type </span></font>'ant
-examples').<font face="Arial,Helvetica"><span lang="EN-GB">&nbsp;</span></font></p>
+<p> <font face="Arial,Helvetica"><span lang="EN-GB"> All the examples are distributed both in binary and source form.
+The 'examples' target of the ant file 'build.xml' in the JADE root directory allows re-compiling them.<br>
+To do that just type </span></font>'ant examples'.<br>
+<font face="Arial,Helvetica"><b>NOTE</b>: The build.xml file is included in the Jade sources distribution.<br></font></p>
 
-<p><span lang="EN-GB"><font face="Arial,Helvetica">In order to run the examples,&nbsp; 
-  set the CLASSPATH environment variable to contain the files </font><font face="Courier">jade.jar, 
-  commons-codec/commons-codec-1.3.jar</font><font face="Arial,Helvetica"> 
-  and the directory where the </font><font face="Courier">.class</font><font
-face="Arial,Helvetica"> files of the examples have been generated, usually&nbsp; 
-  ('.').&nbsp; All example agent classes belong to subpackages of the 'examples' 
+<p><span lang="EN-GB"><font face="Arial,Helvetica">In order to run the examples, set the CLASSPATH environment variable to contain the files </font>
+<font face="Courier">jade.jar, jadeExamples.jar and commons-codec/commons-codec-1.3.jar</font>.<br>
+<span lang="EN-GB"><font face="Arial,Helvetica">All example agent classes belong to subpackages of the 'examples' 
   package, refer to the various example agents with a fully qualified package 
   name; for example, class ComplexBehaviourAgent in 'behaviours' subdirectory 
   of 'examples' directory must be started&nbsp; via the following command line:</font> 
   </span></p>
 <span lang="EN-GB"> 
 <p><font face="Arial,Helvetica">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; java jade.Boot 
-  -platform agent1:examples.behaviours.ComplexBehaviourAgent</font> </p>
+  -gui agent1:examples.behaviours.ComplexBehaviourAgent</font> </p>
 <p><font face="Arial,Helvetica">The following is the list of all the example programs 
   distributed in the 'src/examples' directory.</font> </p>
 <p><font face="Arial,Helvetica"><b>Basic features.</b></font> </p>
