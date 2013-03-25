@@ -133,6 +133,9 @@
 			
 		<h2>3. Virtual Replicated Agent code</h2>
 		In this section we look into the ValueProviderAgent code to see how the behaviour described in Chapter 2 is achieved.<br>
+		
+		<h3>3.1. Defining a Virtual Replicated Agent</h3>
+		
 		The code snippet below shows the <code>setup()</code> and <code>takeDown()</code> methods.<br> 
 		<pre>
  1	public class ValueProviderAgent extends Agent implements AgentReplicationHelper.Listener {
@@ -194,19 +197,106 @@
 		declaring that this agent is the master replica of a Virtual Replicated Agent. The <code>HOT_REPLICATION</code> parameter
 		specifies that messages directed to the VR agent will be dispatched indifferently to all available replicas. If <code>COLD_REPLICATION</code>
 		was used, all messages would have been dispatched to the master replica only (other replicas used for fault tolerance purpose only).<br>
+		The <code>makeVirtual()</code> method returns the AID of the VR agent. This is the AID to publish e.g. in DF registrations (see lines from
+		13 to 23) to exploit the Virtual Replicated Agent mechanism.<br>
+		Lines from 24 to 46 register required languages and ontologies, activate the behaviour 
+		serving requests to get the internal value (note the use of the <code>OntologyServer</code> behaviour: see the related Javadoc for details)
+		and show the GUI.<br>
+		Lines from 48 to 54 conntains the <code>takeDown()</code> method where the GUI (if any) is closed.<br>
 		<br>
 		
+		<h3>3.2. Creating new replicas</h3>
+		
+		The folowing code snippet shows the method that is called when the user clicks on the Create Replica button of the ValueProviderAgent GUI and 
+		selects a name and a location for the new replica.
 		<pre>
-55	
-56		@Override
-57		public void afterClone() {
-58			// New replicas are created cloning the master replica.
-59			// Just after cloning restore transient field such as registered ontologies and language codecs
-60			getContentManager().registerLanguage(new SLCodec());
-61			getContentManager().registerOntology(ValueManagementOntology.getInstance());
-62		}
+ 1		void createReplica(String replicaName, String where) {
+ 2			if (replicaName == null || replicaName.trim().length() == 0) {
+ 3				System.out.println("Replica name not specified");
+ 4				return;
+ 5			}
+ 6			if (where == null || where.trim().length() == 0) {
+ 7				System.out.println("Replica location not specified");
+ 8				return;
+ 9			}
+10			try {
+11				AgentReplicationHelper helper = (AgentReplicationHelper) getHelper(AgentReplicationHelper.SERVICE_NAME);
+12				helper.createReplica(replicaName.trim(), new ContainerID(where.trim(), null));
+13			}
+14			catch (Exception e) {
+15				System.out.println("Agent "+getLocalName()+" - Error creating replica on container "+where);
+16				e.printStackTrace();
+17			}
+18		}
+		</pre>
+		Lines from 2 to 9 just perform checks on the name and location inserted by the user. The <code>createReplica()</code> method of the 
+		<code>AgentReplicationHelper</code> does the real job. As mentioned the actual replica creation is done by cloning the master replica.
+		As a consequence
+		<ul>
+		<li>The agent must be fully Serializable</li>
+		<li>The <code>afterClone()</code> method must be redefined to re-initialize transient fields such as registered content languages and ontologies</li>
+		</ul>
+		The following code snippet shows the <code>afterClone()</code> method. 
+		<pre>
+ 1		@Override
+ 2		public void afterClone() {
+ 3			// New replicas are created cloning the master replica.
+ 4			// Just after cloning restore transient field such as registered ontologies and language codecs
+ 5			System.out.println("Agent "+getLocalName()+" - Alive");
+ 6			getContentManager().registerLanguage(new SLCodec());
+ 7			getContentManager().registerOntology(ValueManagementOntology.getInstance());
+ 8		}
 		</pre>
 		
+		<h3>3.3. Keeping replicas in synch</h3>
+		
+		The following code snippet shows the method that is called by the GUI whenever the slider sets the internal numeric value. In this minimal 
+		scenario, such value, held in the <code>myValue</code> field of the ValueProviderAgent class, fully represents the internal state of the
+		agent.
+		<pre>
+ 1		public void setValue(int newValue) {
+ 2			// The call to setValue() will be invoked on other replicas too 
+ 3			AgentReplicationHandle.replicate(this, "setValue", new Object[]{newValue});
+ 4			
+ 5			myValue = newValue;
+ 6			System.out.println("Agent "+getLocalName()+": VALUE = "+myValue);
+ 7		}
+		</pre>
+		
+		Line 3 in particular ensures that the <code>setValue()</code> method is called on all other replicas. Therefore the <b>synchronization
+		of all replicas of a Virtual Replicated Agent is achieved by replicating calls to methods that are expected to modify the internal state 
+		of the agent</b>. It is responsibility of the programmer to define which call to replicate and how.<br>
+		It is interesting to note that the <code>replicate()</code> method is not called on the AgentReplicationHelper, as happened for other features
+		of the Virtual Replicated Agent mechanism, but is provided as a static method of a utility class <code>AgentReplicationHandle</code>. This
+		is done to allow calling that method transparently even when the AgentReplicationService is not installed (of course in that case the
+		method has no effect). In this way it is possible to design an agent to exploit the Virtual Replicated Agent mechanism, but to turn 
+		replication on only when actually needed.
+		
+		<h3>3.4. Handling replicas related events</h3>
+		
+		Looking at line 1 in the first code snippet presented in section 3.1, it is possible to note that the <code>ValueProviderAgent</code>
+		class implements the <code>AgentReplicationHelper.Listener</code> interface. This tells the underlying AgentReplication Service that
+		the master replica will have to be notified whenever a replica related event happens. This is done invoking the methods of the 
+		<code>AgentReplicationHelper.Listener</code> interface.
+		<ol>
+		<li><code>replicaAdded()</code> - Notifies the master replica that a new replica has been successfully created. Note that the replica creation 
+		process occurrs asynchronously.</li> 
+		<li><code>replicaCreationFailed()</code> - Notifies the master replica that the creation of a new replica has failed.</li> 
+		<li><code>replicaRemoved()</code> - Notifies the master replica that an existing replica has daid.</li> 
+		<li><code>becomeMaster()</code> - Notifies the <b>newly selected</b> master replica that the previous master replica has daid.</li>
+		</ol>
+		The code snippet below shows the implementation of the <code>becomeMaster()</code> method where the newly selected master replica shows
+		its GUI.
+		
+		<pre>
+ 1		@Override
+ 2		public void becomeMaster() {
+ 3			// The old master replica is dead. I'm the new master replica --> Show the GUI
+ 4			System.out.println("Agent "+getLocalName()+" - I'm the new master replica");
+ 5			myGui = new ValueProviderAgentGui(this, myValue);
+ 6			myGui.setVisible(true);
+ 7		}
+		</pre>
 	</body>
 
 </html>
