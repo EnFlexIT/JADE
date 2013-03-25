@@ -77,6 +77,7 @@ public class ValueProviderAgent extends Agent implements AgentReplicationHelper.
 	public void afterClone() {
 		// New replicas are created cloning the master replica.
 		// Just after cloning restore transient field such as registered ontologies and language codecs
+		System.out.println("Agent "+getLocalName()+" - Alive");
 		getContentManager().registerLanguage(new SLCodec());
 		getContentManager().registerOntology(ValueManagementOntology.getInstance());
 	}
@@ -151,6 +152,7 @@ public class ValueProviderAgent extends Agent implements AgentReplicationHelper.
 	@Override
 	public void becomeMaster() {
 		// The old master replica is dead. I'm the new master replica --> Show the GUI
+		System.out.println("Agent "+getLocalName()+" - I'm the new master replica");
 		myGui = new ValueProviderAgentGui(this, myValue);
 		myGui.setVisible(true);
 	}

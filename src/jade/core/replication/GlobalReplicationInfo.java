@@ -59,14 +59,14 @@ class GlobalReplicationInfo implements Serializable {
 	
 	synchronized void addReplica(AID replicaAid) {
 		if (!allReplicas.contains(replicaAid)) {
-			myLogger.log(Logger.INFO, "Adding replica "+replicaAid.getLocalName()+" to global replication information of virtual agent "+virtualAid.getLocalName());
+			myLogger.log(Logger.CONFIG, "Adding replica "+replicaAid.getLocalName()+" to global replication information of virtual agent "+virtualAid.getLocalName());
 			allReplicas.add(replicaAid);
 		}
 	}
 
 	synchronized void removeReplica(AID replicaAid) {
 		if (allReplicas.remove(replicaAid)) {
-			myLogger.log(Logger.INFO, "Removing replica "+replicaAid.getLocalName()+" from global replication information of virtual agent "+virtualAid.getLocalName());
+			myLogger.log(Logger.CONFIG, "Removing replica "+replicaAid.getLocalName()+" from global replication information of virtual agent "+virtualAid.getLocalName());
 		}
 	}
 

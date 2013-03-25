@@ -1182,7 +1182,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		
 		AgentDescriptor ad = platformAgents.acquire(agentID);
 		if (ad == null) {
-			System.out.println("No descriptor found for agent "+agentID);
+			myLogger.log(Logger.FINE, "No descriptor found for agent "+agentID);
 			// This is a foreign agent registering to this platform
 			ad = new AgentDescriptor(AgentDescriptor.FOREIGN_AGENT);
 			ad.setDescription(dsc);
@@ -1190,13 +1190,13 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		}
 		else {
 			if (ad.getDescription() == null) {
-				System.out.println("Descriptor with null AMSD found for agent "+agentID);
+				myLogger.log(Logger.FINE, "Descriptor with null AMSD found for agent "+agentID);
 				// This is an agent living in the platform that had previously deregistered 
 				ad.setDescription(dsc);
 				platformAgents.release(agentID);
 			}
 			else {
-				System.out.println("Descriptor with NON null AMSD found for agent "+agentID);
+				myLogger.log(Logger.FINE, "Descriptor with NON null AMSD found for agent "+agentID);
 				// This agent is already registered --> Exception
 				platformAgents.release(agentID);
 				throw new AlreadyRegistered();

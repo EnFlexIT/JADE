@@ -159,7 +159,6 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	 * @return the singleton instance of the CommandDispatcher for the indicated platform.
 	 */
 	public synchronized static final CommandDispatcher getDispatcher(String name) throws IMTPException {
-		System.out.println("Retrieving CommandDispatcher for platform "+name);
 		if (enableMultiplePlatforms) {
 			if (name != null) {
 				CommandDispatcher cd = (CommandDispatcher) dispatchers.get(name);

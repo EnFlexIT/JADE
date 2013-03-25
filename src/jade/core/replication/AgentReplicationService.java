@@ -302,7 +302,7 @@ public class AgentReplicationService extends BaseService {
 
 		public void invokeReplicatedMethod(String methodName, Object[] arguments) {
 			ReplicaInfo[] tmp = peerReplicasArray;
-			myLogger.log(Logger.INFO, "Invoking method "+methodName+" on "+tmp.length+" replica(s)");
+			myLogger.log(Logger.FINE, "Invoking method "+methodName+" on "+tmp.length+" replica(s)");
 			for (ReplicaInfo r : tmp) {
 				try {
 					if (!invokeOnReplica(methodName, arguments, r)) {
@@ -321,7 +321,7 @@ public class AgentReplicationService extends BaseService {
 		}
 
 		private boolean invokeOnReplica(String methodName, Object[] arguments, ReplicaInfo r) throws Exception {
-			myLogger.log(Logger.INFO, "Invoking method "+methodName+" on replica "+r.replicaAid.getLocalName());
+			myLogger.log(Logger.FINER, "Invoking method "+methodName+" on replica "+r.replicaAid.getLocalName());
 			// If we get an Exception, refresh the location of the replica (it 
 			// may have moved or be recreated somewhere else) and retry until OK.
 			// If not found in Main Container --> Ignore: replica has terminated in the meanwhile
@@ -350,7 +350,7 @@ public class AgentReplicationService extends BaseService {
 				
 				// Not done: Update the replica location and retry
 				try {
-					myLogger.log(Logger.INFO, "Updating location of replica "+r.replicaAid.getLocalName());
+					myLogger.log(Logger.CONFIG, "Updating location of replica "+r.replicaAid.getLocalName());
 					Location l = getLocation(r.replicaAid);
 					// The replica agent is alive: update its location and retry
 					r.where = l;
@@ -366,7 +366,7 @@ public class AgentReplicationService extends BaseService {
 
 		private synchronized void addPeerReplica(ReplicaInfo r) {
 			if (!peerReplicas.contains(r)) {
-				myLogger.log(Logger.INFO, "Adding replica "+r.replicaAid.getLocalName()+" to Helper of agent "+myAid.getLocalName());
+				myLogger.log(Logger.CONFIG, "Adding replica "+r.replicaAid.getLocalName()+" to Helper of agent "+myAid.getLocalName());
 				peerReplicas.add(r);
 				peerReplicasArray = peerReplicas.toArray(new ReplicaInfo[0]);
 			}
@@ -374,7 +374,7 @@ public class AgentReplicationService extends BaseService {
 
 		private synchronized void removePeerReplica(ReplicaInfo r) {
 			if (peerReplicas.remove(r)) {
-				myLogger.log(Logger.INFO, "Removing replica "+r.replicaAid.getLocalName()+" from Helper of agent "+myAid.getLocalName());
+				myLogger.log(Logger.CONFIG, "Removing replica "+r.replicaAid.getLocalName()+" from Helper of agent "+myAid.getLocalName());
 				peerReplicasArray = peerReplicas.toArray(new ReplicaInfo[0]);
 			}
 		}
@@ -431,7 +431,7 @@ public class AgentReplicationService extends BaseService {
 						GlobalReplicationInfo info = globalReplications.get(virtualAid);
 						if (info != null) {
 							AID newReplica = info.getReplica();
-							myLogger.log(Logger.INFO, "Redirecting message "+ACLMessage.getPerformative(msg.getPerformative())+"["+msg.getContent()+"] from dirty replica "+receiver.getLocalName()+" to new replica "+newReplica.getLocalName());
+							myLogger.log(Logger.FINE, "Redirecting message "+ACLMessage.getPerformative(msg.getPerformative())+"["+msg.getContent()+"] from dirty replica "+receiver.getLocalName()+" to new replica "+newReplica.getLocalName());
 							if (receiver.equals(newReplica)) {
 								// This may happen in COLD_REPLICATION mode when the master replica
 								// has just died and has not been replaced yet. In this case sending 
@@ -751,7 +751,7 @@ public class AgentReplicationService extends BaseService {
 	}
 
 	private void broadcastNewVirtualAgent(AID virtualAid, AID masterAid, int replicationMode) {
-		myLogger.log(Logger.INFO, "Broadcasting new virtual agent "+virtualAid.getLocalName());
+		myLogger.log(Logger.CONFIG, "Broadcasting new virtual agent "+virtualAid.getLocalName());
 		GenericCommand cmd = new GenericCommand(AgentReplicationSlice.H_NEWVIRTUALAGENT, NAME, null);
 		cmd.addParam(virtualAid);
 		cmd.addParam(masterAid);
@@ -768,7 +768,7 @@ public class AgentReplicationService extends BaseService {
 	private void broadcastAddReplica(AID masterAid, ReplicaInfo r) {
 		AID virtualAid = getVirtualAid(masterAid);
 		if (virtualAid != null) {
-			myLogger.log(Logger.INFO, "Broadcasting new replica "+r.replicaAid.getLocalName()+" of virtual agent "+virtualAid.getLocalName());
+			myLogger.log(Logger.CONFIG, "Broadcasting new replica "+r.replicaAid.getLocalName()+" of virtual agent "+virtualAid.getLocalName());
 			GenericCommand cmd = new GenericCommand(AgentReplicationSlice.H_ADDREPLICA, NAME, null);
 			cmd.addParam(virtualAid);
 			cmd.addParam(r.replicaAid);
@@ -787,7 +787,7 @@ public class AgentReplicationService extends BaseService {
 	}
 	
 	private void broadcastMasterReplicaChanged(AID virtualAid, AID newMasterAid) {
-		myLogger.log(Logger.INFO, "Broadcasting master replica changed for virtual agent "+virtualAid.getLocalName()+". New master replica = "+newMasterAid.getLocalName());
+		myLogger.log(Logger.CONFIG, "Broadcasting master replica changed for virtual agent "+virtualAid.getLocalName()+". New master replica = "+newMasterAid.getLocalName());
 		GenericCommand cmd = new GenericCommand(AgentReplicationSlice.H_MASTERREPLICACHANGED, NAME, null);
 		cmd.addParam(virtualAid);
 		cmd.addParam(newMasterAid);
@@ -801,7 +801,7 @@ public class AgentReplicationService extends BaseService {
 	}
 	
 	private void broadcastVirtualAgentDead(AID virtualAid) {
-		myLogger.log(Logger.INFO, "Broadcasting virtual agent "+virtualAid.getLocalName()+" dead");
+		myLogger.log(Logger.CONFIG, "Broadcasting virtual agent "+virtualAid.getLocalName()+" dead");
 		GenericCommand cmd = new GenericCommand(AgentReplicationSlice.H_VIRTUALAGENTDEAD, NAME, null);
 		cmd.addParam(virtualAid);
 
@@ -817,7 +817,7 @@ public class AgentReplicationService extends BaseService {
 	private void cloneReplica(AID aid, String replicaName, Location where) {
 		Agent agent = myContainer.acquireLocalAgent(aid);
 		if (agent != null) {
-			myLogger.log(Logger.INFO, "Cloning agent "+aid.getLocalName()+" to create replica "+replicaName+" on container "+where.getName());
+			myLogger.log(Logger.CONFIG, "Cloning agent "+aid.getLocalName()+" to create replica "+replicaName+" on container "+where.getName());
 			agent.doClone(where, replicaName);
 			myContainer.releaseLocalAgent(aid);
 		}
@@ -829,7 +829,7 @@ public class AgentReplicationService extends BaseService {
 			agent.addBehaviour(new OneShotBehaviour(agent) {
 				@Override
 				public void action() {
-					myLogger.log(Logger.INFO, "Cloning agent "+myAgent.getLocalName()+" to create replica "+replicaName+" on container "+where.getName());
+					myLogger.log(Logger.CONFIG, "Cloning agent "+myAgent.getLocalName()+" to create replica "+replicaName+" on container "+where.getName());
 					myAgent.doClone(where, replicaName);
 				}
 			});
@@ -883,7 +883,7 @@ public class AgentReplicationService extends BaseService {
 	}
 
 	private void addReplica(AID virtualAid, AID replicaAid, Location where) throws Exception {
-		myLogger.log(Logger.INFO, "Received new replica information: virtual="+virtualAid.getLocalName()+", replica="+replicaAid.getLocalName()+", location="+where.getName());
+		myLogger.log(Logger.CONFIG, "Received new replica information: virtual="+virtualAid.getLocalName()+", replica="+replicaAid.getLocalName()+", location="+where.getName());
 
 		addReplicaVirtualMapping(replicaAid, virtualAid);
 
@@ -950,14 +950,14 @@ public class AgentReplicationService extends BaseService {
 	private void addReplicaVirtualMapping(AID replicaAid, AID virtualAid) {
 		AID oldVirtualAid = replicaToVirtualMap.put(replicaAid, virtualAid);
 		if (oldVirtualAid == null || !oldVirtualAid.equals(virtualAid)) {
-			myLogger.log(Logger.INFO, "Added replica-to-virtual mapping: "+replicaAid.getLocalName()+"-->"+virtualAid.getLocalName());
+			myLogger.log(Logger.CONFIG, "Added replica-to-virtual mapping: "+replicaAid.getLocalName()+"-->"+virtualAid.getLocalName());
 		}
 	}
 
 	private void removeReplicaVirtualMapping(AID replicaAid) {
 		AID virtualAid = replicaToVirtualMap.remove(replicaAid);
 		if (virtualAid != null) {
-			myLogger.log(Logger.INFO, "Removed replica-to-virtual mapping: "+replicaAid.getLocalName()+"-->"+virtualAid.getLocalName());
+			myLogger.log(Logger.CONFIG, "Removed replica-to-virtual mapping: "+replicaAid.getLocalName()+"-->"+virtualAid.getLocalName());
 		}
 	}
 
@@ -967,7 +967,7 @@ public class AgentReplicationService extends BaseService {
 		synchronized (globalReplications) {
 			info = globalReplications.get(virtualAid);
 			if (info == null) {
-				myLogger.log(Logger.INFO, "New virtual agent: virtual="+virtualAid.getLocalName()+", master="+masterAid.getLocalName());
+				myLogger.log(Logger.CONFIG, "New virtual agent: virtual="+virtualAid.getLocalName()+", master="+masterAid.getLocalName());
 				info = new GlobalReplicationInfo(virtualAid, masterAid, replicationMode);
 				globalReplications.put(virtualAid, info);
 			}
@@ -1138,7 +1138,7 @@ public class AgentReplicationService extends BaseService {
 				else if(cmdName.equals(AgentReplicationSlice.H_VIRTUALAGENTDEAD)) {
 					AID virtualAid = (AID) cmd.getParam(0);
 					globalReplications.remove(virtualAid);
-					myLogger.log(Logger.INFO, "Virtual agent "+virtualAid.getLocalName()+" removed");
+					myLogger.log(Logger.CONFIG, "Virtual agent "+virtualAid.getLocalName()+" removed");
 				}
 				else if(cmdName.equals(AgentReplicationSlice.H_NOTIFYBECOMEMASTER)) {
 					AID newMasterAid = (AID) cmd.getParam(0);
