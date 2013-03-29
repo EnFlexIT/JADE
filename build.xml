@@ -320,8 +320,7 @@ ant dist - to create the distribution files
 		<delete file="${dist}/JADE-bin-${version}.zip" quiet="true"/>
 		<zip zipfile="${dist}/JADE-bin-${version}.zip">
 			<zipfileset dir="." prefix="jade">
-				<include name="lib/**"/>
-				<include name="demo/**"/>
+				<include name="lib/jade.jar"/>
 				<include name="README"/>
 				<include name="COPYNG"/>
 				<include name="License"/>
