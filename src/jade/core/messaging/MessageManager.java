@@ -61,13 +61,15 @@ class MessageManager {
 	
 	private static final int  POOL_SIZE_DEFAULT = 5;
 	private static final int  MAX_POOL_SIZE = 100;
-
+	
+	private static final int  DELIVERY_TIME_THRESHOLD_DEFAULT = 1000; // ms
 	private static final int  MAX_QUEUE_SIZE_DEFAULT = 10000000; // 10MBytes
 
 	private OutBox outBox;
 	private Thread[] delivererThreads;
 	private Deliverer[] deliverers;
 	private boolean active = true;
+	private long deliveryTimeThreshold;
 	
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 
@@ -94,6 +96,16 @@ class MessageManager {
 			// Do nothing and keep default value
 		}
 
+		// OUT_BOX_MAX_SIZE
+		deliveryTimeThreshold = DELIVERY_TIME_THRESHOLD_DEFAULT;
+		try {
+			String tmp = p.getParameter("jade_core_messaging_MessageManager_deliverytimethreshold", null);
+			deliveryTimeThreshold = Integer.parseInt(tmp);
+		}
+		catch (Exception e) {
+			// Do nothing and keep default value
+		}
+		
 		// OUT_BOX_MAX_SIZE
 		int maxQueueSize = MAX_QUEUE_SIZE_DEFAULT;
 		try {
@@ -175,6 +187,7 @@ class MessageManager {
 			while (active) {
 				// Get a message from the OutBox (block until there is one)
 				PendingMsg pm = outBox.get();
+				long startTime = System.currentTimeMillis();
 				GenericMessage msg = pm.getMessage();
 				AID receiverID = pm.getReceiver();
 
@@ -193,6 +206,16 @@ class MessageManager {
 					}
 					servedCnt++;
 					outBox.handleServed(receiverID);
+					
+					long deliveryTime = System.currentTimeMillis() - startTime;
+					try {
+						if (deliveryTimeThreshold > 0 && deliveryTime > deliveryTimeThreshold) {
+							myLogger.log(Logger.WARNING, "Deliverer Thread "+name+ " - Delivery-time over threshold ("+deliveryTime+"). Receiver = "+receiverID.getLocalName()+", message size = "+msg.length());
+						}
+					}
+					catch (Exception e) {
+						myLogger.log(Logger.WARNING, "Unexpected error computing message delivery time", e);
+					}
 				}
 			}
 			

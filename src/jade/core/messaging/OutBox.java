@@ -22,7 +22,8 @@ import jade.util.Logger;
  */
 
 class OutBox {
-	private int size = 0;
+	private int size = 0; // Approximated size in bytes
+	private int pendingMessagesCnt = 0;   
 	private int maxSize; 
 	private boolean overMaxSize = false;
 
@@ -186,10 +187,11 @@ class OutBox {
 	private void increaseSize(int k) {
 		long sleepTime = 0;
 		synchronized (this) {
+			pendingMessagesCnt++;
 			size += k;
 			if (size > maxSize) {
 				if (!overMaxSize) {
-					myLogger.log(Logger.WARNING, "MessageManager queue size > "+maxSize);
+					myLogger.log(Logger.WARNING, "MessageManager queue size > "+maxSize+". Number of pending messages = "+pendingMessagesCnt+", size of last message = "+k);
 					overMaxSize = true;
 				}
 				sleepTime = (1 + ((size - maxSize) / 1000000)) * 100;
@@ -214,6 +216,7 @@ class OutBox {
 	 * @param k the value by which size must be decremented
 	 */
 	private void decreaseSize(int k) {
+		pendingMessagesCnt--;
 		size -= k;
 		if (size < maxSize) {
 			if (overMaxSize) {
