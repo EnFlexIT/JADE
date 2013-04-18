@@ -10,6 +10,7 @@ import jade.util.leap.HashMap;
 import jade.core.AID;
 import jade.core.messaging.MessageManager.PendingMsg;
 import jade.core.messaging.MessageManager.Channel;
+import jade.domain.FIPAAgentManagement.InternalError;
 import jade.lang.acl.ACLMessage;
 
 import jade.util.Logger;
@@ -24,8 +25,10 @@ import jade.util.Logger;
 class OutBox {
 	private int size = 0; // Approximated size in bytes
 	private int pendingMessagesCnt = 0;   
-	private int maxSize; 
-	private boolean overMaxSize = false;
+	private int warningSize; 
+	private int maxSize;
+	private int sleepTimeFactor;
+	private boolean overWarningSize = false;
 
 	// The massages to be delivered organized as an hashtable that maps
 	// a receiver AID into the Box of messages to be delivered to that receiver
@@ -40,8 +43,10 @@ class OutBox {
 
 	private Logger myLogger;
 
-	OutBox(int s) {
-		maxSize = s;
+	OutBox(int warningSize, int maxSize, int sleepTimeFactor) {
+		this.warningSize = warningSize;
+		this.maxSize = maxSize;
+		this.sleepTimeFactor = sleepTimeFactor;
 		myLogger = Logger.getMyLogger(getClass().getName());
 	}
 
@@ -54,6 +59,12 @@ class OutBox {
 	 * a new message.
 	 */
 	void addLast(AID receiverID, GenericMessage msg, Channel ch) {
+		// Check the max queue size threshold
+		if ((size + msg.length()) > maxSize) {
+			myLogger.log(Logger.WARNING, "Message discarded by MessageManager! Queue size > "+maxSize+", number of pending messages = "+pendingMessagesCnt+", size of last message = "+msg.length());
+			throw new RuntimeException("Message discarded");
+		}
+		
 		boolean logActivated = myLogger.isLoggable(Logger.FINER);
 		if (logActivated)
 			myLogger.log(Logger.FINER,"Entering addLast for receiver "+receiverID.getName());
@@ -189,12 +200,14 @@ class OutBox {
 		synchronized (this) {
 			pendingMessagesCnt++;
 			size += k;
-			if (size > maxSize) {
-				if (!overMaxSize) {
-					myLogger.log(Logger.WARNING, "MessageManager queue size > "+maxSize+". Number of pending messages = "+pendingMessagesCnt+", size of last message = "+k);
-					overMaxSize = true;
+			if (size > warningSize) {
+				if (!overWarningSize) {
+					myLogger.log(Logger.WARNING, "MessageManager queue size > "+warningSize+". Number of pending messages = "+pendingMessagesCnt+", size of last message = "+k);
+					overWarningSize = true;
 				}
-				sleepTime = (1 + ((size - maxSize) / 1000000)) * 100;
+				if (sleepTimeFactor > 0) {
+					sleepTime = (1 + ((size - warningSize) / 1000000)) * sleepTimeFactor;
+				}
 			}
 		}
 		if (sleepTime > 0) {
@@ -218,10 +231,10 @@ class OutBox {
 	private void decreaseSize(int k) {
 		pendingMessagesCnt--;
 		size -= k;
-		if (size < maxSize) {
-			if (overMaxSize) {
-				myLogger.log(Logger.INFO, "MessageManager queue size < "+maxSize);
-				overMaxSize = false;
+		if (size < warningSize) {
+			if (overWarningSize) {
+				myLogger.log(Logger.INFO, "MessageManager queue size < "+warningSize);
+				overWarningSize = false;
 			}
 		}
 	}

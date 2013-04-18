@@ -63,7 +63,9 @@ class MessageManager {
 	private static final int  MAX_POOL_SIZE = 100;
 	
 	private static final int  DELIVERY_TIME_THRESHOLD_DEFAULT = 1000; // ms
-	private static final int  MAX_QUEUE_SIZE_DEFAULT = 10000000; // 10MBytes
+	private static final int  WARNING_QUEUE_SIZE_DEFAULT = 10000000; // 10MBytes
+	private static final int  MAX_QUEUE_SIZE_DEFAULT = 100000000; // 100MBytes
+	private static final int  SLEEP_TIME_FACTOR_DEFAULT = -1; // ms/MByes, -1=no sleep time
 
 	private OutBox outBox;
 	private Thread[] delivererThreads;
@@ -106,6 +108,16 @@ class MessageManager {
 			// Do nothing and keep default value
 		}
 		
+		// OUT_BOX_WARNING_SIZE
+		int warningQueueSize = WARNING_QUEUE_SIZE_DEFAULT;
+		try {
+			String tmp = p.getParameter("jade_core_messaging_MessageManager_warningqueuesize", null);
+			warningQueueSize = Integer.parseInt(tmp);
+		}
+		catch (Exception e) {
+			// Do nothing and keep default value
+		}
+		
 		// OUT_BOX_MAX_SIZE
 		int maxQueueSize = MAX_QUEUE_SIZE_DEFAULT;
 		try {
@@ -115,8 +127,18 @@ class MessageManager {
 		catch (Exception e) {
 			// Do nothing and keep default value
 		}
-		outBox = new OutBox(maxQueueSize);
 
+		// OUT_BOX_SLEEP_TIME_FACTOR
+		int sleepTimeFactor = SLEEP_TIME_FACTOR_DEFAULT;
+		try {
+			String tmp = p.getParameter("jade_core_messaging_MessageManager_sleeptimefactor", null);
+			sleepTimeFactor = Integer.parseInt(tmp);
+		}
+		catch (Exception e) {
+			// Do nothing and keep default value
+		}
+		
+		outBox = new OutBox(warningQueueSize, maxQueueSize, sleepTimeFactor);
 
 		try {
 			ResourceManager rm = p.getResourceManager();
@@ -161,7 +183,11 @@ class MessageManager {
 	 */
 	public void deliver(GenericMessage msg, AID receiverID, Channel ch) {
 		if (active) {
-			outBox.addLast(receiverID, msg, ch);
+			try {
+				outBox.addLast(receiverID, msg, ch);
+			} catch(Exception e) {
+				ch.notifyFailureToSender(msg, receiverID, new InternalError(e.getMessage()));
+			}
 		}
 		else {
 			myLogger.log(Logger.WARNING, "MessageManager NOT active. Cannot deliver message "+stringify(msg));
