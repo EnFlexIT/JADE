@@ -10,7 +10,6 @@ import jade.util.leap.HashMap;
 import jade.core.AID;
 import jade.core.messaging.MessageManager.PendingMsg;
 import jade.core.messaging.MessageManager.Channel;
-import jade.domain.FIPAAgentManagement.InternalError;
 import jade.lang.acl.ACLMessage;
 
 import jade.util.Logger;
