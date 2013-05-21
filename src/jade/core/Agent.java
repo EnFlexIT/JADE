@@ -1448,7 +1448,7 @@ public class Agent implements Runnable, Serializable
 	 * @param theInterface The O2A interface the implementation is registered for.
 	 * @param implementation The object providing an implementation for the given O2A interface.
 	 */
-	protected <T> void registerO2AInterface(Class<T> theInterface, T implementation) {
+	public <T> void registerO2AInterface(Class<T> theInterface, T implementation) {
 		o2aInterfaces.put(theInterface, implementation);
 	}
 	//#J2ME_EXCLUDE_END
