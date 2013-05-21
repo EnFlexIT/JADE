@@ -78,6 +78,7 @@ class UDPMonitorServer {
 	private UDPNodeMonitoringService myService = null;
 	
 	private String host;
+	private boolean acceptLocalHostOnly;
 	private int port;
 	private int pingDelay;
 	private int pingDelayLimit;
@@ -260,9 +261,10 @@ class UDPMonitorServer {
 	/**
 	 * Constructs a new UDPMonitorServer object
 	 */
-	UDPMonitorServer(UDPNodeMonitoringService s, String h, int p, int pd, int pdl, int ul, int onpc, int mtup, NetworkChecker ch) {
+	UDPMonitorServer(UDPNodeMonitoringService s, String h, boolean alho, int p, int pd, int pdl, int ul, int onpc, int mtup, NetworkChecker ch) {
 		myService = s;
 		host = h;
+		acceptLocalHostOnly = alho;
 		port = p;
 		pingDelay = pd;
 		pingDelayLimit = pdl;
@@ -315,12 +317,24 @@ class UDPMonitorServer {
 		//#DOTNET_EXCLUDE_BEGIN
 		server.configureBlocking(false);
         try {
-            server.socket().bind(new InetSocketAddress(host, port));
+        	if (acceptLocalHostOnly) {
+	            logger.log(Logger.INFO, "Binding UDP Server Socket on host "+host+", port " + port);
+	            server.socket().bind(new InetSocketAddress(host, port));
+        	}
+        	else {
+	            logger.log(Logger.INFO, "Binding UDP Server Socket on port " + port);
+	            server.socket().bind(new InetSocketAddress(port));
+        	}
         } catch (BindException e){
-        	if (Profile.isLocalHost(host)) {
+        	if (!acceptLocalHostOnly || Profile.isLocalHost(host)) {
         		// Port busy --> select a free one
 	            logger.log(Logger.WARNING, "Cannot bind UDP Server Socket on port " + port + ". Let the system select a free one.");
-	            server.socket().bind(new InetSocketAddress(host, 0));
+	            if (acceptLocalHostOnly) {
+		            server.socket().bind(new InetSocketAddress(host, 0));
+	            }
+	            else {
+		            server.socket().bind(new InetSocketAddress(0));
+	            }
 	            port  = server.socket().getLocalPort();
         	}
         	else {

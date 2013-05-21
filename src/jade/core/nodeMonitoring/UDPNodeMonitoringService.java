@@ -63,9 +63,18 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 
 	/**
 	 * This constant is the name of the property whose value contains 
-	 * the hostname where the Main Container is listening for UDP pings. 
+	 * the hostname where the Main Container is listening for UDP pings.
+	 * If not specified the value of the Profile.LOCAL_HOST option is used.
+	 * If this is null too the default network name is used. 
 	 */
 	public static final String HOST = PREFIX + "host";
+	
+	/**
+	 * This constant is the name of the property whose value contains 
+	 * a boolean indication that specifies whether or not UDP pings must be accepted 
+	 * on the indicated local-host only (default = false). 
+	 */
+	public static final String ACCEPT_LOCAL_HOST_ONLY = PREFIX + "acceptlocalhostonly";
 	
 	/**
 	 * This constant is the name of the property whose value contains an
@@ -187,7 +196,8 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 		mainContainer = ac.getMain();
 		if (mainContainer != null) {
 			// We are on the main container --> launch a UDPMonitorServer
-			String host = p.getParameter(HOST, Profile.getDefaultNetworkName()); 
+			String host = p.getParameter(HOST, p.getParameter(Profile.LOCAL_HOST, Profile.getDefaultNetworkName(p.getBooleanProperty(Profile.PRIVILEDGE_LOGICAL_NAME, false)))); 
+			boolean acceptLocalHostOnly = p.getBooleanProperty(ACCEPT_LOCAL_HOST_ONLY, false);
 			int port = getPosIntValue(p, PORT, DEFAULT_PORT);
 			int pingDelay = getPosIntValue(p, PING_DELAY, DEFAULT_PING_DELAY);
 			int pingDelayLimit = getPosIntValue(p, PING_DELAY_LIMIT, DEFAULT_PING_DELAY_LIMIT);
@@ -198,7 +208,7 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 			NetworkChecker checker = initNetworkChecker(p);
 			
 			try {
-				myServer = new UDPMonitorServer(this, host, port, pingDelay, pingDelayLimit, unreachLimit, orphanNodePingsCnt, maxTracedUnknownPings, checker);
+				myServer = new UDPMonitorServer(this, host, acceptLocalHostOnly, port, pingDelay, pingDelayLimit, unreachLimit, orphanNodePingsCnt, maxTracedUnknownPings, checker);
 				myServer.start();
 				// Port may have changed
 				port = myServer.getPort();
