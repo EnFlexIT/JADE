@@ -62,7 +62,7 @@ import jade.util.Logger;
  */
 public abstract class RequestManagementBehaviour extends SimpleAchieveREResponder {
 	private ACLMessage notification;
-	private Logger myLogger;
+	protected Logger myLogger;
 
 	protected RequestManagementBehaviour(Agent a, MessageTemplate mt){
 		super(a,mt);
@@ -143,10 +143,7 @@ public abstract class RequestManagementBehaviour extends SimpleAchieveREResponde
 			notification.setContent(prepareErrorContent(request.getContent(), ExceptionVocabulary.INTERNALERROR+" \""+tr+"\""));
 		}
 		if (t != null) {
-			if (myLogger.isLoggable(Logger.CONFIG)) {
-				myLogger.log(Logger.CONFIG, "Error handling request: "+t);
-				t.printStackTrace();
-			}
+			myLogger.log(Logger.WARNING, "Agent "+myAgent.getLocalName()+" - Error handling request", t);
 		}
 		return response;
 	}

@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.domain;
 
@@ -30,10 +30,14 @@ import jade.content.Predicate;
 import jade.content.onto.basic.Action;
 import jade.content.onto.basic.Done;
 import jade.content.onto.basic.Result;
+import jade.core.ServiceNotActiveException;
+import jade.core.sam.AverageMeasureProviderImpl;
+import jade.core.sam.SAMHelper;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.domain.FIPAAgentManagement.*;
 import jade.security.JADESecurityException;
+import jade.util.Logger;
 
 /**
    This behaviour serves the actions of the FIPA management ontology 
@@ -46,72 +50,93 @@ import jade.security.JADESecurityException;
    @author Giovanni Caire - TILAB
  */
 class DFFipaAgentManagementBehaviour extends RequestManagementBehaviour {
-  
-  private df theDF;
 
-  protected DFFipaAgentManagementBehaviour(df a, MessageTemplate mt){
+	private df theDF;
+	private AverageMeasureProviderImpl serveRequestTimeProvider;
+
+	protected DFFipaAgentManagementBehaviour(df a, MessageTemplate mt){
 		super(a, mt);
 		theDF = a;
-  }
+	}
+	
+	public void onStart() {
+		super.onStart();
+		try {
+			SAMHelper samHelper = (SAMHelper) myAgent.getHelper(SAMHelper.SERVICE_NAME);
+			serveRequestTimeProvider = new AverageMeasureProviderImpl();
+			samHelper.addEntityMeasureProvider("DF-Serve-Request-Avg-Time", serveRequestTimeProvider);
+		}
+		catch (ServiceNotActiveException snae) {
+			// SAM Service not active 
+		}
+		catch (Exception e) {
+			myLogger.log(Logger.WARNING, "Error initializing SAM providers", e);
+		}
+	}
 
-  /**
+	/**
      Call the proper method of the DF and prepare the notification 
      message
-   */
-  protected ACLMessage performAction(Action slAction, ACLMessage request) throws JADESecurityException, FIPAException {
-  	Concept action = slAction.getAction();
-  	Object result = null;
-  	boolean asynchNotificationRequired = false;
-  	
-  	// REGISTER
-  	if (action instanceof Register) {
-  		theDF.registerAction((Register) action, request.getSender());
-  	}
-  	// DEREGISTER
-  	else if (action instanceof Deregister) {
-  		theDF.deregisterAction((Deregister) action, request.getSender());
-  	}
-  	// MODIFY
-  	else if (action instanceof Modify) {
-  		theDF.modifyAction((Modify) action, request.getSender());
-  	}
-  	// SEARCH
-  	else if (action instanceof Search) {
-  		theDF.storePendingRequest(action, request);
-  		result = theDF.searchAction((Search) action, request.getSender());
-  		if (result == null) {
-  			asynchNotificationRequired = true;
-  		}
-  	}
-  	else {
-  		throw new UnsupportedFunction();
-  	}
-  	
-  	if (!asynchNotificationRequired) {
-  		theDF.removePendingRequest(action);
-  		// The requested action has been completed. Prepare the notification
-	  	ACLMessage notification = request.createReply();
-	  	notification.setPerformative(ACLMessage.INFORM);
-	  	Predicate p = null;
-	  	if (result != null) {
-	  		// The action produced a result
-	  		p = new Result(slAction, result);
-	  	}
-	  	else {
-	  		p = new Done(slAction);
-	  	}
-	  	try {
-		  	theDF.getContentManager().fillContent(notification, p);
-	  	}
-	  	catch (Exception e) {
-	  		// Should never happen
-	  		e.printStackTrace();
-	  	}
-	  	return notification;
-  	}
+	 */
+	protected ACLMessage performAction(Action slAction, ACLMessage request) throws JADESecurityException, FIPAException {
+		Concept action = slAction.getAction();
+		Object result = null;
+		boolean asynchNotificationRequired = false;
+
+		// REGISTER
+		if (action instanceof Register) {
+			theDF.registerAction((Register) action, request.getSender());
+		}
+		// DEREGISTER
+		else if (action instanceof Deregister) {
+			theDF.deregisterAction((Deregister) action, request.getSender());
+		}
+		// MODIFY
+		else if (action instanceof Modify) {
+			theDF.modifyAction((Modify) action, request.getSender());
+		}
+		// SEARCH
+		else if (action instanceof Search) {
+			theDF.storePendingRequest(action, request);
+			result = theDF.searchAction((Search) action, request.getSender());
+			if (result == null) {
+				asynchNotificationRequired = true;
+			}
+		}
+		else {
+			throw new UnsupportedFunction();
+		}
+
+		if (!asynchNotificationRequired) {
+			theDF.removePendingRequest(action);
+			// The requested action has been completed. Prepare the notification
+			ACLMessage notification = request.createReply();
+			notification.setPerformative(ACLMessage.INFORM);
+			Predicate p = null;
+			if (result != null) {
+				// The action produced a result
+				p = new Result(slAction, result);
+			}
+			else {
+				p = new Done(slAction);
+			}
+			try {
+				theDF.getContentManager().fillContent(notification, p);
+			}
+			catch (Exception e) {
+				// Should never happen
+				e.printStackTrace();
+			}
+			
+			long serveTime = System.currentTimeMillis() - request.getPostTimeStamp();
+			if (serveRequestTimeProvider != null) {
+				serveRequestTimeProvider.addSample(serveTime);
+			}
+			return notification;
+		}
 		else {
 			// The requested action is being processed by a Behaviour.
-  		return null;
-  	}
-  }
+			return null;
+		}
+	}
 }
