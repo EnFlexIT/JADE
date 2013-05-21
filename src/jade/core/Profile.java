@@ -97,6 +97,13 @@ public abstract class Profile {
 	public static final String LOCAL_HOST = "local-host";
 	
 	/**
+	 * This constant is the name of the property whose value (true or false) instructs 
+	 * JADE to try to use host names instead of IP addresses in intra-platform communication.
+	 * Default is false (IP addresses are used preferentially)
+	 */
+	public static final String PRIVILEDGE_LOGICAL_NAME = "priviledge-logical-name";
+	
+	/**
 	 This constant is the name of the TCP port the container node must
 	 listen to for incoming IMTP messages.
 	 */
@@ -397,30 +404,44 @@ public abstract class Profile {
 	}
 	
 	public static String getDefaultNetworkName() {
+		return getDefaultNetworkName(false);
+	}
+	
+	public static String getDefaultNetworkName(boolean priviledgeLogicalName) {
 		String host = LOCALHOST_CONSTANT;
 		//#DOTNET_EXCLUDE_BEGIN
 		//#MIDP_EXCLUDE_BEGIN
 		try {
-			for (Enumeration en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
-				NetworkInterface intf = (NetworkInterface)en.nextElement();
-				for (Enumeration enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
-					InetAddress inetAddress = (InetAddress)enumIpAddr.nextElement();
-					if (!inetAddress.isLoopbackAddress()) {
-						int useIPVersion = Integer.parseInt(System.getProperty(IP_VERSION, String.valueOf(IPV4)));
+			if (priviledgeLogicalName) {
+				try {
+					host = InetAddress.getLocalHost().getHostName();
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			if (host.equals(LOCALHOST_CONSTANT) || host.equals(LOOPBACK_ADDRESS_CONSTANT)) {
+				for (Enumeration en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+					NetworkInterface intf = (NetworkInterface)en.nextElement();
+					for (Enumeration enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+						InetAddress inetAddress = (InetAddress)enumIpAddr.nextElement();
 						if (!inetAddress.isLoopbackAddress()) {
-							switch (useIPVersion) {
-							case IPV4:
-								if (inetAddress instanceof Inet4Address) {
+							int useIPVersion = Integer.parseInt(System.getProperty(IP_VERSION, String.valueOf(IPV4)));
+							if (!inetAddress.isLoopbackAddress()) {
+								switch (useIPVersion) {
+								case IPV4:
+									if (inetAddress instanceof Inet4Address) {
+										return  inetAddress.getHostAddress().toString();
+									}
+									break;
+								case IPV6:
+									if (inetAddress instanceof Inet6Address) {
+										return  inetAddress.getHostAddress().toString();
+									}
+									break;
+								default:
 									return  inetAddress.getHostAddress().toString();
 								}
-								break;
-							case IPV6:
-								if (inetAddress instanceof Inet6Address) {
-									return  inetAddress.getHostAddress().toString();
-								}
-								break;
-							default:
-								return  inetAddress.getHostAddress().toString();
 							}
 						}
 					}

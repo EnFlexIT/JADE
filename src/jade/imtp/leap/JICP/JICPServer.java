@@ -136,7 +136,7 @@ implements PDPContextManager.Listener, JICPMediatorManager
 			} 
 			else {
 				// Retrieve the host address/name from the underlying operating system
-				host = Profile.getDefaultNetworkName();
+				host = Profile.getDefaultNetworkName(p.getBooleanProperty(Profile.PRIVILEDGE_LOGICAL_NAME, false));
 			}
 		}
 		else {

@@ -205,7 +205,7 @@ public class ProfileImpl extends Profile {
 		
 		String host = props.getProperty(MAIN_HOST);
 		if(host == null) {
-			host = getDefaultNetworkName();
+			host = getDefaultNetworkName(getBooleanProperty(PRIVILEDGE_LOGICAL_NAME, false));
 			props.setProperty(MAIN_HOST, host);
 		}
 		
@@ -238,8 +238,8 @@ public class ProfileImpl extends Profile {
 				localHost = host;
 			}
 			else {
-				// Default for a peripheral container or an added main container: use the local host
-				localHost = getDefaultNetworkName();
+				// Default for a peripheral container or a backup main container: use the local host
+				localHost = getDefaultNetworkName(getBooleanProperty(PRIVILEDGE_LOGICAL_NAME, false));
 			}
 			props.setProperty(LOCAL_HOST, localHost);
 		}

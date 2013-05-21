@@ -481,7 +481,9 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	
 	boolean joinPlatform() {
 		//#J2ME_EXCLUDE_BEGIN
-		checkLocalHostAddress();
+		if (myProfile.getBootProperties().getProperty(Profile.LOCAL_HOST) == null) {
+			checkLocalHostAddress();
+		}
 		//#J2ME_EXCLUDE_END
 
 		try {
