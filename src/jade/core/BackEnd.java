@@ -70,7 +70,7 @@ public interface BackEnd {
 	void messageOut(ACLMessage msg, String sender) throws NotFoundException, IMTPException;  
 
 	/**
-	 * Pass a service helper method invokation request to the BackEnd
+	 * Pass a service helper method invocation request to the BackEnd
 	 * @param actor The name of the agent that invoked the method
 	 * @param serviceName The name of the service
 	 * @param methodName The name of the invoked method

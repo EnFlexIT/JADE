@@ -336,6 +336,14 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 				}
 			}
 			if (m != null) {
+				if (!m.isAccessible()) {
+					try {
+						m.setAccessible(true);
+					}
+					catch (SecurityException se) {
+						throw new NoSuchMethodException("Method "+methodName+"() of class "+getClass().getName()+" not accessible.");
+					}
+				}
 				Object result = m.invoke(helper, decodedParams);
 				return codec.encodeResult(methodName, result);
 			}

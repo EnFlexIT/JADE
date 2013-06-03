@@ -110,11 +110,15 @@ public class BackEndSkel extends MicroSkeleton {
 			break;
 		case BackEndStub.SERVICE_INVOKATION:
 			try {
+				// Param at 0: actor
+				// Param at 1: service name
+				// Param at 2: helper method name 
+				// Params from 3 to n: method arguments
 				Object[] methodParams = new Object[c.getParamCnt()-3];
 				for (int i = 0; i < methodParams.length; ++i) {
 					methodParams[i] = c.getParamAt(i+3);
 				}
-				Object result = myBackEnd.serviceInvokation((String) c.getParamAt(0), (String) c.getParamAt(0), (String) c.getParamAt(0), methodParams);
+				Object result = myBackEnd.serviceInvokation((String) c.getParamAt(0), (String) c.getParamAt(1), (String) c.getParamAt(2), methodParams);
 				c.reset(Command.OK);
 				c.addParam(result);
 			}
