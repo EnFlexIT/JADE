@@ -46,6 +46,6 @@ public interface FEConnectionManager {
 	/**
 	   Shut down the permanent connection to the remote BackEnd
 	 */
-	void shutdown();  
+	void shutdown();
 }
 

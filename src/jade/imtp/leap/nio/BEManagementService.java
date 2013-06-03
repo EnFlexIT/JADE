@@ -768,6 +768,12 @@ public class BEManagementService extends BaseService {
 			String recipientID = pkt.getRecipientID();
 			try {
 				switch (type) {
+				case JICPProtocol.GET_SERVER_TIME_TYPE: {
+					// Respond sending back the current time encoded as a String
+					myLogger.log(Logger.INFO, myLogPrefix + "GET_SERVER_TIME request received from " + address + ":" + port);
+					reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, String.valueOf(System.currentTimeMillis()).getBytes());
+					break;
+				}
 				case JICPProtocol.GET_ADDRESS_TYPE: {
 					// Respond sending back the caller address
 					myLogger.log(Logger.INFO, myLogPrefix + "GET_ADDRESS request received from " + address + ":" + port);

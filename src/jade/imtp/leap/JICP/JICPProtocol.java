@@ -71,6 +71,8 @@ public class JICPProtocol extends TransportProtocol {
 	public static final byte          CREATE_MEDIATOR_TYPE = 22;
 	/** ID code for packets carrying requests to connect to a Mediator */
 	public static final byte          CONNECT_MEDIATOR_TYPE = 23;
+	/** ID code for packets carrying requests to retrieve the current server time */
+	public static final byte          GET_SERVER_TIME_TYPE = 24;
 	/** ID code for packets carrying requests to drop-down the connection with the mediator */
 	public static final byte          DROP_DOWN_TYPE = 30;
 	/** ID code for packets carrying JICP protocol errors */
@@ -127,6 +129,9 @@ public class JICPProtocol extends TransportProtocol {
 	public static final String VERSION_KEY = "version";	
 	public static final String RESPONSE_TIMEOUT_OFFSET_KEY = "response-timeout-offset";
 	public static final String RESPONSE_TIMEOUT_MULTIPLICATIVE_FACTOR_KEY = "response-timeout-multiplicative-factor";
+	
+	public static final String GET_SERVER_TIME_KEY = "get-server-time";	
+	public static final String SERVER_TIME_OFFSET_KEY = "server-time-offset";	
 	
 	/**
 	 * @deprecated Use <code>MicroRuntime.OWNER_KEY</code>

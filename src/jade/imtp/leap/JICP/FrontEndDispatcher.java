@@ -85,7 +85,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	private Object responseLock = new Object();  
 	private ConnectionListener myConnectionListener;
 
-	private boolean active = true;
+	private boolean active = false;
 	private boolean connectionDropped = false;
 	private boolean waitingForFlush = false;
 	private byte lastSid = 0x0f; // SID of the last successfully processed incoming COMMAND
@@ -223,9 +223,16 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			mySkel = new FrontEndSkel(fe);
 			myStub = new BackEndStub(this, props);
 
+			// Set active to true before creating the back-end. This is because in this phase 
+			// we may receive a SYNCH command and the CommandServer must be there to process it
+			active = true; 
 			Connection c = createBackEnd();
+			
+			// If requested, initialize the SERVER_TIME_OFFSET property 
+			if ("true".equals(props.getProperty(JICPProtocol.GET_SERVER_TIME_KEY))) {
+				initServerTimeOffset(c);
+			}
 			updateTimers();
-			active = true;
 			startConnectionReader(c);
 
 			return myStub;
@@ -339,6 +346,32 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		}
 		return result;
 	}
+	
+	private void initServerTimeOffset(Connection con) {
+		JICPPacket pkt = new JICPPacket(JICPProtocol.GET_SERVER_TIME_TYPE, JICPProtocol.DEFAULT_INFO, null);
+		
+		try {
+			long start = System.currentTimeMillis();
+			writePacket(pkt, con);
+			JICPPacket rsp = con.readPacket();
+			long end = System.currentTimeMillis();
+			long elapsed =  end - start;
+	
+			if (rsp.getType() != JICPProtocol.ERROR_TYPE) {
+				String rspDataStr = new String(rsp.getData());
+				// This assumes the time to deliver the GET_SERVER_TIME packet to the server 
+				// is more or less the same as that to deliver the response back to the client
+				long serverTime = Long.parseLong(rspDataStr) + elapsed / 2;
+				myProperties.put(JICPProtocol.SERVER_TIME_OFFSET_KEY, new Long(serverTime - end));
+			}
+			else {
+				myLogger.log(Logger.WARNING, "Error response received retrieving server time");
+			}
+		}
+		catch (Exception e) {
+			myLogger.log(Logger.WARNING, "Error retrieving server time", e);
+		}
+	}
 
 	/**
 	   Make this FrontEndDispatcher terminate.
@@ -374,7 +407,6 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			}
 		}
 	}
-
 
 	//////////////////////////////////////////////
 	// Dispatcher interface implementation
