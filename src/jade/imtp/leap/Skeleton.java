@@ -55,8 +55,7 @@ abstract class Skeleton {
 
 			resp.addParam(tr.getClass().getName());
 			resp.addParam(tr.getMessage());
-			// FIXME: Is it correct not to print the stack trace when a declared exception 
-			// occurs? 
+			// FIXME: Is it correct not to print the stack trace when a declared exception occurs? 
 			if ((tr instanceof Error) || (tr instanceof RuntimeException)) { 
 				tr.printStackTrace();
 			}

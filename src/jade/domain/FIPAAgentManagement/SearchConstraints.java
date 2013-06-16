@@ -115,7 +115,7 @@ public class SearchConstraints implements Concept {
 
     /**
        Set the <code>max-results</code> slot of this object.
-       @param l The name of the maximum number of results to retrieve
+       @param l The maximum number of results to retrieve
        in response to this search operation.
     */
     public void setMaxResults(Long l) {
@@ -124,10 +124,10 @@ public class SearchConstraints implements Concept {
 
     /**
        Retrieve the <code>max-results</code> slot of this object. This
-       slot contains the maximum numver of results to retrieve in
-       response to this search operation.  object was sent.
+       slot contains the maximum number of results to retrieve in
+       response to this search operation.
        @return The value of the <code>max-results</code> slot of this
-       envelope, or <code>null</code> if no value was set.
+       SearchConstraints object, or <code>null</code> if no value was set.
     */
     public Long getMaxResults() {
 	return max_results;

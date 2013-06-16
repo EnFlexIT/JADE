@@ -85,8 +85,8 @@ public class PlatformManagerImpl implements PlatformManager {
 			slices = new HashMap();
 		}
 
-		public void addSlice(String name, Service.Slice s, Node n) {
-			SliceEntry e = new SliceEntry(s, n);
+		public void addSlice(String name, Service.Slice s, Node n, boolean childNode) {
+			SliceEntry e = new SliceEntry(s, n, childNode);
 			slices.put(name, e);
 		}
 
@@ -164,9 +164,10 @@ public class PlatformManagerImpl implements PlatformManager {
 	 */
 	class SliceEntry {
 
-		public SliceEntry(Service.Slice s, Node n) {
+		public SliceEntry(Service.Slice s, Node n, boolean c) {
 			mySlice = s;
 			myNode = n;
+			childNode = c;
 		}
 
 		public Service.Slice getSlice() {
@@ -176,9 +177,14 @@ public class PlatformManagerImpl implements PlatformManager {
 		public Node getNode() {
 			return myNode;
 		}
+		
+		public boolean isInChildNode() {
+			return childNode;
+		}
 
 		private Service.Slice mySlice;
 		private Node myNode;
+		private boolean childNode;
 
 	} // End of inner class SliceEntry class
 
@@ -431,7 +437,8 @@ public class PlatformManagerImpl implements PlatformManager {
 		}
 
 		String sliceKey = node.getName();
-		e.addSlice(sliceKey, slice, node);
+		boolean childNode = dsc.getParentNode() != null;
+		e.addSlice(sliceKey, slice, node, childNode);
 
 		if (isLocalNode(node)) {
 			// The service is just started on this main container
