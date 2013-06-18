@@ -24,11 +24,12 @@ public class DynamicJadeGateway {
 	private static final int ACTIVE = 1;
 	private static final int NOT_ACTIVE = 2;
 	
-	private ContainerController myContainer = null;
-	private AgentController myAgent = null;
+	ContainerController myContainer = null;
+	AgentController myAgent = null;
 	private String agentType = GatewayAgent.class.getName();
+	private String agentName = null;
 	// jade profile properties
-	private ProfileImpl profile;
+	ProfileImpl profile;
 	private Properties jadeProps;
 	private Object[] agentArguments;
 	
@@ -126,7 +127,10 @@ public class DynamicJadeGateway {
 					gatewayAgentState = NOT_ACTIVE;
 				}
 				a.setArguments(agentArguments);
-				myAgent = myContainer.acceptNewAgent("Control"+myContainer.getContainerName(), a);
+				if (agentName == null) {
+					agentName = "Control"+myContainer.getContainerName();
+				}
+				myAgent = myContainer.acceptNewAgent(agentName, a);
 				
 				if (gatewayAgentState == NOT_ACTIVE) {
 					// Set the ACTIVE state synchronously so that when checkJADE() completes isGatewayActive() certainly returns true 
@@ -156,6 +160,8 @@ public class DynamicJadeGateway {
 	
 	/**
 	 * Initialize this gateway by passing the proper configuration parameters
+	 * @param agentName is the name of the JadeGateway internal agent. If null is passed
+	 * the default name will be used.
 	 * @param agentClassName is the fully-qualified class name of the JadeGateway internal agent. If null is passed
 	 * the default class will be used.
 	 * @param agentArgs is the list of agent arguments
@@ -163,7 +169,9 @@ public class DynamicJadeGateway {
 	 * Typically these properties will have to be read from a JADE configuration file.
 	 * If jadeProfile is null, then a JADE container attaching to a main on the local host is launched
 	 **/
-	public final void init(String agentClassName, Object[] agentArgs, Properties jadeProfile) {
+	public final void init(String agentName, String agentClassName, Object[] agentArgs, Properties jadeProfile) {
+		this.agentName = agentName;
+		
 		if (agentClassName != null) {
 			agentType = agentClassName;
 		} else {
@@ -178,6 +186,19 @@ public class DynamicJadeGateway {
 		
 		agentArguments = agentArgs;
 	}
+	
+	/**
+	 * Initialize this gateway by passing the proper configuration parameters
+	 * @param agentClassName is the fully-qualified class name of the JadeGateway internal agent. If null is passed
+	 * the default class will be used.
+	 * @param agentArgs is the list of agent arguments
+	 * @param jadeProfile the properties that contain all parameters for running JADE (see jade.core.Profile).
+	 * Typically these properties will have to be read from a JADE configuration file.
+	 * If jadeProfile is null, then a JADE container attaching to a main on the local host is launched
+	 **/
+	public final void init(String agentClassName, Object[] agentArgs, Properties jadeProfile) {
+		init(null, agentClassName, agentArgs, jadeProfile);
+	}
 
 	public final void init(String agentClassName, Properties jadeProfile) {
 		init(agentClassName, null, jadeProfile);
@@ -191,7 +212,7 @@ public class DynamicJadeGateway {
 	/**
 	 * Kill the JADE Container in case it is running.
 	 */
-	public final void shutdown() {
+	public void shutdown() {
 		try { // try to kill, but neglect any exception thrown
 			if (myAgent != null)
 				myAgent.kill();
