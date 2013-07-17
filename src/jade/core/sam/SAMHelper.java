@@ -71,4 +71,13 @@ public interface SAMHelper extends ServiceHelper {
 	 * @see CounterValueProvider
 	 */
 	void addCounterValueProvider(String counterName, CounterValueProvider provider);
+	
+	/**
+	 * Register a new handler for SAM information collected in the Main Container.
+	 * This method has no effect if called on a peripheral container
+	 * @param handler The new handler to be added.
+	 * @param first A boolean indication specifying whether the new handler must be 
+	 * inserted at the beginning or at the end of the list of handlers. 
+	 */
+	void addHandler(SAMInfoHandler handler, boolean first);
 }

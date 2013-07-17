@@ -45,8 +45,7 @@ import jade.core.ServiceException;
 import jade.core.ServiceHelper;
 import jade.core.Specifier;
 import jade.core.VerticalCommand;
-import jade.core.nodeMonitoring.NodeMonitoringService;
-import jade.core.replication.MainReplicationService;
+import jade.core.management.AgentManagementSlice;
 import jade.core.replication.MainReplicationSlice;
 import jade.util.Logger;
 
@@ -67,7 +66,7 @@ public class SAMService extends BaseService {
 
 	private SAMHelper myHelper = new SAMHelperImpl();
 	private ServiceComponent localSlice = new ServiceComponent();
-	private Filter bmOutgoingFilter = null;
+	private Filter outgoingFilter = null;
 	
 	private Profile myProfile;
 	
@@ -79,16 +78,22 @@ public class SAMService extends BaseService {
 	@Override
 	public void init(AgentContainer ac, Profile p) throws ProfileException {
 		super.init(ac, p);
-		if (p.isBackupMain()) {
-			// This is a backup Main Container --> prepare to register an OUTGOING
-			// filter to intercept the LEADERSHIP_ACQUIRED V-Command and start 
-			// polling when that happen
-			bmOutgoingFilter = new Filter() {
+		if (p.isMain()) {
+			outgoingFilter = new Filter() {
 				@Override
 				public boolean accept(VerticalCommand cmd) {
 					String name = cmd.getName();
 					try {
-						if (name.equals(MainReplicationSlice.LEADERSHIP_ACQUIRED)) {
+						if (name.equals(AgentManagementSlice.SHUTDOWN_PLATFORM)) {
+							// If the platform is shutting down stop polling: some 
+							// peripheral container may be already down causing annoying exceptions
+							if (poller != null) {
+								poller.stopPolling();
+							}
+						}
+						else if (name.equals(MainReplicationSlice.LEADERSHIP_ACQUIRED)) {
+							// If this is a backup Main Container that has just taken the leadership
+							// start polling again
 							startPolling();
 						}
 					}
@@ -124,7 +129,10 @@ public class SAMService extends BaseService {
 		
 		try {
 			String hh = myProfile.getParameter(SAM_INFO_HANDLERS, SAM_INFO_HANDLERS_DEFAULT);
-			Vector handlerClasses = Specifier.parseList(hh, ';');
+			Vector handlerClasses = new Vector();
+			if (!hh.equalsIgnoreCase("none")) {
+				handlerClasses = Specifier.parseList(hh, ';');
+			}
 			SAMInfoHandler[] handlers = new SAMInfoHandler[handlerClasses.size()];
 			for (int i = 0; i < handlerClasses.size(); ++i) {
 				String className = (String) handlerClasses.get(i);
@@ -152,7 +160,7 @@ public class SAMService extends BaseService {
 	@Override
 	public Filter getCommandFilter(boolean direction) {
 		if (direction == Filter.OUTGOING) {
-			return bmOutgoingFilter;
+			return outgoingFilter;
 		} else {
 			return null;
 		}
@@ -224,6 +232,12 @@ public class SAMService extends BaseService {
 		public synchronized void addCounterValueProvider(String counterName, CounterValueProvider provider) {
 			CounterInfo info = getCounterInfo(counterName);
 			info.addProvider(provider);
+		}
+		
+		public void addHandler(SAMInfoHandler handler, boolean first) {
+			if (poller != null) {
+				poller.addHandler(handler, first);
+			}
 		}
 
 		public void init(Agent a) {

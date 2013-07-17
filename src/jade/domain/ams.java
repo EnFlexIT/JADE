@@ -115,6 +115,8 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 	private Hashtable pendingRemovedContainers = new Hashtable();
 
 	private APDescription theProfile = new APDescription();
+	
+	private boolean shuttingDown = false;
 
 	/**
 	 This constructor creates a new <em>AMS</em> agent. Since a direct
@@ -218,7 +220,7 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 		java.lang.Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
 				logger.log(Logger.FINE, ">>>>>>>>> Shutdown Hook activated. AMS state = "+ams.this.getState());
-				if (ams.this.getState() != Agent.AP_DELETED) {
+				if (!shuttingDown && ams.this.getState() != Agent.AP_DELETED) {
 					try {
 						logger.log(Logger.WARNING, ">>>>>>>>> Main Container JVM is terminating. Activate platform shutdown");
 						myPlatform.shutdownPlatform(null, null);
@@ -422,6 +424,7 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 			e.printStackTrace();
 		}
 		
+		shuttingDown = true;
 		Thread auxThread = new Thread() {
 			public void run() {
 				try {

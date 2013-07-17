@@ -27,14 +27,13 @@ package jade.core.sam;
 
 import java.util.Date;
 
-import jade.core.IMTPException;
 import jade.core.Service;
 import jade.core.ServiceException;
 import jade.util.Logger;
 
 class Poller extends Thread {
 	private SAMService myService;
-	private SAMInfoHandler[] handlers;
+	private volatile SAMInfoHandler[] handlers;
 	private long period;
 	private boolean active;
 	
@@ -56,6 +55,25 @@ class Poller extends Thread {
 	public synchronized void stopPolling() {
 		active = false;
 		interrupt();
+	}
+	
+	public void addHandler(SAMInfoHandler h, boolean first) {
+		SAMInfoHandler[] newHandlers = new SAMInfoHandler[handlers.length + 1];
+		int k = 0;
+		if (first) {
+			// Add new handler at the beginning
+			newHandlers[0] = h;
+			k = 1;
+		}
+		// Copy current handlers
+		for (int i = 0; i < handlers.length; ++i) {
+			newHandlers[k+i] = handlers[i];
+		}
+		if (!first) {
+			// Add new handler at the end
+			newHandlers[handlers.length] = h;
+		}
+		handlers = newHandlers;
 	}
 	
 	public void run() {

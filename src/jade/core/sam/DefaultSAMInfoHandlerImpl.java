@@ -135,8 +135,29 @@ class DefaultSAMInfoHandlerImpl implements SAMInfoHandler {
 		}
 	}
 	
+	/**
+	 * If the entity name has the form a/b/c then create file SAM_c.csv in sub-directory b 
+	 * of directory a under the indicated csv-directory. Create directories if missing
+	 */
 	private File createFile(String name) throws IOException {
-		String fileName = samInfoDirectory.getPath()+fileSeparator+SAM_PREFIX+name+".csv";
+		File dir = samInfoDirectory;
+		String[] ss = name.split("/");
+		if (ss.length > 1) {
+			String dirName = samInfoDirectory.getPath();
+			for (int i = 0; i < ss.length -1; ++i) {
+				dirName += fileSeparator+ss[i];
+			}
+			dir = new File(dirName); 
+			if (!dir.exists()) {
+				myLogger.log(Logger.INFO, "Creating directory "+dir+" ...");				
+				boolean success = dir.mkdirs();
+				if (!success) {
+					throw new IOException("Cannot create directory "+dirName+".");
+				}
+			}
+			name = ss[ss.length-1];
+		}
+		String fileName = dir.getPath()+fileSeparator+SAM_PREFIX+name+".csv";
 		File file = new File(fileName);
 		file.createNewFile();		
 		return file;
