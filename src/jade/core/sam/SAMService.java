@@ -240,6 +240,12 @@ public class SAMService extends BaseService {
 			}
 		}
 
+		public void removeHandler(SAMInfoHandler handler) {
+			if (poller != null) {
+				poller.removeHandler(handler);
+			}
+		}
+		
 		public void init(Agent a) {
 			// Nothing to do as there is a single helper for all agents
 		}

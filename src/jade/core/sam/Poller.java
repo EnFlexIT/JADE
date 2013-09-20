@@ -57,7 +57,7 @@ class Poller extends Thread {
 		interrupt();
 	}
 	
-	public void addHandler(SAMInfoHandler h, boolean first) {
+	public synchronized void addHandler(SAMInfoHandler h, boolean first) {
 		SAMInfoHandler[] newHandlers = new SAMInfoHandler[handlers.length + 1];
 		int k = 0;
 		if (first) {
@@ -76,6 +76,28 @@ class Poller extends Thread {
 		handlers = newHandlers;
 	}
 	
+	public synchronized void removeHandler(SAMInfoHandler handler) {
+		boolean found = false;
+		for (SAMInfoHandler h : handlers) {
+			if (h == handler) {
+				found = true;
+				break;
+			}
+		}
+
+		if (found) {
+			SAMInfoHandler[] newHandlers = new SAMInfoHandler[handlers.length - 1];
+			// Copy current handlers
+			int k = 0;
+			for (int i = 0; i < handlers.length; ++i) {
+				if (handlers[i] != handler) {
+					newHandlers[k++] = handlers[i];	
+				}
+			}
+			handlers = newHandlers;
+		}
+	}
+
 	public void run() {
 		myLogger.log(Logger.INFO, "SAMService poller thread started");
 		try {
@@ -142,5 +164,4 @@ class Poller extends Thread {
 	private void stopWatchDog() {
 		// FIXME: To be implemented
 	}
-	
 }

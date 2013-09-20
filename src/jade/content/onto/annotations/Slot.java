@@ -43,6 +43,14 @@ public @interface Slot {
 	String documentation() default NULL;
 	int position() default -1;
 	boolean mandatory() default false;
+	/**
+	 * Tell the BeanOntologyBuilder to treat this slot as a Serializable object.
+	 * This is useful when the type of a slot is not a valid java bean.
+	 */
+	 // NOTE that at runtime the slot value class must NOT have an associated schema.
+	 // If this is the case in facts, the slot value will be encoded according to that
+	 // schema and, at decoding time there will be an incompatibility between the slot
+	 // schema (Serializable) and the encoded AbsObject
 	boolean manageAsSerializable() default false;
 	String defaultValue() default NULL; 
 	String regex() default NULL;

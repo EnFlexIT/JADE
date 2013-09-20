@@ -414,7 +414,7 @@ public abstract class Profile {
 		try {
 			if (priviledgeLogicalName) {
 				try {
-					host = InetAddress.getLocalHost().getHostName();
+					host = InetAddress.getLocalHost().getCanonicalHostName();
 				}
 				catch (Exception e) {
 					e.printStackTrace();

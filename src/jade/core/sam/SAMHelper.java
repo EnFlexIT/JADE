@@ -80,4 +80,11 @@ public interface SAMHelper extends ServiceHelper {
 	 * inserted at the beginning or at the end of the list of handlers. 
 	 */
 	void addHandler(SAMInfoHandler handler, boolean first);
+
+	/**
+	 * Remove a handler for SAM information collected in the Main Container.
+	 * This method has no effect if called on a peripheral container
+	 * @param handler The handler to be removed.
+	 */
+	void removeHandler(SAMInfoHandler handler);
 }
