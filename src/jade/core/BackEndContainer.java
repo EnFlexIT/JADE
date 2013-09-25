@@ -450,10 +450,13 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 			// The receiver must be in the FrontEnd
 			AgentImage image = (AgentImage) agentImages.get(receiverID);
 			if(image != null) {
-				if (agentImages.containsKey(msg.getSender())) {
+				if (agentImages.containsKey(msg.getSender()) && isExplicitReceiver(msg, receiverID)) {
 					// The message was sent by an agent living in the FrontEnd. The
 					// receiverID (living in the FrontEnd too) has already received
 					// the message.
+					// The second part of the condition ensures that, if the 
+					// message was not directly sent to the receiver (e.g. it was sent to a topic 
+					// or an alias), message delivery occurs normally. 
 					// FIXME: This does not take into account that an agent not living 
 					// in the FrontEnd may send a message on behalf of an agent living 
 					// in the FrontEnd. 
@@ -488,6 +491,16 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 				return false;
 			}
 		}
+	}
+	
+	private boolean isExplicitReceiver(ACLMessage msg, AID receiver) {
+		Iterator it = msg.getAllIntendedReceiver();
+		while (it.hasNext()) {
+			if (receiver.equals(it.next())) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public Agent acquireLocalAgent(AID id) {
