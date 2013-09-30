@@ -23,12 +23,5 @@
 
 package jade.core.sam;
 
-/**
- * A Provider of "one-shot" measures for a given entity
- */
-public interface MeasureProvider extends Provider {
-	/**
-	 * @return the value of the measure 
-	 */
-	Number getValue();
+public interface Provider {
 }

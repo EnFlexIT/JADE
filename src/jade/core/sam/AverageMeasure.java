@@ -28,7 +28,7 @@ import java.io.Serializable;
 /**
  * The class used by the System Activity Monitoring (SAM) Service to represent an average measure  
  */
-public class AverageMeasure implements Serializable {
+public class AverageMeasure implements Serializable, Provider {
 	private static final long serialVersionUID = 423475294834L;
 	
 	private double value = 0.0;

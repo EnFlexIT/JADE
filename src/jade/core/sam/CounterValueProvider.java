@@ -29,7 +29,7 @@ package jade.core.sam;
  * if the counter value is now H and was K when <code>getValue()</code> was invoked at 
  * previous round, <code>getValue()</code> must return H-K. 
  */
-public interface CounterValueProvider {
+public interface CounterValueProvider extends Provider {
 	long getValue();
 	boolean isDifferential();
 }

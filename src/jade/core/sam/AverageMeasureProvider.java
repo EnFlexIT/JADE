@@ -27,7 +27,7 @@ package jade.core.sam;
 /**
  * A Provider of average measures for a given entity
  */
-public interface AverageMeasureProvider {
+public interface AverageMeasureProvider extends Provider {
 	/**
 	 * @return the value of the measure in the form of an <code>AverageMeasure</code> instance
 	 */
