@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
 public interface BufferTransformer {
 
     /**
-     * implementers can transform data available read from the socket. Any data left in the socketData argument will used in subsequent
+     * implementers can transform data available read from the socket. Any data left in the socketData argument will be used in subsequent
      * {@link NIOJICPConnection#readPacket() } calls.
      * @param socketData
      * @return a buffer containing the transformed data

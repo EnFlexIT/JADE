@@ -158,9 +158,6 @@ public class LEAPCodec extends ByteArrayCodec {
 		} 
 	} 
 
-	/**
-	 * Synchronized so that it can possibly be executed by different threads
-	 */
 	private void write(DataOutputStream stream, AbsObject abs) throws Throwable {
 		// PRIMITIVE
 		if (abs instanceof AbsPrimitive) {
@@ -259,11 +256,7 @@ public class LEAPCodec extends ByteArrayCodec {
 		stream.writeByte(END);
 	} 
 
-	/**
-	 * Synchronized so that it can possibly be executed by different threads
-	 */
-	private synchronized AbsObject read(DataInputStream stream, 
-			Ontology ontology) throws Throwable {
+	private AbsObject read(DataInputStream stream, Ontology ontology) throws Throwable {
 		byte type = stream.readByte();
 
 		// PRIMITIVE
