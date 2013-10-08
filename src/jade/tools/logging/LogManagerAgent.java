@@ -1,5 +1,7 @@
 package jade.tools.logging;
 
+//#ANDROID_EXCLUDE_FILE
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Map;

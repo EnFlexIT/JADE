@@ -27,8 +27,6 @@
 			<fileset dir="${jade-src}">
 				<include name="**/jade/**"/>
 				<exclude name="**/jade/BootGUI.java"/>
-				<exclude name="**/jade/wrapper/gateway/DynamicJadeGateway.java"/>
-				<exclude name="**/jade/wrapper/gateway/JadeGateway.java"/>
 				<exclude name="**/jade/gui/**"/>
 				<exclude name="**/jade/tools/applet/**"/>
 				<exclude name="**/jade/tools/dfgui/**"/>
@@ -37,7 +35,6 @@
 				<exclude name="**/jade/tools/introspector/**"/>
 				<exclude name="**/jade/tools/logging/gui/**"/>
 				<exclude name="**/jade/tools/logging/images/**"/>
-				<exclude name="**/jade/tools/logging/LogManagerAgent.java"/>
 				<exclude name="**/jade/tools/rma/**"/>
 				<exclude name="**/jade/tools/sniffer/**"/>
 				<exclude name="**/jade/tools/testagent/**"/>

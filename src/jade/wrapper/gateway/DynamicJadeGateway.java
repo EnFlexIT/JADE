@@ -1,6 +1,7 @@
 package jade.wrapper.gateway;
 
 //#J2ME_EXCLUDE_FILE
+//#ANDROID_EXCLUDE_FILE
 
 import java.util.ArrayList;
 import java.util.List;
