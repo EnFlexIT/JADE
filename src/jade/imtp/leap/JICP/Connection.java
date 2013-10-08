@@ -1,5 +1,3 @@
-/*--- formatted by Jindent 2.1, (www.c-lab.de/~jindent) ---*/
-
 /**
  * ***************************************************************
  * The LEAP libraries, when combined with certain JADE platform components,
@@ -47,19 +45,19 @@ public abstract class Connection {
 	   Read a JICPPacket from the connection
 	 */
 	public abstract JICPPacket readPacket() throws IOException;
-	
+
 	/**
 	   Write a JICPPacket on the connection
 	 */
 	public abstract int writePacket(JICPPacket pkt) throws IOException;
-	
+
 	/**
 	   Close the connection
 	 */
 	public abstract void close() throws IOException;
-	
-  //#MIDP_EXCLUDE_BEGIN
-  public abstract String getRemoteHost() throws Exception;
-  //#MIDP_EXCLUDE_END
+
+	//#MIDP_EXCLUDE_BEGIN
+	public abstract String getRemoteHost() throws Exception;
+	//#MIDP_EXCLUDE_END
 }
 

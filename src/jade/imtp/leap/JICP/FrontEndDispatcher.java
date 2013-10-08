@@ -354,15 +354,18 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			long start = System.currentTimeMillis();
 			writePacket(pkt, con);
 			JICPPacket rsp = con.readPacket();
-			long end = System.currentTimeMillis();
-			long elapsed =  end - start;
+			long now = System.currentTimeMillis();
+			long elapsed =  now - start;
 	
 			if (rsp.getType() != JICPProtocol.ERROR_TYPE) {
 				String rspDataStr = new String(rsp.getData());
 				// This assumes the time to deliver the GET_SERVER_TIME packet to the server 
 				// is more or less the same as that to deliver the response back to the client
-				long serverTime = Long.parseLong(rspDataStr) + elapsed / 2;
-				myProperties.put(JICPProtocol.SERVER_TIME_OFFSET_KEY, new Long(serverTime - end));
+				long uncertanty = elapsed / 2;
+				long serverTime = Long.parseLong(rspDataStr) + uncertanty;
+				long offset = serverTime - now;
+				myProperties.put(JICPProtocol.SERVER_TIME_OFFSET_KEY, new Long(offset));
+				myLogger.log(Logger.INFO, "Server time initialized: value="+serverTime+", offset="+offset+", uncertanty= +/- "+uncertanty);
 			}
 			else {
 				myLogger.log(Logger.WARNING, "Error response received retrieving server time");

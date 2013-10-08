@@ -21,12 +21,12 @@ import java.util.logging.Logger;
 public class NIOJICPConnection extends Connection {
 	// type+info+session+recipient-length+recipient(255)+payload-length(4)
 	public static final int MAX_HEADER_SIZE = 263;
-	// TODO 10k, why? configurable?
-	//public static final int INITIAL_BUFFER_SIZE = 16 * 1024;
+	// TODO 1k, why? configurable?
 	public static final int INITIAL_BUFFER_SIZE = 1024;
+	
 	private SocketChannel myChannel;
-	private ByteBuffer socketData = ByteBuffer.allocateDirect(INITIAL_BUFFER_SIZE); 
-	private ByteBuffer payloadBuf = ByteBuffer.allocateDirect(INITIAL_BUFFER_SIZE);
+	private ByteBuffer socketData; 
+	private ByteBuffer payloadBuf;
 	private ByteBuffer unmanagedJicpData = null;
 
 	private byte type;
@@ -35,14 +35,21 @@ public class NIOJICPConnection extends Connection {
 	private String recipientID;
 
 	private boolean headerReceived = false;
-	
 	private boolean closed = false; 
 
-	private List<BufferTransformerInfo> transformers = new LinkedList<BufferTransformerInfo>();
+	private List<BufferTransformerInfo> transformers;
 
 	private static final Logger log = Logger.getLogger(NIOJICPConnection.class.getName());
 
 	public NIOJICPConnection() {
+		socketData = ByteBuffer.allocateDirect(INITIAL_BUFFER_SIZE); 
+		payloadBuf = ByteBuffer.allocateDirect(INITIAL_BUFFER_SIZE);
+		transformers = new LinkedList<BufferTransformerInfo>();
+	}
+	
+	// This constructor is only used by the NIOJICPConnectionWrapper that,
+	// being just a wrapper, does not need to allocate the internal buffers 
+	protected NIOJICPConnection(boolean wrapper) {
 	}
 	
 	public SocketChannel getChannel() {
@@ -59,7 +66,7 @@ public class NIOJICPConnection extends Connection {
     that successive calls to this method must occur in order to
     fully read the packet.
 	 */
-	public final synchronized JICPPacket readPacket() throws IOException {
+	public synchronized JICPPacket readPacket() throws IOException {
 		ByteBuffer jicpData = null;
 		if (unmanagedJicpData == null) { 
 			// No JICP data to be processed from previous round --> Read new data from the network
@@ -270,7 +277,7 @@ public class NIOJICPConnection extends Connection {
 	 * When the buffer returned by {@link #preprocessBufferToWrite(java.nio.ByteBuffer) }, no write will be performed.
 	 * @return number of application bytes written to the socket
 	 */
-	public final synchronized int writePacket(JICPPacket pkt) throws IOException {
+	public synchronized int writePacket(JICPPacket pkt) throws IOException {
 		ByteBuffer bb = null;
 		int totalToWrite = 0;
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -317,7 +324,7 @@ public class NIOJICPConnection extends Connection {
 	 * @return the number of bytes written to the channel
 	 * @throws IOException
 	 */
-	public final int writeToChannel(ByteBuffer bb) throws IOException {
+	public int writeToChannel(ByteBuffer bb) throws IOException {
 		return myChannel.write(bb);
 	}
 

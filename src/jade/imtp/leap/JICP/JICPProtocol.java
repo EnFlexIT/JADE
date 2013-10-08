@@ -130,7 +130,10 @@ public class JICPProtocol extends TransportProtocol {
 	public static final String RESPONSE_TIMEOUT_OFFSET_KEY = "response-timeout-offset";
 	public static final String RESPONSE_TIMEOUT_MULTIPLICATIVE_FACTOR_KEY = "response-timeout-multiplicative-factor";
 	
+	// The property to be specified among FE startup properties to activate server time synchronization
+	// If set to true this property is also passed in the CREATE_MEDIATOR request to tell the server that a GET_SERVER_TIME will be sent immediately after mediator creation completion
 	public static final String GET_SERVER_TIME_KEY = "get-server-time";	
+	// The property keeping the server time offset set by the JADE runtime after startup 
 	public static final String SERVER_TIME_OFFSET_KEY = "server-time-offset";	
 	
 	/**

@@ -756,12 +756,15 @@ public class BEManagementService extends BaseService {
 			InetAddress address = s.getInetAddress();
 			int port = s.getPort();
 
-			NIOJICPConnection connection = mgr.getConnection();
+			NIOJICPConnectionWrapper connection = mgr.getConnection();
 			NIOMediator mediator = mgr.getMediator();
 			JICPPacket reply = null;
 			// If there is no mediator associated to this key prepare to close
 			// the connection when the packet will have been processed
 			boolean closeConnection = (mediator == null);
+			// If the connection will be locked (see NIOJICPConnectionWrapper) prepare 
+			// to unlock it on completion
+			boolean keepLock = false;
 
 			// STEP 1) Serve the received packet
 			int type = pkt.getType();
@@ -769,6 +772,7 @@ public class BEManagementService extends BaseService {
 			try {
 				switch (type) {
 				case JICPProtocol.GET_SERVER_TIME_TYPE: {
+					connection.lock();
 					// Respond sending back the current time encoded as a String
 					myLogger.log(Logger.INFO, myLogPrefix + "GET_SERVER_TIME request received from " + address + ":" + port);
 					reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, String.valueOf(System.currentTimeMillis()).getBytes());
@@ -793,7 +797,13 @@ public class BEManagementService extends BaseService {
 						// Create a new Mediator
 						myLogger.log(Logger.INFO, myLogPrefix + "CREATE_MEDIATOR request received from " + address + ":" + port);
 
+						// Lock the connection to be sure nothing is written back until we have sent the response (see NIOJICPConnectionWrapper)
+						connection.lock();
 						Properties p = FrontEndStub.parseCreateMediatorRequest(new String(pkt.getData()));
+						if ("true".equals(p.getProperty(JICPProtocol.GET_SERVER_TIME_KEY))) {
+							// A GET_SERVER_TIME request will arrive just after mediator creation --> do not unlock the connection (this will be done after serving the GET_SERVER_TIME request) 
+							keepLock = true;
+						}
 
 						// If the platform-name is specified check if it is consistent
 						String pn = p.getProperty(Profile.PLATFORM_ID);
@@ -980,16 +990,25 @@ public class BEManagementService extends BaseService {
 			}
 
 			// STEP 3) Close the connection if necessary
-			if (closeConnection) {
-				try {
-					// Close connection
-					if (myLogger.isLoggable(Logger.FINEST)) {
-						myLogger.log(Logger.FINEST, myLogPrefix + stringify(mediator) + "Closing connection with " + address + ":" + port);
+			try {
+				if (closeConnection) {
+					try {
+						// Close connection
+						if (myLogger.isLoggable(Logger.FINEST)) {
+							myLogger.log(Logger.FINEST, myLogPrefix + stringify(mediator) + "Closing connection with " + address + ":" + port);
+						}
+						connection.close();
+					} catch (IOException io) {
+						myLogger.log(Logger.WARNING, myLogPrefix + stringify(mediator) + "I/O error while closing connection with " + address + ":" + port);
+						io.printStackTrace();
 					}
-					connection.close();
-				} catch (IOException io) {
-					myLogger.log(Logger.WARNING, myLogPrefix + stringify(mediator) + "I/O error while closing connection with " + address + ":" + port);
-					io.printStackTrace();
+				}
+			}
+			finally {
+				// STEP 4) Unlock the connection if necessary
+				// (be sure this is executed even if there is an unexpected error in the closure step)
+				if (connection.isLocked() && !keepLock) {
+					connection.unlock();
 				}
 			}
 		}
@@ -999,7 +1018,7 @@ public class BEManagementService extends BaseService {
 		}
 
 		private void configureBlocking(JICPPacket pkt, SelectionKey key) {
-			if (pkt.getData().length==1&&pkt.getData()[0]==1) {
+			if (pkt.getData().length==1 && pkt.getData()[0]==1) {
 				try {
 					// TODO: better to use non blocking, but refactoring needed
 					key.cancel();
@@ -1225,11 +1244,11 @@ public class BEManagementService extends BaseService {
 	private class KeyManager {
 
 		private SelectionKey key;
-		private NIOJICPConnection connection;
+		private NIOJICPConnectionWrapper connection;
 		private NIOMediator mediator;
 		private IOEventServer server;
 
-		public KeyManager(SelectionKey k, NIOJICPConnection c, IOEventServer s) {
+		public KeyManager(SelectionKey k, NIOJICPConnectionWrapper c, IOEventServer s) {
 			key = k;
 			connection = c;
 			server = s;
@@ -1243,7 +1262,7 @@ public class BEManagementService extends BaseService {
 			mediator = m;
 		}
 
-		public final NIOJICPConnection getConnection() {
+		public final NIOJICPConnectionWrapper getConnection() {
 			return connection;
 		}
 
@@ -1459,11 +1478,13 @@ public class BEManagementService extends BaseService {
 
 		private final void handleReadOp(SelectionKey key, String prefix) throws ICPException {
 			readStartTime = System.currentTimeMillis();
+			boolean isNewConnection = false; 
 			try {
 				KeyManager mgr = (KeyManager) key.attachment();
 				if (mgr == null) {
 					NIOJICPConnection c = myServer.createConnection(key);
-					mgr = new KeyManager(key, c, myServer);
+					isNewConnection = true;
+					mgr = new KeyManager(key, new NIOJICPConnectionWrapper(c), myServer);
 					key.attach(mgr);
 					myLogger.log(Logger.INFO, prefix + "Connection " + c + " created and associated to KeyManager "+mgr);
 				}
@@ -1475,7 +1496,11 @@ public class BEManagementService extends BaseService {
 					dataProcessingTimeProvider.addSample(elapsedTime);
 				}
 				if (elapsedTime > 1000) {
-					myLogger.log(Logger.WARNING, prefix + "Serve time = "+elapsedTime);
+					if (!isNewConnection || elapsedTime > 10000) {
+						// If this is the first packet of a new connection (CREATE or CONNECT MEDIATOR)
+						// print the warning only if the elapsed time is VERY high
+						myLogger.log(Logger.WARNING, prefix + " *** Serve time = "+elapsedTime);
+					}
 					if (elapsedTime > 10000) {
 						processingTimeGT10SecCounter++;
 					}

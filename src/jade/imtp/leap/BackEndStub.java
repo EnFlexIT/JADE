@@ -49,13 +49,11 @@ public class BackEndStub extends MicroStub implements BackEnd {
 	static final int MESSAGE_OUT = 24;
 	static final int SERVICE_INVOKATION = 25;
 
-	private Properties props;
 	private long defaultMessageStoreAndForwardTimeout = -1; // INFINITE by default
 	
 	public BackEndStub(Dispatcher d, Properties props) {
 		super(d);
 		
-		this.props = props;
 		try {
 		    String str = props.getProperty(MicroRuntime.DEFAULT_SF_TIMEOUT_KEY);
 			defaultMessageStoreAndForwardTimeout = Long.parseLong(str!=null?str:"-1");
@@ -230,13 +228,14 @@ public class BackEndStub extends MicroStub implements BackEnd {
 		appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY,pp.getProperty(JICPProtocol.MEDIATOR_CLASS_KEY));
 		appendProp(sb, JICPProtocol.MAX_DISCONNECTION_TIME_KEY, pp.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY));
 		appendProp(sb, FrontEnd.REMOTE_BACK_END_ADDRESSES, pp.getProperty(FrontEnd.REMOTE_BACK_END_ADDRESSES));
-		appendProp(sb, MicroRuntime.OWNER_KEY, pp.getProperty(JICPProtocol.OWNER_KEY));
+		appendProp(sb, MicroRuntime.OWNER_KEY, pp.getProperty(MicroRuntime.OWNER_KEY));
 		appendProp(sb, MicroRuntime.AGENTS_KEY, pp.getProperty(MicroRuntime.AGENTS_KEY));
 		appendProp(sb, MicroRuntime.BE_REQUIRED_SERVICES_KEY, pp.getProperty(MicroRuntime.BE_REQUIRED_SERVICES_KEY));
 		appendProp(sb, JICPProtocol.KEEP_ALIVE_TIME_KEY, pp.getProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY));
 		appendProp(sb, MicroRuntime.PLATFORM_KEY, pp.getProperty(MicroRuntime.PLATFORM_KEY));
 		appendProp(sb, JICPProtocol.MSISDN_KEY, pp.getProperty(JICPProtocol.MSISDN_KEY));
 		appendProp(sb, JICPProtocol.VERSION_KEY, pp.getProperty(JICPProtocol.VERSION_KEY));
+		appendProp(sb, JICPProtocol.GET_SERVER_TIME_KEY, pp.getProperty(JICPProtocol.GET_SERVER_TIME_KEY));
 		return sb;
 	}
 
