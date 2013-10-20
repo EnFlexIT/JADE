@@ -43,7 +43,7 @@ public class AgentReplicationHandle {
 	 * exemplified below<br>
 	 * <code>
 	 * public void aReplicatedMethod(T1 a, T2 b) {
-	 *   replicate(this, "aReplicatedMethod", new Object[]{a, b});
+	 *   AgentReplicationHandle.replicate(this, "aReplicatedMethod", new Object[]{a, b});
 	 *   
 	 *   ...
 	 * }
