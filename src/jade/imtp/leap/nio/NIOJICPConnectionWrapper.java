@@ -89,6 +89,7 @@ class NIOJICPConnectionWrapper extends NIOJICPConnection {
 	}
 	
 	public final void close() throws IOException {
+		unlock(); // Be sure no one remains blocked waiting for a connection that no one will use anymore
 		realConnection.close();
 	}
 	

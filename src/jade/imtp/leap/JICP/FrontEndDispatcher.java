@@ -228,10 +228,6 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			active = true; 
 			Connection c = createBackEnd();
 			
-			// If requested, initialize the SERVER_TIME_OFFSET property 
-			if ("true".equals(props.getProperty(JICPProtocol.GET_SERVER_TIME_KEY))) {
-				initServerTimeOffset(c);
-			}
 			updateTimers();
 			startConnectionReader(c);
 
@@ -293,7 +289,12 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 
 			for (int k = 0; k < creationAttempts; k++) {
 				try {
-					return create(pkt);
+					JICPConnection c = create(pkt);
+					// If requested, initialize the SERVER_TIME_OFFSET property 
+					if ("true".equals(myProperties.getProperty(JICPProtocol.GET_SERVER_TIME_KEY))) {
+						initServerTimeOffset(c);
+					}
+					return c;
 				}
 				catch (IOException ioe) {
 					// Connection error --> Retry 5 times then move to next address

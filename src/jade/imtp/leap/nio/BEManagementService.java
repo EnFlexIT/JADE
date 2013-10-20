@@ -672,9 +672,11 @@ public class BEManagementService extends BaseService {
 				if (loopers != null) {
 					for (int i = 0; i < loopers.length; ++i) {
 						myLogger.log(Logger.FINE, myLogPrefix + "Stopping LoopManager #"+i);
-						loopers[i].stop();
-						loopers[i].join();
-						myLogger.log(Logger.FINEST, myLogPrefix + "LoopManager #"+i+" terminated");
+						if (!loopers[i].isStuck()) {
+							loopers[i].stop();
+							loopers[i].join();
+							myLogger.log(Logger.FINEST, myLogPrefix + "LoopManager #"+i+" terminated");
+						}
 					}
 				}
 			} catch (IOException ioe) {
@@ -800,10 +802,6 @@ public class BEManagementService extends BaseService {
 						// Lock the connection to be sure nothing is written back until we have sent the response (see NIOJICPConnectionWrapper)
 						connection.lock();
 						Properties p = FrontEndStub.parseCreateMediatorRequest(new String(pkt.getData()));
-						if ("true".equals(p.getProperty(JICPProtocol.GET_SERVER_TIME_KEY))) {
-							// A GET_SERVER_TIME request will arrive just after mediator creation --> do not unlock the connection (this will be done after serving the GET_SERVER_TIME request) 
-							keepLock = true;
-						}
 
 						// If the platform-name is specified check if it is consistent
 						String pn = p.getProperty(Profile.PLATFORM_ID);
@@ -878,6 +876,12 @@ public class BEManagementService extends BaseService {
 						String replyMsg = FrontEndStub.encodeCreateMediatorResponse(p);
 						reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, replyMsg.getBytes());
 						reply.setSessionID((byte) 31); // Dummy session ID != from valid ones
+						
+						if ("true".equals(p.getProperty(JICPProtocol.GET_SERVER_TIME_KEY))) {
+							// A GET_SERVER_TIME request will arrive just after mediator creation --> do not unlock the connection (this will be done after serving the GET_SERVER_TIME request) 
+							keepLock = true;
+							// FIXME: Should we start a WatchDog?
+						}
 					} else {
 						myLogger.log(Logger.WARNING, myLogPrefix + "CREATE_MEDIATOR request received on a connection already linked to an existing mediator");
 						reply = new JICPPacket("Unexpected packet type", null);
@@ -1353,7 +1357,10 @@ public class BEManagementService extends BaseService {
 		}
 
 		public void join() throws InterruptedException {
-			myThread.join();
+			myThread.join(5000);
+			if (myThread.isAlive()) {
+				myLogger.log(Logger.WARNING, "Thread " + myThread.getName() + " did not terminate when requested to do so");
+			}
 		}
 
 		public void run() {
