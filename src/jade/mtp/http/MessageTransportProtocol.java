@@ -166,6 +166,7 @@ public class MessageTransportProtocol implements MTP {
 	
 	private TransportAddress activateServer(InChannel.Dispatcher disp, TransportAddress ta, Profile p) throws MTPException {
 		//Comprobation of correct HTTPAddress
+		String interfaceAddress = null;
 		int port = -1;
 		boolean changePortIfBusy = false;
 		String saxClass = null;
@@ -198,6 +199,7 @@ public class MessageTransportProtocol implements MTP {
 					throw new MTPException("Cannot activate MTP on default address: Invalid port");
 				}
 			}
+			interfaceAddress = hta.getHost();
 			port = hta.getPortNo();
 			if((port <= 0) || (port > 65535)) {
 				throw new MTPException("Invalid port number "+ta.getPort());
@@ -242,7 +244,7 @@ public class MessageTransportProtocol implements MTP {
 		//Creation of the Server
 		try {
 			//Create object server
-			HTTPServer srv = new HTTPServer(port,disp,numKA,saxClass,timeout, changePortIfBusy);
+			HTTPServer srv = new HTTPServer(interfaceAddress, port,disp,numKA,saxClass,timeout, changePortIfBusy);
 			int actualPort = srv.getLocalPort();
 			if (actualPort != port) {
 				// The selected port is busy and a new one was selected --> Update the transport address

@@ -62,6 +62,7 @@ public class HTTPServer extends Thread {
 	//static String CODEC = "org.apache.xerces.parsers.SAXParser";
 	static String CODEC   = "org.apache.crimson.parser.XMLReaderImpl";
 	
+	private String address;
 	private int port;
 	private InChannel.Dispatcher dispatcher;
 	private int maxKA;
@@ -80,7 +81,8 @@ public class HTTPServer extends Thread {
 	boolean active = true;
 	
 	/** Constructor: Store the information*/
-	public HTTPServer(int p, InChannel.Dispatcher d, int m, String s, int t, boolean changePortIfBusy) throws IOException { 
+	public HTTPServer(String interfaceAddress, int p, InChannel.Dispatcher d, int m, String s, int t, boolean changePortIfBusy) throws IOException {
+		address    = interfaceAddress;
 		port       = p;
 		dispatcher = d;
 		maxKA      = m;
@@ -95,7 +97,7 @@ public class HTTPServer extends Thread {
 		timeout = t;
 		try {
 			//#PJAVA_EXCLUDE_BEGIN 
-			server = HTTPSocketFactory.getInstance().createServerSocket(port);
+			server = HTTPSocketFactory.getInstance().createServerSocket(address, port);
 			//#PJAVA_EXCLUDE_END
 			/*#PJAVA_INCLUDE_BEGIN
 			 server = new ServerSocket(port);
@@ -105,7 +107,7 @@ public class HTTPServer extends Thread {
 			if (changePortIfBusy) {
 				// The specified port is busy. Let the system find a free one
 				//#PJAVA_EXCLUDE_BEGIN	
-				server = HTTPSocketFactory.getInstance().createServerSocket(0);
+				server = HTTPSocketFactory.getInstance().createServerSocket(address, 0);
 				//#PJAVA_EXCLUDE_END
 				/*#PJAVA_INCLUDE_BEGIN
 				 server = new ServerSocket(0);

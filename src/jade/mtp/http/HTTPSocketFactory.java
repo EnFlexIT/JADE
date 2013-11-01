@@ -167,8 +167,10 @@ public class HTTPSocketFactory {
     return s;
   }
 
-  public ServerSocket createServerSocket(int port) throws IOException {
-    ServerSocket ss = _serverSocketFactory.createServerSocket(port);
+  public ServerSocket createServerSocket(String interfaceAddress, int port) throws IOException {
+	InetAddress ifAddr = interfaceAddress == null || interfaceAddress.equals(Profile.LOCALHOST_CONSTANT) ? null : InetAddress.getByName(interfaceAddress);
+    ServerSocket ss = _serverSocketFactory.createServerSocket(port, 0,  ifAddr);
+    
     //#DOTNET_EXCLUDE_BEGIN
 	if (_usingHttps)
        ((SSLServerSocket)ss).setNeedClientAuth(_needClientAuth);
