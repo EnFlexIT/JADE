@@ -313,7 +313,7 @@ class ObjectSchemaImpl extends ObjectSchema {
 	public ObjectSchema getSchema(String name) throws OntologyException {
 		SlotDescriptor slot = getSlot(new CaseInsensitiveString(name));
 		if (slot == null) {
-			throw new OntologyException("No slot named: " + name);
+			throw new OntologyException("No slot named: " + name + " in schema " + typeName);
 		}
 		return slot.schema;
 	}

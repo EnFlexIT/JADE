@@ -25,6 +25,11 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
+//#J2ME_EXCLUDE_BEGIN
+import java.util.List;
+import java.util.Properties;
+//#J2ME_EXCLUDE_END
+
 import jade.content.Concept;
 
 
@@ -102,6 +107,20 @@ public class Property implements Concept {
 	private java.io.Serializable getsvalue() {
 		return (java.io.Serializable) value;
 	}
+
+	public static Properties convertPropertyListToProperties(List<Property> pp) {
+		if (pp == null) {
+			return null;
+		}
+		else {
+			Properties props = new Properties();
+			for (Property p : pp) {
+				props.put(p.getName(), p.getValue());
+			}
+			return props;
+		}
+	}
+	
 	//#J2ME_EXCLUDE_END
 	
 	//#MIDP_EXCLUDE_BEGIN

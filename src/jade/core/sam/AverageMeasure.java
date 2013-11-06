@@ -31,7 +31,7 @@ import java.io.Serializable;
 public class AverageMeasure implements Serializable, Provider {
 	private static final long serialVersionUID = 423475294834L;
 	
-	private double value = 0.0;
+	private double value = Double.NaN;
 	private int nSamples = 0;
 	private double variance = 0.0;
 	
@@ -63,11 +63,18 @@ public class AverageMeasure implements Serializable, Provider {
 	}
 	
 	public void update(AverageMeasure am) {
-		double totValue = value * nSamples + am.getValue() * am.getNSamples();
-		int totSamples = nSamples + am.getNSamples();
+		if (value == Double.NaN) {
+			value = am.getValue();
+			nSamples = am.getNSamples();
+		} 
+		else if (am.getValue() != Double.NaN) {
+			double totValue = value * nSamples + am.getValue() * am.getNSamples();
+			int totSamples = nSamples + am.getNSamples();
+			
+			value = (totSamples != 0 ? totValue / totSamples : 0.0);
+			nSamples = totSamples;
+		}
 		
-		value = (totSamples != 0 ? totValue / totSamples : 0.0);
-		nSamples = totSamples;
 		// FIXME: update variance
 	}
 }

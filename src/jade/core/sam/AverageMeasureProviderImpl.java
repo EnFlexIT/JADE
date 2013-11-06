@@ -60,7 +60,7 @@ public class AverageMeasureProviderImpl implements AverageMeasureProvider {
 	}
 	
 	public synchronized AverageMeasure getValue() {
-		double avg = (nSamples != 0 ? sum / nSamples : 0);
+		double avg = (nSamples != 0 ? sum / nSamples : Double.NaN);
 		AverageMeasure result = new AverageMeasure(avg, nSamples);
 		nSamples = 0;
 		sum = 0.0;
