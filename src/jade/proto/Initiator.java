@@ -488,13 +488,20 @@ abstract class Initiator extends FSMBehaviour {
 		if (msgs.size() > 0) {
 			ACLMessage msg = (ACLMessage) msgs.elementAt(0);
 			if ((msg == null) || (msg.getConversationId() == null)) {
-				convId = "C"+hashCode()+"_"+System.currentTimeMillis();
+				convId = "C"+hashCode()+"_"+myAgent.getLocalName()+"_"+System.currentTimeMillis()+"_"+getCnt();
 			}
 			else {
 				convId = msg.getConversationId();
 			}
 		}
 		return convId;
+	}
+	
+	private static int cnt = 0;
+	private synchronized static int getCnt() {
+		int k = cnt;
+		cnt++;
+		return k;
 	}
 	
 	//#APIDOC_EXCLUDE_BEGIN

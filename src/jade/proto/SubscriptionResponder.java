@@ -33,6 +33,7 @@ import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.FailureException;
 import jade.domain.FIPANames;
 import jade.proto.states.*;
+import jade.util.Logger;
 import jade.util.leap.*;
 
 import java.util.Enumeration;
@@ -86,6 +87,8 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 	 <code>SubscriptionResponder</code> to register subscriptions
 	 */
 	protected SubscriptionManager mySubscriptionManager = null;
+	
+	private Logger myLogger = Logger.getJADELogger(getClass().getName());
 	
 	/**
 	 This static method can be used 
@@ -339,7 +342,10 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 		Subscription s = new Subscription(this, subsMsg);
 		String convId = subsMsg.getConversationId();
 		if (convId != null) {
-			subscriptions.put(convId, s);
+			Subscription old = (Subscription) subscriptions.put(convId, s);
+			if (old != null) {
+				myLogger.log(Logger.WARNING, "Agent "+myAgent.getLocalName()+" - Subscription from agent "+old.getMessage().getSender().getLocalName()+" overridden by agent "+subsMsg.getSender().getLocalName());
+			}
 		}
 		return s;
 	}
