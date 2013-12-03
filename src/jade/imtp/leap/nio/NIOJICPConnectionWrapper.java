@@ -1,5 +1,6 @@
 package jade.imtp.leap.nio;
 
+//#J2ME_EXCLUDE_FILE
 import jade.imtp.leap.JICP.JICPPacket;
 
 import java.io.IOException;

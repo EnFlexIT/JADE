@@ -67,7 +67,6 @@ public class AverageMeasureProviderImpl implements AverageMeasureProvider {
 		return result;
 	}
 
-	@Override
 	public Object clone() throws CloneNotSupportedException {
 		AverageMeasureProviderImpl clonedAvgMeasureProvider = new AverageMeasureProviderImpl();
 		clonedAvgMeasureProvider.sum = this.sum;

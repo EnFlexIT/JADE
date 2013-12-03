@@ -31,8 +31,14 @@ import jade.content.onto.basic.Action;
 import jade.content.onto.basic.Done;
 import jade.content.onto.basic.Result;
 import jade.core.ServiceNotActiveException;
+
+//#PJAVA_EXCLUDE_BEGIN
+//#DOTNET_EXCLUDE_BEGIN
 import jade.core.sam.AverageMeasureProviderImpl;
 import jade.core.sam.SAMHelper;
+//#DOTNET_EXCLUDE_END
+//#PJAVA_EXCLUDE_END
+
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.domain.FIPAAgentManagement.*;
@@ -52,7 +58,11 @@ import jade.util.Logger;
 class DFFipaAgentManagementBehaviour extends RequestManagementBehaviour {
 
 	private df theDF;
+	//#PJAVA_EXCLUDE_BEGIN
+	//#DOTNET_EXCLUDE_BEGIN
 	private AverageMeasureProviderImpl serveRequestTimeProvider;
+	//#DOTNET_EXCLUDE_END
+	//#PJAVA_EXCLUDE_END
 
 	protected DFFipaAgentManagementBehaviour(df a, MessageTemplate mt){
 		super(a, mt);
@@ -61,6 +71,8 @@ class DFFipaAgentManagementBehaviour extends RequestManagementBehaviour {
 	
 	public void onStart() {
 		super.onStart();
+		//#PJAVA_EXCLUDE_BEGIN
+		//#DOTNET_EXCLUDE_BEGIN
 		try {
 			SAMHelper samHelper = (SAMHelper) myAgent.getHelper(SAMHelper.SERVICE_NAME);
 			serveRequestTimeProvider = new AverageMeasureProviderImpl();
@@ -72,6 +84,8 @@ class DFFipaAgentManagementBehaviour extends RequestManagementBehaviour {
 		catch (Exception e) {
 			myLogger.log(Logger.WARNING, "Error initializing SAM providers", e);
 		}
+		//#DOTNET_EXCLUDE_END
+		//#PJAVA_EXCLUDE_END
 	}
 
 	/**
@@ -128,10 +142,15 @@ class DFFipaAgentManagementBehaviour extends RequestManagementBehaviour {
 				e.printStackTrace();
 			}
 			
+			//#PJAVA_EXCLUDE_BEGIN
+			//#DOTNET_EXCLUDE_BEGIN
 			long serveTime = System.currentTimeMillis() - request.getPostTimeStamp();
 			if (serveRequestTimeProvider != null) {
 				serveRequestTimeProvider.addSample(serveTime);
 			}
+			//#DOTNET_EXCLUDE_END
+			//#PJAVA_EXCLUDE_END
+			
 			return notification;
 		}
 		else {

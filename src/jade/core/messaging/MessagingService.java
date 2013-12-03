@@ -359,6 +359,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 	private void initializeSAM() {
 		//#J2ME_EXCLUDE_BEGIN
+		//#DOTNET_EXCLUDE_BEGIN
 		try {
 			Service sam = myContainer.getServiceFinder().findService(SAMHelper.SERVICE_NAME);
 			if (sam != null) {
@@ -399,6 +400,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			// Should never happen
 			myLogger.log(Logger.WARNING, "Error accessing the local SAMService.", e);
 		}
+		//#DOTNET_EXCLUDE_END
 		//#J2ME_EXCLUDE_END
 	}
 

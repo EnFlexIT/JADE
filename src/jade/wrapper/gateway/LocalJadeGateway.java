@@ -24,7 +24,6 @@ public class LocalJadeGateway extends DynamicJadeGateway {
 		super.init(agentClassName, null);
 	}
 	
-	@Override
 	public final void shutdown() {
 		try {
 			if (myAgent != null)
