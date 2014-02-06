@@ -410,8 +410,7 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 
 	// SHUTDOWN PLATFORM
 	void shutdownPlatformAction(ShutdownPlatform sp, final AID requester, final JADEPrincipal requesterPrincipal, final Credentials requesterCredentials) throws FIPAException {
-		if (logger.isLoggable(Logger.FINE))
-			logger.log(Logger.FINE, "Agent " + requester + " requesting Shutdown-platform ");
+		logger.log(Logger.INFO, "AMS - Activating platform shutdown. Requester = " + requester.getName());
 
 		// Notify a SHUTDOWN_PLATFORM_REQUESTED introspection event to all tools
 		ShutdownPlatformRequested spr = new ShutdownPlatformRequested();

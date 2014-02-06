@@ -259,16 +259,14 @@ public class PlatformManagerImpl implements PlatformManager {
 	// This may throw IMTPException since localAddSlice() throws IMTPException
 	private String localAddNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws IMTPException, ServiceException, JADESecurityException {
 		Node node = dsc.getNode();
-
-		checkExistence(node);
 		
 		// If the node hosts a Container, adjust node name
 		adjustName(dsc, node);
 
-		// Issue a NEW_NODE vertical command
+		// Check if the newly starting node is reachable and, in case, issue a NEW_NODE vertical command
 		if (!propagated) {
-			// In this case we issue the command before adding the node
-			// for authorization purposes
+			checkReachability(dsc);
+			// In this case we issue the command before adding the node for authorization purposes
 			issueNewNodeCommand(dsc);
 		}
 
@@ -856,8 +854,21 @@ public class PlatformManagerImpl implements PlatformManager {
 		return childrenArray;
 	}
 
-	private void checkExistence(Node node) {
-		// FIXME: To be implemented
+	private void checkReachability(NodeDescriptor dsc) throws IMTPException {
+		if (dsc.getParentNode() == null) {
+			// Check reachability of stand-alone nodes only
+			Node node = dsc.getNode();
+			if (!isLocalNode(node)) {
+				try {
+					node.ping(false);
+				}
+				catch (IMTPException imtpe) {
+					myLogger.log(Logger.WARNING, "Node <" + dsc.getName() + "> is trying to join the platform but is not reachable. Node details: "+node+". Exception message: "+imtpe.getMessage());
+					// The following exception will be displayed in the joining node output
+					throw new IMTPException("Main container cannot reach newly starting node "+node+": "+imtpe.getMessage());
+				}
+			}
+		}
 	}
 	
 	private void adjustName(NodeDescriptor dsc, Node node) {

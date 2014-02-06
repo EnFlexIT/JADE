@@ -45,6 +45,10 @@ import java.util.Vector;
  @author Giovanni Caire - TILAB
  */
 public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
+	private static final int IDLE_STATUS = 0;
+	private static final int ACTIVE_STATUS = 1;
+	private static final int TERMINATING_STATUS = 2;
+	
 	private IMTPManager myIMTPManager;
 	private CommandProcessor myCommandProcessor;
 	private PlatformManager myPlatformManager;
@@ -55,7 +59,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	private Map localServices;
 	private Map backupManagers;
 	
-	private boolean terminating = false;
+	private int status = IDLE_STATUS;
 
 	private jade.util.Logger myLogger;
 
@@ -183,6 +187,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 				}
 			}
 			adjustName(name);
+			status = ACTIVE_STATUS;
 		} catch (IMTPException imtpe2) {
 			throw imtpe2;
 		} catch (ServiceException se) {
@@ -197,7 +202,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	public void removeNode(NodeDescriptor desc) throws IMTPException, ServiceException {
 		// Do not notify the platform manager. The node termination will cause the deregistration...
 
-		terminating = true;
+		status = TERMINATING_STATUS;
 		
 		// Uninstall all services locally
 		Object[] names = localServices.keySet().toArray();
@@ -475,7 +480,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	 * @see jade.core.replication.MainReplicationService
 	 */
 	private synchronized boolean reconnect() {
-		if (!terminating) {
+		if (status == ACTIVE_STATUS) {
 			// Check if the current PlatformManager is actually down (another thread
 			// may have reconnected in the meanwhile)
 			try {
