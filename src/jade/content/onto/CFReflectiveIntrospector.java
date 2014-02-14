@@ -18,8 +18,9 @@ public class CFReflectiveIntrospector extends ReflectiveIntrospector {
 		
 		AbsAggregate absAggregate = null;
 		Collection c = (Collection) obj;
-		if (!c.isEmpty() || schema.isMandatory(slotName)) {
-			// Note that we ignore the aggregateType specified in the slot schema and we use SET for java.util.Set and SEQUENCE for java.util.List
+		if (!c.isEmpty() || schema == null || schema.isMandatory(slotName)) {
+			// Note 1: schema is null when we are externalizing a first-level object and not the value of a slot
+			// Note 2: we ignore the aggregateType specified in the slot schema and we use SET for java.util.Set and SEQUENCE for java.util.List
 			String aggregateType = null;
 			if (obj instanceof List) {
 				aggregateType = SL0Vocabulary.SEQUENCE;
@@ -28,7 +29,7 @@ public class CFReflectiveIntrospector extends ReflectiveIntrospector {
 				aggregateType = SL0Vocabulary.SET;
 			}
 			else {
-				throw new OntologyException("Wrong class "+c.getClass().getName()+" for aggregate slot "+slotName+" of object "+schema.getTypeName());
+				throw new NotAnAggregate();
 			}
 			absAggregate = externaliseCollection(c, referenceOnto, aggregateType); 
 		}

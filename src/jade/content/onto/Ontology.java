@@ -636,7 +636,7 @@ public class Ontology implements Serializable {
 			if(logger.isLoggable(Logger.FINE))
 				logger.log(Logger.FINE,"Ontology "+getName()+". Schema for class "+javaClass+" found locally: "+schema);
 
-			// Try to manage as special type
+			// Try to manage as special type (i.e. types that need special handling such as enum)
 			AbsObject abs = null;
 			try {
 				abs = externalizeSpecialType(obj, schema, javaClass, globalOnto);
@@ -1067,6 +1067,20 @@ public class Ontology implements Serializable {
 		List<ObjectSchema> schemas = new ArrayList<ObjectSchema>();
 		addReferencedSchemas(rootSchema, schemas);
 		return schemas;
+	}
+	
+	public static boolean isBaseOntology(Ontology[] oo, String name) {
+		if (oo != null) {
+			for (Ontology o : oo) {
+				if (o.getName().equals(name)) {
+					return true;
+				}
+				else if (isBaseOntology(o.base, name)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 	
 	/**

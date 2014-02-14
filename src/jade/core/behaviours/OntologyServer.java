@@ -7,7 +7,9 @@ import jade.core.behaviours.CyclicBehaviour;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import jade.content.AgentAction;
 import jade.content.ContentElement;
@@ -35,8 +37,9 @@ import jade.util.Logger;
  * <br>
  * where Cccc represents the key content-element referenced by the incoming message msg
  * and Pppp represents the performative of the message.<br>
- * ContentElement-s representing SL0 operators action, done and result are automatically managed
- * so that for instance if an incoming REQUEST message is received carrying a content of type<br>
+ * ContentElement-s representing SL0 operators <code>action</code>, <code>done</code> and <code>result</code> are 
+ * automatically managed so that for instance if an incoming REQUEST message is received carrying a content of 
+ * type<br>
  * ((action (actor ...) (Sell ...)))<br>
  * a serving method with signature<br>
  * <code>
@@ -82,6 +85,7 @@ public class OntologyServer extends CyclicBehaviour {
 	
 	private ConversationList ignoredConversations;
 	private MessageTemplate template;
+	private Set<Integer> performativesRequiringReply = new HashSet<Integer>();
 	
 	private transient Map<String, Method> cachedMethods = new HashMap<String, Method>();
 	private ContentElement receivedContentElement;
@@ -120,6 +124,17 @@ public class OntologyServer extends CyclicBehaviour {
 			// E.g. XXX-Ontology-Server
 			setBehaviourName(onto.getName()+"-Serever");
 		}
+		
+		performativesRequiringReply.add(ACLMessage.REQUEST);
+		performativesRequiringReply.add(ACLMessage.REQUEST_WHEN);
+		performativesRequiringReply.add(ACLMessage.REQUEST_WHENEVER);
+		performativesRequiringReply.add(ACLMessage.CFP);
+		performativesRequiringReply.add(ACLMessage.PROPOSE);
+		performativesRequiringReply.add(ACLMessage.QUERY_IF);
+		performativesRequiringReply.add(ACLMessage.QUERY_REF);
+		performativesRequiringReply.add(ACLMessage.SUBSCRIBE);
+		performativesRequiringReply.add(ACLMessage.PROXY);
+		performativesRequiringReply.add(ACLMessage.PROPAGATE);
 	}
 	
 	public void setLanguage(Codec codec) {
@@ -140,6 +155,27 @@ public class OntologyServer extends CyclicBehaviour {
 		if (ignoredConversations == null) {
 			ignoredConversations = l;
 		}
+	}
+	
+	/**
+	 * If an unexpected error occurs in one of the serving methods or if a suitable serving method 
+	 * is not found for an incoming message, the OntologyServer automatically sends back a FAILURE 
+	 * or REFUSE message if the incoming performative was one of REQUEST, CFP, PROPOSE, QUERY, SUBSCRIBE,
+	 * PROXY and PROPAGATE. In other cases the OntologyServer simply logs a suitable error message.
+	 * The above list of performatives can be customized by means of this method as well as the 
+	 * <code>addPerformativeRequiringReply(int)<code> one.
+	 * @param performative The performative to be added 
+	 */
+	public void addPerformativeRequiringReply(int performative) {
+		performativesRequiringReply.add(performative);
+	}
+	
+	/**
+	 * @see addPerformativeRequiringReply(int)
+	 * @param performative The performative to be removed
+	 */
+	public void removePerformativeRequiringReply(int performative) {
+		performativesRequiringReply.remove(performative);
 	}
 	
 	public void onStart() {
@@ -265,25 +301,31 @@ public class OntologyServer extends CyclicBehaviour {
 	
 	protected void handleUnsupported(ContentElement keyCel, ACLMessage msg) {
 		myLogger.log(Logger.WARNING, "Agent "+myAgent.getName()+" - Unsupported content-element "+keyCel.getClass().getName()+". Sender is "+msg.getSender().getName());
-		ACLMessage reply = msg.createReply();
-		reply.setPerformative(ACLMessage.REFUSE);
-		reply.setContent("(("+ExceptionVocabulary.UNSUPPORTEDACT+" "+keyCel.getClass().getName()+"))");
-		myAgent.send(reply);
+		if (performativesRequiringReply.contains(msg.getPerformative())) {
+			ACLMessage reply = msg.createReply();
+			reply.setPerformative(ACLMessage.REFUSE);
+			reply.setContent("(("+ExceptionVocabulary.UNSUPPORTEDACT+" "+keyCel.getClass().getName()+"))");
+			myAgent.send(reply);
+		}
 	}
 	
 	protected void handleServingFailure(Throwable t, ContentElement cel, ACLMessage msg) {
 		myLogger.log(Logger.SEVERE, "Agent "+myAgent.getName()+" - Unexpected error serving content-element "+cel.getClass().getName()+". Sender is "+msg.getSender().getName(), t);
-		ACLMessage reply = msg.createReply();
-		reply.setPerformative(ACLMessage.FAILURE);
-		reply.setContent("(("+ExceptionVocabulary.INTERNALERROR+" \""+t+"\"))");
-		myAgent.send(reply);
+		if (performativesRequiringReply.contains(msg.getPerformative())) {
+			ACLMessage reply = msg.createReply();
+			reply.setPerformative(ACLMessage.FAILURE);
+			reply.setContent("(("+ExceptionVocabulary.INTERNALERROR+" \""+t+"\"))");
+			myAgent.send(reply);
+		}
 	}
 	
 	protected void handleNotUnderstood(ContentException ce, ACLMessage msg) {
 		myLogger.log(Logger.WARNING, "Agent "+myAgent.getName()+" - Error decoding "+ACLMessage.getPerformative(msg.getPerformative())+" message. Sender is "+msg.getSender().getName(), ce);
-		ACLMessage reply = msg.createReply();
-		reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-		myAgent.send(reply);
+		if (performativesRequiringReply.contains(msg.getPerformative())) {
+			ACLMessage reply = msg.createReply();
+			reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+			myAgent.send(reply);
+		}
 	}
 	
 	private Method findServerMethod(ContentElement cel, int performative) {

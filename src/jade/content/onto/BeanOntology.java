@@ -25,6 +25,7 @@ package jade.content.onto;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.Arrays;
 
 //#J2ME_EXCLUDE_FILE
 
@@ -141,7 +142,7 @@ public class BeanOntology extends Ontology {
 	 * @param base The base ontologies
 	 */
 	public BeanOntology(String name, Ontology[] base) {
-		super(name, base, new BeanIntrospector());
+		super(name, ensureBasicOntology(base), new BeanIntrospector());
 		bob = new BeanOntologyBuilder(this);
 	}
 
@@ -204,5 +205,22 @@ public class BeanOntology extends Ontology {
 
 		// Create a new instance of BOB
 		bob = new BeanOntologyBuilder(this);
+	}
+	
+	private static Ontology[] ensureBasicOntology(Ontology[] base) {
+		if (base == null) {
+			return new Ontology[]{BasicOntology.getInstance()};
+		}
+		else if (!Ontology.isBaseOntology(base, BasicOntology.getInstance().getName())) {
+			Ontology[] newBase = new Ontology[base.length + 1];
+			for (int i = 0; i < base.length; ++i) {
+				newBase[i] = base[i];
+			}
+			newBase[base.length] = BasicOntology.getInstance();
+			return newBase;
+		}
+		else {
+			return base;
+		}
 	}
 }

@@ -173,6 +173,7 @@ class BeanIntrospector implements Introspector {
 				try {
 					while (iter.hasNext()) {
 						Object object = iter.next();
+						// Do not call Ontology.fromObject directly since each element in the aggregate may be an aggregate itself
 						absAggregate.add((AbsTerm)Ontology.externalizeSlotValue(object, this, referenceOnto));
 					}
 				} catch (ClassCastException cce) {

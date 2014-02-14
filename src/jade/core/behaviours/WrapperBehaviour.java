@@ -15,7 +15,7 @@ import jade.util.leap.Collection;
  Behaviour b = // get the behaviour object 
  addBehaviour(new WrapperBehaviour(b) {
    public boolean done() {
-     boolean ret = super.boolean();
+     boolean ret = super.done();
      if (ret) {
        System.out.println("done() method returned true --> The behaviour is completing!");
      }
