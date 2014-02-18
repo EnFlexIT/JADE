@@ -626,7 +626,7 @@ public class Agent implements Runnable, Serializable
 	 * <br>
 	 * @return jade.wrapper.AgentContainer a controller for the container this agent lives in.
 	 */
-	public final jade.wrapper.AgentContainer getContainerController() {
+	public jade.wrapper.AgentContainer getContainerController() {
 		if (myContainer == null) {  // first time called
 			try {
 				jade.security.JADEPrincipal principal = null;
@@ -701,7 +701,7 @@ public class Agent implements Runnable, Serializable
 	 @return An <code>AID</code> object, that can be used to contact
 	 the default DF of this platform.
 	 */
-	public final AID getDefaultDF() {
+	public AID getDefaultDF() {
 		return myToolkit.getDefaultDF();
 	}
 

@@ -82,6 +82,7 @@ import java.util.Date;
 public class ams extends Agent /*implements AgentManager.Listener*/ {
 	public static final String PERIODIC_LOG_DELAY = "jade_domain_ams_periodiclogdelay";
 	public static final String MAX_RESULTS = "jade_domain_ams_maxresult";
+	public static final String KEEP_NOTIFY_ON_SHUTDOWN = "jade_domain_ams_keepnotifyonshutdown";
 
 	// Limit of searchConstraints.maxresult
 	// FIPA Agent Management Specification doc num: SC00023J (6.1.4 Search Constraints)
@@ -102,6 +103,7 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 
 	// ACL Message to use for tool notification
 	private ACLMessage toolNotification = new ACLMessage(ACLMessage.INFORM);
+	private boolean keepNotifyOnShutdown = false;
 
 	// Buffer for AgentPlatform notifications
 	private InputQueue eventQueue = new InputQueue();
@@ -141,6 +143,8 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 		theProfile.setName("\"" + getHap() + "\"");
 		writeAPDescription(theProfile);
 
+		keepNotifyOnShutdown = "true".equals(getProperty(KEEP_NOTIFY_ON_SHUTDOWN, null));
+		
 		String sLogDelay = getProperty(PERIODIC_LOG_DELAY, String.valueOf(DEFAULT_PERIODIC_LOG_DELAY));
 		try {
 			int logDelay = Integer.parseInt(sLogDelay);
@@ -219,14 +223,18 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 		// the Main Container JVM unexpectedly exits
 		java.lang.Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
-				logger.log(Logger.FINE, ">>>>>>>>> Shutdown Hook activated. AMS state = "+ams.this.getState());
+				logger.log(Logger.FINE, ">>>>>>>>> Shutdown Hook activated. AMS state = "+ams.this.getState());				
 				if (!shuttingDown && ams.this.getState() != Agent.AP_DELETED) {
+					notifyShutdownPlatformRequested();
+					
+					shuttingDown = true;
 					try {
 						logger.log(Logger.WARNING, ">>>>>>>>> Main Container JVM is terminating. Activate platform shutdown");
 						myPlatform.shutdownPlatform(null, null);
 						logger.log(Logger.WARNING, ">>>>>>>>> Platform shutdown completed");
 					} catch (Exception e) {
 						logger.log(Logger.SEVERE, ">>>>>>>>> Platform shutdown error", e);
+						shuttingDown = false;
 					}
 				}
 			}
@@ -413,6 +421,25 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 		logger.log(Logger.INFO, "AMS - Activating platform shutdown. Requester = " + requester.getName());
 
 		// Notify a SHUTDOWN_PLATFORM_REQUESTED introspection event to all tools
+		notifyShutdownPlatformRequested();
+		
+		shuttingDown = true;
+		Thread auxThread = new Thread() {
+			public void run() {
+				try {
+					myPlatform.shutdownPlatform(requesterPrincipal, requesterCredentials);
+				} 
+				catch (JADESecurityException ae) {
+					logger.log(Logger.SEVERE, "Agent " + requester.getName() + " does not have permission to perform action Shutdown-Platform: " + ae);
+					shuttingDown = false;
+				}
+			}
+		};
+
+		auxThread.start();
+	}
+	
+	private void notifyShutdownPlatformRequested() {
 		ShutdownPlatformRequested spr = new ShutdownPlatformRequested();
 		EventRecord er = new EventRecord(spr, here());
 		er.setWhen(new Date());
@@ -422,20 +449,6 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 			// Should never happen 
 			e.printStackTrace();
 		}
-		
-		shuttingDown = true;
-		Thread auxThread = new Thread() {
-			public void run() {
-				try {
-					myPlatform.shutdownPlatform(requesterPrincipal, requesterCredentials);
-				} catch (JADESecurityException ae) {
-					if (logger.isLoggable(Logger.SEVERE))
-						logger.log(Logger.SEVERE, "Agent " + requester.getName() + " does not have permission to perform action Shutdown-Platform: " + ae);
-				}
-			}
-		};
-
-		auxThread.start();
 	}
 
 	// INSTALL MTP
@@ -995,16 +1008,19 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 	} // END of EventManager inner class
 
 	private void notifyTools(EventRecord er) throws Exception {
-		toolNotification.clearAllReceiver();
-		AID[] allTools = myPlatform.agentTools();
-		for (int i = 0; i < allTools.length; i++) {
-			AID tool = allTools[i];
-			toolNotification.addReceiver(tool);
+		// Unless explicitly instructed to do so, avoid notifying tools when the platform is shutting down
+		if (!shuttingDown || keepNotifyOnShutdown) {
+	 		toolNotification.clearAllReceiver();
+			AID[] allTools = myPlatform.agentTools();
+			for (int i = 0; i < allTools.length; i++) {
+				AID tool = allTools[i];
+				toolNotification.addReceiver(tool);
+			}
+			Occurred o = new Occurred();
+			o.setWhat(er);
+			getContentManager().fillContent(toolNotification, o);
+			send(toolNotification);
 		}
-		Occurred o = new Occurred();
-		o.setWhat(er);
-		getContentManager().fillContent(toolNotification, o);
-		send(toolNotification);
 	}
 
 	//////////////////////////////////////////////////////////////////
