@@ -236,7 +236,7 @@ public class OntologyServer extends CyclicBehaviour {
 	protected void handleMessage(ACLMessage msg) {
 		try {
 			receivedContentElement = myAgent.getContentManager().extractContent(msg);
-			ContentElement keyCel = extractKeyContentElement(receivedContentElement);
+			Object keyCel = extractKeyContentElement(receivedContentElement);
 					
 			if (myLogger.isLoggable(Logger.FINE)) {
 				myLogger.log(Logger.FINE, "Agent "+myAgent.getName()+" - Serving "+keyCel.getClass().getName()+" "+ACLMessage.getPerformative(msg.getPerformative()));
@@ -271,7 +271,7 @@ public class OntologyServer extends CyclicBehaviour {
 		return receivedContentElement;
 	}
 	
-	protected ContentElement extractKeyContentElement(ContentElement ce) {
+	protected Object extractKeyContentElement(ContentElement ce) {
 		// Properly handle the SL action, done and result operators 
 		if (ce instanceof Action) {
 			return (AgentAction) ((Action) ce).getAction();
@@ -299,7 +299,7 @@ public class OntologyServer extends CyclicBehaviour {
 		}
 	}
 	
-	protected void handleUnsupported(ContentElement keyCel, ACLMessage msg) {
+	protected void handleUnsupported(Object keyCel, ACLMessage msg) {
 		myLogger.log(Logger.WARNING, "Agent "+myAgent.getName()+" - Unsupported content-element "+keyCel.getClass().getName()+". Sender is "+msg.getSender().getName());
 		if (performativesRequiringReply.contains(msg.getPerformative())) {
 			ACLMessage reply = msg.createReply();
@@ -309,7 +309,7 @@ public class OntologyServer extends CyclicBehaviour {
 		}
 	}
 	
-	protected void handleServingFailure(Throwable t, ContentElement cel, ACLMessage msg) {
+	protected void handleServingFailure(Throwable t, Object cel, ACLMessage msg) {
 		myLogger.log(Logger.SEVERE, "Agent "+myAgent.getName()+" - Unexpected error serving content-element "+cel.getClass().getName()+". Sender is "+msg.getSender().getName(), t);
 		if (performativesRequiringReply.contains(msg.getPerformative())) {
 			ACLMessage reply = msg.createReply();
@@ -328,7 +328,7 @@ public class OntologyServer extends CyclicBehaviour {
 		}
 	}
 	
-	private Method findServerMethod(ContentElement cel, int performative) {
+	private Method findServerMethod(Object cel, int performative) {
 		Class c = cel.getClass();
 		String performativeName = performativeNames[performative];
 		String key = c.getSimpleName()+performativeName;
