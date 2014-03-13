@@ -184,6 +184,16 @@ public class MicroRuntime {
 	public static boolean isRunning() {
 		return myFrontEnd != null;
 	}
+	
+	public static String getContainerName() {
+		if (myFrontEnd != null) {
+			Location cid = myFrontEnd.here();
+			if (cid != null) {
+				return cid.getName();
+			}
+		}
+		return null;
+	}
 
 	/**
 	 Start a new agent. This method starts a new agent within

@@ -59,7 +59,7 @@ public class MicroStub {
 		try {
 			beginDispatch();
 			byte[] cmd = SerializationEngine.serialize(c);
-			logger.log(Logger.INFO, "Dispatching command "+c.getCode()+". SF-timeout="+timeout+", old-SID="+sessionId);
+			logger.log(Logger.FINE, "Dispatching command "+c.getCode()+". SF-timeout="+timeout+", old-SID="+sessionId);
 			byte[] rsp = myDispatcher.dispatch(cmd, flushing, sessionId);
 			if (pendingCommands.size() > 0) {
 				logger.log(Logger.FINE, "############# Dispatch succeeded with "+pendingCommands.size()+" pending commands.");
@@ -165,7 +165,7 @@ public class MicroStub {
 			flushingThread = new Thread() {
 				public void run() {
 					// 2) Flush the buffer of pending commands
-					logger.log(Logger.INFO,"Start flushing");					
+					logger.log(Logger.INFO, "Start flushing");					
 					int flushedCnt = 0;
 					PostponedCommand pc = null;
 					while ((pc = removeFirst()) != null) {

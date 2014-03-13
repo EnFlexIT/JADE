@@ -89,7 +89,7 @@ public class MicroBoot {
 		}
 	}
 
-	private static Properties parseCmdLineArgs(String[] args) throws IllegalArgumentException {
+	public static Properties parseCmdLineArgs(String[] args) throws IllegalArgumentException {
 		Properties props = new Properties();
 
 		int i = 0;

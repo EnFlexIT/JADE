@@ -30,7 +30,6 @@ import jade.imtp.leap.JICP.JICPProtocol;
 import jade.imtp.leap.nio.BEManagementService;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.util.leap.List;
@@ -47,7 +46,6 @@ import jade.util.Logger;
 
 import java.lang.reflect.Method;
 import java.util.StringTokenizer;
-import java.util.Enumeration;
 import java.util.Vector;
 
 /**
@@ -311,7 +309,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 		} else {
 			size = msg.getContent() != null ? msg.getContent().length() : 0;
 		}
-		myLogger.log(Logger.INFO, getID() + " - Delivering OUT message "+ACLMessage.getPerformative(msg.getPerformative()) + ", size=" + size);
+		myLogger.log(Logger.FINE, getID() + " - Delivering OUT message "+ACLMessage.getPerformative(msg.getPerformative()) + ", size=" + size);
 		handleSend(msg, id, false);
 	}
 	
@@ -471,7 +469,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 					} else {
 						size = msg.getContent() != null ? msg.getContent().length() : 0;
 					}
-					myLogger.log(Logger.INFO, getID() + " - Delivering IN message "+ACLMessage.getPerformative(msg.getPerformative()) + ", size=" + size);
+					myLogger.log(Logger.FINE, getID() + " - Delivering IN message "+ACLMessage.getPerformative(msg.getPerformative()) + ", size=" + size);
 					myFrontEnd.messageIn(msg, receiverID.getLocalName());
 					handlePosted(receiverID, msg);
 					return true;
