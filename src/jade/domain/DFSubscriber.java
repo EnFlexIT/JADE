@@ -8,6 +8,9 @@ import jade.proto.SubscriptionInitiator;
 import jade.util.Logger;
 import jade.util.leap.Iterator;
 
+//#PJAVA_EXCLUDE_FILE
+//#MIDP_EXCLUDE_FILE
+
 public abstract class DFSubscriber extends SubscriptionInitiator {
 	private static final long serialVersionUID = -5741304962740821073L;
 
