@@ -68,5 +68,6 @@ public class JavaCollectionOntology extends Ontology {
 		catch (NotAnAggregate naa) {
 			throw new UnknownSchemaException();
 		}
-	} 
+	}
+	//#APIDOC_EXCLUDE_END
 }
