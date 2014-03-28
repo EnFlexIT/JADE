@@ -137,11 +137,8 @@ public class MicroRuntimeService extends Service {
 	 *            a <code>RuntimeCallback<Void></code> object that manages the
 	 *            outcome of the operation
 	 */
-	public void startAgentContainer(String host, int port,
-			RuntimeCallback<Void> callback) {
-		Properties properties = RuntimeHelper.createProfileProperties(host,
-				port);
-
+	public void startAgentContainer(String host, int port, RuntimeCallback<Void> callback) {
+		Properties properties = RuntimeHelper.createConnectionProperties(host, port);
 		startAgentContainer(properties, callback);
 	}
 
@@ -156,12 +153,8 @@ public class MicroRuntimeService extends Service {
 	 *            a <code>RuntimeCallback<Void></code> object that manages the
 	 *            outcome of the operation
 	 */
-	public void startAgentContainer(Properties properties, RuntimeCallback<Void> callback) {
-		final Properties finalProperties = properties;
-
-		final RuntimeCallback<Void> finalCallback = callback;
-
-		RuntimeHelper.completeProfileProperties(properties);
+	public void startAgentContainer(final Properties properties, final RuntimeCallback<Void> callback) {
+		RuntimeHelper.completeProperties(properties);
 
 		new Thread() {
 			@Override
@@ -169,25 +162,18 @@ public class MicroRuntimeService extends Service {
 				try {
 					logger.log(Logger.INFO, "Creating micro agent container");
 
-					MicroRuntime.startJADE(finalProperties, null);
+					MicroRuntime.startJADE(properties, null);
 					if (MicroRuntime.isRunning()) {
 						logger.log(Logger.INFO, "Agent container created");
-						finalCallback.notifySuccess(logger, null);
-					} else {
-						throw new Exception(
-								"Cannot connect to the platform at "
-										+ finalProperties
-												.getProperty(Profile.MAIN_HOST)
-										+ ":"
-										+ finalProperties
-												.getProperty(Profile.MAIN_PORT));
+						callback.notifySuccess(logger, null);
+					} 
+					else {
+						throw new Exception("Cannot connect to the platform at " + properties.getProperty(Profile.MAIN_HOST) + ":" + properties.getProperty(Profile.MAIN_PORT));
 					}
-				} catch (Throwable t) {
-					logger.log(Logger.INFO,
-							"Cannot create micro agent container with message: "
-									+ t.getMessage());
-
-					finalCallback.notifyFailure(logger, t);
+				} 
+				catch (Throwable t) {
+					logger.log(Logger.WARNING, "Cannot create micro agent container with message: "+ t.getMessage());
+					callback.notifyFailure(logger, t);
 				}
 			}
 		}.start();
@@ -211,15 +197,12 @@ public class MicroRuntimeService extends Service {
 					logger.log(Logger.INFO, "Stopping micro agent container");
 
 					MicroRuntime.stopJADE();
-
 					finalCallback.notifySuccess(logger, null);
 
 					logger.log(Logger.INFO, "Agent container stopped");
-				} catch (Throwable t) {
-					logger.log(Logger.INFO,
-							"Cannot stop micro agent container with message: "
-									+ t.getMessage());
-
+				} 
+				catch (Throwable t) {
+					logger.log(Logger.INFO, "Cannot stop micro agent container with message: " + t.getMessage());
 					finalCallback.notifyFailure(logger, t);
 				}
 			}
@@ -242,14 +225,10 @@ public class MicroRuntimeService extends Service {
 	 *            a <code>RuntimeCallback<Void></code> object that manages the
 	 *            outcome of the operation
 	 */
-	public void startAgent(String nickname, String className, Object[] args,
-			RuntimeCallback<Void> callback) {
+	public void startAgent(String nickname, String className, Object[] args, RuntimeCallback<Void> callback) {
 		final RuntimeCallback<Void> finalCallback = callback;
-
 		final String finalNickname = nickname;
-
 		final String finalClassName = className;
-
 		final Object[] finalArgs = args;
 
 		new Thread() {
@@ -259,17 +238,13 @@ public class MicroRuntimeService extends Service {
 					logger.log(Logger.INFO, "Starting agent");
 
 					agentName = finalNickname;
-
-					MicroRuntime.startAgent(finalNickname, finalClassName,
-							finalArgs);
-
+					MicroRuntime.startAgent(finalNickname, finalClassName, finalArgs);
 					finalCallback.notifySuccess(logger, null);
 
 					logger.log(Logger.INFO, "Agent started");
-				} catch (Throwable t) {
-					logger.log(Logger.INFO, "Cannot start agent with message: "
-							+ t.getMessage());
-
+				} 
+				catch (Throwable t) {
+					logger.log(Logger.INFO, "Cannot start agent with message: " + t.getMessage());
 					finalCallback.notifyFailure(logger, t);
 				}
 			}

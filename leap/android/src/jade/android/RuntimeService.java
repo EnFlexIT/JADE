@@ -38,19 +38,20 @@ import jade.util.Logger;
 import jade.util.leap.Properties;
 import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
+import jade.wrapper.ContainerController;
 
 /**
  * @author Federico Bergenti - Universita' di Parma
  */
 public class RuntimeService extends Service {
-	protected static final Logger logger = Logger
-			.getMyLogger(RuntimeService.class.getName());
+	protected static final Logger logger = Logger.getJADELogger(RuntimeService.class.getName());
 
+	private AgentContainerHandler handler = null;
+	
 	private final List<RuntimeServiceListener> listeners = new LinkedList<RuntimeServiceListener>();
+	private RuntimeServiceListener[] listenersArray = new RuntimeServiceListener[0];
 
 	private final IBinder binder = new RuntimeServiceBinder(this);
-
-	private final ListenerNotifier listenerNotifier = new ListenerNotifier();
 
 	@Override
 	public void onCreate() {
@@ -61,6 +62,7 @@ public class RuntimeService extends Service {
 	public void onDestroy() {
 		synchronized (listeners) {
 			listeners.clear();
+			listenersArray = new RuntimeServiceListener[0];
 		}
 
 		logger.log(Logger.INFO, "JADE runtime service destroyed");
@@ -88,22 +90,7 @@ public class RuntimeService extends Service {
 		return false;
 	}
 
-	public void addListener(RuntimeServiceListener listener) {
-		if (listener != null)
-			synchronized (listeners) {
-				listeners.add(listener);
-			}
-	}
-
-	public void removeListener(RuntimeServiceListener listener) {
-		if (listener != null)
-			synchronized (listeners) {
-				listeners.remove(listener);
-			}
-	}
-
-	public void startAgent(AgentHandler agentHandler,
-			RuntimeCallback<Void> callback) {
+	public void startAgent(AgentHandler agentHandler, RuntimeCallback<Void> callback) {
 		final RuntimeCallback<Void> finalCallback = callback;
 
 		final AgentHandler finalAgentHandler = agentHandler;
@@ -114,20 +101,15 @@ public class RuntimeService extends Service {
 				try {
 					logger.log(Logger.INFO, "Starting agent");
 
-					final AgentController finalAgentController = finalAgentHandler
-							.getAgentController();
-
+					final AgentController finalAgentController = finalAgentHandler.getAgentController();
 					finalAgentController.start();
-
 					finalCallback.notifySuccess(logger, null);
-
 					notifyAgentStarted(finalAgentHandler);
 
 					logger.log(Logger.INFO, "Agent started");
-				} catch (Throwable t) {
-					logger.log(Logger.INFO, "Cannot start agent with message: "
-							+ t.getMessage());
-
+				} 
+				catch (Throwable t) {
+					logger.log(Logger.INFO, "Cannot start agent with message: " + t.getMessage());
 					finalCallback.notifyFailure(logger, t);
 				}
 			}
@@ -145,30 +127,23 @@ public class RuntimeService extends Service {
 				try {
 					logger.log(Logger.INFO, "Killing agent");
 
-					final AgentController finalAgentController = finalAgentHandler
-							.getAgentController();
-
+					final AgentController finalAgentController = finalAgentHandler.getAgentController();
 					finalAgentController.kill();
-
 					finalCallback.notifySuccess(logger, null);
-
 					notifyAgentKilled(finalAgentHandler);
 
 					logger.log(Logger.INFO, "Agent killed");
-				} catch (Throwable t) {
-					logger.log(Logger.INFO, "Cannot kill agent with message: "
-							+ t.getMessage());
-
+				} 
+				catch (Throwable t) {
+					logger.log(Logger.INFO, "Cannot kill agent with message: " + t.getMessage());
 					finalCallback.notifyFailure(logger, t);
 				}
 			}
 		}.start();
 	}
 
-	public void suspendAgent(AgentHandler agentHandler,
-			RuntimeCallback<Void> callback) {
+	public void suspendAgent(AgentHandler agentHandler, RuntimeCallback<Void> callback) {
 		final RuntimeCallback<Void> finalCallback = callback;
-
 		final AgentHandler finalAgentHandler = agentHandler;
 
 		new Thread() {
@@ -177,32 +152,23 @@ public class RuntimeService extends Service {
 				try {
 					logger.log(Logger.INFO, "Suspending agent");
 
-					final AgentController finalAgentController = finalAgentHandler
-							.getAgentController();
-
+					final AgentController finalAgentController = finalAgentHandler.getAgentController();
 					finalAgentController.suspend();
-
 					finalCallback.notifySuccess(logger, null);
-
 					notifyAgentSuspended(finalAgentHandler);
 
 					logger.log(Logger.INFO, "Agent suspended");
-				} catch (Throwable t) {
-					logger.log(
-							Logger.INFO,
-							"Cannot suspend agent with message: "
-									+ t.getMessage());
-
+				} 
+				catch (Throwable t) {
+					logger.log(Logger.INFO, "Cannot suspend agent with message: " + t.getMessage());
 					finalCallback.notifyFailure(logger, t);
 				}
 			}
 		}.start();
 	}
 
-	public void activateAgent(AgentHandler agentHandler,
-			RuntimeCallback<Void> callback) {
+	public void activateAgent(AgentHandler agentHandler, RuntimeCallback<Void> callback) {
 		final RuntimeCallback<Void> finalCallback = callback;
-
 		final AgentHandler finalAgentHandler = agentHandler;
 
 		new Thread() {
@@ -211,39 +177,26 @@ public class RuntimeService extends Service {
 				try {
 					logger.log(Logger.INFO, "Activating agent");
 
-					final AgentController finalAgentController = finalAgentHandler
-							.getAgentController();
-
+					final AgentController finalAgentController = finalAgentHandler.getAgentController();
 					finalAgentController.activate();
-
 					finalCallback.notifySuccess(logger, null);
-
 					notifyAgentActivated(finalAgentHandler);
 
 					logger.log(Logger.INFO, "Agent activated");
-				} catch (Throwable t) {
-					logger.log(
-							Logger.INFO,
-							"Cannot activate agent with message: "
-									+ t.getMessage());
-
+				} 
+				catch (Throwable t) {
+					logger.log(Logger.INFO, "Cannot activate agent with message: " + t.getMessage());
 					finalCallback.notifyFailure(logger, t);
 				}
 			}
 		}.start();
 	}
 
-	public void createNewAgent(AgentContainerHandler agentContainerHandler,
-			String nickname, String className, Object[] args,
-			RuntimeCallback<AgentHandler> callback) {
+	public void createNewAgent(AgentContainerHandler agentContainerHandler, String nickname, String className, Object[] args, RuntimeCallback<AgentHandler> callback) {
 		final RuntimeCallback<AgentHandler> finalCallback = callback;
-
 		final AgentContainerHandler finalAgentContainerHandler = agentContainerHandler;
-
 		final String finalNickname = nickname;
-
 		final String finalClassName = className;
-
 		final Object[] finalArgs = args;
 
 		new Thread() {
@@ -253,32 +206,23 @@ public class RuntimeService extends Service {
 					logger.log(Logger.INFO, "Creating new agent");
 
 					AgentContainer agentContainer = finalAgentContainerHandler.getAgentContainer();
-
 					AgentController agentController = agentContainer.createNewAgent(finalNickname, finalClassName, finalArgs);
-
 					AgentHandler agentHandler = new AgentHandler(finalAgentContainerHandler, agentController);
-
 					finalCallback.notifySuccess(logger, agentHandler);
-
 					notifyNewAgentCreated(agentHandler);
 
 					logger.log(Logger.INFO, "New agent created");
-				} catch (Throwable t) {
-					logger.log(
-							Logger.INFO,
-							"Cannot create new agent with message: "
-									+ t.getMessage());
-
+				} 
+				catch (Throwable t) {
+					logger.log(Logger.INFO, "Cannot create new agent with message: " + t.getMessage());
 					finalCallback.notifyFailure(logger, t);
 				}
 			}
 		}.start();
 	}
 
-	public void killAgentContainer(AgentContainerHandler agentContainerHandler,
-			RuntimeCallback<Void> callback) {
+	public void killAgentContainer(AgentContainerHandler agentContainerHandler, RuntimeCallback<Void> callback) {
 		final RuntimeCallback<Void> finalCallback = callback;
-
 		final AgentContainerHandler finalAgentContainerHandler = agentContainerHandler;
 
 		new Thread() {
@@ -287,234 +231,146 @@ public class RuntimeService extends Service {
 				try {
 					logger.log(Logger.INFO, "Killing agent container");
 
-					AgentContainer agentContainer = finalAgentContainerHandler
-							.getAgentContainer();
-
+					AgentContainer agentContainer = finalAgentContainerHandler.getAgentContainer();
 					agentContainer.kill();
-
 					finalCallback.notifySuccess(logger, null);
-
 					notifyAgentContainerDestroyed(finalAgentContainerHandler);
 
 					logger.log(Logger.INFO, "Agent container killed");
-				} catch (Throwable t) {
-					logger.log(
-							Logger.INFO,
-							"Cannot kill agent container with message: "
-									+ t.getMessage());
-
+				} 
+				catch (Throwable t) {
+					logger.log(Logger.INFO, "Cannot kill agent container with message: " + t.getMessage());
 					finalCallback.notifyFailure(logger, t);
 				}
 			}
 		}.start();
 	}
 
-	public void createMainAgentContainer(
-			RuntimeCallback<AgentContainerHandler> callback) {
-		final Profile finalProfile = RuntimeHelper.createMainProfile();
-
-		final RuntimeCallback<AgentContainerHandler> finalCallback = callback;
-
-		new Thread() {
-			@Override
-			public void run() {
-				try {
-					logger.log(Logger.INFO, "Creating main agent container");
-
-					AgentContainer agentContainer = Runtime.instance()
-							.createMainContainer(finalProfile);
-
-					AgentContainerHandler agentContainerHandler = new AgentContainerHandler(
-							RuntimeService.this, agentContainer);
-
-					finalCallback.notifySuccess(logger, agentContainerHandler);
-
-					notifyAgentContainerCreated(agentContainerHandler);
-
-					logger.log(Logger.INFO, "Main agent container created");
-				} catch (Throwable t) {
-					logger.log(Logger.INFO,
-							"Cannot create main agent container with message: "
-									+ t.getMessage());
-
-					finalCallback.notifyFailure(logger, t);
-				}
-			}
-		}.start();
+	public void createMainAgentContainer(RuntimeCallback<AgentContainerHandler> callback) {
+		createAgentContainer(RuntimeHelper.createMainProfile(), callback);
 	}
 
-	public void createAgentContainer(String host, int port,
-			RuntimeCallback<AgentContainerHandler> callback) {
-		Properties properties = RuntimeHelper.createProfileProperties(host,
-				port);
-
-		final Profile finalProfile = new ProfileImpl(properties);
-
-		final RuntimeCallback<AgentContainerHandler> finalCallback = callback;
-
-		new Thread() {
-			@Override
-			public void run() {
-				try {
-					logger.log(Logger.INFO, "Creating agent container");
-
-					AgentContainer agentContainer = Runtime.instance()
-							.createAgentContainer(finalProfile);
-
-					AgentContainerHandler agentContainerHandler = new AgentContainerHandler(
-							RuntimeService.this, agentContainer);
-
-					finalCallback.notifySuccess(logger, agentContainerHandler);
-
-					notifyAgentContainerCreated(agentContainerHandler);
-
-					logger.log(Logger.INFO, "Agent container created");
-				} catch (Throwable t) {
-					logger.log(
-							Logger.INFO,
-							"Cannot create agent container with message: "
-									+ t.getMessage());
-
-					finalCallback.notifyFailure(logger, t);
-				}
-			}
-		}.start();
+	public void createAgentContainer(String host, int port, RuntimeCallback<AgentContainerHandler> callback) {
+		createAgentContainer(RuntimeHelper.createContainerProfile(host, port), callback);
 	}
 
-	public void createAgentContainer(Profile profile,
-			RuntimeCallback<AgentContainerHandler> callback) {
-		final Profile finalProfile = profile;
-
+	public void createAgentContainer(final Profile profile, final RuntimeCallback<AgentContainerHandler> callback) {
+		// FIXME: We should properly handle synchronizations between two or more 
+		// container creations requests occurring ion parallel
 		RuntimeHelper.completeProfile(profile);
-
-		final RuntimeCallback<AgentContainerHandler> finalCallback = callback;
-
 		new Thread() {
 			@Override
 			public void run() {
 				try {
+					if (handler != null) {
+						throw new IllegalStateException("JADE Runtime already active");
+					}
 					logger.log(Logger.INFO, "Creating agent container");
-
-					AgentContainer agentContainer = Runtime.instance()
-							.createAgentContainer(finalProfile);
-
-					AgentContainerHandler agentContainerHandler = new AgentContainerHandler(
-							RuntimeService.this, agentContainer);
-
-					finalCallback.notifySuccess(logger, agentContainerHandler);
-
-					notifyAgentContainerCreated(agentContainerHandler);
-
-					logger.log(Logger.INFO, "Agent container created");
-				} catch (Throwable t) {
-					logger.log(
-							Logger.INFO,
-							"Cannot create agent container with message: "
-									+ t.getMessage());
-
-					finalCallback.notifyFailure(logger, t);
+					ContainerController cc = null;
+					if (profile.isMain()) {
+						// Main container
+						cc = Runtime.instance().createMainContainer(profile);
+					}
+					else {
+						// Peripheral container
+						cc = Runtime.instance().createAgentContainer(profile);
+					}
+					if (cc != null) {
+						// Container startup OK
+						handler = new AgentContainerHandler(RuntimeService.this, cc);
+						Runtime.instance().invokeOnTermination(new Runnable() {
+							public void run() {
+								handler = null;
+								logger.log(Logger.INFO, "JADE runtime terminated");
+							}
+						});
+	
+						callback.notifySuccess(logger, handler);
+						notifyAgentContainerCreated(handler);
+	
+						logger.log(Logger.INFO, "Agent container created");
+					}
+					else {
+						// Container startup failure
+						throw new Exception("JADE Startup failed");
+					}
+				} 
+				catch (Throwable t) {
+					logger.log(Logger.INFO, "Cannot create agent container: " + t.getMessage());
+					callback.notifyFailure(logger, t);
 				}
 			}
 		}.start();
 	}
-
-	private void notifyAgentContainerCreated(
-			AgentContainerHandler agentContainerHandler) {
-		final AgentContainerHandler finalContainerHandler = agentContainerHandler;
-
-		listenerNotifier.notify(new Notifier() {
-			public void notifyListener(RuntimeServiceListener listener) {
-				listener.onAgentContainerCreated(finalContainerHandler);
-			}
-		});
+	
+	public AgentContainerHandler getContainerHandler() {
+		return handler;
 	}
 
-	private void notifyAgentContainerDestroyed(
-			AgentContainerHandler agentContainerHandler) {
-		final AgentContainerHandler finalContainerHandler = agentContainerHandler;
-
-		listenerNotifier.notify(new Notifier() {
-			public void notifyListener(RuntimeServiceListener listener) {
-				listener.onAgentContainerDestroyed(finalContainerHandler);
-			}
-		});
-	}
-
-	private void notifyNewAgentCreated(AgentHandler agentHandler) {
-		final AgentHandler finalAgentHandler = agentHandler;
-
-		listenerNotifier.notify(new Notifier() {
-			public void notifyListener(RuntimeServiceListener listener) {
-				listener.onAgentCreated(finalAgentHandler);
-			}
-		});
-	}
-
-	private void notifyAgentStarted(AgentHandler agentHandler) {
-		final AgentHandler finalAgentHandler = agentHandler;
-
-		listenerNotifier.notify(new Notifier() {
-			public void notifyListener(RuntimeServiceListener listener) {
-				listener.onAgentStarted(finalAgentHandler);
-			}
-		});
-	}
-
-	private void notifyAgentKilled(AgentHandler agentHandler) {
-		final AgentHandler finalAgentHandler = agentHandler;
-
-		listenerNotifier.notify(new Notifier() {
-			public void notifyListener(RuntimeServiceListener listener) {
-				listener.onAgentKilled(finalAgentHandler);
-			}
-		});
-	}
-
-	private void notifyAgentSuspended(AgentHandler agentHandler) {
-		final AgentHandler finalAgentHandler = agentHandler;
-
-		listenerNotifier.notify(new Notifier() {
-			public void notifyListener(RuntimeServiceListener listener) {
-				listener.onAgentSuspended(finalAgentHandler);
-			}
-		});
-	}
-
-	private void notifyAgentActivated(AgentHandler agentHandler) {
-		final AgentHandler finalAgentHandler = agentHandler;
-
-		listenerNotifier.notify(new Notifier() {
-			public void notifyListener(RuntimeServiceListener listener) {
-				listener.onAgentActivated(finalAgentHandler);
-			}
-		});
-	}
-
-	private interface Notifier {
-		public void notifyListener(RuntimeServiceListener listener);
-	}
-
-	private class ListenerNotifier {
-		public void notify(Notifier notifier) {
-			int n = listeners.size();
-
-			RuntimeServiceListener[] array = new RuntimeServiceListener[n];
-
+	
+	/////////////////////////////////////////////
+	// Listener management section
+	/////////////////////////////////////////////
+	public void addListener(RuntimeServiceListener listener) {
+		if (listener != null) {
 			synchronized (listeners) {
-				array = listeners.toArray(array);
+				listeners.add(listener);
+				listenersArray = listeners.toArray(new RuntimeServiceListener[0]);
 			}
+		}
+	}
 
-			for (int i = 0; i < n; i++) {
-				RuntimeServiceListener listener = null;
-
-				try {
-					listener = array[i];
-
-					notifier.notifyListener(listener);
-				} catch (Throwable t) {
-					removeListener(listener);
+	public void removeListener(RuntimeServiceListener listener) {
+		if (listener != null) {
+			synchronized (listeners) {
+				if (listeners.remove(listener)) {
+					listenersArray = listeners.toArray(new RuntimeServiceListener[0]);
 				}
 			}
 		}
 	}
+
+	
+	private void notifyAgentContainerCreated(AgentContainerHandler agentContainerHandler) {
+		for (RuntimeServiceListener l : listenersArray) {
+			l.onAgentContainerCreated(agentContainerHandler);
+		}
+	}
+
+	private void notifyAgentContainerDestroyed(AgentContainerHandler agentContainerHandler) {
+		for (RuntimeServiceListener l : listenersArray) {
+			l.onAgentContainerDestroyed(agentContainerHandler);
+		}
+	}
+
+	private void notifyNewAgentCreated(AgentHandler agentHandler) {
+		for (RuntimeServiceListener l : listenersArray) {
+			l.onAgentCreated(agentHandler);
+		}
+	}
+
+	private void notifyAgentStarted(AgentHandler agentHandler) {
+		for (RuntimeServiceListener l : listenersArray) {
+			l.onAgentStarted(agentHandler);
+		}
+	}
+
+	private void notifyAgentKilled(AgentHandler agentHandler) {
+		for (RuntimeServiceListener l : listenersArray) {
+			l.onAgentKilled(agentHandler);
+		}
+	}
+
+	private void notifyAgentSuspended(AgentHandler agentHandler) {
+		for (RuntimeServiceListener l : listenersArray) {
+			l.onAgentSuspended(agentHandler);
+		}
+	}
+
+	private void notifyAgentActivated(AgentHandler agentHandler) {
+		for (RuntimeServiceListener l : listenersArray) {
+			l.onAgentActivated(agentHandler);
+		}
+	}
+
 }

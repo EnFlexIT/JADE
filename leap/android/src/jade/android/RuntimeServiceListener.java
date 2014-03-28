@@ -38,9 +38,7 @@ public interface RuntimeServiceListener {
 
 	public void onAgentActivated(AgentHandler agentHandler);
 
-	public void onAgentContainerCreated(
-			AgentContainerHandler agentContainerHandler);
+	public void onAgentContainerCreated(AgentContainerHandler agentContainerHandler);
 
-	public void onAgentContainerDestroyed(
-			AgentContainerHandler agentContainerHandler);
+	public void onAgentContainerDestroyed(AgentContainerHandler agentContainerHandler);
 }

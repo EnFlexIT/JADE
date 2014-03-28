@@ -25,23 +25,26 @@
 package jade.android;
 
 import jade.wrapper.AgentContainer;
+import jade.wrapper.ContainerController;
 
 /**
  * @author Federico Bergenti - Universita' di Parma
  */
 public class AgentContainerHandler {
-	private AgentContainer agentContainer;
+	private ContainerController containerController;
 
 	private RuntimeService runtimeService;
 
-	AgentContainerHandler(RuntimeService runtimeService, AgentContainer agentContainer) {
+	AgentContainerHandler(RuntimeService runtimeService, ContainerController containerController) {
 		this.runtimeService = runtimeService;
-
-		this.agentContainer = agentContainer;
+		this.containerController = containerController;
 	}
 
+	/**
+	 * @deprecated Use getContainerController() instead
+	 */
 	public AgentContainer getAgentContainer() {
-		return agentContainer;
+		return (AgentContainer) containerController;
 	}
 
 	RuntimeService getRuntimeService() {

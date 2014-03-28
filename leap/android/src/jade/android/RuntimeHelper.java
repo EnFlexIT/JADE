@@ -32,46 +32,44 @@ import jade.util.leap.Properties;
  * @author Federico Bergenti - Universita' di Parma
  */
 class RuntimeHelper {
-	public static Properties createProfileProperties(String address, int port) {
+	
+	// Used for simplified MicroRuntime startup
+	public static Properties createConnectionProperties(String address, int port) {
 		Properties properties = new Properties();
-
 		properties.setProperty(Profile.MAIN, Boolean.FALSE.toString());
-
 		properties.setProperty(Profile.MAIN_HOST, address);
-
 		if (port <= 0)
 			port = Profile.DEFAULT_PORT;
-
 		properties.setProperty(Profile.MAIN_PORT, Integer.toString(port));
-
-		properties.setProperty(Profile.JVM, Profile.ANDROID);
-
-		properties.setProperty(Profile.LOCAL_HOST,
-				AndroidHelper.getLocalIPAddress());
-
+		completeProperties(properties);
 		return properties;
 	}
-
-	public static void completeProfileProperties(Properties properties) {
+	
+	public static void completeProperties(Properties properties) {
 		if (properties.getProperty(Profile.JVM, null) == null)
 			properties.setProperty(Profile.JVM, Profile.ANDROID);
-
-		if (properties.getProperty(Profile.LOCAL_HOST, null) == null)
-			properties.setProperty(Profile.LOCAL_HOST,
-					AndroidHelper.getLocalIPAddress());
 	}
 
+	// Used for simplified AgentContainer startup
+	public static Profile createContainerProfile(String address, int port) {
+		Properties properties = new Properties();
+		properties.setProperty(Profile.MAIN, Boolean.FALSE.toString());
+		properties.setProperty(Profile.MAIN_HOST, address);
+		if (port <= 0)
+			port = Profile.DEFAULT_PORT;
+		properties.setProperty(Profile.MAIN_PORT, Integer.toString(port));
+		Profile p = new ProfileImpl(properties);
+		completeProfile(p);
+		return p;
+	}
+
+	// Used for simplified MainContainer startup
 	public static Profile createMainProfile() {
 		Properties properties = new Properties();
-
 		properties.setProperty(Profile.MAIN, Boolean.TRUE.toString());
-
-		properties.setProperty(Profile.JVM, Profile.ANDROID);
-
-		properties.setProperty(Profile.LOCAL_HOST,
-				AndroidHelper.getLocalIPAddress());
-
-		return new ProfileImpl(properties);
+		Profile p = new ProfileImpl(properties);
+		completeProfile(p);
+		return p;
 	}
 
 	public static void completeProfile(Profile profile) {
@@ -79,7 +77,6 @@ class RuntimeHelper {
 			profile.setParameter(Profile.JVM, Profile.ANDROID);
 
 		if (profile.getParameter(Profile.LOCAL_HOST, null) == null)
-			profile.setParameter(Profile.LOCAL_HOST,
-					AndroidHelper.getLocalIPAddress());
+			profile.setParameter(Profile.LOCAL_HOST, AndroidHelper.getLocalIPAddress());
 	}
 }

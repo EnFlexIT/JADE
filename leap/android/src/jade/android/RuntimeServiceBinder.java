@@ -56,4 +56,8 @@ public class RuntimeServiceBinder extends Binder {
 	public void createAgentContainer(Profile profile, RuntimeCallback<AgentContainerHandler> callback) {
 		runtimeService.createAgentContainer(profile, callback);
 	}
+	
+	public AgentContainerHandler getContainerHandler() {
+		return runtimeService.getContainerHandler();
+	}
 }
