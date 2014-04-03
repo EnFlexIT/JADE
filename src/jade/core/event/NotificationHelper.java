@@ -26,16 +26,6 @@ package jade.core.event;
 //#MIDP_EXCLUDE_FILE
 
 import jade.core.ServiceHelper;
-import jade.core.AID;
-import jade.core.Location;
-import jade.core.IMTPException;
-import jade.core.ServiceException;
-import jade.core.NotFoundException;
-import jade.core.NameClashException;
-
-import jade.security.JADESecurityException;
-
-import jade.util.leap.List;
 
 /** 
  The vertical interface for the JADE kernel-level service implementing the 

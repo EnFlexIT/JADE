@@ -54,7 +54,7 @@ import System.Windows.Forms.*;
    public static final String  DO_SNIFFER_ACTION="DoSnifferAction";
    public static final String  DO_NOT_SNIFFER_ACTION="DoNotSnifferAction";
    public static final String  SWOW_ONLY_ACTION="ShowOnlyAction";
-   public static final Map actions=new HashMap(5);
+   public final Map actions=new HashMap(10);
    private MainPanel mainPanel;
    private SnifferAction action;
 
