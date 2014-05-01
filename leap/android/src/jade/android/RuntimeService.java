@@ -34,6 +34,7 @@ import android.os.IBinder;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
+import jade.core.TimerDispatcher;
 import jade.util.Logger;
 import jade.util.leap.Properties;
 import jade.wrapper.AgentContainer;
@@ -56,6 +57,11 @@ public class RuntimeService extends Service {
 	@Override
 	public void onCreate() {
 		logger.log(Logger.INFO, "JADE runtime service created");
+		
+		// Create an ad-hoc TimerDispatcher that does not reply on Object.wait(ms) since this
+		// is based on a clock that is paused when the terminal enters deep sleep (CPU off, display dark...)
+		TimerDispatcher td = new AndroidTimerDispatcher(this);
+		TimerDispatcher.setTimerDispatcher(td);
 	}
 
 	@Override

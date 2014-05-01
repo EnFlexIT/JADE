@@ -24,8 +24,12 @@
  */
 package jade.android;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jade.core.MicroRuntime;
 import jade.core.Profile;
+import jade.core.TimerDispatcher;
 import jade.util.Logger;
 import jade.util.leap.Properties;
 
@@ -40,13 +44,15 @@ import android.util.Log;
  * 
  * @author Federico Bergenti - Universita' di Parma
  */
-public class MicroRuntimeService extends Service {
-	protected static final Logger logger = Logger
-			.getMyLogger(RuntimeService.class.getName());
+public class MicroRuntimeService extends Service implements Runnable {
+	protected static final Logger logger = Logger.getMyLogger(RuntimeService.class.getName());
 
 	private final IBinder binder = new MicroRuntimeServiceBinder(this);
+	private Thread mainThread;
+	private boolean active;
+	private List<Runnable> tasks = new ArrayList<Runnable>();
 
-	private String agentName;
+	//private String agentName;
 
 	/**
 	 * Called by the system when the service is first created. Do not call this
@@ -55,6 +61,15 @@ public class MicroRuntimeService extends Service {
 	@Override
 	public void onCreate() {
 		logger.log(Logger.INFO, "JADE micro runtime service created");
+		
+		// Create an ad-hoc TimerDispatcher that does not reply on Object.wait(ms) since this
+		// is based on a clock that is paused when the terminal enters deep sleep (CPU off, display dark...)
+		TimerDispatcher td = new AndroidTimerDispatcher(this);
+		TimerDispatcher.setTimerDispatcher(td);
+		
+		// Start the main thread that will serve Jade management actions asynchronously
+		mainThread = new Thread(this);
+		mainThread.start();
 	}
 
 	/**
@@ -64,8 +79,10 @@ public class MicroRuntimeService extends Service {
 	@Override
 	public void onDestroy() {
 		logger.log(Logger.INFO, "JADE micro runtime service destroyed");
-		if(MicroRuntime.isRunning())
+		if(MicroRuntime.isRunning()) {
 			MicroRuntime.stopJADE();
+		}
+		stopMainThread();
 	}
 
 	/**
@@ -84,12 +101,10 @@ public class MicroRuntimeService extends Service {
 	 */
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		logger.log(Logger.SEVERE,
-				"JADE micro runtime service can only be used locally");
+//		logger.log(Logger.SEVERE, "JADE micro runtime service can only be used locally");
 
-		throw new UnsupportedOperationException();
-		//return Service.START_STICKY;
-		
+		//throw new UnsupportedOperationException();
+		return Service.START_NOT_STICKY;
 	}
 
 	/**
@@ -104,7 +119,6 @@ public class MicroRuntimeService extends Service {
 	@Override
 	public IBinder onBind(Intent intent) {
 		logger.log(Logger.INFO, "JADE micro runtime service bound");
-
 		return binder;
 	}
 
@@ -121,7 +135,6 @@ public class MicroRuntimeService extends Service {
 	@Override
 	public boolean onUnbind(Intent intent) {
 		logger.log(Logger.INFO, "JADE micro runtime service unbound");
-
 		return false;
 	}
 
@@ -156,7 +169,7 @@ public class MicroRuntimeService extends Service {
 	public void startAgentContainer(final Properties properties, final RuntimeCallback<Void> callback) {
 		RuntimeHelper.completeProperties(properties);
 
-		new Thread() {
+		Runnable r = new Runnable() {
 			@Override
 			public void run() {
 				try {
@@ -165,7 +178,7 @@ public class MicroRuntimeService extends Service {
 					MicroRuntime.startJADE(properties, null);
 					if (MicroRuntime.isRunning()) {
 						logger.log(Logger.INFO, "Agent container created");
-						callback.notifySuccess(logger, null);
+						if (callback != null) {callback.notifySuccess(logger, null);}
 					} 
 					else {
 						throw new Exception("Cannot connect to the platform at " + properties.getProperty(Profile.MAIN_HOST) + ":" + properties.getProperty(Profile.MAIN_PORT));
@@ -173,10 +186,11 @@ public class MicroRuntimeService extends Service {
 				} 
 				catch (Throwable t) {
 					logger.log(Logger.WARNING, "Cannot create micro agent container with message: "+ t.getMessage());
-					callback.notifyFailure(logger, t);
+					if (callback != null) {callback.notifyFailure(logger, t);}
 				}
 			}
-		}.start();
+		};
+		enqueue(r);
 	}
 
 	/**
@@ -187,26 +201,25 @@ public class MicroRuntimeService extends Service {
 	 *            a <code>RuntimeCallback<Void></code> object that manages the
 	 *            outcome of the operation
 	 */
-	public void stopAgentContainer(RuntimeCallback<Void> callback) {
-		final RuntimeCallback<Void> finalCallback = callback;
-
-		new Thread() {
+	public void stopAgentContainer(final RuntimeCallback<Void> callback) {
+		Runnable r = new Runnable() {
 			@Override
 			public void run() {
 				try {
 					logger.log(Logger.INFO, "Stopping micro agent container");
 
 					MicroRuntime.stopJADE();
-					finalCallback.notifySuccess(logger, null);
+					if (callback != null) {callback.notifySuccess(logger, null);}
 
 					logger.log(Logger.INFO, "Agent container stopped");
 				} 
 				catch (Throwable t) {
 					logger.log(Logger.INFO, "Cannot stop micro agent container with message: " + t.getMessage());
-					finalCallback.notifyFailure(logger, t);
+					if (callback != null) {callback.notifyFailure(logger, t);}
 				}
 			}
-		}.start();
+		};
+		enqueue(r);
 	}
 
 	/**
@@ -225,30 +238,25 @@ public class MicroRuntimeService extends Service {
 	 *            a <code>RuntimeCallback<Void></code> object that manages the
 	 *            outcome of the operation
 	 */
-	public void startAgent(String nickname, String className, Object[] args, RuntimeCallback<Void> callback) {
-		final RuntimeCallback<Void> finalCallback = callback;
-		final String finalNickname = nickname;
-		final String finalClassName = className;
-		final Object[] finalArgs = args;
-
-		new Thread() {
+	public void startAgent(final String nickname, final String className, final Object[] args, final RuntimeCallback<Void> callback) {
+		Runnable r = new Runnable() {
 			@Override
 			public void run() {
 				try {
 					logger.log(Logger.INFO, "Starting agent");
 
-					agentName = finalNickname;
-					MicroRuntime.startAgent(finalNickname, finalClassName, finalArgs);
-					finalCallback.notifySuccess(logger, null);
+					MicroRuntime.startAgent(nickname, className, args);
+					if (callback != null) {callback.notifySuccess(logger, null);}
 
 					logger.log(Logger.INFO, "Agent started");
 				} 
 				catch (Throwable t) {
 					logger.log(Logger.INFO, "Cannot start agent with message: " + t.getMessage());
-					finalCallback.notifyFailure(logger, t);
+					if (callback != null) {callback.notifyFailure(logger, t);}
 				}
 			}
-		}.start();
+		};
+		enqueue(r);
 	}
 
 	/**
@@ -259,7 +267,7 @@ public class MicroRuntimeService extends Service {
 	 *            a <code>RuntimeCallback<Void></code> object that manages the
 	 *            outcome of the operation
 	 */
-	public void killAgent(RuntimeCallback<Void> callback) {
+	/*public void killAgent(RuntimeCallback<Void> callback) {
 		final RuntimeCallback<Void> finalCallback = callback;
 
 		new Thread() {
@@ -283,5 +291,41 @@ public class MicroRuntimeService extends Service {
 				}
 			}
 		}.start();
+	}*/
+	
+	public void run() {
+		logger.log(Logger.INFO, "MicroRuntimeService Main Thread - Started");
+		active = true;
+		while (active) {
+			try {
+				Runnable task = dequeue();
+				task.run();
+			}
+			catch (Exception e) {
+				if (active) {
+					logger.log(Logger.WARNING, "MicroRuntimeService Main Thread - Unexpected error", e);
+				}
+			}
+			
+		}
+		
+		logger.log(Logger.INFO, "MicroRuntimeService Main Thread - Terminated");
+	}
+	
+	private synchronized Runnable dequeue() throws InterruptedException {
+		while (tasks.isEmpty()) {
+			wait();
+		}
+		return tasks.remove(0);
+	}
+	
+	private synchronized void enqueue(Runnable task) {
+		tasks.add(task);
+		notifyAll();
+	}
+	
+	private void stopMainThread() {
+		active = false;
+		mainThread.interrupt();
 	}
 }
