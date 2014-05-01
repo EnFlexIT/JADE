@@ -7,6 +7,7 @@ import jade.imtp.leap.JICP.*;
 import java.io.IOException;
 import java.io.EOFException;
 import java.io.ByteArrayOutputStream;
+import java.net.SocketException;
 import java.nio.*;
 import java.nio.channels.*;
 import java.util.LinkedList;
@@ -355,6 +356,13 @@ public class NIOJICPConnection extends Connection {
 	 */
 	void init(SocketChannel channel) throws ICPException {
 		this.myChannel = (SocketChannel) channel;
+		try {
+			myChannel.socket().setTcpNoDelay(true);
+		}
+		catch (SocketException se) {
+			// Just print a warning
+			log.log(Level.WARNING, "Cannot set NO-DEALY parameter", se);
+		}
 	}
 
 	public void addBufferTransformer(BufferTransformer transformer) {

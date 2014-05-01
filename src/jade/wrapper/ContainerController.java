@@ -133,6 +133,7 @@ public class ContainerController {
 			return new AgentControllerImpl(agentID, myProxy, myImpl);
 		}
 		catch (Throwable t) {
+			t.printStackTrace();
 			throw new StaleProxyException(t);
 		}
 	}

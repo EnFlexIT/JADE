@@ -26,6 +26,8 @@ package jade.core;
 //#APIDOC_EXCLUDE_FILE
 
 //#J2ME_EXCLUDE_BEGIN
+import jade.util.Logger;
+
 import java.util.Comparator;
 import java.util.TreeSet;
 //#J2ME_EXCLUDE_END
@@ -54,6 +56,8 @@ public class TimerDispatcher implements Runnable {
 	private Vector timers = new Vector();
 	#J2ME_INCLUDE_END*/
 	private boolean active;
+	
+	protected Logger myLogger = Logger.getJADELogger(getClass().getName());
 
 	void setThread(Thread t) {
 		if(myThread == null) {
@@ -70,8 +74,8 @@ public class TimerDispatcher implements Runnable {
 			t.setExpirationTime(t.expirationTime()+1);
 		}
 		// If this is the first timer, wake up the dispatcher thread
-		if(timers.firstElement() == t) {
-			notifyAll();
+		if (timers.firstElement() == t) {
+			wakeUp();
 		}
 		return t;
 	}
@@ -101,7 +105,7 @@ public class TimerDispatcher implements Runnable {
 								}
 							}
 						}
-						wait(timeToWait);
+						sleep(timeToWait);
 					}
 				}
 				// This check just avoids NullPointerException on termination
@@ -114,6 +118,16 @@ public class TimerDispatcher implements Runnable {
 			// Do nothing, but just return, since this is a shutdown.
 		}
 		timers.removeAllElements();
+	}
+	
+	protected void sleep(long sleepTime) throws InterruptedException {
+		//myLogger.log(Logger.INFO, "TD going to sleep for "+timeToWait+" ms ............");
+		wait(sleepTime);
+		//myLogger.log(Logger.INFO, "TD WakeUp!!!!!!");
+	}
+	
+	protected void wakeUp() {
+		notifyAll();
 	}
 
 	void start() {
@@ -132,7 +146,7 @@ public class TimerDispatcher implements Runnable {
 				else {
 					active = false;
 					synchronized (this) {
-						notifyAll();
+						wakeUp();
 					}
 					try {
 						myThread.join();
@@ -153,7 +167,7 @@ public class TimerDispatcher implements Runnable {
 		return theDispatcher;
 	}
 
-	static void setTimerDispatcher(TimerDispatcher td) {
+	public static void setTimerDispatcher(TimerDispatcher td) {
 		theDispatcher = td;
 	}
 

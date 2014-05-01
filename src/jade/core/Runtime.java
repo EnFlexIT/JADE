@@ -250,7 +250,7 @@ public class Runtime {
 		myLogger.log(Logger.INFO, "----------------------------------\n"+getCopyrightNotice()+"----------------------------------------");
 		if(activeContainers == 0) {
 			// Initialize and start up the timer dispatcher
-			TimerDispatcher theDispatcher = new TimerDispatcher();
+			TimerDispatcher theDispatcher = TimerDispatcher.getTimerDispatcher();
 
 			//#MIDP_EXCLUDE_BEGIN
 			// Set up group and attributes for time critical threads
@@ -261,10 +261,10 @@ public class Runtime {
 			t.setName("JADE Timer dispatcher");
 			//#MIDP_EXCLUDE_END
 			/*#MIDP_INCLUDE_BEGIN
-      Thread t = new Thread(theDispatcher);
-      #MIDP_INCLUDE_END*/
+			Thread t = new Thread(theDispatcher);
+			#MIDP_INCLUDE_END*/
 			theDispatcher.setThread(t);
-			TimerDispatcher.setTimerDispatcher(theDispatcher);
+			//TimerDispatcher.setTimerDispatcher(theDispatcher);
 			theDispatcher.start();
 		}
 		++activeContainers;

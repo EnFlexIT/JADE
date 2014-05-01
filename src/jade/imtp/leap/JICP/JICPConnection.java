@@ -79,6 +79,7 @@ public class JICPConnection extends Connection {
 			try { 
 				//#PJAVA_EXCLUDE_BEGIN
 				sc = new Socket();
+				sc.setTcpNoDelay(true);
 				sc.connect(new InetSocketAddress(ta.getHost(), Integer.parseInt(ta.getPort())), timeout);
 				//#PJAVA_EXCLUDE_END
 				/*#PJAVA_INCLUDE_BEGIN
