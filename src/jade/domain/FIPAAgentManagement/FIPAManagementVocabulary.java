@@ -68,6 +68,8 @@ public interface FIPAManagementVocabulary extends ExceptionVocabulary {
   public static final String PROPERTY_NAME = "name";
   public static final String PROPERTY_VALUE = "value";
 
+  public static final String MULTI_VALUE_PROPERTY = "multi-value-property";
+  
   public static final String ENVELOPE 					= "envelope";
   public static final String ENVELOPE_TO 				= "to";
   public static final String ENVELOPE_FROM 				= "from";

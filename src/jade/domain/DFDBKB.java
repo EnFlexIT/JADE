@@ -26,6 +26,7 @@ package jade.domain;
 
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.MultiValueProperty;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
@@ -73,6 +74,8 @@ public class DFDBKB extends DBKB {
 	private static final int MAX_PRELOAD_CNT = 1000;
 	private static final int MAX_REGISTER_WITHOUT_CLEAN = 100;
 	private static final int MAX_PROP_LENGTH = 255;
+
+	private static final String MULTI_VALUE_PROPERTY_SEPARATOR = "#";
 	
 	// Table names
 	private static final String SUBSCRIPTION = "subscription";
@@ -104,6 +107,7 @@ public class DFDBKB extends DBKB {
 	
 	private class PreparedStatements {
 		// prepared SQL statements
+		private PreparedStatement stm_selNrOfPropForKey;
 		private PreparedStatement stm_selNrOfDescrForAID;
 		private PreparedStatement stm_selAgentAddresses;
 		private PreparedStatement stm_selAgentResolverAIDs;
@@ -160,6 +164,7 @@ public class DFDBKB extends DBKB {
 
 		private PreparedStatements(Connection conn) throws SQLException {
 			// select statements
+			stm_selNrOfPropForKey = conn.prepareStatement("SELECT COUNT(*) FROM SERVICEPROPERTY  where PROPKEY = ?"); 
 			stm_selNrOfDescrForAID = conn.prepareStatement("SELECT COUNT(*) FROM dfagentdescr WHERE aid = ?");
 			stm_selAgentAddresses = conn.prepareStatement("SELECT address FROM agentaddress WHERE aid = ?");
 			stm_selAgentResolverAIDs = conn.prepareStatement("SELECT resolveraid FROM agentresolver WHERE aid = ?");
@@ -732,39 +737,36 @@ public class DFDBKB extends DBKB {
 				iterS = service.getAllProperties();
 				while(iterS.hasNext()){
 					
-					Property prop = (Property)iterS.next();
-					try {
-						pss.stm_insServiceProperty.setString(1, serviceId);
-						pss.stm_insServiceProperty.setString(2, prop.getName());
+					Object propObj = iterS.next();
+					if (propObj instanceof MultiValueProperty) {
+						MultiValueProperty mvProp = (MultiValueProperty) propObj;
 						
-						// serialize value to a string and calcualte 
-						// a hash map for later search operations
-						Object value = prop.getValue();
-						// store plain String object value directly
-						// in 'propval_str' field otherwise store it in
-						// 'propval_obj' field and fill hash field (this will be used in search phase to allow matching Serializable objects)
-						if ( needSerialization(value) ) {
-							//System.out.println("DF Handling Object property "+prop.getName()+": value = "+value);
-							String valueStr = serializeObj(value);
-							pss.stm_insServiceProperty.setString(3, valueStr);
-							pss.stm_insServiceProperty.setString(4, null);
-							String hashStr = getHashValue(value);
-							pss.stm_insServiceProperty.setString(5, hashStr);
+						int index = 1;
+						Iterator iterP = mvProp.getValues().iterator();
+						while(iterP.hasNext()) {
+							String propName = mvProp.getName()+MULTI_VALUE_PROPERTY_SEPARATOR+index;
+							Object propValue = iterP.next();
+							Property prop = new Property(propName, propValue);
+							try {
+								saveProperty(pss, serviceId, prop);
+								executePropertiesBatch = true;            
+							} catch (Exception e) {
+								if(logger.isLoggable(Logger.SEVERE))
+									logger.log(Logger.SEVERE,"Cannot serialize multi value property '" + prop.getName() + 
+											"' for service '" + service.getName() + "'", e);
+							}							
+							index++;
 						}
-						else {
-							// set to NULL the serialized representation of the object and its hash
-							//System.out.println("DF Handling String property "+prop.getName()+": value = "+value);
-							pss.stm_insServiceProperty.setString(3, null);
-							pss.stm_insServiceProperty.setString(4, (String) value);
-							pss.stm_insServiceProperty.setString(5, null);
-						};
-						
-						pss.stm_insServiceProperty.addBatch();
-						executePropertiesBatch = true;            
-					} catch (Exception e) {
-						if(logger.isLoggable(Logger.SEVERE))
-							logger.log(Logger.SEVERE,"Cannot serialize property '" + prop.getName() + 
-									"' for service '" + service.getName() + "'", e);
+					} else {
+						Property prop = (Property) propObj;
+						try {
+							saveProperty(pss, serviceId, prop);
+							executePropertiesBatch = true;            
+						} catch (Exception e) {
+							if(logger.isLoggable(Logger.SEVERE))
+								logger.log(Logger.SEVERE,"Cannot serialize property '" + prop.getName() + 
+										"' for service '" + service.getName() + "'", e);
+						}							
 					}
 				}
 			}
@@ -782,6 +784,35 @@ public class DFDBKB extends DBKB {
 				pss.stm_insServiceProperty.executeBatch();
 			}
 		}
+	}
+
+	private void saveProperty(PreparedStatements pss, String serviceId, Property prop) throws Exception {
+		pss.stm_insServiceProperty.setString(1, serviceId);
+		pss.stm_insServiceProperty.setString(2, prop.getName());
+		
+		// serialize value to a string and calcualte 
+		// a hash map for later search operations
+		Object value = prop.getValue();
+		// store plain String object value directly
+		// in 'propval_str' field otherwise store it in
+		// 'propval_obj' field and fill hash field (this will be used in search phase to allow matching Serializable objects)
+		if ( needSerialization(value) ) {
+			//System.out.println("DF Handling Object property "+prop.getName()+": value = "+value);
+			String valueStr = serializeObj(value);
+			pss.stm_insServiceProperty.setString(3, valueStr);
+			pss.stm_insServiceProperty.setString(4, null);
+			String hashStr = getHashValue(value);
+			pss.stm_insServiceProperty.setString(5, hashStr);
+		}
+		else {
+			// set to NULL the serialized representation of the object and its hash
+			//System.out.println("DF Handling String property "+prop.getName()+": value = "+value);
+			pss.stm_insServiceProperty.setString(3, null);
+			pss.stm_insServiceProperty.setString(4, (String) value);
+			pss.stm_insServiceProperty.setString(5, null);
+		};
+		
+		pss.stm_insServiceProperty.addBatch();
 	}
 	
 	private static final boolean needSerialization(Object value) {
@@ -1184,16 +1215,36 @@ public class DFDBKB extends DBKB {
 				closeResultSet(rsS);
 				
 				// Service properties
+				Map multiValues = new HashMap();
 				pss.stm_selServiceProperties.setString(1, serviceId);
 				rsS = pss.stm_selServiceProperties.executeQuery();
 				while(rsS.next()){
-					Property prop = new Property();
-					prop.setName(rsS.getString("propkey"));
+					String propKey = rsS.getString("propkey");
 					String objStrVal = rsS.getString("propval_obj");
 					String strStrVal = rsS.getString("propval_str");
 					Object value = ( objStrVal == null )? strStrVal : deserializeObj(objStrVal);
-					prop.setValue(value);
-					sd.addProperties(prop);
+					
+					int pos = propKey.indexOf(MULTI_VALUE_PROPERTY_SEPARATOR);
+					if (pos == -1) {
+						Property prop = new Property();
+						prop.setName(propKey);
+						prop.setValue(value);
+						sd.addProperties(prop);
+					} else {
+						propKey = propKey.substring(0, pos);
+						MultiValueProperty mvp = (MultiValueProperty) multiValues.get(propKey);
+						if (mvp == null) {
+							mvp = new MultiValueProperty(propKey, new ArrayList());
+							multiValues.put(propKey, mvp);
+						}
+						mvp.getValues().add(value);
+					}
+				}
+				if (!multiValues.isEmpty()) {
+					java.util.Iterator it = multiValues.values().iterator();
+					while(it.hasNext()) {
+						sd.addProperties((MultiValueProperty) it.next());
+					}
 				}
 				
 				dfd.addServices(sd);
@@ -1529,8 +1580,13 @@ public class DFDBKB extends DBKB {
 				lAs.add(", serviceproperty "+tmp1);
 				Property prop = (Property) iterS.next();	
 				
-				if (prop.getName() != null)
-					lWhere.add(tmp1+".propkey='"+prop.getName()+"'");
+				if (prop.getName() != null) {
+					if (isMultiValueProperty(prop.getName())) {
+						lWhere.add(tmp1+".propkey LIKE'"+prop.getName()+"%'");	
+					} else {
+						lWhere.add(tmp1+".propkey='"+prop.getName()+"'");
+					}
+				}
 				
 				Object value = prop.getValue();
 				if (value != null) {
@@ -1566,6 +1622,31 @@ public class DFDBKB extends DBKB {
 			++i;
 		}
 		return select.toString();
+	}
+	
+	private boolean isMultiValueProperty(String propKey) throws SQLException {
+		int found = 0;
+		ResultSet rs = null;
+		try {
+			PreparedStatements pss = getPreparedStatements();
+			pss.stm_selNrOfPropForKey.setString(1, propKey+MULTI_VALUE_PROPERTY_SEPARATOR+"1");
+			rs = pss.stm_selNrOfPropForKey.executeQuery();
+			if (rs.next()) {
+				found = Integer.parseInt(rs.getString(1));
+			}
+		} 
+		catch(SQLException sqle) {
+			// Let it through
+			throw sqle;
+		}
+		catch(Exception e) {
+			logger.log(Logger.SEVERE, "Couldn't create the SQL SELECT statement.", e);
+			throw new SQLException("Couldn't create the SQL SELECT statement. "+e.getMessage());
+		}
+		finally {
+			closeResultSet(rs);
+		}
+		return found > 0;
 	}
 	
 	////////////////////////////////////////

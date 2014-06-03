@@ -740,7 +740,7 @@ public class DFService extends FIPAService {
 			if (slotName.equals(FIPAManagementVocabulary.PROPERTY_NAME)) {
 				p.setName(parser.getElement());
 			}
-			// Name
+			// Value
 			if (slotName.equals(FIPAManagementVocabulary.PROPERTY_VALUE)) {
 				p.setValue(parser.getElement());
 			}
@@ -748,7 +748,29 @@ public class DFService extends FIPAService {
 		parser.consumeChar(')');
 		return p;
 	}
-	
+
+	/**
+	 The parser content has the form:
+	 multi-value-property ......) <possibly something else>
+	 */
+	private static Property parseMultiValueProperty(SimpleSLTokenizer parser) throws Exception {
+		MultiValueProperty mvp = new MultiValueProperty();
+		// Skip "multi-value-property"
+		parser.getElement();
+		while (parser.nextToken().startsWith(":")) {
+			String slotName = parser.getElement();
+			// Name
+			if (slotName.equals(FIPAManagementVocabulary.PROPERTY_NAME)) {
+				mvp.setName(parser.getElement());
+			}
+			// Values
+			if (slotName.equals(FIPAManagementVocabulary.PROPERTY_VALUE)) {
+				mvp.setValues(parseAggregate(parser));	
+			}
+		}
+		parser.consumeChar(')');
+		return mvp;
+	}
 	
 	/**
 	 The parser content has the form:
@@ -811,6 +833,9 @@ public class DFService extends FIPAService {
 				}
 				else if (next.equals(FIPAManagementVocabulary.SERVICEDESCRIPTION)) {
 					l.add(parseServiceDescription(parser));
+				}
+				else if (next.equals(FIPAManagementVocabulary.MULTI_VALUE_PROPERTY)) {
+					l.add(parseMultiValueProperty(parser));
 				}
 				else if (next.equals(FIPAManagementVocabulary.PROPERTY)) {
 					l.add(parseProperty(parser));
@@ -974,6 +999,14 @@ public class DFService extends FIPAService {
 		encodeField(sb, p.getValue(), FIPAManagementVocabulary.PROPERTY_VALUE);
 		sb.append(')');
 	}
+
+	private static void encodeMultiValueProperty(StringBuffer sb, MultiValueProperty mvp) {
+		sb.append('(');
+		sb.append(FIPAManagementVocabulary.MULTI_VALUE_PROPERTY);
+		encodeField(sb, mvp.getName(), FIPAManagementVocabulary.PROPERTY_NAME);
+		encodeAggregate(sb, mvp.getValues().iterator(), SL0Vocabulary.SEQUENCE, FIPAManagementVocabulary.PROPERTY_VALUE);
+		sb.append(')');
+	}
 	
 	private static void encodeField(StringBuffer sb, Object val, String name) {
 		if (val != null) {
@@ -1000,6 +1033,9 @@ public class DFService extends FIPAService {
 				Object val = agg.next();
 				if (val instanceof ServiceDescription) {
 					encodeServiceDescription(sb, (ServiceDescription) val);
+				}
+				else if (val instanceof MultiValueProperty) {
+					encodeMultiValueProperty(sb, (MultiValueProperty) val);
 				}
 				else if (val instanceof Property) {
 					encodeProperty(sb, (Property) val);

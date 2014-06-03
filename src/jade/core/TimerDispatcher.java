@@ -25,9 +25,9 @@ package jade.core;
 
 //#APIDOC_EXCLUDE_FILE
 
-//#J2ME_EXCLUDE_BEGIN
 import jade.util.Logger;
 
+//#J2ME_EXCLUDE_BEGIN
 import java.util.Comparator;
 import java.util.TreeSet;
 //#J2ME_EXCLUDE_END

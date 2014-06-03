@@ -67,6 +67,7 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	add(new ConceptSchema(SEARCHCONSTRAINTS), SearchConstraints.class);
 	  	add(new ConceptSchema(AMSAGENTDESCRIPTION), AMSAgentDescription.class);
 	  	add(new ConceptSchema(PROPERTY), Property.class);
+	  	add(new ConceptSchema(MULTI_VALUE_PROPERTY), MultiValueProperty.class);
 	  	add(new ConceptSchema(ENVELOPE), Envelope.class);
 	  	add(new ConceptSchema(RECEIVEDOBJECT), ReceivedObject.class);
 	  	add(new ConceptSchema(APDESCRIPTION), APDescription.class);
@@ -134,6 +135,9 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	cs.add(PROPERTY_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
 	  	cs.add(PROPERTY_VALUE, (TermSchema)TermSchema.getBaseSchema(), ObjectSchema.OPTIONAL);  // In a template we can specify a null value
 
+	  	cs = (ConceptSchema)getSchema(MULTI_VALUE_PROPERTY);
+	  	cs.addSuperSchema((ConceptSchema) getSchema(PROPERTY));
+	  	
 	  	cs = (ConceptSchema)getSchema(ENVELOPE);
 	  	cs.add(ENVELOPE_TO, (ConceptSchema)getSchema(BasicOntology.AID), 1, ObjectSchema.UNLIMITED);
 	  	cs.add(ENVELOPE_FROM, (ConceptSchema)getSchema(BasicOntology.AID));

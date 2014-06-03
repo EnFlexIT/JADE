@@ -128,10 +128,10 @@ public class Property implements Concept {
 		boolean result = false;
 		if (name.equals(p.name)) {
 			// The property name matches. Check the value
-			if (value == null) {
+			if (p.value == null) {
 				result = true;
 			}
-			else if (value instanceof String) {
+			else if (p.value instanceof String) {
 				result = ((String)value).equalsIgnoreCase(p.value.toString());
 			}
 			else {
