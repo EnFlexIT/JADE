@@ -149,4 +149,9 @@
 			<Description>Test of Bean Ontology Builder functionalities.</Description>
 			<TestsListRif>test/bob/beanOntologyBuilderTestsList.xml</TestsListRif>
 		</Tester>
+		<Tester name="Distribution" skip="false">
+			<ClassName>test.distribution.DistributionTesterAgent</ClassName>
+			<Description>This item includes tests on the features of the distribution package included in the Misc add-on.</Description>
+			<TestsListRif>test/distribution/distributionTestsList.xml</TestsListRif>
+		</Tester>
 	</TesterList>

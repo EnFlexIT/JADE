@@ -166,9 +166,18 @@ public class ACLMessage implements Serializable {
 	
 	/**
 	 * User defined parameter key specifying, when set to "true", that if the delivery of a 
-	 * message fails, no FAILURE notification has to be sent back to the sender.
+	 * message fails, no failure handling action must be performed.
 	 */
 	public static final String IGNORE_FAILURE = "JADE-ignore-failure";
+	
+	/**
+	 * User defined parameter key specifying, when set to "true", that if the delivery of a 
+	 * message fails, no FAILURE notification has to be sent back to the sender.
+	 * This differs from IGNORE_FAILURE since it does not inhibit the delivery failure 
+	 * handling mechanism (based on the NOTIFY_FAILURE VCommand) at all, but just the
+	 * delivery of the automatic AMS FAILURE reply. 
+	 */
+	public static final String DONT_NOTIFY_FAILURE = "JADE-dont-notify-failure";
 	
 	/**
 	 * User defined parameter key specifying that the JADE tracing mechanism should be activated for this message.

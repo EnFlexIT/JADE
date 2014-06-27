@@ -64,8 +64,17 @@ public class TestSearchConstraints extends Test {
 					log("--- ...passed. Searching the AMS with searchConstraints.maxResults=-1 ...");
 					s.setMaxResults(new Long(-1));
 					results = AMSService.search(myAgent, new AMSAgentDescription(), s);
-					if (results.length != 5) {
-						failed("---Search with searchConstraints.maxResults=-1 returned "+results.length+" results while 5 were expected.");
+					// Normally we expect 5 agents: ams, df, rma, test-suite and tester.
+					// However if we are running with the Misc add-on in the classpath we also have monitor agents -->
+					// Do not count them 
+					int count = 0;
+					for (int i = 0; i < results.length; ++i) {
+						if (!results[i].getName().getLocalName().startsWith("monitor-")) {
+							count++;
+						}
+					}
+					if (count != 5) {
+						failed("---Search with searchConstraints.maxResults=-1 returned "+count+" results while 5 were expected.");
 						return;
 					}
 					log("--- ...passed. Searching the AMS with searchConstraints.maxResults=3 ...");

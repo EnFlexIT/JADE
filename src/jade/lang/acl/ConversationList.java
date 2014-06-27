@@ -71,7 +71,11 @@ public class ConversationList implements Serializable{
 	public MessageTemplate getMessageTemplate() {
 		return myTemplate;
 	}
-	
+
+	@Override
+	public String toString() {
+		return "CL"+conversations;
+	}
 	protected String createConversationId() {
 		return myAgent.getName()+(cnt++);
 	}

@@ -23,7 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package examples.O2AInterface;
 
-import jade.core.Agent;
 import jade.core.Runtime;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
@@ -31,8 +30,9 @@ import jade.core.ProfileImpl;
 import jade.wrapper.*;
 
 /**
- * This class is an example of how you can embed JADE runtime environment within
- * your applications.
+ * This class shows an example of how to run JADE as a library from an external program 
+ * and in particular how to start an agent and interact with it by  means of the 
+ * Object-to-Agent (O2A) interface.
  * 
  * @author Giovanni Iavarone - Michele Izzo
  */
@@ -40,59 +40,42 @@ import jade.wrapper.*;
 public class O2AInterfaceExample {
 	
 
-	public static void main(String[] args) throws StaleProxyException,
-			InterruptedException {
+	public static void main(String[] args) throws StaleProxyException, InterruptedException {
+		// Get a hold to the JADE runtime
 		Runtime rt = Runtime.instance();
-		// Launch a complete platform on the 8888 port
-		// create a default Profile
-		Profile pMain = new ProfileImpl(null, 8888, null);
-
-		System.out.println("Launching a whole in-process platform..." + pMain);
-		AgentContainer mc = rt.createMainContainer(pMain);
-
-		// set now the default Profile to start a container
-		ProfileImpl pContainer = new ProfileImpl(null, 8888, null);
-		System.out.println("Launching the agent container ..." + pContainer);
-
-		System.out.println("Launching the rma agent on the main container ...");
-		AgentController rma = mc.createNewAgent("rma", "jade.tools.rma.rma",
-				new Object[0]);
-		rma.start();
-
-		// Get a hold on JADE runtime
-
-		Profile p = new ProfileImpl(false);
-		AgentContainer ac = rt.createAgentContainer(p);
-
-		// Create a new agent, CounterAgent
-		AgentController controller = ac.createNewAgent("CounterAgent",
-				CounterAgent.class.getName(), new Object[0]);
-
-		// Fire up the agent
-		System.out.println("Starting up a CounterAgent...");
-		controller.start();
-		CounterManager1 o2a1 = null;
-
-		try {
-			o2a1 = controller.getO2AInterface(CounterManager1.class);
-		} catch (StaleProxyException e) {
-			e.printStackTrace();
-		}
-
-		//Adds a ticker behavior that increases the counter every 5 seconds and prints the value
-		o2a1.activateCounter();
-
-		CounterManager2 o2a2 = null;
-
-		try {
-			o2a2 = controller.getO2AInterface(CounterManager2.class);
-		} catch (StaleProxyException e) {
-			e.printStackTrace();
-		}
-		// Wait for 25 seconds
-		Thread.sleep(25000);
 		
-		// Remove ticker behaviour 
-		o2a2.deactivateCounter();
+		// Launch the Main Container (with the administration GUI on top) listening on port 8888
+		System.out.println(">>>>>>>>>>>>>>> Launching the platform Main Container...");
+		Profile pMain = new ProfileImpl(null, 8888, null);
+		pMain.setParameter(Profile.GUI, "true");
+		ContainerController mainCtrl = rt.createMainContainer(pMain);
+
+		// Create and start an agent of class CounterAgent
+		System.out.println(">>>>>>>>>>>>>>> Starting up a CounterAgent...");
+		AgentController agentCtrl = mainCtrl.createNewAgent("CounterAgent", CounterAgent.class.getName(), new Object[0]);
+		agentCtrl.start();
+		
+		// Wait a bit
+		System.out.println(">>>>>>>>>>>>>>> Wait a bit...");
+		Thread.sleep(10000);
+				
+		try {
+			// Retrieve O2A interface CounterManager1 exposed by the agent to make it activate the counter
+			System.out.println(">>>>>>>>>>>>>>> Activate counter");
+			CounterManager1 o2a1 = agentCtrl.getO2AInterface(CounterManager1.class);
+			o2a1.activateCounter();
+
+			// Wait a bit
+			System.out.println(">>>>>>>>>>>>>>> Wait a bit...");
+			Thread.sleep(30000);
+
+			// Retrieve O2A interface CounterManager2 exposed by the agent to make it de-activate the counter
+			System.out.println(">>>>>>>>>>>>>>> Deactivate counter");
+			CounterManager2 o2a2 = agentCtrl.getO2AInterface(CounterManager2.class);
+			o2a2.deactivateCounter();
+		} 
+		catch (StaleProxyException e) {
+			e.printStackTrace();
+		}
 	}
 }

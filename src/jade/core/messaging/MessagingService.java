@@ -850,8 +850,13 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			
 			// The acl message contained inside the GenericMessage cannot be null; the notifyFailureToSender() method already checks that
 			ACLMessage aclmsg = msg.getACLMessage();
-			if((aclmsg.getSender()==null) || (aclmsg.getSender().equals(myContainer.getAMS()))) // sanity check to avoid infinite loops
+			// Sanity check to avoid infinite loops
+			if((aclmsg.getSender()==null) || (aclmsg.getSender().equals(myContainer.getAMS()))) {
 				return;
+			}
+			if ("true".equals(aclmsg.getUserDefinedParameter(ACLMessage.DONT_NOTIFY_FAILURE))) {
+				return;
+			}
 			
 			// Send back a failure message
 			final ACLMessage failure = aclmsg.createReply();

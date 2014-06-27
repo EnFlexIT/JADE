@@ -365,7 +365,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				long uncertanty = elapsed / 2;
 				long serverTime = Long.parseLong(rspDataStr) + uncertanty;
 				long offset = serverTime - now;
-				myProperties.put(JICPProtocol.SERVER_TIME_OFFSET_KEY, new Long(offset));
+				myProperties.put(JICPProtocol.SERVER_TIME_OFFSET_KEY, String.valueOf(offset));
 				myLogger.log(Logger.INFO, "Server time initialized: value="+serverTime+", offset="+offset+", uncertanty= +/- "+uncertanty);
 			}
 			else {

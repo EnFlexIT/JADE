@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+
+<TestsList> 
+		<Test name="Duplicated assignment" skip="false">
+			<TestClassName>test.distribution.tests.TestDuplicatedAssignment</TestClassName>
+			<WhatTest>This test checks that if the same item is assigned a second time, even before the completion of the first assignment, the callbacks are correctly invoked  
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>
+</TestsList>
+

@@ -88,6 +88,7 @@ public class JICPSConnection extends JICPConnection {
 			try {
 				sc = scsf.createSocket(ta.getHost(), Integer.parseInt(ta.getPort()));
 				((SSLSocket) sc).setEnabledCipherSuites(SSLHelper.getSupportedKeys());
+				sc.setTcpNoDelay(true);
 				is = sc.getInputStream();
 				os = getOutputStream();
 				break;

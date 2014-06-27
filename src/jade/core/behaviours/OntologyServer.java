@@ -157,6 +157,10 @@ public class OntologyServer extends CyclicBehaviour {
 		}
 	}
 	
+	public ConversationList getIgnoredConversations() {
+		return ignoredConversations;
+	}
+	
 	/**
 	 * If an unexpected error occurs in one of the serving methods or if a suitable serving method 
 	 * is not found for an incoming message, the OntologyServer automatically sends back a FAILURE 
