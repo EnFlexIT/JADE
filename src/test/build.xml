@@ -21,10 +21,13 @@
     <!-- Test suite framework classes -->
     <pathelement location="add-ons/testSuite/lib/testSuite.jar"/>
 
-    <!-- Others -->
+    <!-- Other Add-ons -->
     <pathelement location="add-ons/benchmark/classes"/>
     <pathelement location="add-ons/XMLCodec/classes"/>
     <pathelement location="add-ons/misc/classes"/>
+	
+    <!-- External libraries: Manually put in this directory any external jar file used to run tests -->
+    <pathelement location="src/test/extLibs"/>
   </path>
   
 
