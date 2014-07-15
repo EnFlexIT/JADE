@@ -72,16 +72,15 @@ public class IncomingEncodingFilter extends Filter {
 			// The command always contains a non-null ACLMessage (for the purpose
 			// of notification of failures), but it contains the real ACLMessage
 			// when the payload is null
-			if(gmsg.getPayload()==null){
+			byte[] payload = gmsg.getPayload();
+			if (payload == null){
 				// If a real ACLMessage is present, just do nothing!
 				return true;
 			}
 			else {
 				Envelope env = gmsg.getEnvelope();
-				byte[] payload = gmsg.getPayload();
-				ACLMessage msg ;
 				try{
-					msg = decodeMessage(env,payload);
+					ACLMessage msg = decodeMessage(env,payload);
 					msg.setEnvelope(env);
 					
 					if (env!=null){

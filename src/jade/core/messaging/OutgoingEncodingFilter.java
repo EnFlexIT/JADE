@@ -121,7 +121,7 @@ public class OutgoingEncodingFilter extends Filter {
 				if (env!=null)
 					env.setPayloadLength(new Long(payload.length));
 				
-				// Update the ACLMessage: some information is kept because it is 
+				// Update the ACLMessage: some information are kept because they are 
 				// required in other services
 				((GenericMessage)cmd.getParams()[1]).update(msg,env,payload);
 				
