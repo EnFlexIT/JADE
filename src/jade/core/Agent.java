@@ -760,7 +760,18 @@ public class Agent implements Runnable, Serializable
 		myHap = id.getHap();
 		myAID = id;
 	}
-
+	
+	/**
+	 Method to build a complete agent GUID belonging to the same platform of the current agent
+	 @param name Agent local name.
+	 @return An <code>Agent ID</code> object, containing the complete
+	 agent GUID, addresses and resolvers.
+	 */
+	public final AID getAID(String name) {
+		String guid = name.concat("@"+getHap());
+		return new AID(guid, AID.ISGUID);
+	}
+	
 	/**
 	 This method adds a new platform address to the AID of this Agent.
 	 It is called by the container when a new MTP is activated
