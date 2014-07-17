@@ -237,7 +237,8 @@ public class AgentManagementService extends BaseService {
 				myLogger.log(Logger.CONFIG,"Source Sink consuming command REQUEST_CREATE. Name is "+name);
 			MainContainer impl = myContainer.getMain();
 			if(impl != null) {
-				AID agentID = new AID(name, AID.ISLOCALNAME);
+				
+				AID agentID = new AID(AID.createGUID(name, myContainer.getPlatformID()), AID.ISGUID);
 				AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
 				if (targetSlice != null) {
 					try {

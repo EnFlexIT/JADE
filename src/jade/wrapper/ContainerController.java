@@ -94,7 +94,10 @@ public class ContainerController {
 			throw new StaleProxyException();
 		}
 
-		AID agentID = new AID(name, isGuid);
+		if (!isGuid) {
+			name = AID.createGUID(name, myImpl.getPlatformID());
+		}
+		AID agentID = new AID(name, AID.ISGUID);
 
 		// Check that the agent exists
 		jade.core.Agent instance = myImpl.acquireLocalAgent(agentID);
@@ -126,7 +129,7 @@ public class ContainerController {
 			throw new StaleProxyException();
 		}
 
-		AID agentID = new AID(nickname, AID.ISLOCALNAME);
+		AID agentID = new AID(AID.createGUID(nickname, myImpl.getPlatformID()), AID.ISGUID);
 
 		try {
 			myProxy.createAgent(agentID, className, args);
@@ -153,7 +156,7 @@ public class ContainerController {
 			throw new StaleProxyException();
 		}
 
-		AID agentID = new AID(nickname, AID.ISLOCALNAME);
+		AID agentID = new AID(AID.createGUID(nickname, myImpl.getPlatformID()), AID.ISGUID);
 		// FIXME: This call skips the security checks on the local container
 		try {
 			jade.core.NodeDescriptor nd = myImpl.getNodeDescriptor();

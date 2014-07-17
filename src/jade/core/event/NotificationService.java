@@ -32,7 +32,6 @@ import jade.core.BaseService;
 import jade.core.Sink;
 import jade.core.Filter;
 import jade.core.Node;
-
 import jade.core.Agent;
 import jade.core.AgentContainer;
 import jade.core.MainContainer;
@@ -47,15 +46,11 @@ import jade.core.ServiceException;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.core.ServiceHelper;
-
 import jade.core.messaging.GenericMessage;
-
 import jade.core.behaviours.Behaviour;
-
 import jade.lang.acl.ACLMessage;
 import jade.security.JADEPrincipal;
 import jade.tools.ToolNotifier;
-
 import jade.util.SynchList;
 import jade.util.leap.Iterator;
 import jade.util.leap.Map;
@@ -537,8 +532,9 @@ public class NotificationService extends BaseService {
 			ToolNotifier tn = findNotifier(snifferName);
 			if(tn == null) { // Need a new notifier 
 				tn = new ToolNotifier(snifferName);
-				AID id = new AID(snifferName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
 				try {
+					String platformID = myContainer.getPlatformID();
+					AID id = new AID(AID.createGUID(snifferName.getLocalName() + "-on-" + myID().getName(), myContainer.getPlatformID()), AID.ISGUID);
 					myContainer.initAgent(id, tn, null, null); // FIXME: Modify to use a proper owner Principal
 					myContainer.powerUpLocalAgent(id);
 					helper.registerMessageListener(tn);
@@ -583,7 +579,7 @@ public class NotificationService extends BaseService {
 			ToolNotifier tn = findNotifier(introspectorName);
 			if(tn == null) { // Need a new notifier
 				tn = new ToolNotifier(introspectorName);
-				AID id = new AID(introspectorName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
+				AID id = new AID(AID.createGUID(introspectorName.getLocalName() + "-on-" + myID().getName(), myContainer.getPlatformID()), AID.ISGUID);
 				try {
 					myContainer.initAgent(id, tn, null, null); // FIXME: Modify to use a proper owner Principal
 					myContainer.powerUpLocalAgent(id);

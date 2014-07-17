@@ -768,8 +768,17 @@ public class Agent implements Runnable, Serializable
 	 agent GUID, addresses and resolvers.
 	 */
 	public final AID getAID(String name) {
-		String guid = name.concat("@"+getHap());
-		return new AID(guid, AID.ISGUID);
+		String guid = AID.createGUID(name, getHap());
+		AID result = new AID(guid, AID.ISGUID);
+		Iterator it = myAID.getAllAddresses();
+		while (it.hasNext()) {
+			result.addAddresses((String) it.next());
+		}
+		it = myAID.getAllResolvers();
+		while (it.hasNext()) {
+			result.addResolvers((AID) it.next());
+		}
+		return result;
 	}
 	
 	/**

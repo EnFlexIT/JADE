@@ -474,7 +474,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			
 			public void createAlias(String alias) throws IMTPException, ServiceException {
 				myLogger.log(Logger.INFO, "Creating Alias "+alias+"-->"+myAgent.getLocalName());
-				AID aliasAID = new AID(alias, AID.ISLOCALNAME);
+				AID aliasAID = new AID(AID.createGUID(alias, myContainer.getPlatformID()), AID.ISGUID);
 				AID id = myAgent.getAID();
 				localAliases.put(aliasAID, id);
 				notifyNewAlias(aliasAID, id);
@@ -482,7 +482,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			
 			public void deleteAlias(String alias) throws IMTPException, ServiceException {
 				myLogger.log(Logger.INFO, "Deleting Alias "+alias+"-->"+myAgent.getLocalName());
-				AID aliasAID = new AID(alias, AID.ISLOCALNAME);
+				AID aliasAID = new AID(AID.createGUID(alias, myContainer.getPlatformID()), AID.ISGUID);
 				AID id = (AID) localAliases.remove(aliasAID);
 				if (id != null) {
 					if (id.equals(myAgent.getAID())) {

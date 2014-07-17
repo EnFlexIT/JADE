@@ -355,13 +355,13 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		myMainContainer = myProfile.getMain();
 		//#MIDP_EXCLUDE_END
 
-		// This string will be used to build the GUID for every agent on
-		// this platform.
+		// Initialize the static platform-id used when building AID by means of the ISLOCALNAME constructor
+		// Note that at first time we directly call myServiceManager.getPlatformName() to avoid swallowing any exception
 		AID.setPlatformID(myServiceManager.getPlatformName());
 
 		// Build the Agent IDs for the AMS and for the Default DF.
-		theAMS = new AID(FIPANames.AMS, AID.ISLOCALNAME);
-		theDefaultDF = new AID(FIPANames.DEFAULT_DF, AID.ISLOCALNAME);
+		theAMS = new AID(AID.createGUID(FIPANames.AMS, getPlatformID()), AID.ISGUID);
+		theDefaultDF = new AID(AID.createGUID(FIPANames.DEFAULT_DF, getPlatformID()), AID.ISGUID);
 
 		// Create the ResourceManager
 		myResourceManager = myProfile.getResourceManager();
@@ -554,7 +554,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			while(agentSpecifiers.hasNext()) {
 				Specifier s = (Specifier) agentSpecifiers.next();
 				if (s.getName() != null) {
-					AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
+					AID agentID = new AID(AID.createGUID(s.getName(), getPlatformID()), AID.ISGUID);
 
 					try {
 						//#MIDP_EXCLUDE_BEGING
@@ -941,7 +941,12 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	/**
 	 */
 	public String getPlatformID() {
-		return AID.getPlatformID();
+		try {
+			return myServiceManager.getPlatformName();
+		} catch (IMTPException e) {
+			// Should never happen since, once initialized, the platform name is cached locally  
+			return null;
+		}
 	}
 
 	public Agent addLocalAgent(AID id, Agent a) {

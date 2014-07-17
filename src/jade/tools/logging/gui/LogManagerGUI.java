@@ -322,7 +322,7 @@ public class LogManagerGUI extends JFrame {
 			myAgent.getContentManager().fillContent(request, act);
 			ACLMessage inform = FIPAService.doFipaRequestClient(myAgent, request, 10000);
 			if (inform != null) {
-				return new AID(localName, AID.ISLOCALNAME);
+				return myAgent.getAID(localName);
 			}
 			else {
 				throw new FIPAException("Response timeout expired");

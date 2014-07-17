@@ -199,7 +199,7 @@ public class AgentReplicationService extends BaseService {
 
 		public AID makeVirtual(String virtualName, int replicationMode) throws ServiceException {
 			if (virtualAid == null) {
-				virtualAid = new AID(virtualName, AID.ISLOCALNAME);
+				virtualAid = new AID(AID.createGUID(virtualName, myContainer.getPlatformID()), AID.ISGUID);
 
 				// Reserve the virtualName by registering the virtual AID to the AMS
 				AMSAgentDescription amsd = new AMSAgentDescription();
@@ -234,7 +234,7 @@ public class AgentReplicationService extends BaseService {
 					if (slice != null) {
 						// Notify the destination slice that a replica for our virtual agent is 
 						// going to be created there (see comment in AgentReplicationSlice)
-						AID replicaAid = new AID(replicaName, AID.ISLOCALNAME);
+						AID replicaAid = new AID(AID.createGUID(replicaName, myContainer.getPlatformID()), AID.ISGUID);
 						try {
 							slice.replicaCreationRequested(virtualAid, replicaAid);
 						}
@@ -424,7 +424,7 @@ public class AgentReplicationService extends BaseService {
 						// This message was originally sent to a virtual agent. The selected 
 						// implementation replica is no longer there or is unreachable however --> 
 						// Remove the dirty replica, then select a new one and retry
-						AID virtualAid = new AID(virtualName, AID.ISLOCALNAME);
+						AID virtualAid = new AID(AID.createGUID(virtualName, myContainer.getPlatformID()), AID.ISGUID);
 						AID receiver = (AID) cmd.getParam(1);
 						removeReplica(virtualAid, receiver);
 						

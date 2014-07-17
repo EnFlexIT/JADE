@@ -39,9 +39,7 @@ import jade.util.leap.HashMap;
 import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
 import jade.security.*;
-
 import jade.core.messaging.*;
-
 import jade.util.Logger;
 
 import java.lang.reflect.Method;
@@ -234,7 +232,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	 */
 	public String bornAgent(String name) throws JADESecurityException, IMTPException {
 		name = JADEManagementOntology.adjustAgentName(name, new String[]{getID().getName()});
-		AID id = new AID(name, AID.ISLOCALNAME);
+		AID id = new AID(AID.createGUID(name, getPlatformID()), AID.ISGUID);
 		GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_CREATED, jade.core.management.AgentManagementSlice.NAME, null);
 		cmd.addParam(id);
 		
@@ -259,7 +257,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	 Remove its image and notify the Main
 	 */
 	public void deadAgent(String name) throws IMTPException {
-		AID id = new AID(name, AID.ISLOCALNAME);
+		AID id = new AID(AID.createGUID(name, getPlatformID()), AID.ISGUID);
 		myLogger.log(Logger.INFO, getID() + " - Handling termination of agent "+id.getLocalName());
 		handleEnd(id);
 	}
@@ -267,14 +265,14 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	/**
 	 */
 	public void suspendedAgent(String name) throws NotFoundException, IMTPException {
-		AID id = new AID(name, AID.ISLOCALNAME);
+		AID id = new AID(AID.createGUID(name, getPlatformID()), AID.ISGUID);
 		handleChangedAgentState(id, Agent.AP_ACTIVE, Agent.AP_SUSPENDED);
 	}
 	
 	/**
 	 */
 	public void resumedAgent(String name) throws NotFoundException, IMTPException {
-		AID id = new AID(name, AID.ISLOCALNAME);
+		AID id = new AID(AID.createGUID(name, getPlatformID()), AID.ISGUID);
 		handleChangedAgentState(id, Agent.AP_SUSPENDED, Agent.AP_ACTIVE);
 	}
 	
@@ -285,7 +283,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	 */
 	public void messageOut(ACLMessage msg, String sender) throws NotFoundException, IMTPException {
 		// Check whether the sender exists
-		AID id = new AID(sender, AID.ISLOCALNAME);
+		AID id = new AID(AID.createGUID(sender, getPlatformID()), AID.ISGUID);
 		
 		synchronized (frontEndSynchLock) {
 			AgentImage image = getAgentImage(id);
@@ -314,7 +312,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	}
 	
 	public Object serviceInvokation(String actor, String serviceName, String methodName, Object[] methodParams) throws NotFoundException, ServiceException, IMTPException {
-		AID id = new AID(actor, AID.ISLOCALNAME);
+		AID id = new AID(AID.createGUID(actor, getPlatformID()), AID.ISGUID);
 		AgentImage image = getAgentImage(id);
 		ServiceHelper helper = image.getHelper(serviceName);
 		if (helper == null) {
@@ -677,7 +675,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 				try {
 					Object[] removed = (Object[]) it.next();
 					ACLMessage msg = (ACLMessage) removed[0];
-					AID receiver = new AID((String) removed[1], AID.ISLOCALNAME);						
+					AID receiver = new AID(AID.createGUID((String) removed[1], getPlatformID()), AID.ISGUID);						
 					ServiceFinder myFinder = getServiceFinder();
 					MessagingService msgSvc = (MessagingService) myFinder.findService(MessagingSlice.NAME);
 					msgSvc.notifyFailureToSender(new GenericMessage(msg), receiver, new InternalError("Agent dead"));  

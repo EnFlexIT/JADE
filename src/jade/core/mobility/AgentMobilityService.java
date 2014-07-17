@@ -491,7 +491,7 @@ public class AgentMobilityService extends BaseService {
 							myLogger.log(Logger.FINE," adding clone " + newName  + " to code locator.");
 						}
 						
-						codeLocator.cloneAgent(agentID, new AID(newName,AID.ISLOCALNAME));
+						codeLocator.cloneAgent(agentID, new AID(AID.createGUID(newName, myContainer.getPlatformID()), AID.ISGUID));
 					}	
 				} else {
 					//Send a CLONE_CODE_LOCATOR_ENTRY command to the container with the agent code.

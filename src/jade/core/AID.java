@@ -44,6 +44,8 @@ import java.util.Vector;
  tables use this class to record agent names and addresses.
  */
 public class AID implements Comparable, Serializable {
+	public static final char HAP_SEPARATOR = '@';
+	
 	// Unique ID of the platform, used to build the GUID of resident agents.
 	private static String platformID;
 	
@@ -146,13 +148,13 @@ public class AID implements Comparable, Serializable {
 			throw new RuntimeException("Unknown Platform Name");
 		}
 		name = n.trim(); 
-		// Concatenates the HAP 
-		/*if (! ( (name.length() > hap.length()) && 
-				name.regionMatches(true, name.length() - hap.length(), hap, 0, hap.length()))) {
-			name = name.concat("@"+hap);
-		}*/
-		name = name.concat("@"+hap);
+		name = createGUID(name, hap);
 		hashCode = name.toLowerCase().hashCode();			
+	}
+	
+	public static String createGUID(String localName, String platformName) {
+		String n = localName.trim();
+		return n.concat(HAP_SEPARATOR+platformName);
 	}
 	
 	/**

@@ -63,11 +63,14 @@ public class AverageMeasure implements Serializable, Provider {
 	}
 	
 	public void update(AverageMeasure am) {
-		if (value == Double.NaN) {
+		if (Double.compare(value, Double.NaN) == 0) {
+			// Local value is NaN --> Whatever it is get the other value 
 			value = am.getValue();
 			nSamples = am.getNSamples();
 		} 
-		else if (am.getValue() != Double.NaN) {
+		else if (Double.compare(am.getValue(), Double.NaN) != 0) {
+			// Both local and other values != NaN --> Do the actual update
+			// NOTE: if other value == NaN --> just do nothing
 			double totValue = value * nSamples + am.getValue() * am.getNSamples();
 			int totSamples = nSamples + am.getNSamples();
 			
