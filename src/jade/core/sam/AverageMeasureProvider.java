@@ -23,6 +23,7 @@
 
 package jade.core.sam;
 
+//#DOTNET_EXCLUDE_FILE
 
 /**
  * A Provider of average measures for a given entity

@@ -23,5 +23,7 @@
 
 package jade.core.sam;
 
+//#DOTNET_EXCLUDE_FILE
+
 public interface Provider {
 }

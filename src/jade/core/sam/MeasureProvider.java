@@ -23,6 +23,8 @@
 
 package jade.core.sam;
 
+//#DOTNET_EXCLUDE_FILE
+
 /**
  * A Provider of "one-shot" measures for a given entity
  */

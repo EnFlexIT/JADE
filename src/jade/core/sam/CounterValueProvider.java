@@ -23,6 +23,8 @@
 
 package jade.core.sam;
 
+//#DOTNET_EXCLUDE_FILE
+
 /**
  * A provider of values for a given counter. The <code>isDifferential()<code> method 
  * indicates whether provided values are differential or total. In the former case

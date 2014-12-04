@@ -23,6 +23,8 @@
 
 package jade.core.sam;
 
+//#DOTNET_EXCLUDE_FILE
+
 /**
  * A default ready-made implementation of the AverageMeasureProvider interface that offers 
  * methods to add measure samples and automatically computes an  <code>AverageMeasure</code>
