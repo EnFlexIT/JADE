@@ -79,6 +79,7 @@ public class JICPConnection extends Connection {
 			try { 
 				//#PJAVA_EXCLUDE_BEGIN
 				sc = new Socket();
+				bindSocket(sc);
 				sc.setTcpNoDelay(true);
 				sc.connect(new InetSocketAddress(ta.getHost(), Integer.parseInt(ta.getPort())), timeout);
 				//#PJAVA_EXCLUDE_END
@@ -110,6 +111,10 @@ public class JICPConnection extends Connection {
 		}
 	}
 
+	protected void bindSocket(Socket sc) {
+		// Just do nothing
+	}
+	
 	/**
 	 * Constructor declaration
 	 */
@@ -205,6 +210,14 @@ public class JICPConnection extends Connection {
 	 */
 	public String getRemoteHost() throws Exception {
 		return sc.getInetAddress().getHostAddress();
+	}
+	
+	public String getLocalHost() {
+		return sc.getLocalAddress().getHostAddress();
+	}
+	
+	public int getLocalPort() {
+		return sc.getLocalPort();
 	}
 	//#MIDP_EXCLUDE_END
 }

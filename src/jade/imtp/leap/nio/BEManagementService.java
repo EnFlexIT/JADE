@@ -781,9 +781,13 @@ public class BEManagementService extends BaseService {
 					break;
 				}
 				case JICPProtocol.GET_ADDRESS_TYPE: {
-					// Respond sending back the caller address
+					// Respond sending back the caller address and (if requested) port
 					myLogger.log(Logger.INFO, myLogPrefix + "GET_ADDRESS request received from " + address + ":" + port);
-					reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, address.getHostAddress().getBytes());
+					String addressStr = address.getHostAddress();
+					if (pkt.getData() != null ) {
+						addressStr += ":"+port;
+					}
+					reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, addressStr.getBytes());
 					break;
 				}
 				case JICPProtocol.GET_CONFIG_OPTIONS_TYPE: {
@@ -973,7 +977,7 @@ public class BEManagementService extends BaseService {
 				// If the incoming packet was a request, send back a generic error response
 				if (type == JICPProtocol.COMMAND_TYPE ||
 						type == JICPProtocol.CREATE_MEDIATOR_TYPE ||
-						type == JICPProtocol.CREATE_MEDIATOR_TYPE ||
+						type == JICPProtocol.CONNECT_MEDIATOR_TYPE ||
 						type == JICPProtocol.GET_ADDRESS_TYPE) {
 					reply = new JICPPacket("Unexpected error", e);
 				}

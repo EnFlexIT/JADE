@@ -457,7 +457,11 @@ implements PDPContextManager.Listener, JICPMediatorManager
 						// Respond sending back the caller address
 						if(myLogger.isLoggable(Logger.INFO))
 							myLogger.log(Logger.INFO,"Received a GET_ADDRESS request from "+addr+":"+port);
-						reply = new JICPPacket(JICPProtocol.GET_ADDRESS_TYPE, JICPProtocol.DEFAULT_INFO, addr.getHostAddress().getBytes());
+						String addressStr = addr.getHostAddress();
+						if (pkt.getData() != null ) {
+							addressStr += ":"+port;
+						}
+						reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, addressStr.getBytes());
 						break;
 						
 					case JICPProtocol.CREATE_MEDIATOR_TYPE:
