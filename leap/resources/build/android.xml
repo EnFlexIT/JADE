@@ -43,6 +43,7 @@
 				<exclude name="**/jade/imtp/leap/sms/**"/>
 				<exclude name="**/jade/domain/DFDBKB.java"/>
 				<exclude name="**/jade/domain/DFHSQLKB.java"/>
+				<exclude name="**/jade/test/**"/>
 			</fileset>
 		</copy>
 		<!-- 2) Copy JADE sources (final trim) -->
