@@ -1,3 +1,70 @@
+MAJOR CHANGES in JADE 4.3.3 (10 12 2014)
+==========================================================================
+Kernel
+- Removed (whenever possible) usage of AID.ISLOCALNAME inside the JADE kernel to ensure compatibility with multi-platform JVMs
+- Added in Agent class a method to build a complete agent GUID belonging to the same platform of the current agent
+- Some methods of the Agent class are no longer final to support extensions
+- Fixed bug in AverageMeasureProviderImpl related to NaN comparison
+- Added sanity check to avoid NullPointerException in message encoding (occurred in very particular cases when a container shut downs and resters almost in parallel)
+- Added support for DONT_NOTIFY_FAILURE ACLMessage user defined parameter: unlike IGNORE_FAILURE, failure management takes place normally, but AMS FAILURE is not sent
+- Modified TimerDispatcher to support different implementations in environments (e.g. Android) that require special handling of wait(ms)
+- Modified JICP connection to set the NO-DELAY parameter to avoid long delivery times
+- Implemented reachability check of newly joining containers (only reachable containers can join)
+- Hopefully fixed problem when using two or more sniffers at the same time (problem notified by Daniela Briola)
+- Modified OntologyServer to support "key content elements" which do not implements the ContentElement tagged interface
+- Modified OntologyServer to automatically reply only when the incoming message requires a response (REQUEST, PROPOSE...)
+- Added Callback interface to support asynchronous operations
+- Added JavaCollectionOntology to support managing java.util.List and Set as first-level elements
+
+AMS/DF
+- Added support for MultiValueProperty in DF
+- Added DFSubscriber utility class to simplify DF subscriptions
+- Modified ams to avoid notifying tools about all agents/containers termination when the platform shuts down
+
+JADE-Android
+- Added Android specific implementation of the TimerDispatcher class that substitutes wait(ms) with Android Alarms
+
+Add-Ons
+- Web Service Dynamic Client (WSDC)
+  - Updated AXIS library (managed wsdl element "form unqualified")
+  - Removed log4j dependency
+  - Implemented logging of SOAP messages
+  
+- Miscellaneous (MISC)
+  - CLI 
+    - Added cli/Shell shutdown() method
+    - Added support for setting Shell prompt
+    - Added support for setting a defaultPackage in Shell
+    - Managed the case where no behaviour is returned by a CLICommand
+  - Completed distribution framework to facilitate distribution and assignment of generic items to a given set of agents
+    - added support for defining an ad-hoc implementation of the AssignmentMap
+    - modified to properly managed the case where the same item is assigned 2 or more times in fast sequence
+    - added support for retrieving assigned items and keys
+    - added support for distinguishing between different assignment context (new item, re-assigned item...)
+    - added support for reconstructing assignments in case of agent restart
+    - added method getAllAgents() in AgentSelectionPolicy
+  - Added method getPlatformName() in MainContainerChecker
+  - Added package test with a few agents useful to programmatically generate unexpected problems
+  - FileManager: Added support to download multiple files
+
+- Test Suite Framework  
+  - Activated socket keep-alive in RMI TSDaemon
+  - Modified to support execution of tests that require external libraries
+  - Modified method to get the network name
+ 
+DOCUMENTATION
+- Revisited O2AInterface example
+- Added javadoc to AssignmentManager and related classes in JideMisc
+
+POSSIBLE BACKWARD INCOMPATIBILITIES:
+- The signature of the handleServingFailure() method of the OntologyServer class slightly changed: 
+Second parameter is now a generic Object instead of a ContentElement. There are NO impacts at all for 
+projects that did not use the OntologyServer class redefining that method. 
+
+A part from the above point we do NOT expect any backward incompatibility with respect to the previous JADE version.
+
+
+
 MAJOR CHANGES in JADE 4.3.1 (06 12 2013)
 ==========================================================================
 GENERAL IMPROVEMENTS:
