@@ -36,7 +36,7 @@ Add-Ons
     - Added support for setting Shell prompt
     - Added support for setting a defaultPackage in Shell
     - Managed the case where no behaviour is returned by a CLICommand
-  - Completed distribution framework to facilitate distribution and assignment of generic items to a given set of agents
+  - Added "Distribution framework" to facilitate the distribution and assignment of generic items to a given set of agents
     - added support for defining an ad-hoc implementation of the AssignmentMap
     - modified to properly managed the case where the same item is assigned 2 or more times in fast sequence
     - added support for retrieving assigned items and keys
