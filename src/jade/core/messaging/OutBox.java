@@ -60,7 +60,7 @@ class OutBox {
 	void addLast(AID receiverID, GenericMessage msg, Channel ch) {
 		// Check the max queue size threshold
 		if ((size + msg.length()) > maxSize) {
-			myLogger.log(Logger.WARNING, "Message discarded by MessageManager! Queue size > "+maxSize+", number of pending messages = "+pendingMessagesCnt+", size of last message = "+msg.length());
+			myLogger.log(Logger.WARNING, "Message discarded by MessageManager! Current-queue-size = "+size+", max-size = "+maxSize+", number of pending messages = "+pendingMessagesCnt+", size of last message = "+msg.length());
 			throw new RuntimeException("Message discarded");
 		}
 		
@@ -201,7 +201,7 @@ class OutBox {
 			size += k;
 			if (size > warningSize) {
 				if (!overWarningSize) {
-					myLogger.log(Logger.WARNING, "MessageManager queue size > "+warningSize+". Number of pending messages = "+pendingMessagesCnt+", size of last message = "+k);
+					myLogger.log(Logger.WARNING, "MessageManager queue size ("+size+") > "+warningSize+". Number of pending messages = "+pendingMessagesCnt+", size of last message = "+k);
 					overWarningSize = true;
 				}
 				if (sleepTimeFactor > 0) {

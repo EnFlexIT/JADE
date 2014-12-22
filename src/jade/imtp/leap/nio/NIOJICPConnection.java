@@ -336,6 +336,7 @@ public class NIOJICPConnection extends Connection {
 	public void close() throws IOException {
 		closed = true;
 		myChannel.close();
+		Connection.socketCnt--;
 	}
 
 	// In some cases we may receive some data (often a socket closed by peer indication) while 

@@ -36,6 +36,8 @@ import java.util.Map;
  */
 public class SAMInfo implements Serializable {
 	private static final long serialVersionUID = 84762938792387L;
+	
+	public static final String AGGREGATION_SEPARATOR = "#";
 
 	private Map<String, AverageMeasure> entityMeasures;
 	private Map<String, Long> counterValues;
@@ -92,6 +94,87 @@ public class SAMInfo implements Serializable {
 			else {
 				counterValues.put(counterName, v.longValue()+newV);
 			}
+		}
+	}
+	
+	/**
+	 * If there are entities/counters of the form a#b, a#c... produce an aggregated entity a.
+	 * Since a itself may have the form a1#a2, iterate until there are no more aggregations   
+	 */
+	void computeAggregatedValues() {
+		// Aggregate measures
+		Map<String, AverageMeasure> aggregatedMeasures = oneShotComputeAggregatedMeasures(entityMeasures);
+		while (aggregatedMeasures.size() > 0) {
+			addAllMeasures(aggregatedMeasures, entityMeasures);
+			aggregatedMeasures = oneShotComputeAggregatedMeasures(aggregatedMeasures);
+		}
+		
+		// Aggregate counters
+		Map<String, Long> aggregatedCounters = oneShotComputeAggregatedCounters(counterValues);
+		while (aggregatedCounters.size() > 0) {
+			addAllCounters(aggregatedCounters, counterValues);
+			aggregatedCounters = oneShotComputeAggregatedCounters(aggregatedCounters);
+		}
+	}
+	
+	private static Map<String, AverageMeasure> oneShotComputeAggregatedMeasures(Map<String, AverageMeasure> measures) {
+		Map<String, AverageMeasure> aggregatedMeasures = new HashMap<String, AverageMeasure>();
+		for (String entityName : measures.keySet()) {
+			AverageMeasure am = measures.get(entityName);
+			int k = entityName.lastIndexOf(AGGREGATION_SEPARATOR);
+			if (k > 0) {
+				// This is an "aggregated measure component" (aaa#bbb) --> accumulate component contribution
+				String aggregatedEntityName = entityName.substring(0, k);
+				AverageMeasure agM = aggregatedMeasures.get(aggregatedEntityName);
+				if (agM == null) {
+					agM = new AverageMeasure();
+					aggregatedMeasures.put(aggregatedEntityName, agM);
+				}
+				agM.update(am);
+			}
+		}
+		return aggregatedMeasures;
+	}
+	
+	private static void addAllMeasures(Map<String, AverageMeasure> mm1, Map<String, AverageMeasure> mm2) {
+		for (String entityName : mm1.keySet()) {
+			AverageMeasure m = mm1.get(entityName);
+			AverageMeasure old = mm2.get(entityName);
+			if (old != null) {
+				old.update(m);
+			}
+			else {
+				mm2.put(entityName, m);
+			}
+		}
+	}
+	
+	private static Map<String, Long> oneShotComputeAggregatedCounters(Map<String, Long> counters) {
+		Map<String, Long> aggregatedCounters = new HashMap<String, Long>();
+		for (String counterName : counters.keySet()) {
+			Long c = counters.get(counterName);
+			int k = counterName.lastIndexOf(AGGREGATION_SEPARATOR);
+			if (k > 0) {
+				// This is an "aggregated counter component" (aaa#bbb) --> accumulate component contribution
+				String aggregatedCounterName = counterName.substring(0, k);
+				Long agC = aggregatedCounters.get(aggregatedCounterName);
+				if (agC == null) {
+					agC = new Long(0);
+				}
+				aggregatedCounters.put(aggregatedCounterName, agC + c);
+			}
+		}
+		return aggregatedCounters;
+	}
+	
+	private static void addAllCounters(Map<String, Long> cc1, Map<String, Long> cc2) {
+		for (String counterName : cc1.keySet()) {
+			Long c = cc1.get(counterName);
+			Long old = cc2.get(counterName);
+			if (old == null) {
+				old = new Long(0);
+			}
+			cc2.put(counterName, old + c);
 		}
 	}
 }

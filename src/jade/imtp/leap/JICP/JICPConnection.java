@@ -82,6 +82,7 @@ public class JICPConnection extends Connection {
 				bindSocket(sc);
 				sc.setTcpNoDelay(true);
 				sc.connect(new InetSocketAddress(ta.getHost(), Integer.parseInt(ta.getPort())), timeout);
+				socketCnt++;
 				//#PJAVA_EXCLUDE_END
 				/*#PJAVA_INCLUDE_BEGIN
 				sc = new Socket(ta.getHost(), Integer.parseInt(ta.getPort()));
@@ -197,7 +198,10 @@ public class JICPConnection extends Connection {
 			os = null;
 		}
 		if (sc != null) {
-			try {sc.close();} catch(IOException e) {firstExc = (firstExc != null ? firstExc : e);}
+			try {
+				sc.close();
+				socketCnt--;
+			} catch(IOException e) {firstExc = (firstExc != null ? firstExc : e);}
 			sc = null;
 		}
 		if (firstExc != null) {

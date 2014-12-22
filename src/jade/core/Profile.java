@@ -88,15 +88,6 @@ public abstract class Profile {
 	public static final String DETECT_MAIN = "detect-main";
 	
 	/**
-	 This constant is the name of the property whose value contains
-	 the host name the container must bind on. The host name must
-	 refer to the local machine, and is generally needed only when
-	 multiple network interfaces are present or a non-default name is
-	 desired.
-	 */
-	public static final String LOCAL_HOST = "local-host";
-	
-	/**
 	 * This constant is the name of the property whose value (true or false) instructs 
 	 * JADE to try to use host names instead of IP addresses in intra-platform communication.
 	 * Default is false (IP addresses are used preferentially)
@@ -104,10 +95,31 @@ public abstract class Profile {
 	public static final String PRIVILEDGE_LOGICAL_NAME = "priviledge-logical-name";
 	
 	/**
+	 This constant is the name of the property whose value contains
+	 the host name the container must bind on. The host name must
+	 refer to the local machine, and is generally needed only when
+	 multiple network interfaces are present or a non-default name is
+	 desired.
+	 */
+	public static final String LOCAL_HOST = "local-host";
+		
+	/**
 	 This constant is the name of the TCP port the container node must
 	 listen to for incoming IMTP messages.
 	 */
 	public static final String LOCAL_PORT = "local-port";
+	
+	/**
+	 * This constant is the name or address of the host that other containers will have to use 
+	 * to contact this container
+	 */
+	public static final String EXPORT_HOST = "export-host";
+	
+	/**
+	 * This constant is the port that other containers will have to use 
+	 * to contact this container
+	 */
+	public static final String EXPORT_PORT = "export-port";
 	
 	public static final String GUI = "gui";
 	

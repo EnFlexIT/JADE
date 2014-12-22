@@ -65,6 +65,8 @@ public class SAMService extends BaseService {
 	private Poller poller;
 
 	private SAMHelper myHelper = new SAMHelperImpl();
+	private static Object singletonLock = new Object();
+	private static SAMHelper singletonHelper;
 	private ServiceComponent localSlice = new ServiceComponent();
 	private Filter outgoingFilter = null;
 	
@@ -105,6 +107,12 @@ public class SAMService extends BaseService {
 					return true;
 				}
 			};
+		}
+		
+		synchronized (singletonLock) {
+			if (singletonHelper == null) {
+				singletonHelper = myHelper;
+			}
 		}
 	}
 	
@@ -169,6 +177,12 @@ public class SAMService extends BaseService {
 	@Override
 	public ServiceHelper getHelper(Agent a) {
 		return myHelper;
+	}
+	
+	public static SAMHelper getSingletonHelper() {
+		synchronized (singletonLock) {
+			return singletonHelper;
+		}
 	}
 
 	@Override

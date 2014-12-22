@@ -78,6 +78,9 @@ implements PDPContextManager.Listener, JICPMediatorManager
 	private int      state = LISTENING;
 	
 	private String host;
+	private String exportHost;
+	private Integer exportPort;
+	
 	private ServerSocket server;
 	private ICP.Listener cmdListener;
 	
@@ -207,16 +210,23 @@ implements PDPContextManager.Listener, JICPMediatorManager
 		
 		setDaemon(true);
 		setName("JICPServer-" + getLocalPort());
+		
+		exportHost = p.getParameter(Profile.EXPORT_HOST, null);
+		String exportPortStr = p.getParameter(Profile.EXPORT_PORT, null);
+		try {
+			exportPort = Integer.parseInt(exportPortStr);
+		}
+		catch (Exception e) {}
 	}
 	
 	public int getLocalPort() {
-		return server.getLocalPort();
+		return exportPort != null ? exportPort : server.getLocalPort();
 	}
 	
 	public String getLocalHost() {
 		// If a local-host was not specified, we accept connection on all local network addresses,
 		// but we expose the local host address we "prefer".
-		return host;
+		return exportHost != null ? exportHost : host;
 	}
 	
 	/**
@@ -255,6 +265,7 @@ implements PDPContextManager.Listener, JICPMediatorManager
 			try {
 				// Accept connection
 				Socket s = server.accept();
+				Connection.socketCnt++;
 				InetAddress addr = s.getInetAddress();
 				int port = s.getPort();
 				if(myLogger.isLoggable(Logger.FINEST))

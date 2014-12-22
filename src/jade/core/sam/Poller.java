@@ -145,6 +145,8 @@ class Poller extends Thread {
 				}
 			}
 			
+			globalInfo.computeAggregatedValues();
+			
 			for (SAMInfoHandler h : handlers) {
 				h.handle(timeStamp, globalInfo);
 			}

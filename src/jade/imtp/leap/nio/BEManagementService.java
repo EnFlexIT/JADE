@@ -1471,6 +1471,7 @@ public class BEManagementService extends BaseService {
 		private final void handleAcceptOp(SelectionKey key, String prefix) {
 			try {
 				SocketChannel sc = ((ServerSocketChannel) key.channel()).accept();
+				Connection.socketCnt++;
 
 				checkAddress(sc);
 

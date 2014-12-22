@@ -516,6 +516,11 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			return false;
 		}
 
+		//#J2ME_EXCLUDE_BEGIN
+		// Initialize JVM global activities
+		JVM.started(this, myProfile);
+		//#J2ME_EXCLUDE_END
+		
 		// Create and activate agents that must be launched at bootstrap
 		startBootstrapAgents();
 
