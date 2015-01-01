@@ -221,7 +221,7 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 		//#J2ME_EXCLUDE_BEGIN
 		// Register a suitable Shutdown Hook to shutdown the whole platform in case 
 		// the Main Container JVM unexpectedly exits
-		java.lang.Runtime.getRuntime().addShutdownHook(new Thread() {
+		Thread t = new Thread() {
 			public void run() {
 				logger.log(Logger.FINE, ">>>>>>>>> Shutdown Hook activated. AMS state = "+ams.this.getState());				
 				if (!shuttingDown && ams.this.getState() != Agent.AP_DELETED) {
@@ -238,7 +238,9 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 					}
 				}
 			}
-		});
+		};
+		t.setName("Platform-shutdown");
+		java.lang.Runtime.getRuntime().addShutdownHook(t);
 		//#J2ME_EXCLUDE_END
 	}
 
@@ -435,7 +437,7 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 				}
 			}
 		};
-
+		auxThread.setName("Platform-shutdown");
 		auxThread.start();
 	}
 	

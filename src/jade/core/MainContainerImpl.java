@@ -78,6 +78,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	 * case of fault of the master Main Contaier
 	 */
 	private static final String REPLICATED_AGENTS = "jade_core_MainContainerImpl_replicatedagents";
+	
 	/**
 	 * Profile option that specifies whether or not child nodes such as BackEnd containers 
 	 * managed by the BEManagementService must be considered when shutting down the platform.
@@ -86,6 +87,13 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	 * Possible values: true, false (default)
 	 */
 	private static final String IGNORE_CHILD_NODES_ON_SHUTDOWN = "jade_core_MainContainerImpl_ignorechildnodes";
+	
+	/**
+	 * Profile option that specifies whether or not all log messages should be produced during
+	 * the shutdown procedure  
+	 */
+	private static final String VERBOSE_SHUTDOWN = "jade_core_MainContainerImpl_verboseshutdown";
+	
 	/**
 	 * Profile option that specifies the implementation class of the DF agent.
 	 * Such class must extend the jade.domain.df standard class.
@@ -98,6 +106,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	private Map replicatedAgents = new HashMap();
 	private Vector replicatedAgentClasses;
 	private boolean ignoreChildNodesOnShutdown;
+	private boolean verboseShutdown;
 	
 	private ContainerID localContainerID;
 	private PlatformManagerImpl myPlatformManager;
@@ -117,6 +126,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		myCommandProcessor = p.getCommandProcessor();
 		replicatedAgentClasses = Specifier.parseList(p.getParameter(REPLICATED_AGENTS, ""), ';');
 		ignoreChildNodesOnShutdown = "true".equals(p.getParameter(IGNORE_CHILD_NODES_ON_SHUTDOWN, "false"));
+		verboseShutdown = "true".equals(p.getParameter(VERBOSE_SHUTDOWN, "false"));
 		myPlatformManager = pm;
 		// The AMS must be instantiated before the installation of kernel services to
 		// avoid NullPointerException in case a service provides an AMS-behaviour 
@@ -832,15 +842,14 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	/**
 	 Shut down the whole platform
 	 **/
-	public void shutdownPlatform(JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws JADESecurityException {
-		
-		if (myLogger.isLoggable(Logger.CONFIG)) {
-			myLogger.log(Logger.CONFIG, "Shutting down agent platform.");
+	public void shutdownPlatform(JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws JADESecurityException {	
+		if (verboseShutdown) {
+			myLogger.log(Logger.INFO, "Agent platform shutdown procedure activated.");
 		}
 		
 		// Issue a SHUTDOWN_PLATFORM VCommand for information and security check.
 		// In facts, even if the requester does not have the permission to kill the whole platform
-		// auxiliary nodes are killed anyway
+		// auxiliary nodes would be killed anyway
 		GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.SHUTDOWN_PLATFORM, jade.core.management.AgentManagementSlice.NAME, null);
 		cmd.setPrincipal(requesterPrincipal);
 		cmd.setCredentials(requesterCredentials);
@@ -868,7 +877,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 				NodeDescriptor dsc = myPlatformManager.getDescriptor(targetID.getName());
 				if (dsc != null) {
 					if (dsc.getParentNode() != null) {
-						shutdownContainer(targetID, "Container", requesterPrincipal, requesterCredentials);
+						shutdownContainer(targetID, "Child-Container", requesterPrincipal, requesterCredentials);
 						cnt++;
 					}
 				}
@@ -878,8 +887,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 				}
 			}
 		
-			if (cnt > 0 && myLogger.isLoggable(Logger.FINE)) {
-				myLogger.log(Logger.FINE, "Containers on child nodes shutdown completed.");
+			if (cnt > 0 && verboseShutdown) {
+				myLogger.log(Logger.INFO, "Containers on child nodes shutdown completed.");
 			}
 		}
 		
@@ -901,8 +910,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			}
 		}
 		
-		if (cnt > 0 && myLogger.isLoggable(Logger.FINE)) {
-			myLogger.log(Logger.FINE, "Peripheral containers shutdown completed.");
+		if (cnt > 0 && verboseShutdown) {
+			myLogger.log(Logger.INFO, "Peripheral containers shutdown completed.");
 		}
 		
 		// Then kill all auxiliary nodes not holding containers 
@@ -919,14 +928,14 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			}
 		}
 		
-		if (cnt > 0 && myLogger.isLoggable(Logger.FINE)) {
+		if (cnt > 0 && verboseShutdown) {
 			myLogger.log(Logger.FINE, "Backup Main Containers shutdown completed.");
 		}
 		
 		// Finally, kill the local container
 		try {
-			if (myLogger.isLoggable(Logger.FINE)) {
-				myLogger.log(Logger.FINE, "Killing local node "+localContainerID.getName());
+			if (verboseShutdown) {
+				myLogger.log(Logger.INFO, "Shutting down local node "+localContainerID.getName());
 			}
 			killContainer(localContainerID, requesterPrincipal, requesterCredentials);
 			
@@ -940,47 +949,58 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		}
 		catch(NotFoundException nfe) {
 			// Ignore the exception as we are removing a non-existing container
-			myLogger.log(Logger.FINE, "Container " + localContainerID.getName() + " does not exist. Ignoring...");
+			if (verboseShutdown) {
+				myLogger.log(Logger.INFO, "Local node " + localContainerID.getName() + " does not exist. Ignoring...");
+			}
 		}
 		catch(UnreachableException ue) {
-			myLogger.log(Logger.WARNING, "Cannot kill container " + localContainerID.getName() + ": Unreachable. "+ue);
+			myLogger.log(Logger.WARNING, "Local node " + localContainerID.getName() + " unreachable ["+ue+"]. Ignoring...");
 		}
 		catch(JADESecurityException se) {
 			// Let it through
 			throw se;
 		}
 		catch(Throwable t) {
-			myLogger.log(Logger.WARNING, "Cannot kill container " + localContainerID.getName() + ": Unexpected error. "+t);
+			myLogger.log(Logger.WARNING, "Error killing local node " + localContainerID.getName() + " ["+t+"]. Ignoring...");
+		}
+		
+		if (verboseShutdown) {
+			myLogger.log(Logger.INFO, "Agent platform shutdown procedure completed.");
 		}
 	}
 	
 	private void shutdownContainer(ContainerID targetID, String type, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws JADESecurityException {
 		try {
-			if (myLogger.isLoggable(Logger.FINER)) {
-				myLogger.log(Logger.FINER, "Killing "+type+" "+targetID.getName());
+			if (verboseShutdown) {
+				myLogger.log(Logger.INFO, "Shutting-down "+type+" "+targetID.getName());
 			}
 			killContainer(targetID, requesterPrincipal, requesterCredentials);
 			boolean removed = containers.waitForRemoval(targetID, 5000);
 			if (removed) {
-				if (myLogger.isLoggable(Logger.FINER)) {
-					myLogger.log(Logger.FINER, type+" "+targetID.getName()+" shutdown completed");
+				if (verboseShutdown) {
+					myLogger.log(Logger.INFO, type+" "+targetID.getName()+" shutdown completed");
 				}
 				return;
+			}
+			else {
+				myLogger.log(Logger.WARNING, type+" "+targetID.getName()+" did not terminate when requested to do so. Ignoring...");
 			}
 		}
 		catch(NotFoundException nfe) {
 			// Ignore the exception as we are removing a non-existing container
-			myLogger.log(Logger.FINE, "Container " + targetID.getName() + " does not exist. Ignoring...");
+			if (verboseShutdown) {
+				myLogger.log(Logger.INFO, type+" " + targetID.getName() + " does not exist. Ignoring...");
+			}
 		}
 		catch(UnreachableException ue) {
-			myLogger.log(Logger.WARNING, "Cannot kill container " + targetID.getName() + ": Unreachable.");
+			myLogger.log(Logger.WARNING, type+" " + targetID.getName() + " unreachable ["+ue+"]. Ignoring...");
 		}
 		catch(JADESecurityException se) {
 			// Let it through
 			throw se;
 		}
 		catch(Throwable t) {
-			myLogger.log(Logger.WARNING, "Cannot kill container " + targetID.getName() + ": Unexpected error. "+t);
+			myLogger.log(Logger.WARNING, "Error shutting down "+type+" " + targetID.getName() + "["+t+"]. Ignoring...");
 		}
 		
 		// If we get here either killContainer() threw an exception or the container did not terminate.

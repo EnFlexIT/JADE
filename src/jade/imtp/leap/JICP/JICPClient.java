@@ -54,17 +54,17 @@ class JICPClient {
 	private TransportProtocol protocol;
 	private ConnectionFactory connFactory;
 	private ConnectionPool pool;
-	private int connectionTimeout;
+	private int readTimeout;
 	private static Logger log = Logger.getMyLogger(JICPClient.class.getName());
 
 	/**
 	 * Constructor declaration
 	 */
-	public JICPClient(TransportProtocol tp, ConnectionFactory f, int max, int ct) {
+	public JICPClient(TransportProtocol tp, ConnectionFactory f, int max, int rt) {
 		protocol = tp;
 		connFactory = f;
 		pool = new ConnectionPool(protocol, connFactory, max);
-		connectionTimeout = ct;
+		readTimeout = rt;
 	} 
 
 	/**
@@ -154,9 +154,9 @@ class JICPClient {
 	private void manageReadTimeout(ConnectionWrapper cw) {
 		if (cw.isReused()) {
 			Connection c = cw.getConnection();
-			if (c instanceof JICPConnection && connectionTimeout > 0) {
+			if (c instanceof JICPConnection && readTimeout > 0) {
 				try {
-					((JICPConnection) c).setReadTimeout(connectionTimeout);
+					((JICPConnection) c).setReadTimeout(readTimeout);
 				}
 				catch (IOException e) {
 					try {

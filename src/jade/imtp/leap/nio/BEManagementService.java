@@ -782,9 +782,9 @@ public class BEManagementService extends BaseService {
 				}
 				case JICPProtocol.GET_ADDRESS_TYPE: {
 					// Respond sending back the caller address and (if requested) port
-					myLogger.log(Logger.INFO, myLogPrefix + "GET_ADDRESS request received from " + address + ":" + port);
+					myLogger.log(Logger.INFO, myLogPrefix + "GET_ADDRESS request received from " + address + ":" + port + ". Port-request="+(pkt.getData() != null));
 					String addressStr = address.getHostAddress();
-					if (pkt.getData() != null ) {
+					if (pkt.getData() != null) {
 						addressStr += ":"+port;
 					}
 					reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, addressStr.getBytes());

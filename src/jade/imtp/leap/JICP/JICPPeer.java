@@ -59,19 +59,21 @@ public class JICPPeer implements ICP, ProtocolManager {
 
 	private String myID;
 
-	private int connectionTimeout = 0;
+	private int connectionTimeout;
 
 	public static final String CONNECTION_TIMEOUT = "jade_imtp_leap_JICP_JICPPeer_connectiontimeout";
+	public static final String READ_TIMEOUT = "jade_imtp_leap_JICP_JICPPeer_readtimeout";
 	/**
 	 * Start listening for internal platform messages on the specified port
 	 */
 	public TransportAddress activate(ICP.Listener l, String peerID, Profile p) throws ICPException {
 		myID = peerID;
 
-		connectionTimeout = Integer.parseInt(p.getParameter(CONNECTION_TIMEOUT, "0"));
+		connectionTimeout = Integer.parseInt(p.getParameter(CONNECTION_TIMEOUT, "20000"));
+		int readTimeout = Integer.parseInt(p.getParameter(READ_TIMEOUT, "30000"));
 
 		// Start the client
-		client = new JICPClient(getProtocol(), getConnectionFactory(), POOL_SIZE, connectionTimeout);
+		client = new JICPClient(getProtocol(), getConnectionFactory(), POOL_SIZE, readTimeout);
 
 		// Start the server listening for connections
 		server = new JICPServer(p, this, l, getConnectionFactory(), POOL_SIZE);

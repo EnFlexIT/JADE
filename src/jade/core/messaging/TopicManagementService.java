@@ -54,6 +54,7 @@ public class TopicManagementService extends BaseService {
 	
 	private TopicTable topicTable = new TopicTable();
 	private MessagingService theMessagingService;
+	private boolean shutdownInProgress = false;
 	
 	public void init(AgentContainer ac, Profile p) throws ProfileException {
 		super.init(ac, p);
@@ -165,6 +166,10 @@ public class TopicManagementService extends BaseService {
 					return false;
 				}
 			}
+			else if (name.equals(AgentManagementSlice.SHUTDOWN_PLATFORM)) {
+				// Platform is shutting down. Avoid propagating information to remote slices 
+				shutdownInProgress = true;
+			}
 			// Never veto other commands
 			return true;
 		}
@@ -222,19 +227,21 @@ public class TopicManagementService extends BaseService {
 	 * If the dead agent was interested in some topic, notify all slices that its interest is no longer valid
 	 */ 
 	private void handleInformKilled(VerticalCommand cmd) {
-		Object[] params = cmd.getParams();
-		AID aid = (AID) params[0];
-		List topics = topicTable.getRelevantTopics(aid);
-		if (topics.size() > 0) {
-			try {
-				Service.Slice[] slices = getAllSlices();
-				Iterator it = topics.iterator();
-				while (it.hasNext()) {
-					broadcastDeregistration(aid, (AID) it.next(), slices);
+		if (!shutdownInProgress) {
+			Object[] params = cmd.getParams();
+			AID aid = (AID) params[0];
+			List topics = topicTable.getRelevantTopics(aid);
+			if (topics.size() > 0) {
+				try {
+					Service.Slice[] slices = getAllSlices();
+					Iterator it = topics.iterator();
+					while (it.hasNext()) {
+						broadcastDeregistration(aid, (AID) it.next(), slices);
+					}
 				}
-			}
-			catch (Throwable t) {
-				myLogger.log(Logger.WARNING, "Error retrieving topic-management-slices when trying to broadcast topic de-registration due to agent death. ", t);
+				catch (Throwable t) {
+					myLogger.log(Logger.WARNING, "Error retrieving topic-management-slices when trying to broadcast topic de-registration due to agent death. ", t);
+				}
 			}
 		}
 	}

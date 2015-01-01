@@ -537,7 +537,7 @@ class UDPMonitorServer {
 				newState = UDPNodeFailureMonitor.STATE_FINAL;
 			}
 			else {
-				// Network down --> do not consider the node dead
+				// Network down --> do not consider the node dead, and add another timer to check again later
 				logger.log(Logger.WARNING, "Unreachable limit exceeded for node "+nodeID+", however the network appears to be down --> Give the node another chance");
 				addDeadline(nodeID, unreachLimit);
 			}
