@@ -39,6 +39,9 @@ import test.common.*;
 public class DistributionTesterAgent extends TesterAgent {
 	
 	public static final String ASSIGNMENT_MANAGER_ARG = "ASSIGNMENT-MANAGER";
+	public static final String TG_AGENT_1_ARG = "TG1";
+	public static final String TG_AGENT_2_ARG = "TG2";
+	public static final String TG_AGENT_3_ARG = "TG3";
 	
 	private AID tg1, tg2, tg3;
 	
@@ -70,8 +73,11 @@ public class DistributionTesterAgent extends TesterAgent {
 				
 				// Start 3 target agents
 				tg1 = TestUtility.createAgent(a, "tg1", TargetAgent.class.getName(), null);
+				setArgument(TG_AGENT_1_ARG, tg1);
 				tg2 = TestUtility.createAgent(a, "tg2", TargetAgent.class.getName(), null);
+				setArgument(TG_AGENT_2_ARG, tg2);
 				tg3 = TestUtility.createAgent(a, "tg3", TargetAgent.class.getName(), null);
+				setArgument(TG_AGENT_3_ARG, tg3);
 			}
 			
 			protected void shutdown(Agent a) {

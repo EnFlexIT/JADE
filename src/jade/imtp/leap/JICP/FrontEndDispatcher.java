@@ -94,6 +94,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	private Thread terminator;
 	private int reconnectionAttemptCnt = 0;
 
+	private int verbosity = 1;
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 
 
@@ -109,6 +110,13 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		//manageRemoteConfig();
 		myMediatorID = myProperties.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
 		try {
+			try {
+				verbosity = Integer.parseInt(props.getProperty("jicp.verbosity"));
+			}
+			catch (Exception e) {
+				// Use default
+			}
+			
 			String tmp = props.getProperty(FrontEnd.REMOTE_BACK_END_ADDRESSES);
 			backEndAddresses = parseBackEndAddresses(tmp);
 
@@ -440,18 +448,17 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				outCnt = oldSessionId;
 			}
 			pkt.setSessionID((byte) outCnt);
-			myLogger.log(Logger.INFO, myMediatorID+" - Issuing outgoing command "+outCnt);
+			myLogger.log(getLevel(Logger.FINE), myMediatorID+" - Issuing outgoing command "+outCnt);
 			try {
 				lastOutgoingResponse = null;
 				clearTimers();
 				writePacket(pkt, myConnection);
-				myLogger.log(Logger.INFO, myMediatorID+" - Waiting for response, SID = "+pkt.getSessionID());
+				myLogger.log(getLevel(Logger.FINEST), myMediatorID+" - Waiting for response, SID = "+pkt.getSessionID());
 				JICPPacket response = waitForResponse(outCnt, JICPProtocol.DEFAULT_RESPONSE_TIMEOUT_OFFSET);
 				if (response != null) {
 					updateTimers();
-					//System.out.println("Response received from BE "+response.getSessionID());
-					if (myLogger.isLoggable(Logger.INFO)) {
-						myLogger.log(Logger.INFO, myMediatorID+" - Response received "+response.getSessionID());
+					if (myLogger.isLoggable(getLevel(Logger.FINER))) {
+						myLogger.log(getLevel(Logger.FINER), myMediatorID+" - Response received "+response.getSessionID());
 					}
 					if (response.getType() == JICPProtocol.ERROR_TYPE) {
 						// Communication OK, but there was a JICP error on the peer
@@ -524,7 +531,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			try {
 				while (isConnected()) {
 					JICPPacket pkt = myConnection.readPacket();
-					myLogger.log(Logger.INFO, myMediatorID+" - CR-"+myId+" packet received, SID="+pkt.getSessionID());
+					myLogger.log(getLevel(Logger.FINER), myMediatorID+" - CR-"+myId+" packet received, SID="+pkt.getSessionID());
 
 					pkt = handleIncomingPacket(pkt);
 					if (pkt != null) {
@@ -554,10 +561,10 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		private JICPPacket handleIncomingPacket(JICPPacket pkt) {
 			switch(pkt.getType()) {
 			case JICPProtocol.COMMAND_TYPE:
-				myLogger.log(Logger.INFO, myMediatorID+" - CR-"+myId+" COMMAND received from BE, SID="+pkt.getSessionID());
+				myLogger.log(getLevel(Logger.FINE), myMediatorID+" - CR-"+myId+" COMMAND received from BE, SID="+pkt.getSessionID());
 				updateTimers();
 				serveCommand(pkt);
-				myLogger.log(Logger.INFO, myMediatorID+" - CR-"+myId+" Incoming command passed to asynchronous command server");
+				myLogger.log(getLevel(Logger.FINEST), myMediatorID+" - CR-"+myId+" Incoming command passed to asynchronous command server");
 				break;
 			case JICPProtocol.KEEP_ALIVE_TYPE:
 				// Server-side initiated keep-alive
@@ -565,7 +572,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				return handleIncomingKeepAlive(pkt);
 			case JICPProtocol.RESPONSE_TYPE:
 			case JICPProtocol.ERROR_TYPE:
-				myLogger.log(Logger.INFO, myMediatorID+" - CR-"+myId+" RESPONSE/ERROR received from BE. "+pkt.getSessionID());
+				myLogger.log(getLevel(Logger.FINER), myMediatorID+" - CR-"+myId+" RESPONSE/ERROR received from BE. "+pkt.getSessionID());
 				notifyOutgoingResponseReceived(pkt);
 				break;
 			default:
@@ -582,7 +589,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	private JICPPacket handleIncomingCommand(JICPPacket cmd) {
 		// Incoming command
 		if (myLogger.isLoggable(Logger.FINE)) {
-			myLogger.log(Logger.FINE, "Incoming command received "+cmd.getSessionID());
+			myLogger.log(Logger.FINE, "Serving incoming command received "+cmd.getSessionID());
 		}
 		byte[] rspData = mySkel.handleCommand(cmd.getData());
 		if (myLogger.isLoggable(Logger.FINER)) {
@@ -895,14 +902,12 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		if (myConnection != null && !connectionDropped) {
 			JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
 			try {
-				if (myLogger.isLoggable(Logger.INFO)) {
-					myLogger.log(Logger.INFO, myMediatorID+" - Writing KA.");
-				}
+				myLogger.log(getLevel(Logger.FINE), myMediatorID+" - Writing KA.");
 				lastOutgoingResponse = null;
 				writePacket(pkt, myConnection);
 				JICPPacket rsp = waitForResponse(-1, KEEP_ALIVE_RESPONSE_TIMEOUT);
 				if (rsp != null) {
-					myLogger.log(Logger.INFO, myMediatorID+" - KA response received");
+					myLogger.log(getLevel(Logger.FINE), myMediatorID+" - KA response received");
 					updateKeepAlive();
 				}
 				else {
@@ -1030,12 +1035,14 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		}
 
 		public void run() {
+			myLogger.log(Logger.INFO, myMediatorID+" - CS Thread started");
+			
 			while (active) {
-				myLogger.log(Logger.INFO, myMediatorID+" - CS Waiting for next command to serve");
+				myLogger.log(getLevel(Logger.FINEST), myMediatorID+" - CS Waiting for next command to serve");
 				acquireCurrentCommand();
 
 				byte sid = currentCommand.getSessionID();
-				myLogger.log(Logger.INFO, myMediatorID+" - CS Start serving command, SID="+sid);
+				myLogger.log(getLevel(Logger.FINE), myMediatorID+" - CS Start serving command, SID="+sid);
 				if (sid == lastSid) {
 					// Duplicated incoming packet
 					myLogger.log(Logger.WARNING, myMediatorID+" - Duplicated command from BE: info="+currentCommand.getInfo()+", SID="+sid);
@@ -1049,10 +1056,10 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 					lastResponse.setSessionID(sid);
 					lastSid = sid;
 				}
-				myLogger.log(Logger.INFO, myMediatorID+" - CS COMMAND served");
+				myLogger.log(getLevel(Logger.FINER), myMediatorID+" - CS COMMAND served");
 				try {
 					writePacket(lastResponse, myConnection);
-					myLogger.log(Logger.INFO, myMediatorID+" - CS responce sent back");
+					myLogger.log(getLevel(Logger.FINEST), myMediatorID+" - CS responce sent back");
 				}
 				catch (Exception e) {
 					myLogger.log(Logger.WARNING, myMediatorID+" - Communication error sending back response. "+e);	
@@ -1060,7 +1067,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 
 				releaseCurrentCommand();
 			}
-			myLogger.log(Logger.INFO, myMediatorID+" - CS terminated");
+			myLogger.log(Logger.INFO, myMediatorID+" - CS Thread terminated");
 			myCommandServer = null;
 		}
 
@@ -1078,4 +1085,19 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			notifyAll();
 		}
 	} // END of inner class IncomingCommandServer
+	
+	private java.util.logging.Level getLevel(java.util.logging.Level level) {
+		if (verbosity > 0) {
+			if (level == Logger.FINE) {
+				return Logger.INFO; 
+			}
+			else if (level == Logger.FINER) {
+				return verbosity >= 2 ? Logger.INFO : Logger.FINE; 
+			}
+			else if (level == Logger.FINEST) {
+				return verbosity >= 3 ? Logger.INFO : verbosity == 2 ? Logger.FINE : Logger.FINER; 
+			}
+		}
+		return level;
+	}
 }

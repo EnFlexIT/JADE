@@ -16,6 +16,7 @@ public class TestDuplicatedAssignment extends Test {
 	private int k = 0;
 	
 	public Behaviour load(Agent a) throws TestException {
+		// AssignmentManager has been created once for all in the TesterAgent
 		assignmentManager = (AssignmentManager<String>) getGroupArgument(DistributionTesterAgent.ASSIGNMENT_MANAGER_ARG);
 		if (assignmentManager == null) {
 			throw new TestException("Missing AssignmentManager argument");

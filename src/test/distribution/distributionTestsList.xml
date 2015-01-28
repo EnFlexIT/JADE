@@ -16,5 +16,15 @@
 			<WhenTestPass>
 			</WhenTestPass>
 		</Test>
+		
+		<Test name="Items reassignment" skip="false">
+			<TestClassName>test.distribution.tests.TestItemReassignment</TestClassName>
+			<WhatTest>This test checks that items previously assigned to a dead agent are properly reassigned to other available agents
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>
 </TestsList>
 
