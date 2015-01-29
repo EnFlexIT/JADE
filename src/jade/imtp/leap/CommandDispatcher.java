@@ -321,9 +321,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	 * @throws UnreachableException if none of the destination addresses
 	 * is reachable.
 	 */
-	public Command dispatchCommand(List destTAs, 
-			Command command) throws DispatcherException, UnreachableException {
-		
+	public Command dispatchCommand(List destTAs, Command command) throws DispatcherException, UnreachableException {	
 		// DEBUG
 		//TransportAddress ta = (TransportAddress) destTAs.get(0);
 		//System.out.println("Dispatching command of type " + command.getCode() + " to "+ta.getHost()+":"+ta.getPort());
@@ -381,9 +379,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	 * @throws UnreachableException if none of the destination addresses
 	 * is reachable.
 	 */
-	private Command dispatchSerializedCommand(List destTAs, byte[] commandPayload, boolean requireFreshConnection, String origin) 
-	throws DispatcherException, UnreachableException {
-		
+	private Command dispatchSerializedCommand(List destTAs, byte[] commandPayload, boolean requireFreshConnection, String origin) throws DispatcherException, UnreachableException {
 		// Be sure that the destination addresses are correctly specified
 		if (destTAs == null || destTAs.size() == 0) {
 			throw new DispatcherException("no destination address specified.");		
@@ -504,8 +500,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	 * @throws UnreachableException if the destination address is not
 	 * reachable.
 	 */
-	protected void checkRemoteExceptions(Command response) 
-	throws DispatcherException, UnreachableException {
+	protected void checkRemoteExceptions(Command response) throws DispatcherException, UnreachableException {
 		if (response.getCode() == Command.ERROR) {
 			String exception = (String) response.getParamAt(0);
 			
@@ -908,7 +903,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	 */
 	public byte[] handleCommand(byte[] commandPayload) throws LEAPSerializationException {
 		try {
-			
+			long start = System.currentTimeMillis();
 			// Deserialize the incoming command.
 			Command command = deserializeCommand(commandPayload);
 			Command response = null;
@@ -952,6 +947,10 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 				}
 			} 
 			
+			long elapsed = System.currentTimeMillis() - start;
+			if (elapsed > 100) {
+				response.addParam((int) elapsed);
+			}
 			return serializeCommand(response);
 		} 
 		catch (LEAPSerializationException lse) {

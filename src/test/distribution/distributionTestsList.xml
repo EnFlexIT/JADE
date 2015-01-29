@@ -26,5 +26,15 @@
 			<WhenTestPass>
 			</WhenTestPass>
 		</Test>
+		
+		<Test name="Items reassignment to restarted agent" skip="false">
+			<TestClassName>test.distribution.tests.TestItemReassignmentToRestartedAgent</TestClassName>
+			<WhatTest>This test checks that items previously assigned to a dead agent are properly reassigned to the same agent if this restarts in due time
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>
 </TestsList>
 

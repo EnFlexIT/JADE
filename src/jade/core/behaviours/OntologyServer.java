@@ -84,6 +84,7 @@ public class OntologyServer extends CyclicBehaviour {
 	private int[] servedPerformatives;
 	
 	private ConversationList ignoredConversations;
+	private boolean printFullUnexpectedMessages = true;
 	private MessageTemplate template;
 	private Set<Integer> performativesRequiringReply = new HashSet<Integer>();
 	
@@ -182,6 +183,10 @@ public class OntologyServer extends CyclicBehaviour {
 		performativesRequiringReply.remove(performative);
 	}
 	
+	public void setPrintFullUnexpectedMessages(boolean printFullUnexpectedMessages) {
+		this.printFullUnexpectedMessages = printFullUnexpectedMessages;
+	}
+	
 	public void onStart() {
 		if (ignoredConversations == null) {
 			ignoredConversations = new ConversationList(myAgent);
@@ -228,7 +233,7 @@ public class OntologyServer extends CyclicBehaviour {
 		ACLMessage msg = myAgent.receive(template);
 		if (msg != null) {
 			if (myLogger.isLoggable(Logger.FINER)) {
-				myLogger.log(Logger.FINER, "Agent "+myAgent.getName()+" - Serving incoming message "+msg);
+				myLogger.log(Logger.FINER, "Agent "+myAgent.getName()+" - "+getBehaviourName()+": Serving incoming message "+msg);
 			}
 			handleMessage(msg);
 		}
@@ -243,7 +248,7 @@ public class OntologyServer extends CyclicBehaviour {
 			Object keyCel = extractKeyContentElement(receivedContentElement);
 					
 			if (myLogger.isLoggable(Logger.FINE)) {
-				myLogger.log(Logger.FINE, "Agent "+myAgent.getName()+" - Serving "+keyCel.getClass().getName()+" "+ACLMessage.getPerformative(msg.getPerformative()));
+				myLogger.log(Logger.FINE, "Agent "+myAgent.getName()+" - "+getBehaviourName()+": Serving "+keyCel.getClass().getName()+" "+ACLMessage.getPerformative(msg.getPerformative()));
 			}
 			Method m = findServerMethod(keyCel, msg.getPerformative());
 			if (m != null) {
@@ -304,7 +309,8 @@ public class OntologyServer extends CyclicBehaviour {
 	}
 	
 	protected void handleUnsupported(Object keyCel, ACLMessage msg) {
-		myLogger.log(Logger.WARNING, "Agent "+myAgent.getName()+" - Unsupported content-element "+keyCel.getClass().getName()+". Sender is "+msg.getSender().getName());
+		String detail = printFullUnexpectedMessages ? "Message = "+msg.toString() : "Sender is "+msg.getSender().getName();
+		myLogger.log(Logger.WARNING, "Agent "+myAgent.getName()+" - "+getBehaviourName()+": Unsupported content-element "+keyCel.getClass().getName()+". "+detail);
 		if (performativesRequiringReply.contains(msg.getPerformative())) {
 			ACLMessage reply = msg.createReply();
 			reply.setPerformative(ACLMessage.REFUSE);
@@ -314,7 +320,8 @@ public class OntologyServer extends CyclicBehaviour {
 	}
 	
 	protected void handleServingFailure(Throwable t, Object cel, ACLMessage msg) {
-		myLogger.log(Logger.SEVERE, "Agent "+myAgent.getName()+" - Unexpected error serving content-element "+cel.getClass().getName()+". Sender is "+msg.getSender().getName(), t);
+		String detail = printFullUnexpectedMessages ? "Message = "+msg.toString() : "Sender is "+msg.getSender().getName();
+		myLogger.log(Logger.SEVERE, "Agent "+myAgent.getName()+" - "+getBehaviourName()+": Unexpected error serving content-element "+cel.getClass().getName()+". "+detail, t);
 		if (performativesRequiringReply.contains(msg.getPerformative())) {
 			ACLMessage reply = msg.createReply();
 			reply.setPerformative(ACLMessage.FAILURE);
@@ -324,7 +331,7 @@ public class OntologyServer extends CyclicBehaviour {
 	}
 	
 	protected void handleNotUnderstood(ContentException ce, ACLMessage msg) {
-		myLogger.log(Logger.WARNING, "Agent "+myAgent.getName()+" - Error decoding "+ACLMessage.getPerformative(msg.getPerformative())+" message. Sender is "+msg.getSender().getName(), ce);
+		myLogger.log(Logger.WARNING, "Agent "+myAgent.getName()+" - "+getBehaviourName()+": Error decoding "+ACLMessage.getPerformative(msg.getPerformative())+" message. Sender is "+msg.getSender().getName(), ce);
 		if (performativesRequiringReply.contains(msg.getPerformative())) {
 			ACLMessage reply = msg.createReply();
 			reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);

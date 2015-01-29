@@ -40,7 +40,10 @@ package jade.imtp.leap.JICP;
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.*;
 import jade.core.CaseInsensitiveString;
+import jade.core.messaging.DeliveryTracing;
+
 import java.io.*;
+
 import jade.util.Logger;
 
 /**
@@ -95,10 +98,15 @@ class JICPClient {
 				// Get the actual connection and send the request
 				Connection connection = cw.getConnection();
 				JICPPacket request = new JICPPacket(dataType, dataInfo, ta.getFile(), data);
+				
+				long start = System.currentTimeMillis();
 				connection.writePacket(request);
 
 				// Read the reply
 				JICPPacket reply = connection.readPacket();
+				DeliveryTracing.setTracingInfo("Network-waiting-time", (System.currentTimeMillis() - start));
+				DeliveryTracing.setTracingInfo("Reused-connection", cw.isReused());
+
 				if (reply.getType() == JICPProtocol.ERROR_TYPE) {
 					throw new ICPException(new String(reply.getData()));
 				} 

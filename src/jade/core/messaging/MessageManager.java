@@ -213,6 +213,7 @@ class MessageManager {
 			while (active) {
 				// Get a message from the OutBox (block until there is one)
 				PendingMsg pm = outBox.get();
+				DeliveryTracing.beginTracing();
 				long startTime = System.currentTimeMillis();
 				GenericMessage msg = pm.getMessage();
 				AID receiverID = pm.getReceiver();
@@ -236,7 +237,7 @@ class MessageManager {
 					long deliveryTime = System.currentTimeMillis() - startTime;
 					try {
 						if (deliveryTimeThreshold > 0 && deliveryTime > deliveryTimeThreshold) {
-							myLogger.log(Logger.WARNING, "Deliverer Thread "+name+ " - Delivery-time over threshold ("+deliveryTime+"). Receiver = "+receiverID.getLocalName()+", message size = "+msg.length());
+							myLogger.log(Logger.WARNING, "Deliverer Thread "+name+ " - Delivery-time over threshold ("+deliveryTime+"). Receiver = "+receiverID.getLocalName()+", message size = "+msg.length()+". "+DeliveryTracing.report());
 						}
 					}
 					catch (Exception e) {

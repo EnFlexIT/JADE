@@ -1628,6 +1628,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				ContainerID cid = getAgentLocation(receiverID);
 				MessagingSlice targetSlice = oneShotDeliver(cid, msg, receiverID);
 				if (targetSlice != null) {
+					DeliveryTracing.setTracingInfo("Target-node", targetSlice.getNode().getName());
 					return;
 				}
 			}
@@ -1643,6 +1644,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 					if (msg.getTraceID() != null) {
 						myLogger.log(Logger.INFO, msg.getTraceID() + " - Delivery OK.");
 					}
+					DeliveryTracing.setTracingInfo("Target-node", cachedSlice.getNode().getName());
 					return;
 				} catch (IMTPException imtpe) {
 					if (msg.getTraceID() != null) {
@@ -1658,6 +1660,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			}
 			
 			// Either the receiver was not found in cache or the cache entry was no longer valid
+			DeliveryTracing.setTracingInfo("Messaging-cache-miss", true);
 			deliverUntilOK(msg, receiverID);
 		}
 	}
@@ -1683,6 +1686,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				if (myContainer.isLocalAgent(receiverID)) {
 					MessagingSlice localSlice = (MessagingSlice)getIMTPManager().createSliceProxy(getName(), getHorizontalInterface(), getLocalNode());
 					localSlice.dispatchLocally(msg.getSender(), msg, receiverID);
+					DeliveryTracing.setTracingInfo("Target-node", localSlice.getNode().getName());
 					return;
 				}
 				else {
@@ -1694,6 +1698,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			if (targetSlice != null) {
 				// On successful message dispatch, put the slice into the slice cache
 				cachedSlices.put(receiverID, targetSlice);
+				DeliveryTracing.setTracingInfo("Target-node", targetSlice.getNode().getName());
 				return;
 			}
 		}
