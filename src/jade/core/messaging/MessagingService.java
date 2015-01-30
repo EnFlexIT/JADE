@@ -28,7 +28,6 @@ package jade.core.messaging;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.IOException;
-
 import java.util.Date;
 import java.util.Hashtable;
 
@@ -41,7 +40,6 @@ import jade.core.ServiceException;
 import jade.core.Sink;
 import jade.core.Filter;
 import jade.core.Node;
-
 import jade.core.AgentContainer;
 import jade.core.MainContainer;
 import jade.core.CaseInsensitiveString;
@@ -58,6 +56,7 @@ import jade.core.NotFoundException;
 import jade.core.replication.MainReplicationHandle;
 //#J2ME_EXCLUDE_BEGIN
 import jade.core.sam.AverageMeasureProviderImpl;
+import jade.core.sam.MeasureProvider;
 import jade.core.sam.SAMHelper;
 import jade.core.sam.CounterValueProvider;
 //#J2ME_EXCLUDE_END
@@ -67,20 +66,16 @@ import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
-
 import jade.security.JADESecurityException;
-
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ACLCodec;
 import jade.lang.acl.LEAPACLCodec;
 import jade.lang.acl.StringACLCodec;
-
 import jade.mtp.MTP;
 import jade.mtp.MTPDescriptor;
 import jade.mtp.MTPException;
 import jade.mtp.InChannel;
 import jade.mtp.TransportAddress;
-
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import jade.util.leap.Map;
@@ -114,6 +109,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	public static final String DELIVERY_TIME_MEASUREMENT_RATE = "jade_core_messaging_MessagingService_deliverytimemeasurementrate";
 	public static final int DELIVERY_TIME_MEASUREMENT_RATE_DEFAULT = -1; // Delivery time measurement disabled by default. Set it to N to measure delivery time 1 out of N delivered messages
 	public static final String ENABLE_POSTED_MESSAGE_COUNT = "jade_core_messaging_MessagingService_enablepostedmessagecount";
+	public static final String ENABLE_MESSAGE_MANAGER_METRICS = "jade_core_messaging_MessagingService_enablemessagemanagermetrics";
+		
 	//#J2ME_EXCLUDE_END
 	
 	// The profile passed to this object
@@ -379,13 +376,63 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 					samHelper.addEntityMeasureProvider("Message-Delivery-Time", deliveryTimeMeasureProvider);
 				}
 				
-				// MESSAGE COUNT
+				// POSTED MESSAGE COUNT
 				boolean enablePostedMessageCount = "true".equalsIgnoreCase(myProfile.getParameter(ENABLE_POSTED_MESSAGE_COUNT, "false"));
 				if (enablePostedMessageCount) {
-					samHelper.addCounterValueProvider("Posted-Message-Count", new CounterValueProvider() {
+					samHelper.addCounterValueProvider("Posted-message-count#"+myContainer.getID().getName(), new CounterValueProvider() {
 						public long getValue() {
 							return postedMessageCounter;
 						}
+						public boolean isDifferential() {
+							return false;
+						}
+					});
+				}
+				
+				// MESSAGE MANAGER METRICS
+				boolean enableMessageManagerMetrics = "true".equalsIgnoreCase(myProfile.getParameter(ENABLE_MESSAGE_MANAGER_METRICS, "false"));
+				if (enableMessageManagerMetrics) {
+					samHelper.addEntityMeasureProvider("Message-Manager-queue-size-bytes#"+myContainer.getID().getName(), new MeasureProvider() {
+						@Override
+						public Number getValue() {
+							return myMessageManager.getSize();
+						}
+					});
+					samHelper.addEntityMeasureProvider("Message-Manager-pending-count#"+myContainer.getID().getName(), new MeasureProvider() {
+						@Override
+						public Number getValue() {
+							return myMessageManager.getPendingCnt();
+						}
+					});
+					samHelper.addCounterValueProvider("Message-Manager-submitted-count#"+myContainer.getID().getName(), new CounterValueProvider() {
+						@Override
+						public long getValue() {
+							return myMessageManager.getSubmittedCnt();
+						}
+
+						@Override
+						public boolean isDifferential() {
+							return false;
+						}
+					});
+					samHelper.addCounterValueProvider("Message-Manager-served-count#"+myContainer.getID().getName(), new CounterValueProvider() {
+						@Override
+						public long getValue() {
+							return myMessageManager.getServedCnt();
+						}
+
+						@Override
+						public boolean isDifferential() {
+							return false;
+						}
+					});
+					samHelper.addCounterValueProvider("Message-Manager-discarded-count#"+myContainer.getID().getName(), new CounterValueProvider() {
+						@Override
+						public long getValue() {
+							return myMessageManager.getDiscardedCnt();
+						}
+
+						@Override
 						public boolean isDifferential() {
 							return false;
 						}

@@ -73,6 +73,9 @@ class MessageManager {
 	private boolean active = true;
 	private long deliveryTimeThreshold;
 	
+	private long totDiscardedCnt = 0;
+	
+	
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 
 	private MessageManager() {
@@ -186,6 +189,7 @@ class MessageManager {
 			try {
 				outBox.addLast(receiverID, msg, ch);
 			} catch(Exception e) {
+				totDiscardedCnt++;
 				ch.notifyFailureToSender(msg, receiverID, new InternalError(e.getMessage()));
 			}
 		}
@@ -227,7 +231,7 @@ class MessageManager {
 						ch.deliverNow(msg, receiverID);
 					}
 					catch (Throwable t) {
-						// A MessageManager deliverer thread must never die
+						// deliverNow() never throws exception. This is just a last protection since a MessageManager deliverer thread must never die
 						myLogger.log(Logger.WARNING, "MessageManager cannot deliver message "+stringify(msg)+" to agent "+receiverID.getName(), t);
 						ch.notifyFailureToSender(msg, receiverID, new InternalError(ACLMessage.AMS_FAILURE_UNEXPECTED_ERROR + ": "+t));
 					}
@@ -321,6 +325,27 @@ class MessageManager {
 	// For debugging purpose
 	String[] getQueueStatus() {
 		return outBox.getStatus();
+	}
+	
+	// For debugging purpose
+	int getSize() {
+		return outBox.getSize();
+	}
+	
+	int getPendingCnt() {
+		return outBox.getPendingCnt();
+	}
+	
+	long getSubmittedCnt() {
+		return outBox.getSubmittedCnt();
+	}
+	
+	long getServedCnt() {
+		return outBox.getServedCnt();
+	}
+	
+	long getDiscardedCnt() {
+		return totDiscardedCnt;
 	}
 	
 	// For debugging purpose

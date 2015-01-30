@@ -23,7 +23,7 @@ import jade.util.Logger;
 
 class OutBox {
 	private int size = 0; // Approximated size in bytes
-	private int pendingMessagesCnt = 0;   
+	private int pendingCnt = 0;   
 	private int warningSize; 
 	private int maxSize;
 	private int sleepTimeFactor;
@@ -60,7 +60,7 @@ class OutBox {
 	void addLast(AID receiverID, GenericMessage msg, Channel ch) {
 		// Check the max queue size threshold
 		if ((size + msg.length()) > maxSize) {
-			myLogger.log(Logger.WARNING, "Message discarded by MessageManager! Current-queue-size = "+size+", max-size = "+maxSize+", number of pending messages = "+pendingMessagesCnt+", size of last message = "+msg.length());
+			myLogger.log(Logger.WARNING, "Message discarded by MessageManager! Current-queue-size = "+size+", max-size = "+maxSize+", number of pending messages = "+pendingCnt+", size of last message = "+msg.length());
 			throw new RuntimeException("Message discarded");
 		}
 		
@@ -197,11 +197,11 @@ class OutBox {
 	private void increaseSize(int k) {
 		long sleepTime = 0;
 		synchronized (this) {
-			pendingMessagesCnt++;
+			pendingCnt++;
 			size += k;
 			if (size > warningSize) {
 				if (!overWarningSize) {
-					myLogger.log(Logger.WARNING, "MessageManager queue size ("+size+") > "+warningSize+". Number of pending messages = "+pendingMessagesCnt+", size of last message = "+k);
+					myLogger.log(Logger.WARNING, "MessageManager queue size ("+size+") > "+warningSize+". Number of pending messages = "+pendingCnt+", size of last message = "+k);
 					overWarningSize = true;
 				}
 				if (sleepTimeFactor > 0) {
@@ -228,7 +228,7 @@ class OutBox {
 	 * @param k the value by which size must be decremented
 	 */
 	private void decreaseSize(int k) {
-		pendingMessagesCnt--;
+		pendingCnt--;
 		size -= k;
 		if (size < warningSize) {
 			if (overWarningSize) {
@@ -301,6 +301,10 @@ class OutBox {
 	// For debugging purpose 
 	int getSize() {
 		return size;
+	}
+
+	int getPendingCnt() {
+		return pendingCnt;
 	}
 
 	long getSubmittedCnt() {
