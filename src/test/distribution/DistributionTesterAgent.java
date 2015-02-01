@@ -27,6 +27,7 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.distribution.AssignmentManager;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.lang.acl.ACLMessage;
 import jade.proto.AchieveREInitiator;
 import test.common.*;
@@ -66,7 +67,7 @@ public class DistributionTesterAgent extends TesterAgent {
 								return ret;
 							}
 						};
-					}					
+					}
 				};
 				assignmentManager.start(a);
 				setArgument(ASSIGNMENT_MANAGER_ARG, assignmentManager);

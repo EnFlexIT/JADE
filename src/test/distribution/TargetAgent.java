@@ -24,6 +24,7 @@ public class TargetAgent extends Agent {
 		sd.setType(TARGET_TYPE);
 		dfd.addServices(sd);
 		try {
+			System.err.println("TargetAgent "+getLocalName()+" - Registering with the DF");
 			DFService.register(this, dfd);
 		}
 		catch (Exception e) {

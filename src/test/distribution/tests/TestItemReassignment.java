@@ -84,7 +84,7 @@ public class TestItemReassignment extends Test {
 			public void onWake() {
 				log("--- 3) Check assignments ...");
 				for (int i = 0; i < SIZE; ++i) {
-					final String item = ITEM_PREFIX+"-"+i;
+					String item = ITEM_PREFIX+"-"+i;
 					AID owner = assignmentManager.getOwner(item);
 					if (owner == null) {
 						failed("--- Item "+item+" not assigned");
@@ -95,10 +95,32 @@ public class TestItemReassignment extends Test {
 						return;
 					}
 				}
-				passed("--- All items successflly assigned to available agents");
+				
+				// Call to passed() is in the next step
 			}
 		});
 		
+		// Recreate the killed target agent. We cannot do that in the clean() method since 
+		// the AssignmentManager could not reinitialize correctly due to inter-test cleanup
+		sb.addSubBehaviour(new WakerBehaviour(a, 2000) {
+			public void onStart() {
+				if (tg1 != null) {
+					try {
+						tg1 = TestUtility.createAgent(myAgent, "tg1", TargetAgent.class.getName(), null);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				super.onStart();
+			}
+			
+			public void onWake() {
+				if (!isFailed()) {
+					passed("--- All items successflly assigned to available agents");
+				}
+			}
+		});
 		return sb;
 	}
 	
@@ -107,17 +129,21 @@ public class TestItemReassignment extends Test {
 		if (assignmentManager != null) {
 			for (int i = 0; i < SIZE; ++i) {
 				final String item = ITEM_PREFIX+"-"+i;
-				assignmentManager.unassign(item, null);
-			}
-		}
-		
-		// Recreate the killed target agent
-		if (tg1 != null) {
-			try {
-				tg1 = TestUtility.createAgent(a, "tg1", TargetAgent.class.getName(), null);
-			} catch (TestException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println("Unassigning item "+item+" owned by agent "+assignmentManager.getOwner(item).getLocalName());
+				assignmentManager.unassign(item, new Callback<AID>() {
+
+					@Override
+					public void onSuccess(AID result) {
+						System.out.println("Item "+item+" successfully unassigned from agent "+result.getLocalName());
+					}
+
+					@Override
+					public void onFailure(Throwable throwable) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+				});
 			}
 		}
 	}
