@@ -33,6 +33,7 @@ import jade.core.management.AgentManagementSlice;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ACLCodec;
+import jade.security.JADESecurityException;
 import jade.util.leap.Map;
 import jade.util.leap.Iterator;
 import jade.lang.acl.LEAPACLCodec;
@@ -69,44 +70,54 @@ public class IncomingEncodingFilter extends Filter {
 			Object[] params = cmd.getParams();
 			GenericMessage gmsg = (GenericMessage)params[1];
 			
-			// The command always contains a non-null ACLMessage (for the purpose
-			// of notification of failures), but it contains the real ACLMessage
-			// when the payload is null
-			byte[] payload = gmsg.getPayload();
-			if (payload == null){
-				// If a real ACLMessage is present, just do nothing!
-				return true;
+			try {
+				restore(gmsg);
 			}
-			else {
-				Envelope env = gmsg.getEnvelope();
-				try{
-					ACLMessage msg = decodeMessage(env,payload);
-					msg.setEnvelope(env);
-					
-					if (env!=null){
-						// If the 'sender' AID has no addresses, replace it with the
-						// 'from' envelope slot
-						AID sender = msg.getSender();
-						if(sender == null) {
-							System.err.println("ERROR: Trying to dispatch a message with a null sender.");
-							System.err.println("Aborting send operation...");
-							return true;
-						}
-						Iterator itSender = sender.getAllAddresses();
-						if(!itSender.hasNext())
-							msg.setSender(env.getFrom());
-					}
-					((GenericMessage)params[1]).update(msg,null,null);
-				} catch (MessagingService.UnknownACLEncodingException ee){
-					ee.printStackTrace();
-					cmd.setReturnValue(ee);
-					return false;
-				} catch (ACLCodec.CodecException ce){
-					ce.printStackTrace();
-					cmd.setReturnValue(ce);
-					return false;
-				}
+			catch (Exception e) {
+				e.printStackTrace();
+				cmd.setReturnValue(e);
+				return false;
 			}
+			
+//			// The command always contains a non-null ACLMessage (for the purpose
+//			// of notification of failures), but it contains the real ACLMessage
+//			// when the payload is null
+//			byte[] payload = gmsg.getPayload();
+//			if (payload == null){
+//				// If a real ACLMessage is present, just do nothing!
+//				return true;
+//			}
+//			else {
+//				Envelope env = gmsg.getEnvelope();
+//				try{
+//					ACLMessage msg = decodeMessage(env,payload);
+//					msg.setEnvelope(env);
+//					
+//					if (env != null){
+//						// If the 'sender' AID has no addresses, replace it with the
+//						// 'from' envelope slot
+//						AID sender = msg.getSender();
+//						if(sender == null) {
+//							System.err.println("ERROR: Trying to dispatch a message with a null sender.");
+//							System.err.println("Aborting send operation...");
+//							return true;
+//						}
+//						Iterator itSender = sender.getAllAddresses();
+//						if(!itSender.hasNext()) {
+//							msg.setSender(env.getFrom());
+//						}
+//					}
+//					gmsg.update(msg,null,null);
+//				} catch (MessagingService.UnknownACLEncodingException ee){
+//					ee.printStackTrace();
+//					cmd.setReturnValue(ee);
+//					return false;
+//				} catch (ACLCodec.CodecException ce){
+//					ce.printStackTrace();
+//					cmd.setReturnValue(ce);
+//					return false;
+//				}
+//			}
 		}
 		else if (name.equals(AgentManagementSlice.INFORM_KILLED)) {
 			// An agent is terminating --> remove its global aliases if any
@@ -115,6 +126,46 @@ public class IncomingEncodingFilter extends Filter {
 			myService.replicationHandle.invokeReplicatedMethod("removeGlobalAliases", params);
 		}
 		return true;
+	}
+	
+	private void restore(GenericMessage gmsg) throws MessagingService.UnknownACLEncodingException, ACLCodec.CodecException {
+		//#J2ME_EXCLUDE_BEGIN
+		// If gmsg represents a MultipleGenericMessage recursively call restore() for each message
+		if (gmsg instanceof MultipleGenericMessage) {
+			for (GenericMessage g : ((MultipleGenericMessage) gmsg).getMessages()) {
+				restore(g);
+			}
+			return;
+		}
+		//#J2ME_EXCLUDE_END
+		
+		// The command always contains a non-null ACLMessage (for the purpose
+		// of notification of failures), but it contains the real ACLMessage
+		// when the payload is null
+		byte[] payload = gmsg.getPayload();
+		if (payload == null){
+			// If a real ACLMessage is present, just do nothing!
+			return;
+		}
+		else {
+			Envelope env = gmsg.getEnvelope();
+			ACLMessage msg = decodeMessage(env,payload);
+			msg.setEnvelope(env);
+			
+			if (env != null){
+				// If the 'sender' AID has no addresses, replace it with the
+				// 'from' envelope slot
+				AID sender = msg.getSender();
+				if(sender == null) {
+					throw new IllegalArgumentException("Trying to dispatch a message with a null sender.");
+				}
+				Iterator itSender = sender.getAllAddresses();
+				if(!itSender.hasNext()) {
+					msg.setSender(env.getFrom());
+				}
+			}
+			gmsg.update(msg,null,null);
+		}
 	}
 	
 	public void postProcess(VerticalCommand cmd) {

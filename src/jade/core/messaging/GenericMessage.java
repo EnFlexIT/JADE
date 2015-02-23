@@ -190,7 +190,7 @@ public class GenericMessage implements Serializable {
 		return "GenericMessage\n\t"+msg+"\n\t"+env+"\n\t"+((payload==null)?"null payload":payload.toString())+"\n";
 	}
 
-	public final int length() {
+	public int length() {
 		int length = 0;
 		if (payload != null) {
 			length = payload.length;
@@ -204,5 +204,10 @@ public class GenericMessage implements Serializable {
 			}
 		}
 		return length;
+	}
+	
+	public int getMessagesCnt() {
+		// This is redefined in MultipleGenericMessage
+		return 1;
 	}
 }

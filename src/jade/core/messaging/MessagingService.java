@@ -30,6 +30,8 @@ import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import jade.core.HorizontalCommand;
 import jade.core.VerticalCommand;
@@ -54,6 +56,7 @@ import jade.core.ProfileException;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.core.replication.MainReplicationHandle;
+import jade.core.sam.AbsoluteCounterValueProvider;
 //#J2ME_EXCLUDE_BEGIN
 import jade.core.sam.AverageMeasureProviderImpl;
 import jade.core.sam.MeasureProvider;
@@ -98,7 +101,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	public static final String NAME = MessagingSlice.NAME;
 	
 	public static final String CACHE_SIZE = "jade_core_messaging_MessagingService_cachesize";
-	public static final int CACHE_SIZE_DEFAULT = 100;
+	public static final int CACHE_SIZE_DEFAULT = 1000;
 	
 	public static final String ATTACH_PLATFORM_INFO = "jade_core_messaging_MessagingService_attachplatforminfo";
 	public static final String PLATFORM_IDENTIFIER = "x-sender-platform-identifer";
@@ -172,6 +175,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	private int deliveryTimeMeasurementRate;
 	private AverageMeasureProviderImpl deliveryTimeMeasureProvider;
 	private long postedMessageCounter;
+	private AverageMeasureProviderImpl avgQueueSizeBytesProvider;
+	private AverageMeasureProviderImpl avgQueueSizeMessagesProvider;
+	private Timer samTimer;
 	//#J2ME_EXCLUDE_END
 	
 	public static class UnknownACLEncodingException extends NotFoundException {
@@ -379,12 +385,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				// POSTED MESSAGE COUNT
 				boolean enablePostedMessageCount = "true".equalsIgnoreCase(myProfile.getParameter(ENABLE_POSTED_MESSAGE_COUNT, "false"));
 				if (enablePostedMessageCount) {
-					samHelper.addCounterValueProvider("Posted-message-count#"+myContainer.getID().getName(), new CounterValueProvider() {
+					samHelper.addCounterValueProvider("Posted-message-count#"+myContainer.getID().getName(), new AbsoluteCounterValueProvider() {
 						public long getValue() {
 							return postedMessageCounter;
-						}
-						public boolean isDifferential() {
-							return false;
 						}
 					});
 				}
@@ -392,49 +395,48 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				// MESSAGE MANAGER METRICS
 				boolean enableMessageManagerMetrics = "true".equalsIgnoreCase(myProfile.getParameter(ENABLE_MESSAGE_MANAGER_METRICS, "false"));
 				if (enableMessageManagerMetrics) {
-					samHelper.addEntityMeasureProvider("Message-Manager-queue-size-bytes#"+myContainer.getID().getName(), new MeasureProvider() {
+					avgQueueSizeBytesProvider = new AverageMeasureProviderImpl();
+					samHelper.addEntityMeasureProvider("Message-Manager-avg-queue-size-bytes#"+myContainer.getID().getName(), avgQueueSizeBytesProvider);
+					avgQueueSizeMessagesProvider = new AverageMeasureProviderImpl();
+					samHelper.addEntityMeasureProvider("Message-Manager-avg-queue-size-messages#"+myContainer.getID().getName(), avgQueueSizeMessagesProvider);
+
+					samTimer = new Timer();
+					samTimer.scheduleAtFixedRate(new TimerTask() {
 						@Override
-						public Number getValue() {
-							return myMessageManager.getSize();
+						public void run() {
+							avgQueueSizeBytesProvider.addSample(myMessageManager.getSize());
+							avgQueueSizeMessagesProvider.addSample(myMessageManager.getPendingCnt());
 						}
-					});
-					samHelper.addEntityMeasureProvider("Message-Manager-pending-count#"+myContainer.getID().getName(), new MeasureProvider() {
-						@Override
-						public Number getValue() {
-							return myMessageManager.getPendingCnt();
-						}
-					});
-					samHelper.addCounterValueProvider("Message-Manager-submitted-count#"+myContainer.getID().getName(), new CounterValueProvider() {
+					}, 0, 30000);
+					
+					samHelper.addCounterValueProvider("Message-Manager-submitted-count#"+myContainer.getID().getName(), new AbsoluteCounterValueProvider() {
 						@Override
 						public long getValue() {
 							return myMessageManager.getSubmittedCnt();
 						}
-
-						@Override
-						public boolean isDifferential() {
-							return false;
-						}
 					});
-					samHelper.addCounterValueProvider("Message-Manager-served-count#"+myContainer.getID().getName(), new CounterValueProvider() {
+					samHelper.addCounterValueProvider("Message-Manager-served-count#"+myContainer.getID().getName(), new AbsoluteCounterValueProvider() {
 						@Override
 						public long getValue() {
 							return myMessageManager.getServedCnt();
 						}
-
-						@Override
-						public boolean isDifferential() {
-							return false;
-						}
 					});
-					samHelper.addCounterValueProvider("Message-Manager-discarded-count#"+myContainer.getID().getName(), new CounterValueProvider() {
+					samHelper.addCounterValueProvider("Message-Manager-discarded-count#"+myContainer.getID().getName(), new AbsoluteCounterValueProvider() {
 						@Override
 						public long getValue() {
 							return myMessageManager.getDiscardedCnt();
 						}
-
+					});
+					samHelper.addCounterValueProvider("Message-Manager-slow-delivery-count#"+myContainer.getID().getName(), new AbsoluteCounterValueProvider() {
 						@Override
-						public boolean isDifferential() {
-							return false;
+						public long getValue() {
+							return myMessageManager.getSlowDeliveryCnt();
+						}
+					});
+					samHelper.addCounterValueProvider("Message-Manager-veryslow-delivery-count#"+myContainer.getID().getName(), new AbsoluteCounterValueProvider() {
+						@Override
+						public long getValue() {
+							return myMessageManager.getVerySlowDeliveryCnt();
 						}
 					});
 				}
@@ -450,9 +452,16 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		//#DOTNET_EXCLUDE_END
 		//#J2ME_EXCLUDE_END
 	}
+	
+	private void stopSAM() {
+		if (samTimer != null) {
+			samTimer.cancel();
+		}
+	}
 
 	// kindly provided by David Bernstein, 15/6/2005
 	public void shutdown() {
+		stopSAM();
 		// clone addresses (externally because leap list doesn't
 		// implement Cloneable) so don't get concurrent modification
 		// exception on the list as the MTPs are being uninstalled
@@ -1059,9 +1068,38 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			GenericMessage msg = (GenericMessage)params[1];
 			AID receiverID = (AID)params[2];
 			receiverID = resolveLocalAlias(receiverID);
+
+			manageMessage(senderID, msg, receiverID);
+			
+//			if (msg.getTraceID() != null) {
+//				myLogger.log(Logger.INFO, msg.getTraceID()+" - MessagingService target sink posting message to receiver "+receiverID.getLocalName());
+//				
+//			}
+//			postMessage(senderID, msg.getACLMessage(), receiverID);
+//			//#J2ME_EXCLUDE_BEGIN
+//			postedMessageCounter++;
+//			updateDeliveryTimeMeasurement(msg);
+//			//#J2ME_EXCLUDE_END
+//			if (msg.getTraceID() != null) {
+//				myLogger.log(Logger.INFO, msg.getTraceID()+" - Message posted");
+//				
+//			}
+		}
+		
+		private void manageMessage(AID senderID, GenericMessage msg, AID receiverID) throws NotFoundException {
+			//#J2ME_EXCLUDE_BEGIN
+			// If gmsg represents a MultipleGenericMessage recursively call restore() for each message
+			if (msg instanceof MultipleGenericMessage) {
+				System.out.println("Multiple delivery: posting "+((MultipleGenericMessage) msg).getMessages().size()+" messages to receiver "+receiverID.getLocalName());
+				for (GenericMessage g : ((MultipleGenericMessage) msg).getMessages()) {
+					manageMessage(g.getSender(), g, receiverID);
+				}
+				return;
+			}
+			//#J2ME_EXCLUDE_END
+			
 			if (msg.getTraceID() != null) {
 				myLogger.log(Logger.INFO, msg.getTraceID()+" - MessagingService target sink posting message to receiver "+receiverID.getLocalName());
-				
 			}
 			postMessage(senderID, msg.getACLMessage(), receiverID);
 			//#J2ME_EXCLUDE_BEGIN
@@ -1840,6 +1878,16 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	 * the Message Transport Service.
 	 */
 	public void notifyFailureToSender(GenericMessage msg, AID receiver, InternalError ie) {
+		//#J2ME_EXCLUDE_BEGIN
+		// If msg represents a MultipleGenericMessage, recursive call notifyFailureToSender() for each msg
+		if (msg instanceof MultipleGenericMessage) {
+			for (GenericMessage g : ((MultipleGenericMessage) msg).getMessages()) {
+				notifyFailureToSender(g, receiver, ie);
+			}
+			return;
+		}
+		//#J2ME_EXCLUDE_END
+		
 		ACLMessage acl = msg.getACLMessage();
 		if (acl == null) {
 			// ACLMessage can be null in case we get a failure delivering a message coming from an external platform (received by a local MTP).

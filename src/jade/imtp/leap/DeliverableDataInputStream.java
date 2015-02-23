@@ -39,8 +39,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Vector;
+
 import jade.core.*;
 import jade.core.messaging.GenericMessage;
+import jade.core.messaging.MultipleGenericMessage;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.LEAPACLCodec;
 import jade.domain.FIPAAgentManagement.Envelope;
@@ -110,6 +112,10 @@ class DeliverableDataInputStream extends DataInputStream {
 					return deserializeAIDArray();
 				case Serializer.GENERICMESSAGE_ID:
 					return deserializeGenericMessage();
+				//#J2ME_EXCLUDE_BEGIN
+				case Serializer.MULTIPLEGENERICMESSAGE_ID:
+					return deserializeMultipleGenericMessage();
+				//#J2ME_EXCLUDE_END
 				case Serializer.STRING_ID:
 					return readUTF();
 				case Serializer.CONTAINERID_ID:
@@ -459,6 +465,24 @@ class DeliverableDataInputStream extends DataInputStream {
 		gm.setTraceID((String) readObject());
 		return gm;
 	}
+
+	//#J2ME_EXCLUDE_BEGIN
+	private MultipleGenericMessage deserializeMultipleGenericMessage() throws IOException, LEAPSerializationException {
+		int nMessages = readInt();
+		int length = 0;
+		java.util.List<GenericMessage> messages = new java.util.ArrayList<GenericMessage>(nMessages);
+		for (int i = 0; i < nMessages; ++i) {
+			AID sender = deserializeAID();
+			GenericMessage g = deserializeGenericMessage();
+			g.setSender(sender);
+			messages.add(g);
+			length += g.length();
+		}
+		MultipleGenericMessage mgm = new MultipleGenericMessage(length);
+		mgm.setMessages(messages);
+		return mgm;
+	}
+	//#J2ME_EXCLUDE_END
 
 	/**
 	 * Package scoped as it is called by the CommandDispatcher

@@ -80,6 +80,7 @@ interface Serializer {
     static final byte SLICEPROXY_ID = 36;
     static final byte PLATFORMMANAGER_ID = 34;
     static final byte GENERICMESSAGE_ID = 35;
+    static final byte MULTIPLEGENERICMESSAGE_ID = 37;
 
     /**
      * This method serializes an object according to the LEAP

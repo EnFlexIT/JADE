@@ -400,6 +400,7 @@ public class AgentReplicationService extends BaseService {
 					// Receiver is a virtual AID --> Redirect the SEND_MESSAGE command to one of the implementation replicas
 					AID replica = info.getReplica();
 					AID sender = (AID) cmd.getParam(0);
+					// NOTE that the gMsg cannot be a MultipleGenericMessage since we are in the outgoing chain
 					GenericMessage gMsg = (GenericMessage) cmd.getParam(1);	
 					// In case the selected replica is no longer valid, the message will have to be delivered 
 					// again to another replica --> instruct JADE not to clear the message content (see 

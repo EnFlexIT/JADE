@@ -137,6 +137,7 @@ public class TopicManagementService extends BaseService {
 			String name = cmd.getName();
 			if (name.equals(MessagingSlice.SEND_MESSAGE)) {
 				AID sender = (AID) cmd.getParam(0);
+				// NOTE that the gMsg cannot be a MultipleGenericMessage since we are in the outgoing chain
 				GenericMessage gMsg = (GenericMessage) cmd.getParam(1);
 				AID receiver = (AID) cmd.getParam(2);
 				

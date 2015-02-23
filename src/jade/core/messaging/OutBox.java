@@ -27,25 +27,27 @@ class OutBox {
 	private int warningSize; 
 	private int maxSize;
 	private int sleepTimeFactor;
+	private boolean enableMultipleDelivery;
 	private boolean overWarningSize = false;
+	
+	private long lastDiscardedLogTime = -1;
+	private long discardedSinceLastLogCnt = 0;
+	private long servedCnt = 0;
 
-	// The massages to be delivered organized as an hashtable that maps
+	// The messages to be delivered organized as an hashtable that maps
 	// a receiver AID into the Box of messages to be delivered to that receiver
 	private final Map messagesByReceiver = new HashMap(); 
 	// The messages to be delivered organized as a round list of the Boxes of
 	// messages for the currently addressed receivers 
 	private final RoundList messagesByOrder = new RoundList();
 
-	// For debugging purposes 
-	private long submittedCnt = 0;
-	private long servedCnt = 0;
-
 	private Logger myLogger;
 
-	OutBox(int warningSize, int maxSize, int sleepTimeFactor) {
+	OutBox(int warningSize, int maxSize, int sleepTimeFactor, boolean enableMultipleDelivery) {
 		this.warningSize = warningSize;
 		this.maxSize = maxSize;
 		this.sleepTimeFactor = sleepTimeFactor;
+		this.enableMultipleDelivery = enableMultipleDelivery;
 		myLogger = Logger.getMyLogger(getClass().getName());
 	}
 
@@ -60,8 +62,22 @@ class OutBox {
 	void addLast(AID receiverID, GenericMessage msg, Channel ch) {
 		// Check the max queue size threshold
 		if ((size + msg.length()) > maxSize) {
-			myLogger.log(Logger.WARNING, "Message discarded by MessageManager! Current-queue-size = "+size+", max-size = "+maxSize+", number of pending messages = "+pendingCnt+", size of last message = "+msg.length());
-			throw new RuntimeException("Message discarded");
+			long time = System.currentTimeMillis();
+			// Avoid printing more than 1 log per sec
+			synchronized (this) {
+				if ((time - lastDiscardedLogTime) > 1000) {
+					boolean continuousDiscarding = (time - lastDiscardedLogTime) < 1100;
+					String servedWhileDiscardingStr = continuousDiscarding ? " ("+servedCnt+" messages served in the meanwhile)" : "";
+					myLogger.log(Logger.SEVERE, String.valueOf(discardedSinceLastLogCnt+1)+" message(s) discarded by MessageManager! Current-queue-size = "+size+", max-size = "+maxSize+", number of pending messages = "+pendingCnt+", size of last message = "+msg.length()+servedWhileDiscardingStr);
+					lastDiscardedLogTime = time;
+					discardedSinceLastLogCnt = 0;
+					servedCnt = 0;
+				}
+				else {
+					discardedSinceLastLogCnt++;
+				}
+			}
+			throw new QueueFullException();
 		}
 		
 		boolean logActivated = myLogger.isLoggable(Logger.FINER);
@@ -74,7 +90,7 @@ class OutBox {
 			}
 		}
 
-		// This must fall outside the synchronized block because the method calls Thread.sleep
+		// This must fall outside the synchronized block because the method may call Thread.sleep
 		increaseSize(msg.length());
 
 		synchronized (this) {
@@ -94,7 +110,6 @@ class OutBox {
 			if (logActivated)
 				myLogger.log(Logger.FINER,"Message entered in box for receiver "+receiverID.getName());
 			b.addLast(new PendingMsg(msg, receiverID, ch, -1));
-			submittedCnt++;
 			// Wakes up all deliverers
 			notifyAll();
 		}
@@ -143,7 +158,31 @@ class OutBox {
 			}
 		}
 		PendingMsg pm = b.removeFirst();
-		decreaseSize(pm.getMessage().length());
+		int s = pm.getMessage().length();
+		decreaseSize(s);
+		//#J2ME_EXCLUDE_BEGIN
+		if (size > warningSize && enableMultipleDelivery) {
+			int mulMessageSize = s;
+			java.util.List<GenericMessage> mm = null;
+			while (!b.isEmpty() && (mulMessageSize < 100000)) { // Max 100 Kbyte
+				if (mm == null) {
+					mm = new java.util.ArrayList<GenericMessage>();
+					mm.add(pm.getMessage());
+				}
+				PendingMsg next = b.removeFirst();
+				GenericMessage g = next.getMessage();
+				s = g.length();
+				decreaseSize(s);
+				mulMessageSize += s;
+				mm.add(g);
+			}
+			if (mm != null) {
+				MultipleGenericMessage mgm = new MultipleGenericMessage(mulMessageSize);
+				mgm.setMessages(mm);
+				pm.setMessage(mgm);
+			}
+		}
+		//#J2ME_EXCLUDE_END
 		return pm;
 	}
 
@@ -169,12 +208,12 @@ class OutBox {
 	}
 
 	/**
-	 * A message for the receiver receiverID has been served
+	 * Some messages for the receiver receiverID have been served
 	 * If the Box of messages for that receiver is now empty --> remove it.
-	 * Otherwise just mark it as idel (not busy).
+	 * Otherwise just mark it as idle (not busy).
 	 */
-	synchronized final void handleServed( AID receiverID ){
-		servedCnt++;
+	synchronized final void handleServed(AID receiverID, int n) {
+		servedCnt += n;
 		boolean logActivated = myLogger.isLoggable(Logger.FINER);
 		if (logActivated)
 			myLogger.log(Logger.FINER,"Entering handleServed for "+receiverID.getName());
@@ -305,13 +344,5 @@ class OutBox {
 
 	int getPendingCnt() {
 		return pendingCnt;
-	}
-
-	long getSubmittedCnt() {
-		return submittedCnt;
-	}
-
-	long getServedCnt() {
-		return servedCnt;
 	}
 }

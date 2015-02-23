@@ -408,6 +408,7 @@ public class NotificationService extends BaseService {
 		private void handleSendMessage(VerticalCommand cmd) {
 			Object[] params = cmd.getParams();
 			AID sender = (AID)params[0];
+			// NOTE that the gmsg cannot be a MultipleGenericMessage since we are in the outgoing chain
 			ACLMessage msg = ((GenericMessage)params[1]).getACLMessage();
 			AID receiver = (AID)params[2];
 			

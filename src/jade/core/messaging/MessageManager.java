@@ -63,6 +63,7 @@ class MessageManager {
 	private static final int  MAX_POOL_SIZE = 100;
 	
 	private static final int  DELIVERY_TIME_THRESHOLD_DEFAULT = 1000; // ms
+	private static final int  DELIVERY_TIME_THRESHOLD2_DEFAULT = 5000; // ms
 	private static final int  WARNING_QUEUE_SIZE_DEFAULT = 10000000; // 10MBytes
 	private static final int  MAX_QUEUE_SIZE_DEFAULT = 100000000; // 100MBytes
 	private static final int  SLEEP_TIME_FACTOR_DEFAULT = -1; // ms/MByes, -1=no sleep time
@@ -72,8 +73,13 @@ class MessageManager {
 	private Deliverer[] deliverers;
 	private boolean active = true;
 	private long deliveryTimeThreshold;
+	private long deliveryTimeThreshold2;
 	
+	private long totSubmittedCnt = 0;
+	private long totServedCnt = 0;
 	private long totDiscardedCnt = 0;
+	private long totSlowDeliveryCnt = 0;
+	private long totVerySlowDeliveryCnt = 0;
 	
 	
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());
@@ -101,11 +107,21 @@ class MessageManager {
 			// Do nothing and keep default value
 		}
 
-		// OUT_BOX_MAX_SIZE
+		// DELIVERY_TIME_THRESHOLD (Slow)
 		deliveryTimeThreshold = DELIVERY_TIME_THRESHOLD_DEFAULT;
 		try {
 			String tmp = p.getParameter("jade_core_messaging_MessageManager_deliverytimethreshold", null);
 			deliveryTimeThreshold = Integer.parseInt(tmp);
+		}
+		catch (Exception e) {
+			// Do nothing and keep default value
+		}
+		
+		// DELIVERY_TIME_THRESHOLD (Very Slow)
+		deliveryTimeThreshold2 = DELIVERY_TIME_THRESHOLD2_DEFAULT;
+		try {
+			String tmp = p.getParameter("jade_core_messaging_MessageManager_deliverytimethreshold2", null);
+			deliveryTimeThreshold2 = Integer.parseInt(tmp);
 		}
 		catch (Exception e) {
 			// Do nothing and keep default value
@@ -141,7 +157,10 @@ class MessageManager {
 			// Do nothing and keep default value
 		}
 		
-		outBox = new OutBox(warningQueueSize, maxQueueSize, sleepTimeFactor);
+		// MULTIPLE_DELIVERY
+		boolean enableMultipleDelivery = p.getBooleanProperty("jade_core_messaging_MessageManager_enablemultipledelivery", true);
+		
+		outBox = new OutBox(warningQueueSize, maxQueueSize, sleepTimeFactor, enableMultipleDelivery);
 
 		try {
 			ResourceManager rm = p.getResourceManager();
@@ -186,11 +205,15 @@ class MessageManager {
 	 */
 	public void deliver(GenericMessage msg, AID receiverID, Channel ch) {
 		if (active) {
+			totSubmittedCnt++;
 			try {
 				outBox.addLast(receiverID, msg, ch);
 			} catch(Exception e) {
 				totDiscardedCnt++;
-				ch.notifyFailureToSender(msg, receiverID, new InternalError(e.getMessage()));
+				// If queue is full, trying to send back a FAILURE is useless since the FAILURE would be discarded too
+				if (!(e instanceof QueueFullException)) {
+					ch.notifyFailureToSender(msg, receiverID, new InternalError(e.getMessage()));
+				}
 			}
 		}
 		else {
@@ -235,16 +258,28 @@ class MessageManager {
 						myLogger.log(Logger.WARNING, "MessageManager cannot deliver message "+stringify(msg)+" to agent "+receiverID.getName(), t);
 						ch.notifyFailureToSender(msg, receiverID, new InternalError(ACLMessage.AMS_FAILURE_UNEXPECTED_ERROR + ": "+t));
 					}
-					servedCnt++;
-					outBox.handleServed(receiverID);
+					int k = msg.getMessagesCnt();
+					servedCnt += k;
+					totServedCnt += k;
+					outBox.handleServed(receiverID, k);
 					
 					long deliveryTime = System.currentTimeMillis() - startTime;
 					try {
-						if (deliveryTimeThreshold > 0 && deliveryTime > deliveryTimeThreshold) {
-							myLogger.log(Logger.WARNING, "Deliverer Thread "+name+ " - Delivery-time over threshold ("+deliveryTime+"). Receiver = "+receiverID.getLocalName()+", message size = "+msg.length()+". "+DeliveryTracing.report());
+						if (deliveryTimeThreshold > 0) {
+							long threshold = k == 1 ? deliveryTimeThreshold : Math.min(deliveryTimeThreshold * k, 30000);
+							if (deliveryTime > threshold) {
+								totSlowDeliveryCnt += k;
+								String msgDetail = k == 1 ? "message size = "+msg.length() : "block of "+k+" messages with overall size = "+msg.length();
+								myLogger.log(Logger.WARNING, "Deliverer Thread "+name+ " - Delivery-time over threshold ("+deliveryTime+"). Receiver = "+receiverID.getLocalName()+", "+msgDetail+". "+DeliveryTracing.report());
+								long threshold2 = k == 1 ? deliveryTimeThreshold2 : Math.min(deliveryTimeThreshold2 * k, 150000);
+								if (deliveryTime > threshold2) {
+									totVerySlowDeliveryCnt++;
+								}
+							}
 						}
 					}
 					catch (Exception e) {
+						// Should never happen, but Deliverers must never die and so...
 						myLogger.log(Logger.WARNING, "Unexpected error computing message delivery time", e);
 					}
 				}
@@ -263,7 +298,7 @@ class MessageManager {
 	   Inner class PendingMsg
 	 */
 	public static class PendingMsg {
-		private final GenericMessage msg;
+		private GenericMessage msg;
 		private final AID receiverID;
 		private final Channel channel;
 		private long deadline;
@@ -275,6 +310,10 @@ class MessageManager {
 			this.deadline = deadline;
 		}
 
+		public void setMessage(GenericMessage msg) {
+			this.msg = msg;
+		}
+		
 		public GenericMessage getMessage() {
 			return msg;
 		}
@@ -337,20 +376,28 @@ class MessageManager {
 	}
 	
 	long getSubmittedCnt() {
-		return outBox.getSubmittedCnt();
+		return totSubmittedCnt;
 	}
 	
 	long getServedCnt() {
-		return outBox.getServedCnt();
+		return totServedCnt;
 	}
 	
 	long getDiscardedCnt() {
 		return totDiscardedCnt;
 	}
 	
+	long getSlowDeliveryCnt() {
+		return totSlowDeliveryCnt;
+	}
+	
+	long getVerySlowDeliveryCnt() {
+		return totVerySlowDeliveryCnt;
+	}
+	
 	// For debugging purpose
 	String getGlobalInfo() {
-		return "Submitted-messages = "+outBox.getSubmittedCnt()+", Served-messages = "+outBox.getServedCnt()+", Queue-size (byte) = "+outBox.getSize();
+		return "Submitted-messages = "+totSubmittedCnt+", Served-messages = "+totServedCnt+", Discarded-messages = "+totDiscardedCnt+", Queue-size (byte) = "+outBox.getSize();
 	}
 
 	// For debugging purpose
