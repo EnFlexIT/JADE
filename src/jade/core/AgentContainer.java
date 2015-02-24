@@ -85,6 +85,7 @@ public interface AgentContainer {
 	void addAddressToLocalAgents(String address);
 	void removeAddressFromLocalAgents(String address);
 	boolean postMessageToLocalAgent(ACLMessage msg, AID receiverID);
+	boolean postMessagesBlockToLocalAgent(ACLMessage[] mm, AID receiverID);
 	Location here();
 
 	void shutDown();

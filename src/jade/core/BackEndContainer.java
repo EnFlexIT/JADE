@@ -489,6 +489,15 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 		}
 	}
 	
+	public boolean postMessagesBlockToLocalAgent(ACLMessage[] mm, AID receiverID) {
+		// FIXME: To optimize performances we should support messages-block transfer between BE and FE
+		boolean ret = false;
+		for (ACLMessage msg : mm) {
+			ret = postMessageToLocalAgent(msg, receiverID);
+		}
+		return ret;
+	}
+	
 	private boolean isExplicitReceiver(ACLMessage msg, AID receiver) {
 		Iterator it = msg.getAllIntendedReceiver();
 		while (it.hasNext()) {

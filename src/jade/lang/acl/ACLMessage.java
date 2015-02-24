@@ -948,8 +948,8 @@ public class ACLMessage implements Serializable {
 			return userDefProps.remove(key);
 	}
 	
-	public void setPostTimeStamp() {
-		postTimeStamp = System.currentTimeMillis();
+	public void setPostTimeStamp(long time) {
+		postTimeStamp = time;
 	}
 	
 	public long getPostTimeStamp() {

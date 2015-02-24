@@ -2130,7 +2130,7 @@ public class Agent implements Runnable, Serializable
 	 @see jade.core.Agent#send(ACLMessage msg)
 	 */
 	public final void postMessage(final ACLMessage msg) {
-		msg.setPostTimeStamp();
+		msg.setPostTimeStamp(System.currentTimeMillis());
 		synchronized (msgQueue) {
 			if (msg != null) {
 				//#MIDP_EXCLUDE_BEGIN
@@ -2139,6 +2139,21 @@ public class Agent implements Runnable, Serializable
 				msgQueue.addLast(msg);
 				doWake();
 			}
+		}
+	}
+
+	final void postMessagesBlock(ACLMessage[] mm) {
+		long time = System.currentTimeMillis();
+		synchronized (msgQueue) {
+			for (int i = 0; i < mm.length; ++i) {
+				ACLMessage msg = mm[i];
+				msg.setPostTimeStamp(time);
+				//#MIDP_EXCLUDE_BEGIN
+				myToolkit.handlePosted(myAID, msg);
+				//#MIDP_EXCLUDE_END
+				msgQueue.addLast(msg);
+			}
+			doWake();
 		}
 	}
 

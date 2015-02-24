@@ -1086,6 +1086,17 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		return true;
 	}
 
+	public boolean postMessagesBlockToLocalAgent(ACLMessage[] mm, AID receiverID) {
+		Agent receiver = localAgents.acquire(receiverID);
+		if(receiver == null) {
+			return false;
+		}
+		receiver.postMessagesBlock(mm);
+		localAgents.release(receiverID);
+
+		return true;
+	}
+
 	public ContainerID getID() {
 		return myID;
 	}

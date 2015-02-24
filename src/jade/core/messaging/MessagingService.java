@@ -1065,25 +1065,58 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		private void handleSendMessage(VerticalCommand cmd) throws NotFoundException {
 			Object[] params = cmd.getParams();
 			AID senderID = (AID)params[0];
-			GenericMessage msg = (GenericMessage)params[1];
+			GenericMessage gMsg = (GenericMessage)params[1];
 			AID receiverID = (AID)params[2];
 			receiverID = resolveLocalAlias(receiverID);
 
-			manageMessage(senderID, msg, receiverID);
+			//#J2ME_EXCLUDE_BEGIN
+			if (gMsg instanceof MultipleGenericMessage) {
+				// Multiple-message delivery case. 
+				java.util.List<GenericMessage> gmm = ((MultipleGenericMessage) gMsg).getMessages();
+				ACLMessage[] mm = new ACLMessage[gmm.size()];
+				int k = 0;
+				for (GenericMessage g : gmm) {
+					if (g.getTraceID() != null) {
+						myLogger.log(Logger.INFO, g.getTraceID()+" - MessagingService target sink posting message to receiver "+receiverID.getLocalName());
+					}
+					ACLMessage msg = g.getACLMessage();
+					if (!msg.getSender().equals(senderID)) {
+						myLogger.log(Logger.FINE, "Attaching real-sender user defined parameter: "+senderID.getName());
+						// Sender indicated in the message different than the real sender --> store the latter in the REAL_SENDER user defined param
+						msg.addUserDefinedParameter(ACLMessage.REAL_SENDER, senderID.getName());
+					}
+					mm[k] = g.getACLMessage();
+					k++;
+				}
+				
+				boolean found = myContainer.postMessagesBlockToLocalAgent(mm, receiverID);
+				if(!found) {
+					throw new NotFoundException("Messaging service slice failed to find " + receiverID);
+				}
+				
+				for (GenericMessage g : gmm) {
+					postedMessageCounter++;
+					updateDeliveryTimeMeasurement(g);
+					if (g.getTraceID() != null) {
+						myLogger.log(Logger.INFO, g.getTraceID()+" - Message posted");
+					}
+				}
+				return;
+			}
+			//#J2ME_EXCLUDE_END
 			
-//			if (msg.getTraceID() != null) {
-//				myLogger.log(Logger.INFO, msg.getTraceID()+" - MessagingService target sink posting message to receiver "+receiverID.getLocalName());
-//				
-//			}
-//			postMessage(senderID, msg.getACLMessage(), receiverID);
-//			//#J2ME_EXCLUDE_BEGIN
-//			postedMessageCounter++;
-//			updateDeliveryTimeMeasurement(msg);
-//			//#J2ME_EXCLUDE_END
-//			if (msg.getTraceID() != null) {
-//				myLogger.log(Logger.INFO, msg.getTraceID()+" - Message posted");
-//				
-//			}
+			// Normal (single-message delivery) case
+			if (gMsg.getTraceID() != null) {
+				myLogger.log(Logger.INFO, gMsg.getTraceID()+" - MessagingService target sink posting message to receiver "+receiverID.getLocalName());
+			}
+			postMessage(senderID, gMsg.getACLMessage(), receiverID);
+			//#J2ME_EXCLUDE_BEGIN
+			postedMessageCounter++;
+			updateDeliveryTimeMeasurement(gMsg);
+			//#J2ME_EXCLUDE_END
+			if (gMsg.getTraceID() != null) {
+				myLogger.log(Logger.INFO, gMsg.getTraceID()+" - Message posted");
+			}
 		}
 		
 		private void manageMessage(AID senderID, GenericMessage msg, AID receiverID) throws NotFoundException {
@@ -1199,7 +1232,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			if(!found) {
 				throw new NotFoundException("Messaging service slice failed to find " + receiverID);
 			}
-		}
+		}		
 		
 		private MTPDescriptor installMTP(String address, String className) throws IMTPException, ServiceException, MTPException {
 			
