@@ -1080,10 +1080,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 						myLogger.log(Logger.INFO, g.getTraceID()+" - MessagingService target sink posting message to receiver "+receiverID.getLocalName());
 					}
 					ACLMessage msg = g.getACLMessage();
-					if (!msg.getSender().equals(senderID)) {
-						myLogger.log(Logger.FINE, "Attaching real-sender user defined parameter: "+senderID.getName());
+					if (!msg.getSender().equals(g.getSender()) && g.getSender() != null) {
+						myLogger.log(Logger.FINE, "Attaching real-sender user defined parameter: "+g.getSender().getName());
 						// Sender indicated in the message different than the real sender --> store the latter in the REAL_SENDER user defined param
-						msg.addUserDefinedParameter(ACLMessage.REAL_SENDER, senderID.getName());
+						msg.addUserDefinedParameter(ACLMessage.REAL_SENDER, g.getSender().getName());
 					}
 					mm[k] = g.getACLMessage();
 					k++;
