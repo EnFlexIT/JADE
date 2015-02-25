@@ -168,7 +168,8 @@ public class TopicManagementService extends BaseService {
 				}
 			}
 			else if (name.equals(AgentManagementSlice.SHUTDOWN_PLATFORM)) {
-				// Platform is shutting down. Avoid propagating information to remote slices 
+				// Platform is shutting down. Avoid propagating information to remote slices
+				myLogger.log(Logger.INFO, "TopicManagentService: platform shutdown process initiation detected");
 				shutdownInProgress = true;
 			}
 			// Never veto other commands
