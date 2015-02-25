@@ -1,7 +1,9 @@
 package jade.lang.acl;
 
 import jade.core.Agent;
+import jade.util.leap.HashSet;
 import jade.util.leap.Serializable;
+import jade.util.leap.Set;
 
 import java.util.Vector;
 
@@ -12,7 +14,7 @@ import java.util.Vector;
    conversations. 
  */
 public class ConversationList implements Serializable{
-	private Vector conversations = new Vector();
+	private HashSet conversations = new HashSet();
 	protected Agent myAgent = null;
 	protected int cnt = 0;
 	
@@ -35,7 +37,7 @@ public class ConversationList implements Serializable{
 	 */
 	public String registerConversation() {
 		String id = createConversationId();
-		conversations.addElement(id);
+		conversations.add(id);
 		return id;
 	}
 	
@@ -44,7 +46,7 @@ public class ConversationList implements Serializable{
 	 */
 	public void registerConversation(String convId) {
 		if (convId != null) {
-			conversations.addElement(convId);
+			conversations.add(convId);
 		}
 	}
 	
@@ -53,7 +55,7 @@ public class ConversationList implements Serializable{
 	 */
 	public void deregisterConversation(String convId) {
 		if (convId != null) {
-			conversations.removeElement(convId);
+			conversations.remove(convId);
 		}
 	}
 
@@ -61,7 +63,7 @@ public class ConversationList implements Serializable{
 	   Deregister all conversations.
 	 */
 	public void clear() {
-		conversations.removeAllElements();
+		conversations.clear();
 	}
 	
 	/**
