@@ -29,12 +29,9 @@ import jade.util.leap.Iterator;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Properties;
-
 import jade.util.Logger;
-
 import jade.lang.acl.ACLMessage;
 import jade.core.behaviours.Behaviour;
-
 import jade.core.messaging.GenericMessage;
 import jade.core.management.AgentManagementSlice;
 
@@ -44,10 +41,8 @@ import jade.domain.AMSEventQueueFeeder;
 import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.JADEAgentManagement.JADEManagementOntology;
-
 import jade.mtp.MTPDescriptor;
 import jade.mtp.TransportAddress;
-
 import jade.security.JADESecurityException;
 import jade.security.CredentialsHelper;
 import jade.security.JADEPrincipal;
@@ -71,6 +66,11 @@ import jade.security.Credentials;
  */
 class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
+	/**
+	 * Profile option that specifies whether or not all log messages should be produced during
+	 * the shutdown procedure  
+	 */
+	public static final String VERBOSE_SHUTDOWN = "jade_core_MainContainerImpl_verboseshutdown";
 	public static final String ENABLE_MONITOR = "jade_core_AgentContainerImpl_enablemonitor";
 	public static final String MONITOR_AGENT_NAME = "monitor-%C";
 	public static final String MONITOR_AGENT_CLASS = "jade.core.ContainerMonitorAgent";
@@ -126,6 +126,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	private long creationTime = -1;
 
 	private boolean joined;
+	private boolean verboseShutdown;
 
 	// Default constructor
 	AgentContainerImpl() {
@@ -486,6 +487,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			checkLocalHostAddress();
 		}
 		//#J2ME_EXCLUDE_END
+		verboseShutdown = myProfile.getBooleanProperty(VERBOSE_SHUTDOWN, false);
 
 		try {
 			// Perform the initial setup from the profile
@@ -622,6 +624,9 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	}
 
 	public void shutDown() {
+		if (verboseShutdown) {
+			myLogger.log(Logger.INFO, "Container shutdown procedure activated.");
+		}
 		checkCreationTime();
 
 		// Remove all non-system agents
@@ -636,15 +641,21 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			if(id.equals(getAMS()) || id.equals(getDefaultDF()))
 				continue;
 
-			//System.out.println("Killing agent "+a.getLocalName());
-			//System.out.flush();
+			if (verboseShutdown) {
+				myLogger.log(Logger.INFO, "--- Killing agent "+a.getLocalName());
+			}
 			a.doDelete();
-			//System.out.println("Done. Waiting for its termination...");
-			//System.out.flush();
+			if (verboseShutdown) {
+				myLogger.log(Logger.INFO, "--- Waiting for agent "+a.getLocalName()+" termination ...");
+			}
 			a.join();
-			//System.out.println("Agent "+a.getLocalName()+" terminated");
-			//System.out.flush();
+			if (verboseShutdown) {
+				myLogger.log(Logger.INFO, "--- Agent "+a.getLocalName()+" terminated");
+			}
 			a.resetToolkit();
+		}
+		if (verboseShutdown) {
+			myLogger.log(Logger.INFO, "All agents terminated");
 		}
 
 		try {
@@ -670,6 +681,9 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		endContainer();
 		
 		joined = false;
+		if (verboseShutdown) {
+			myLogger.log(Logger.INFO, "Container shutdown procedure completed");
+		}
 	}
 
 	private void checkCreationTime() {
