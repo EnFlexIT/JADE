@@ -7,4 +7,9 @@ public class NotAnAggregate extends OntologyException {
 	public NotAnAggregate() {
 		super("");
 	}
+	
+	@Override
+	public Throwable fillInStackTrace() {
+		return this;
+	}
 }
