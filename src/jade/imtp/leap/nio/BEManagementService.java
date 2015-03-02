@@ -40,7 +40,6 @@ import jade.security.JADESecurityException;
 import java.io.*;
 import java.nio.channels.*;
 import java.net.*;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Hashtable;
@@ -250,13 +249,13 @@ public class BEManagementService extends BaseService {
     It activates the IO event servers specified in the Profile and the
     Ticker thread.
 	 */
-	public void boot(Profile p) throws ServiceException {
+	public void boot(final Profile p) throws ServiceException {
 		// Get IDs of servers to install
 		String defaultServerIDs = PREFIX.substring(0, PREFIX.length() - 1);
 		String serverIDs = p.getParameter(SERVERS, defaultServerIDs);
 		Vector v = Specifier.parseList(serverIDs, ';'); 
 
-		// Activate all servers
+		// Create all servers
 		Enumeration e = v.elements();
 		while (e.hasMoreElements()) {
 			String id = (String) e.nextElement();
@@ -264,7 +263,6 @@ public class BEManagementService extends BaseService {
 				IOEventServer srv = new IOEventServer();
 				srv.init(id, p);
 				servers.put(id, srv);
-				srv.activate();
 			} catch (Throwable t) {
 				myLogger.log(Logger.WARNING, "Error activating IOEventServer " + id + ". " + t);
 				t.printStackTrace();
@@ -273,6 +271,37 @@ public class BEManagementService extends BaseService {
 		if (servers.size() == 0) {
 			throw new ServiceException("NO IO-Event-Server active");
 		}
+		
+		// Active all servers after a while to allow the correct starting and registration to the main-container
+		Thread t = new Thread() {
+			public void run() {
+				long wait = 10000;
+				try {
+					wait = Long.parseLong(p.getParameter(PREFIX + "serversstartwait", null));
+				} catch (Exception ex) {
+				}
+
+				try {
+					Thread.sleep(wait);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+
+				Iterator it = servers.entrySet().iterator();
+				while (it.hasNext()) {
+					String id = null;
+					try {
+						Map.Entry entry = (Map.Entry) it.next();
+						id = (String) entry.getKey();
+						((IOEventServer) entry.getValue()).activate();
+					} catch (Throwable t) {
+						myLogger.log(Logger.WARNING, "Error activating IOEventServer " + id + ". " + t);
+						t.printStackTrace();
+					}
+				}
+			}
+		};
+		t.start();
 
 		// Activate the ticker
 		long tickTime = 60000;
