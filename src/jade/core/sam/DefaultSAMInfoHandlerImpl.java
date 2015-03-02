@@ -32,8 +32,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 class DefaultSAMInfoHandlerImpl implements SAMInfoHandler {
@@ -46,6 +48,11 @@ class DefaultSAMInfoHandlerImpl implements SAMInfoHandler {
 	
 	private SimpleDateFormat timeStampFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 	private String csvSeparator;
+	
+	private List<String> summaryFields = null;
+	private List<String> summaryValues = null;
+	private PrintStream summaryFile = null;
+	
 	
 	private File samInfoDirectory;
 	private String fileSeparator;
@@ -71,6 +78,18 @@ class DefaultSAMInfoHandlerImpl implements SAMInfoHandler {
 		
 		// Read the CSV separator character
 		csvSeparator = p.getParameter("jade_core_sam_SAMService_csvseparator", ";");
+		
+		// Read the summary fields if any
+		String summaryStr = p.getParameter("jade_core_sam_SAMService_summary", null);
+		if (summaryStr != null && summaryStr.length() > 0) {
+			String[] ff = summaryStr.split(";");
+			summaryFields = new ArrayList<String>(ff.length);
+			summaryValues = new ArrayList<String>(ff.length);
+			for (String field : ff) {
+				summaryFields.add(field);
+				summaryValues.add("");
+			}
+		}
 	}
 
 	public void shutdown() {
@@ -81,9 +100,20 @@ class DefaultSAMInfoHandlerImpl implements SAMInfoHandler {
 		for (CounterInfo ci : counters.values()) {
 			ci.stream.close();
 		}
+		if (summaryFile != null) {
+			summaryFile.close();
+		}
 	}
 	
 	public void handle(Date timeStamp, SAMInfo info) {
+		if (summaryValues != null) {
+			for (int i = 0; i < summaryValues.size(); ++i) {
+				summaryValues.set(i, "");
+			}
+		}
+		
+		String timeStampStr = timeStampFormatter.format(timeStamp);
+		
 		// Entities
 		Map<String, AverageMeasure> entityMeasures = info.getEntityMeasures();
 		for (String entityName : entityMeasures.keySet()) {
@@ -99,7 +129,15 @@ class DefaultSAMInfoHandlerImpl implements SAMInfoHandler {
 					stream.println("Time-stamp"+csvSeparator+"Average-value"+csvSeparator+"N-samples");
 					entityFiles.put(entityName, stream);
 				}
-				stream.println(timeStampFormatter.format(timeStamp)+csvSeparator+m.getValue()+csvSeparator+m.getNSamples());
+				stream.println(timeStampStr+csvSeparator+m.getValue()+csvSeparator+m.getNSamples());
+				
+				if (summaryFields != null) {
+					int k = summaryFields.indexOf(entityName);
+					if (k >= 0) {
+						// This entity is part of the summary
+						summaryValues.set(k, String.valueOf(m.getValue()));
+					}
+				}
 			}
 			catch (Exception e) {
 				myLogger.log(Logger.WARNING, "Error writing to CSV file of entity "+entityName, e);
@@ -125,12 +163,47 @@ class DefaultSAMInfoHandlerImpl implements SAMInfoHandler {
 					counters.put(counterName, ci);
 				}
 				ci.totValue += value;
-				ci.stream.println(timeStampFormatter.format(timeStamp)+csvSeparator+value+csvSeparator+ci.totValue);
+				ci.stream.println(timeStampStr+csvSeparator+value+csvSeparator+ci.totValue);
+				
+				if (summaryFields != null) {
+					int k = summaryFields.indexOf(counterName);
+					if (k >= 0) {
+						// This counter is part of the summary
+						summaryValues.set(k, String.valueOf(value));
+					}
+				}
 			}
 			catch (Exception e) {
 				myLogger.log(Logger.WARNING, "Error writing to CSV file of counter "+counterName, e);
 				// Likely someone removed the CSV file in the meanwhile. Reset everything so that at next round the file will be re-created  
 				counters.remove(counterName);
+			}
+		}
+		
+		// Summary
+		if (summaryFields != null) {
+			try {
+				if (summaryFile == null) {
+					// This is the first time we write the summary --> Initialize the file
+					myLogger.log(Logger.INFO, "Creating CSV file for SAM Summary");
+					File f = createFile("Summary");
+					summaryFile = new PrintStream(f);
+					StringBuffer sb = new StringBuffer("Time-stamp");
+					for (String field : summaryFields) {
+						sb.append(csvSeparator+field);
+					}
+					summaryFile.println(sb.toString());
+				}
+				StringBuffer sb = new StringBuffer(timeStampStr);
+				for (String value : summaryValues) {
+					sb.append(csvSeparator+value);
+				}
+				summaryFile.println(sb.toString());
+			}
+			catch (Exception e) {
+				myLogger.log(Logger.WARNING, "Error writing to Summary CSV file", e);
+				// Likely someone removed the CSV file in the meanwhile. Reset everything so that at next round the file will be re-created  
+				summaryFile = null;
 			}
 		}
 	}
