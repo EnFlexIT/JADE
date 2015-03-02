@@ -70,7 +70,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	 * Profile option that specifies whether or not all log messages should be produced during
 	 * the shutdown procedure  
 	 */
-	public static final String VERBOSE_SHUTDOWN = "jade_core_MainContainerImpl_verboseshutdown";
+	public static final String VERBOSE_SHUTDOWN = "jade_core_AgentContainerImpl_verboseshutdown";
 	public static final String ENABLE_MONITOR = "jade_core_AgentContainerImpl_enablemonitor";
 	public static final String MONITOR_AGENT_NAME = "monitor-%C";
 	public static final String MONITOR_AGENT_CLASS = "jade.core.ContainerMonitorAgent";
