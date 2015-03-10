@@ -88,6 +88,19 @@ public class GatewayAgent extends Agent {
 		addBehaviour(myB);
 		setO2AManager(myB);
 		
+		// Check if the listener is passed as agent argument
+		if (listener == null) {
+			Object[] args = getArguments();
+			if (args != null) {
+				for (int i=0; i<args.length; i++) {
+					if (args[i] instanceof GatewayListener) {
+						listener = (GatewayListener) args[i];
+						break;
+					}
+				}
+			}
+		}
+		
 		if (listener != null) {
 			listener.handleGatewayConnected();
 		}

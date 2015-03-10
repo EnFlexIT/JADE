@@ -21,20 +21,20 @@ import jade.wrapper.StaleProxyException;
 
 public class DynamicJadeGateway {
 
-	private static final int UNKNOWN = -1;
-	private static final int ACTIVE = 1;
-	private static final int NOT_ACTIVE = 2;
+	static final int UNKNOWN = -1;
+	static final int ACTIVE = 1;
+	static final int NOT_ACTIVE = 2;
 	
 	ContainerController myContainer = null;
 	AgentController myAgent = null;
-	private String agentType = GatewayAgent.class.getName();
-	private String agentName = null;
+	String agentType = GatewayAgent.class.getName();
+	String agentName = null;
 	// jade profile properties
 	ProfileImpl profile;
 	private Properties jadeProps;
-	private Object[] agentArguments;
+	Object[] agentArguments;
 	
-	private int gatewayAgentState = UNKNOWN;
+	int gatewayAgentState = UNKNOWN;
 	//#DOTNET_EXCLUDE_BEGIN
 	private List<GatewayListener> listeners = new ArrayList<GatewayListener>();
 	private volatile GatewayListener[] listenersArray = new GatewayListener[0];
@@ -107,7 +107,7 @@ public class DynamicJadeGateway {
 	 * If not, then the method is responsible for renewing myContainer.
 	 * Normally programmers do not need to invoke this method explicitly.
 	 **/
-	public final void checkJADE() throws StaleProxyException,ControllerException {
+	public void checkJADE() throws StaleProxyException,ControllerException {
 		if (myContainer == null || !myContainer.isJoined()) {
 			initProfile();
 			
@@ -232,7 +232,7 @@ public class DynamicJadeGateway {
 	 * Return the state of JadeGateway
 	 * @return true if the container and the gateway agent are active, false otherwise
 	 */
-	public final boolean isGatewayActive() {
+	public boolean isGatewayActive() {
 		if (gatewayAgentState != UNKNOWN) {
 			return gatewayAgentState == ACTIVE;
 		}
@@ -261,7 +261,7 @@ public class DynamicJadeGateway {
 	/**
 	 * Inner class GatewayListenerImpl
 	 */
-	private class GatewayListenerImpl implements GatewayListener {
+	class GatewayListenerImpl implements GatewayListener {
 		public void handleGatewayConnected() {
 			// This is executed by the GatewayAgent Thread --> Notify listeners by means of an ad-hoc 
 			// Thread to avoid deadlocks with other threads waiting for the execute() method to complete
