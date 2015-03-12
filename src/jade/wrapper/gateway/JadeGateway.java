@@ -3,14 +3,7 @@ package jade.wrapper.gateway;
 //#J2ME_EXCLUDE_FILE
 //#ANDROID_EXCLUDE_FILE
 
-import jade.core.Runtime;
-import jade.core.Profile;
-import jade.core.ProfileImpl;
-import jade.util.Event;
 import jade.util.leap.Properties;
-import jade.util.Logger;
-import jade.wrapper.AgentController;
-import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
 
@@ -52,8 +45,23 @@ import jade.wrapper.StaleProxyException;
  **/
 public class JadeGateway {
 	
-	private static DynamicJadeGateway defaultGateway = new DynamicJadeGateway();
+	public static final String SPLIT_CONTAINER = "split-container";
 	
+	private static DynamicJadeGateway jadeGateway;
+	private static boolean splitContainer;
+
+	private final synchronized static DynamicJadeGateway getGateway() {
+		if (jadeGateway == null) {
+			if (splitContainer) {
+				jadeGateway = new SplitJadeGateway();
+			}
+			else {
+				jadeGateway = new DynamicJadeGateway();
+			}
+		}
+		return jadeGateway;
+	}
+
 	/** Searches for the property with the specified key in the JADE Platform Profile. 
 	 *	The method returns the default value argument if the property is not found. 
 	 * @param key - the property key. 
@@ -62,7 +70,7 @@ public class JadeGateway {
 	 * @see java.util.Properties#getProperty(String, String)
 	 **/
 	public final static String getProfileProperty(String key, String defaultValue) {
-		return defaultGateway.getProfileProperty(key, defaultValue);
+		return getGateway().getProfileProperty(key, defaultValue);
 	}
 	
 	/**
@@ -76,7 +84,7 @@ public class JadeGateway {
 	 * @see jade.wrapper.AgentController#putO2AObject(Object, boolean)
 	 **/
 	public final static void execute(Object command) throws StaleProxyException,ControllerException,InterruptedException {
-		defaultGateway.execute(command);
+		getGateway().execute(command);
 	}
 	
 	/**
@@ -92,7 +100,7 @@ public class JadeGateway {
 	 * @see jade.wrapper.AgentController#putO2AObject(Object, boolean)
 	 **/
 	public final static void execute(Object command, long timeout) throws StaleProxyException,ControllerException,InterruptedException {
-		defaultGateway.execute(command, timeout);
+		getGateway().execute(command, timeout);
 	}
 	
 	/**
@@ -101,7 +109,7 @@ public class JadeGateway {
 	 * Normally programmers do not need to invoke this method explicitly.
 	 **/
 	public final static void checkJADE() throws StaleProxyException,ControllerException {
-		defaultGateway.checkJADE();
+		getGateway().checkJADE();
 	}
 	
 	/** Restart JADE.
@@ -110,7 +118,7 @@ public class JadeGateway {
 	 * and finally calls checkJADE
 	 **/
 	private final static void restartJADE() throws StaleProxyException,ControllerException {
-		defaultGateway.restartJADE();
+		getGateway().restartJADE();
 	}
 	
 	/**
@@ -122,19 +130,22 @@ public class JadeGateway {
 	 * Typically these properties will have to be read from a JADE configuration file.
 	 * If jadeProfile is null, then a JADE container attaching to a main on the local host is launched
 	 **/
-	public final static void init(String agentClassName, Object[] agentArgs, Properties jadeProfile) {
-		defaultGateway.init(agentClassName, agentArgs, jadeProfile);
+	public final synchronized static void init(String agentClassName, Object[] agentArgs, Properties jadeProfile) {
+		String splitContainerStr = jadeProfile.getProperty(SPLIT_CONTAINER, "false");
+		splitContainer = Boolean.parseBoolean(splitContainerStr);
+		
+		getGateway().init(agentClassName, agentArgs, jadeProfile);
 	}
 
 	public final static void init(String agentClassName, Properties jadeProfile) {
-		defaultGateway.init(agentClassName, jadeProfile);
+		init(agentClassName, null, jadeProfile);
 	}
 	
 	/**
 	 * Kill the JADE Container in case it is running.
 	 */
 	public final static void shutdown() {
-		defaultGateway.shutdown();
+		getGateway().shutdown();
 	}
 	
 	/**
@@ -142,21 +153,21 @@ public class JadeGateway {
 	 * @return true if the container and the gateway agent are active, false otherwise
 	 */
 	public final static boolean isGatewayActive() {
-		return defaultGateway.isGatewayActive();
+		return getGateway().isGatewayActive();
 	}
 	
 	//#DOTNET_EXCLUDE_BEGIN
 	public static void addListener(GatewayListener l) {
-		defaultGateway.addListener(l);
+		getGateway().addListener(l);
 	}
 	
 	public void removeListener(GatewayListener l) {
-		defaultGateway.removeListener(l);
+		getGateway().removeListener(l);
 	}
 	//#DOTNET_EXCLUDE_END
 	
 	public static final DynamicJadeGateway getDefaultGateway() {
-		return defaultGateway;
+		return getGateway();
 	}
 	
 	// Private constructor to avoid creating instances of the JadeGateway class directly
