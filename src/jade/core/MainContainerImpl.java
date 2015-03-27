@@ -171,6 +171,9 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		removeListener(theAMS.getQueueFeeder());
 		
 		containers.removeContainer(cid);
+		
+		// Notify listeners
+		fireRemovedContainer(cid);
 	}
 	
 	void addRemoteContainer(ContainerID cid) {
@@ -1543,7 +1546,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	
 	private void fireRemovedContainer(ContainerID cid) {
 		PlatformEvent ev = new PlatformEvent(PlatformEvent.REMOVED_CONTAINER, cid);
-		
 		for(int i = 0; i < platformListeners.size(); i++) {
 			AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
 			try {
