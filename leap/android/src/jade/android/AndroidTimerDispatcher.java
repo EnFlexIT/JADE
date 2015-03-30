@@ -27,7 +27,7 @@ class AndroidTimerDispatcher extends TimerDispatcher {
 		filter.addAction(WAKE_TD_ACTION);
 		context.registerReceiver(new BroadcastReceiver() {
 			public void onReceive(Context ctx, Intent i) {
-				myLogger.log(Logger.INFO, "TD Alarm go off!!! Intent action = "+i.getAction());
+				myLogger.log(Logger.FINE, "TD Alarm go off!!! Intent action = "+i.getAction());
 				synchronized (AndroidTimerDispatcher.this) {
 					wakeUp();
 				}
@@ -44,21 +44,19 @@ class AndroidTimerDispatcher extends TimerDispatcher {
 			i.setAction(WAKE_TD_ACTION);
 			pendingIntent = PendingIntent.getBroadcast(context, 0, i, 0);
 			am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+sleepTime, pendingIntent);
-			myLogger.log(Logger.INFO, "TD Alarm activated");
+			myLogger.log(Logger.FINE, "TD Alarm activated");
 		}
 		
-		myLogger.log(Logger.INFO, "TD going to sleep for "+sleepTime+" ms ............");
 		wait(0);
-		myLogger.log(Logger.INFO, "TD Go on!!!!!!");
 	}
 	
 	protected void wakeUp() {
-		myLogger.log(Logger.INFO, "Wakeing up TD");
+		myLogger.log(Logger.FINE, "Wakeing up TD");
 		if (pendingIntent != null) {
 			AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 			am.cancel(pendingIntent);
 			pendingIntent = null;
-			myLogger.log(Logger.INFO, "TD Alarm cancelled");
+			myLogger.log(Logger.FINE, "TD Alarm cancelled");
 		}
 		notifyAll();
 	}
