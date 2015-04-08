@@ -72,9 +72,9 @@ public class Runtime {
 	//#MIDP_EXCLUDE_BEGIN
 	private ThreadGroup criticalThreads;
 	//#MIDP_EXCLUDE_END
-	private String version = "$UNKNOWN";
-	private String revision = "$UNKNOWN";
-	private String date = "$UNKNOWN";
+	private String version = "UNKNOWN";
+	private String revision = "UNKNOWN";
+	private String date = "UNKNOWN";
 	
 	private int activeContainers = 0;
 	private LinkedList terminators = new LinkedList();
@@ -86,19 +86,10 @@ public class Runtime {
 	// Private constructor to forbid instantiation outside the class.
 	private Runtime() {
 		//#MIDP_EXCLUDE_BEGIN
-		try {
-			Object versionManager = Class.forName("jade.core.VersionManager").newInstance();
-			Class c = versionManager.getClass();
-			java.lang.reflect.Method m = c.getMethod("getVersion", new Class[0]);
-			version = (String) m.invoke(versionManager, new Object[0]);
-			m = c.getMethod("getRevision", new Class[0]);
-			revision = (String) m.invoke(versionManager, new Object[0]);
-			m = c.getMethod("getDate", new Class[0]);
-			date = (String) m.invoke(versionManager, new Object[0]);
-		}
-		catch (Exception e) {
-			// VersionManager not available: keep defaults
-		}
+		VersionManager vm = new VersionManager();
+		version = vm.getVersion();
+		revision = vm.getRevision();
+		date = vm.getDate();
 		//#MIDP_EXCLUDE_END
 	}
 
@@ -333,31 +324,18 @@ public class Runtime {
      Return the version number and date of this JADE Runtime.
 	 */
 	public static String getVersionInfo() {
-		String version = getVersion();
-		String name = null;
-		if (version.startsWith("$")) {
-			// The $ surrounded Version keyword was not replaced --> This is NOT an official release --> The has the form JADE Snapshot - revision XXXX of YYYY/MM/DD hh:mm:ss
-			name = "JADE snapshot";
-		}
-		else {
-			// This is an official release --> The name has the form JADE version - revision XXXX of YYYY/MM/DD hh:mm:ss
-			name = "JADE "+version;
-		}
-		return name + " - revision "+getRevision()+" of "+getDate();
+		return "JADE "+getVersion() + " - revision "+getRevision()+" of "+getDate();
 	}
 	
 	public static String getVersion() {
-		//String version = "4.0-beta"; // The $ surrounded Version keyword is automatically replaced by the target doTag of build.xml
 		return theInstance.version;
 	}
 	
 	public static String getRevision() {
-		//String revision = "6278"; // The $ surrounded WCREV keyword is automatically replaced by WCREV with subversion
 		return theInstance.revision;
 	}
 	
 	public static String getDate() {
-		//String date = "2010/03/08 16:19:33"; // The $ surrounded WCDATE keyword is automatically replaced by WCREV with subversion
 		return theInstance.date;
 	}
 }

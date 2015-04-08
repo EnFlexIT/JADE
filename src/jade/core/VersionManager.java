@@ -7,7 +7,7 @@ import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class VersionManager {
+public class VersionManager {
 	
 	private static Logger logger = Logger.getLogger(VersionManager.class.getName());
 	
