@@ -54,16 +54,6 @@ ant dist - to create the distribution files
 		<condition property="EXECidlj.is.set">
 			<equals arg1="${EXECidlj}" arg2="true"/>
 		</condition>
-
-		<!-- SVN revision and date will be updated if the SubWCRev executable is specified in the build.properties file and is available on the disk -->
-		<condition property="EXECSubWCRev">
-			<available file="${SubWCRev.exe}"/>
-		</condition>
-
-		<!-- The JADE version will be updated if the tagThisVersion property is set to true in the build.properties file -->
-		<condition property="tagThisVersion.is.true">
-			<equals arg1="${tagThisVersion}" arg2="true"/>
-		</condition>
 	</target>
 
 	<target name="check_javacc" unless="makeParsers">
@@ -74,9 +64,6 @@ ant dist - to create the distribution files
 	</target>
 	<target name="check_execIdlj" unless="EXECidlj.is.set">
 		<echo>Default behaviour: IDLJ task is being skipped.</echo>
-	</target>
-	<target name="check_execSubWCRev" depends="init" unless="EXECSubWCRev">
-		<echo>WARNING: SubWCRev is being skipped. The copyright notice of JADE Runtime will not be updated</echo>
 	</target>
 
 	<!--  _______________________________________________
@@ -90,25 +77,49 @@ ant dist - to create the distribution files
 	</target>
 
 	<!--  _______________________________________________
-	                            doTag
+	                            setWCInfo
 	      _______________________________________________ -->
-	<target name="doTag" depends="SubWCRev" if="tagThisVersion.is.true" description="Set the JADE version number in jade.core.Runtime.">
-		<echo>tagging new release: JADE-${version}</echo>
-		<replace file="src/jade/core/VersionManager.java" token="$Version$" value="${version}" summary="yes"/>
-		<!-- <replace file="src/jade/core/Runtime.java" token="$Version$" value="${version}" summary="yes"/> -->
+	<condition property="isPresentSUBWCRev">
+		<available file="leap/resources/antTasks" type="dir"/>
+	</condition>
+		  
+	<target name="setWCInfo" depends="initSUBWCRev, setSVNInfo, setVersionInfo" />
+
+	<target name="initSUBWCRev" if="isPresentSUBWCRev">
+			<taskdef name="SUBWCRev" classname="com.tilab.ant.SUBWCRev">
+			<classpath>
+				<fileset dir="leap/resources/antTasks">
+					<include name="antlr-runtime-3.4.jar"/>
+					<include name="sequence-library-1.0.3.jar"/>
+					<include name="sqljet-1.1.10.jar"/>
+					<include name="svnkit-1.8.8.jar"/>
+					<include name="SUBWCRev.jar"/>
+				</fileset>
+			</classpath>
+		</taskdef>  
+		<SUBWCRev workingcopypath="." />
+	</target>
+	
+	<target name="setSVNInfo">
+		<condition property="WCREV" else="UNKNOWN">
+			<isset property="WCREV"/>
+		</condition>
+		<echo>SVN revision number: ${WCREV}</echo>
+		<condition property="WCDATE" else="UNKNOWN">
+			<isset property="WCDATE"/>
+		</condition>
+		<echo>SVN revision date: ${WCDATE}</echo>
 	</target>
 
-	<!--  _______________________________________________
-	                            SubWCRev
-	      _______________________________________________ -->
-	<target name="SubWCRev" depends="init,check_execSubWCRev" if="EXECSubWCRev" description="Set the value of the latest revision number and date for this checkout of JADE">
-		<echo>executing SUBWCRev to set revision number and date for this JADE</echo>
-		<exec dir="." executable="${SubWCRev.exe}">
-			<arg line=". src\jade\core\VersionManager.java_template src\jade\core\VersionManager.java"/>
-			<!-- <arg line=". src\jade\core\Runtime.java src\jade\core\Runtime.java"/> -->
-		</exec>
+	<target name="setVersionInfo">
+		<condition property="versionType" value="" else="(snapshot)" >
+			<equals arg1="${tagThisVersion}" arg2="true"/>
+		</condition>
+		<condition property="WCVER" value="${version} ${versionType}" else="UNKNOWN">
+			<isset property="version"/>
+		</condition>
+		<echo>JADE version: ${WCVER}</echo>
 	</target>
-
 
 	<!--  _______________________________________________
 	                          parser
@@ -127,7 +138,7 @@ ant dist - to create the distribution files
 	<!--  _______________________________________________
 	                          compile
 	      _______________________________________________ -->
-	<target name="jade" depends="init,parser,idlj,doTag" description="compile the source ">
+	<target name="jade" depends="init,parser,idlj,setWCInfo" description="compile the source ">
 		<!-- Compile the java code from ${src} into ${build} -->
 		<!--   <delete dir="${build}/examples"/>
 	    <delete dir="${build}/demo"/> -->
@@ -163,6 +174,15 @@ ant dist - to create the distribution files
 		<!-- Create the jade.jar file -->
 		<delete file="${lib}/jade.jar" quiet="true"/>
 		<jar jarfile="${lib}/jade.jar">
+			<manifest>
+				<attribute name="Built-By" value="Jade Team (${user.name})"/>
+				<attribute name="Build-Date" value="${DSTAMP}-${TSTAMP}"/>
+				<section name="Jade Informations">
+					<attribute name="Specification-Version" value="${WCVER}"/>
+					<attribute name="SVN-Revision" value="${WCREV}"/>
+					<attribute name="SVN-Date" value="${WCDATE}"/>
+				</section>
+			</manifest>
 			<fileset dir="${build}">
 				<exclude name="**/examples/**"/>
 				<exclude name="**/demo/**"/>
