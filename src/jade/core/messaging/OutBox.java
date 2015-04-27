@@ -15,13 +15,15 @@ import jade.lang.acl.ACLMessage;
 import jade.util.Logger;
 
 /**
- * Object to mantain message to send and
+ * Object to maintain message to send and
  * to preserve the order for sending.
  * 
  * @author Elisabetta Cortese - TILAB
  */
 
 class OutBox {
+	private static final int PENDING_MSG_PER_RECEIVER_THR = -1;
+	
 	private int size = 0; // Approximated size in bytes
 	private int pendingCnt = 0;   
 	private int warningSize; 
@@ -29,6 +31,8 @@ class OutBox {
 	private int sleepTimeFactor;
 	private boolean enableMultipleDelivery;
 	private boolean overWarningSize = false;
+	
+	private MessageManager manager;
 	
 	private long lastDiscardedLogTime = -1;
 	private long discardedSinceLastLogCnt = 0;
@@ -43,11 +47,12 @@ class OutBox {
 
 	private Logger myLogger;
 
-	OutBox(int warningSize, int maxSize, int sleepTimeFactor, boolean enableMultipleDelivery) {
+	OutBox(int warningSize, int maxSize, int sleepTimeFactor, boolean enableMultipleDelivery, MessageManager manager) {
 		this.warningSize = warningSize;
 		this.maxSize = maxSize;
 		this.sleepTimeFactor = sleepTimeFactor;
 		this.enableMultipleDelivery = enableMultipleDelivery;
+		this.manager = manager;
 		myLogger = Logger.getMyLogger(getClass().getName());
 	}
 
@@ -91,7 +96,8 @@ class OutBox {
 		}
 
 		// This must fall outside the synchronized block because the method may call Thread.sleep
-		increaseSize(msg.length());
+		int length = msg.length();
+		increaseSize(length);
 
 		synchronized (this) {
 			Box b = (Box) messagesByReceiver.get(receiverID);
@@ -107,6 +113,16 @@ class OutBox {
 				if (logActivated)
 					myLogger.log(Logger.FINER,"Box created for receiver "+receiverID.getName());
 			}
+						
+			if (b.size() > PENDING_MSG_PER_RECEIVER_THR) {
+				// To many messages for a single receiver. Be sure the owner of this box is not stuck
+				String owner = b.getOwner();
+				if (manager.isStuck(owner)) {
+					decreaseSize(length);
+					throw new StuckDeliverer(owner);
+				}
+			}
+			
 			if (logActivated)
 				myLogger.log(Logger.FINER,"Message entered in box for receiver "+receiverID.getName());
 			b.addLast(new PendingMsg(msg, receiverID, ch, -1));
@@ -307,6 +323,10 @@ class OutBox {
 		private boolean isBusy(){
 			return busy;
 		}
+		
+		private String getOwner() {
+			return owner;
+		}
 
 		private void addLast(PendingMsg pm) {
 			messages.add(pm);
@@ -319,6 +339,10 @@ class OutBox {
 		private boolean isEmpty() {
 			return messages.isEmpty();
 		}	
+		
+		private int size() {
+			return messages.size();
+		}
 
 		// For debugging purpose
 		public String toString() {

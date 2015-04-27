@@ -64,6 +64,8 @@ class MessageManager {
 	
 	private static final int  DELIVERY_TIME_THRESHOLD_DEFAULT = 1000; // ms
 	private static final int  DELIVERY_TIME_THRESHOLD2_DEFAULT = 5000; // ms
+	private static final int  DELIVERY_STUCK_TIME_DEFAULT = 60000; // ms
+	
 	private static final int  WARNING_QUEUE_SIZE_DEFAULT = 10000000; // 10MBytes
 	private static final int  MAX_QUEUE_SIZE_DEFAULT = 100000000; // 100MBytes
 	private static final int  SLEEP_TIME_FACTOR_DEFAULT = -1; // ms/MByes, -1=no sleep time
@@ -74,6 +76,7 @@ class MessageManager {
 	private boolean active = true;
 	private long deliveryTimeThreshold;
 	private long deliveryTimeThreshold2;
+	private long deliveryStuckTime;
 	
 	private long totSubmittedCnt = 0;
 	private long totServedCnt = 0;
@@ -107,7 +110,7 @@ class MessageManager {
 			// Do nothing and keep default value
 		}
 
-		// DELIVERY_TIME_THRESHOLD (Slow)
+		// DELIVERY_TIME_THRESHOLD 1 (Slow)
 		deliveryTimeThreshold = DELIVERY_TIME_THRESHOLD_DEFAULT;
 		try {
 			String tmp = p.getParameter("jade_core_messaging_MessageManager_deliverytimethreshold", null);
@@ -117,11 +120,21 @@ class MessageManager {
 			// Do nothing and keep default value
 		}
 		
-		// DELIVERY_TIME_THRESHOLD (Very Slow)
+		// DELIVERY_TIME_THRESHOLD 2 (Very Slow)
 		deliveryTimeThreshold2 = DELIVERY_TIME_THRESHOLD2_DEFAULT;
 		try {
 			String tmp = p.getParameter("jade_core_messaging_MessageManager_deliverytimethreshold2", null);
 			deliveryTimeThreshold2 = Integer.parseInt(tmp);
+		}
+		catch (Exception e) {
+			// Do nothing and keep default value
+		}
+		
+		// DELIVERY_STUCK_TIME (If delivery is pending since more than this time, likely we are stuck)
+		deliveryStuckTime = DELIVERY_STUCK_TIME_DEFAULT;
+		try {
+			String tmp = p.getParameter("jade_core_messaging_MessageManager_deliveryStuckTime", null);
+			deliveryStuckTime = Integer.parseInt(tmp);
 		}
 		catch (Exception e) {
 			// Do nothing and keep default value
@@ -160,14 +173,15 @@ class MessageManager {
 		// MULTIPLE_DELIVERY
 		boolean enableMultipleDelivery = p.getBooleanProperty("jade_core_messaging_MessageManager_enablemultipledelivery", true);
 		
-		outBox = new OutBox(warningQueueSize, maxQueueSize, sleepTimeFactor, enableMultipleDelivery);
+		outBox = new OutBox(warningQueueSize, maxQueueSize, sleepTimeFactor, enableMultipleDelivery, this);
 
 		try {
 			ResourceManager rm = p.getResourceManager();
 			delivererThreads = new Thread[poolSize];
 			deliverers = new Deliverer[poolSize];
 			for (int i = 0; i < poolSize; ++i) {
-				String name = "Deliverer-"+i;
+				String pad = i < 10 ? "0" : ""; 
+				String name = "Deliverer-"+pad+i;
 				deliverers[i] = new Deliverer(name);
 				delivererThreads[i] = rm.getThread(ResourceManager.TIME_CRITICAL, name, deliverers[i]);
 				if (myLogger.isLoggable(Logger.FINE)) {
@@ -199,7 +213,27 @@ class MessageManager {
 		// Reset the MessageManager singleton instance 
 		theInstance = null;
 	}
-
+	
+	private int getDelivererIndex(String name) {
+		if (name != null) {
+			int length = name.length();
+			return (name.charAt(length - 2) - '0') * 10 + (name.charAt(length - 1) - '0');
+		}
+		else {
+			return -1;
+		}
+	}
+	
+	boolean isStuck(String name) {
+		int index = getDelivererIndex(name);
+		if (index >= 0 && index < deliverers.length) {
+			Deliverer d = deliverers[index];
+			return d.isStuck();
+		}
+		else {
+			return false;
+		}
+	}
 	/**
 	   Activate the asynchronous delivery of a GenericMessage
 	 */
@@ -212,6 +246,14 @@ class MessageManager {
 				totDiscardedCnt++;
 				// If queue is full, trying to send back a FAILURE is useless since the FAILURE would be discarded too
 				if (!(e instanceof QueueFullException)) {
+					if (e instanceof StuckDeliverer) {
+						String name = ((StuckDeliverer) e).getDelivererName();
+						myLogger.log(Logger.WARNING, "Deliverer "+name+" appears to be stuck!!!!! Try to interrupt it...");
+						int index = getDelivererIndex(name);
+						if (index >= 0 && index < delivererThreads.length) {
+							delivererThreads[index].interrupt();
+						}
+					}
 					ch.notifyFailureToSender(msg, receiverID, new InternalError(e.getMessage()));
 				}
 			}
@@ -229,6 +271,8 @@ class MessageManager {
 	class Deliverer implements Runnable {
 
 		private String name;
+		private long lastDeliveryStartTime = -1;
+		private long lastDeliveryEndTime = -1;
 		// For debugging purpose
 		private long servedCnt = 0;
 
@@ -241,7 +285,8 @@ class MessageManager {
 				// Get a message from the OutBox (block until there is one)
 				PendingMsg pm = outBox.get();
 				DeliveryTracing.beginTracing();
-				long startTime = System.currentTimeMillis();
+				
+				lastDeliveryStartTime = System.currentTimeMillis();
 				GenericMessage msg = pm.getMessage();
 				AID receiverID = pm.getReceiver();
 
@@ -263,7 +308,8 @@ class MessageManager {
 					totServedCnt += k;
 					outBox.handleServed(receiverID, k);
 					
-					long deliveryTime = System.currentTimeMillis() - startTime;
+					lastDeliveryEndTime = System.currentTimeMillis();
+					long deliveryTime = lastDeliveryEndTime - lastDeliveryStartTime;
 					try {
 						if (deliveryTimeThreshold > 0) {
 							long threshold = k == 1 ? deliveryTimeThreshold : Math.min(deliveryTimeThreshold * k, 30000);
@@ -290,6 +336,24 @@ class MessageManager {
 		
 		long getServedCnt() {
 			return servedCnt;
+		}
+		
+		long getLastDeliveryStartTime() {
+			return lastDeliveryStartTime;
+		}
+		
+		long getLastDeliveryEndTime() {
+			return lastDeliveryEndTime;
+		}
+		
+		boolean isStuck() {
+			if (lastDeliveryStartTime > lastDeliveryEndTime) {
+				// Delivery process started but not completed yet
+				return System.currentTimeMillis() - lastDeliveryStartTime > deliveryStuckTime;
+			}
+			else {
+				return false;
+			}
 		}
 	} // END of inner class Deliverer	
 
@@ -400,11 +464,20 @@ class MessageManager {
 		return "Submitted-messages = "+totSubmittedCnt+", Served-messages = "+totServedCnt+", Discarded-messages = "+totDiscardedCnt+", Queue-size (byte) = "+outBox.getSize();
 	}
 
+	private java.text.SimpleDateFormat timeFormat = new java.text.SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	// For debugging purpose
 	String[] getThreadPoolStatus() {
-		String[] status = new String[delivererThreads.length];
-		for (int i = 0; i < delivererThreads.length; ++i) {
-			status[i] = "(Deliverer-"+i+" :alive "+delivererThreads[i].isAlive()+" :Served-messages "+deliverers[i].getServedCnt()+")";
+		String[] status = new String[deliverers.length];
+		for (int i = 0; i < deliverers.length; ++i) {
+			Deliverer d = deliverers[i];
+			String details = null;
+			if (d.isStuck()) {
+				details = "STUCK!!! last-delivery-start-time="+timeFormat.format(new java.util.Date(d.getLastDeliveryStartTime()));
+			}
+			else {
+				details = "last-delivery-end-time="+timeFormat.format(new java.util.Date(d.getLastDeliveryEndTime()));
+			}
+			status[i] = "("+d.name+": thread-alive="+delivererThreads[i].isAlive()+", Served-messages="+d.getServedCnt()+", "+details+")";
 		}
 		return status;
 	}
