@@ -273,6 +273,7 @@ class MessageManager {
 		private String name;
 		private long lastDeliveryStartTime = -1;
 		private long lastDeliveryEndTime = -1;
+		private boolean delivering = false;
 		// For debugging purpose
 		private long servedCnt = 0;
 
@@ -293,6 +294,7 @@ class MessageManager {
 				// Deliver the message
 				Channel ch = pm.getChannel();
 				if (ch != null) {
+					delivering = true;
 					// Ch is null only in the case of dummy messages used to make the deliverers terminate.
 					// See shutdown() method
 					try {
@@ -302,6 +304,9 @@ class MessageManager {
 						// deliverNow() never throws exception. This is just a last protection since a MessageManager deliverer thread must never die
 						myLogger.log(Logger.WARNING, "MessageManager cannot deliver message "+stringify(msg)+" to agent "+receiverID.getName(), t);
 						ch.notifyFailureToSender(msg, receiverID, new InternalError(ACLMessage.AMS_FAILURE_UNEXPECTED_ERROR + ": "+t));
+					}
+					finally {
+						delivering = false;
 					}
 					int k = msg.getMessagesCnt();
 					servedCnt += k;
@@ -347,7 +352,7 @@ class MessageManager {
 		}
 		
 		boolean isStuck() {
-			if (lastDeliveryStartTime > lastDeliveryEndTime) {
+			if (delivering) {
 				// Delivery process started but not completed yet
 				return System.currentTimeMillis() - lastDeliveryStartTime > deliveryStuckTime;
 			}
