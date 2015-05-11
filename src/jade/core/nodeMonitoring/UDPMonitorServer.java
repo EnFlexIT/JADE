@@ -243,8 +243,7 @@ class UDPMonitorServer {
 					//#DOTNET_EXCLUDE_END 
 				} catch (Exception e) // .net requires I catch Exception instead of IOException
 				{
-					if (logger.isLoggable(Logger.SEVERE))
-						logger.log(Logger.SEVERE, "UDP Connection error ");
+					logger.log(Logger.SEVERE, "UDP Connection error ", e);
 				}
 			} // for
 		}
