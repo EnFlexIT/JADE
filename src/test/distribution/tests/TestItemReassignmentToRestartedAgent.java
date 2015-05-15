@@ -99,7 +99,7 @@ public class TestItemReassignmentToRestartedAgent extends Test {
 		});
 		
 		// Step 3. Wait a bit and then check assignments 
-		sb.addSubBehaviour(new WakerBehaviour(a, assignmentManager.getDeadAgentsRestertTimeout() + 10000){
+		sb.addSubBehaviour(new WakerBehaviour(a, assignmentManager.getDeadAgentsRestartTimeout() + 10000){
 			public void onWake() {
 				log("--- 4) Check assignments of items originally assigned to tg1...");
 				for (String item : tg1Items) {

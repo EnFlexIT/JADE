@@ -80,7 +80,7 @@ public class TestItemReassignment extends Test {
 		});
 		
 		// Step 3. Wait the dead-agents-restart-timeout plus a while and then check assignments
-		sb.addSubBehaviour(new WakerBehaviour(a, assignmentManager.getDeadAgentsRestertTimeout() + 10000){
+		sb.addSubBehaviour(new WakerBehaviour(a, assignmentManager.getDeadAgentsRestartTimeout() + 10000){
 			public void onWake() {
 				log("--- 3) Check assignments ...");
 				for (int i = 0; i < SIZE; ++i) {
