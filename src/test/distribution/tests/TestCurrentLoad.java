@@ -14,13 +14,13 @@ import test.common.TestUtility;
 import test.distribution.DistributionTesterAgent;
 import test.distribution.TargetAgent;
 
-public class TestItemReassignment extends Test {
-	
+public class TestCurrentLoad extends Test {
+
 	public static final int SIZE = 10;
 	public static final String ITEM_PREFIX = "ITEM";
 	
 	private AssignmentManager<String> assignmentManager;
-	private AID tg1;
+	private AID tg1, tg2, tg3;
 	
 	public Behaviour load(Agent a) throws TestException {
 		// AssignmentManager has been created once for all in the TesterAgent
@@ -28,18 +28,47 @@ public class TestItemReassignment extends Test {
 		if (assignmentManager == null) {
 			throw new TestException("Missing AssignmentManager argument");
 		}
+		
 		tg1 = (AID) getGroupArgument(DistributionTesterAgent.TG_AGENT_1_ARG);
 		if (tg1 == null) {
 			throw new TestException("Missing target agent "+DistributionTesterAgent.TG_AGENT_1_ARG);
 		}
 		
+		
 		SequentialBehaviour sb = new SequentialBehaviour(a);
 		
-		// Step 0. Wait a bit to be sure the target agents registered with the DF
+		// Step 0-a. Wait a bit to be sure the target agents registered with the DF
 		sb.addSubBehaviour(new WakerBehaviour(a, 5000) {
+			public void onStart() {
+				log("--- Wait a bit ...");
+				super.onStart();
+			}
 		});
 		
-		// Step 1. Assign 10 items
+		// Step 0-b. Kill tg2 and tg3 so that there is just a single target agent. Then wait a bit
+		sb.addSubBehaviour(new WakerBehaviour(a, 5000) {
+			public void onStart() {
+				try {
+					tg2 = (AID) getGroupArgument(DistributionTesterAgent.TG_AGENT_2_ARG);
+					if (tg2 != null) {
+						TestUtility.killAgent(myAgent, tg2);
+						log("--- Agent "+tg2.getLocalName()+" successfully killed");
+					}
+					tg3 = (AID) getGroupArgument(DistributionTesterAgent.TG_AGENT_3_ARG);
+					if (tg3 != null) {
+						TestUtility.killAgent(myAgent, tg3);
+						log("--- Agent "+tg2.getLocalName()+" successfully killed");
+					}
+					log("--- Wait a bit ...");
+				}
+				catch (Exception e) {
+					failed("Error killing target agents");
+				}
+				super.onStart();
+			}
+		});
+		
+		// Step 1. Assign 10 items and check load before assignments are completed
 		sb.addSubBehaviour(new OneShotBehaviour(a) {
 			public void action() {
 				log("--- 1) Assign "+SIZE+" items");
@@ -62,51 +91,45 @@ public class TestItemReassignment extends Test {
 						}
 					});
 				}
+				int load = assignmentManager.getCurrentLoad(tg1);
+				if (load == SIZE) {
+					log("--- Current load of agent "+tg1.getLocalName()+" before assignments are completed is "+SIZE+" as expected");
+				}
+				else {
+					failed("--- Current load of agent "+tg1.getLocalName()+" before assignments are completed is "+load+" while "+SIZE+" was expected");
+				}
 			}
 		});
 		
-		// Step 2. Wait a bit then kill one of the target agents
-		sb.addSubBehaviour(new WakerBehaviour(a, 5000){
+		// Step 2. Wait a bit to be sure assignments are completed, then check load again
+		sb.addSubBehaviour(new WakerBehaviour(a, 5000) {
+			@Override
 			public void onWake() {
-				tg1 = (AID) getGroupArgument(DistributionTesterAgent.TG_AGENT_1_ARG);
-				try {
-					log("--- 2) Killing target agent "+tg1.getLocalName());
-					TestUtility.killAgent(myAgent, tg1);
+				int load = assignmentManager.getCurrentLoad(tg1);
+				if (load == SIZE) {
+					log("--- Current load of agent "+tg1.getLocalName()+" after assignments are completed is "+SIZE+" as expected");
 				}
-				catch (TestException e) {
-					failed("--- Error killing target agent "+tg1.getLocalName()+". "+e);
+				else {
+					failed("--- Current load of agent "+tg1.getLocalName()+" after assignments are completed is "+load+" while "+SIZE+" was expected");
 				}
 			}
 		});
 		
-		// Step 3. Wait the dead-agents-restart-timeout plus a while and then check assignments
-		sb.addSubBehaviour(new WakerBehaviour(a, assignmentManager.getDeadAgentsRestartTimeout() + 10000){
-			public void onWake() {
-				log("--- 3) Check assignments ...");
-				for (int i = 0; i < SIZE; ++i) {
-					String item = ITEM_PREFIX+"-"+i;
-					AID owner = assignmentManager.getOwner(item);
-					if (owner == null) {
-						failed("--- Item "+item+" not assigned");
-						return;
-					}
-					else if (owner.equals(tg1)) {
-						failed("--- Item "+item+" still assigned to dead agent "+tg1.getLocalName());
-						return;
-					}
-				}
-				
-				// Call to passed() is done in next step
-			}
-		});
-		
-		// Recreate the killed target agent. We cannot do that in the clean() method since 
+		// Recreate the killed target agents. We cannot do that in the clean() method since 
 		// the AssignmentManager could not reinitialize correctly due to inter-test cleanup
 		sb.addSubBehaviour(new WakerBehaviour(a, 2000) {
 			public void onStart() {
-				if (tg1 != null) {
+				if (tg2 != null) {
 					try {
-						tg1 = TestUtility.createAgent(myAgent, "tg1", TargetAgent.class.getName(), null);
+						tg2 = TestUtility.createAgent(myAgent, "tg2", TargetAgent.class.getName(), null);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				if (tg3 != null) {
+					try {
+						tg3 = TestUtility.createAgent(myAgent, "tg3", TargetAgent.class.getName(), null);
 					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -117,13 +140,13 @@ public class TestItemReassignment extends Test {
 			
 			public void onWake() {
 				if (!isFailed()) {
-					passed("--- All items successflly re-assigned to available agents");
+					passed("--- Test successful");
 				}
 			}
 		});
 		return sb;
 	}
-	
+		
 	public void clean(Agent a) {
 		// Unassign items
 		if (assignmentManager != null) {
@@ -139,13 +162,10 @@ public class TestItemReassignment extends Test {
 
 					@Override
 					public void onFailure(Throwable throwable) {
-						// TODO Auto-generated method stub
-						
 					}
 					
 				});
 			}
 		}
 	}
-
 }

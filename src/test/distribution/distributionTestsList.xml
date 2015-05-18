@@ -36,5 +36,16 @@
 			<WhenTestPass>
 			</WhenTestPass>
 		</Test>
+		
+		<Test name="Current load" skip="false">
+			<TestClassName>test.distribution.tests.TestCurrentLoad</TestClassName>
+			<WhatTest>This test checks that the getCurrentLoad() method properly takes into account both already assigned items and items that are going to be assigned, but the assignment is not completed yet  
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>
+		
 </TestsList>
 

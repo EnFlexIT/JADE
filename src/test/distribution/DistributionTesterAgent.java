@@ -68,6 +68,18 @@ public class DistributionTesterAgent extends TesterAgent {
 							}
 						};
 					}
+					
+					@Override
+					public void onRegister(DFAgentDescription dfd) {
+						super.onRegister(dfd);
+						System.err.println("--- Agent "+dfd.getName().getLocalName()+" registered");
+					}
+					
+					@Override
+					public void onDeregister(DFAgentDescription dfd) {
+						super.onDeregister(dfd);
+						System.err.println("--- Agent "+dfd.getName().getLocalName()+" de-registered");
+					}
 				};
 				assignmentManager.start(a);
 				setArgument(ASSIGNMENT_MANAGER_ARG, assignmentManager);
