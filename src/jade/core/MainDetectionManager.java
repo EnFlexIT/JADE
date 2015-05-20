@@ -16,7 +16,7 @@ import java.util.StringTokenizer;
 
 //#J2ME_EXCLUDE_FILE
 
-class MainDetectionManager {
+public class MainDetectionManager {
 
 	private final static Logger logger = Logger.getMyLogger(MainDetectionManager.class.getName());
 
