@@ -132,7 +132,7 @@ public class JadeGateway {
 	 **/
 	public final synchronized static void init(String agentClassName, Object[] agentArgs, Properties jadeProfile) {
 		String splitContainerStr = jadeProfile.getProperty(SPLIT_CONTAINER, "false");
-		splitContainer = Boolean.parseBoolean(splitContainerStr);
+		splitContainer = Boolean.parseBoolean(splitContainerStr.trim());
 		
 		getGateway().init(agentClassName, agentArgs, jadeProfile);
 	}
