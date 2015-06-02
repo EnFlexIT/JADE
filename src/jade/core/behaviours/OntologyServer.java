@@ -114,7 +114,7 @@ public class OntologyServer extends CyclicBehaviour {
 		if (servedPerformatives != null) {
 			if (servedPerformatives.length == 1) {
 				// E.g. XXX-Ontology-Request-Server
-				setBehaviourName(onto.getName()+"-"+performativeNames[servedPerformatives[0]]+"-Serever");
+				setBehaviourName(onto.getName()+"-"+performativeNames[servedPerformatives[0]]+"-Server");
 			}
 			else {
 				// E.g. XXX-Ontology-Request...-Server
