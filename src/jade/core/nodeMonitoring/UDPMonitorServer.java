@@ -130,17 +130,29 @@ class UDPMonitorServer {
 		}
 
 		public void run() {
-			UDPNodeFailureMonitor mon = (UDPNodeFailureMonitor) targets.get(nodeID);
-
-			// node is still supervised and there are no new deadlines
-			if (mon != null) {
-				synchronized (mon) { // Mutual exclusion with pingReceived()
-					if (mon.getDeadlineID() == id) {
-						timeout(nodeID, mon);
-					} else {
-						logger.log(Logger.WARNING, "expired Deadline "+id+" for node "+nodeID+" is not the same as monitor Deadline "+mon.getDeadlineID());
+			try {
+				UDPNodeFailureMonitor mon = (UDPNodeFailureMonitor) targets.get(nodeID);
+	
+				// node is still supervised and there are no new deadlines
+				if (mon != null) {
+					synchronized (mon) { // Mutual exclusion with pingReceived()
+						if (mon.getDeadlineID() == id) {
+							timeout(nodeID, mon);
+						} else {
+							// NB: This may happen when if we receive a delayed UDP packet while the deadline expiration is being processed (the timeout() 
+							// method is being executed).
+							// This is not so rare since deadline expiration processing involves checking reachability of the target node and this may 
+							// take a while (especially if the target node is overloaded ... this also justifies the fact that the UDP packet is delayed).
+							// In such case in fact the UDP packet reception cancels the current Deadline (that has already expired) and then sets a new
+							// Deadline (overriding the one set within the timeout() method) as soon as we exit this synchronized block 
+							logger.log(Logger.WARNING, "expired Deadline "+id+" for node "+nodeID+" is not the same as monitor Deadline "+mon.getDeadlineID());
+						}
 					}
 				}
+			}
+			catch (Throwable t) {
+				// If we get an uncaught Exception here the Timer thread dies with no log and from now on no more Deadline can be processed 
+				logger.log(Logger.WARNING, "Unexpected error managing UDP Deadline for node "+nodeID, t);
 			}
 		}
 
@@ -552,8 +564,8 @@ class UDPMonitorServer {
 		if (mon != null) {
 			synchronized (mon) {
 				mon.setDeadlineID(deadline.getID());
-				deadlines.put(nodeID, deadline);
 				timer.schedule(deadline, delay);
+				deadlines.put(nodeID, deadline);
 			}
 		}
 	}
