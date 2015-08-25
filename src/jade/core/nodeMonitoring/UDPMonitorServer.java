@@ -139,7 +139,7 @@ class UDPMonitorServer {
 						if (mon.getDeadlineID() == id) {
 							timeout(nodeID, mon);
 						} else {
-							// NB: This may happen when if we receive a delayed UDP packet while the deadline expiration is being processed (the timeout() 
+							// NB: This may happen when we receive a delayed UDP packet while the deadline expiration is being processed (the timeout() 
 							// method is being executed).
 							// This is not so rare since deadline expiration processing involves checking reachability of the target node and this may 
 							// take a while (especially if the target node is overloaded ... this also justifies the fact that the UDP packet is delayed).
