@@ -1,5 +1,3 @@
-/*--- formatted by Jindent 2.1, (www.c-lab.de/~jindent) ---*/
-
 /*
  * ***************************************************************
  * The LEAP libraries, when combined with certain JADE platform components,
@@ -42,7 +40,9 @@ import java.util.Vector;
 
 import jade.core.*;
 import jade.core.messaging.GenericMessage;
+//#J2ME_EXCLUDE_BEGIN
 import jade.core.messaging.MultipleGenericMessage;
+//#J2ME_EXCLUDE_END
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.LEAPACLCodec;
 import jade.domain.FIPAAgentManagement.Envelope;

@@ -48,16 +48,23 @@ public class JadeGateway {
 	public static final String SPLIT_CONTAINER = "split-container";
 	
 	private static DynamicJadeGateway jadeGateway;
+	//#DOTNET_EXCLUDE_BEGIN
 	private static boolean splitContainer;
+	//#DOTNET_EXCLUDE_END
 
 	private final synchronized static DynamicJadeGateway getGateway() {
 		if (jadeGateway == null) {
+			//#DOTNET_EXCLUDE_BEGIN
 			if (splitContainer) {
 				jadeGateway = new SplitJadeGateway();
 			}
 			else {
 				jadeGateway = new DynamicJadeGateway();
 			}
+			//#DOTNET_EXCLUDE_END
+			/*#DOTNET_INCLUDE_BEGIN
+			jadeGateway = new DynamicJadeGateway();
+			#DOTNET_INCLUDE_END*/
 		}
 		return jadeGateway;
 	}
@@ -131,8 +138,10 @@ public class JadeGateway {
 	 * If jadeProfile is null, then a JADE container attaching to a main on the local host is launched
 	 **/
 	public final synchronized static void init(String agentClassName, Object[] agentArgs, Properties jadeProfile) {
+		//#DOTNET_EXCLUDE_BEGIN
 		String splitContainerStr = jadeProfile.getProperty(SPLIT_CONTAINER, "false");
 		splitContainer = Boolean.parseBoolean(splitContainerStr.trim());
+		//#DOTNET_EXCLUDE_END
 		
 		getGateway().init(agentClassName, agentArgs, jadeProfile);
 	}

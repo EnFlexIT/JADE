@@ -214,13 +214,13 @@ implements PDPContextManager.Listener, JICPMediatorManager
 		exportHost = p.getParameter(Profile.EXPORT_HOST, null);
 		String exportPortStr = p.getParameter(Profile.EXPORT_PORT, null);
 		try {
-			exportPort = Integer.parseInt(exportPortStr);
+			exportPort = Integer.getInteger(exportPortStr);
 		}
 		catch (Exception e) {}
 	}
 	
 	public int getLocalPort() {
-		return exportPort != null ? exportPort : server.getLocalPort();
+		return exportPort != null ? exportPort.intValue() : server.getLocalPort();
 	}
 	
 	public String getLocalHost() {

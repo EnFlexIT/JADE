@@ -24,7 +24,9 @@
 package jade.imtp.leap;
 
 import jade.core.*;
+//#J2ME_EXCLUDE_BEGIN
 import jade.core.messaging.DeliveryTracing;
+//#J2ME_EXCLUDE_END
 import jade.util.Logger;
 
 /**
@@ -82,6 +84,7 @@ class NodeStub extends Stub implements Node {
 			Command leapCmd = new Command(Command.ACCEPT_COMMAND, remoteID);
 			leapCmd.addParam(cmd);
 			Command result = theDispatcher.dispatchCommand(remoteTAs, leapCmd);
+			//#J2ME_EXCLUDE_BEGIN
 			int nParam = result.getParamCnt();
 			if (nParam > 1) {
 				// An additional parameter is appended to report back the serving time in the remote node
@@ -93,6 +96,7 @@ class NodeStub extends Stub implements Node {
 					// Ignore
 				}
 			}
+			//#J2ME_EXCLUDE_END
 			
 			// Check whether an exception occurred in the remote container
 			checkResult(result, new String[] { });

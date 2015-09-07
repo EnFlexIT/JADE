@@ -37,14 +37,16 @@ package jade.imtp.leap.JICP;
 
 //#MIDP_EXCLUDE_FILE
 
-import jade.mtp.TransportAddress;
-import jade.imtp.leap.*;
-import jade.core.CaseInsensitiveString;
+//#J2ME_EXCLUDE_BEGIN
 import jade.core.messaging.DeliveryTracing;
-
-import java.io.*;
-
+//#J2ME_EXCLUDE_END
+import jade.imtp.leap.ICPException;
+import jade.imtp.leap.TransportProtocol;
+import jade.mtp.TransportAddress;
 import jade.util.Logger;
+
+import java.io.EOFException;
+import java.io.IOException;
 
 /**
  * Class declaration
@@ -104,8 +106,10 @@ class JICPClient {
 
 				// Read the reply
 				JICPPacket reply = connection.readPacket();
+				//#J2ME_EXCLUDE_BEGIN
 				DeliveryTracing.setTracingInfo("Network-waiting-time", (System.currentTimeMillis() - start));
 				DeliveryTracing.setTracingInfo("Reused-connection", cw.isReused());
+				//#J2ME_EXCLUDE_END
 
 				if (reply.getType() == JICPProtocol.ERROR_TYPE) {
 					throw new ICPException(new String(reply.getData()));

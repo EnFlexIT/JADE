@@ -9,7 +9,6 @@ class StuckDeliverer extends RuntimeException {
 		this.delivererName = delivererName;
 	}
 	
-	@Override
 	public Throwable fillInStackTrace() {
 		return this;
 	}

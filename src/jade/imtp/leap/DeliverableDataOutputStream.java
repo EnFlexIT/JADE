@@ -43,7 +43,9 @@ import java.util.Enumeration;
 
 import jade.core.*;
 import jade.core.messaging.GenericMessage;
+//#J2ME_EXCLUDE_BEGIN
 import jade.core.messaging.MultipleGenericMessage;
+//#J2ME_EXCLUDE_END
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.LEAPACLCodec;
 import jade.domain.FIPAAgentManagement.Envelope;

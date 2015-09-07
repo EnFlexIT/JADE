@@ -248,11 +248,16 @@ class MessageManager {
 				if (!(e instanceof QueueFullException)) {
 					if (e instanceof StuckDeliverer) {
 						String name = ((StuckDeliverer) e).getDelivererName();
+						//#MIDP_EXCLUDE_BEGIN
 						myLogger.log(Logger.WARNING, "Deliverer "+name+" appears to be stuck!!!!! Try to interrupt it...");
 						int index = getDelivererIndex(name);
 						if (index >= 0 && index < delivererThreads.length) {
 							delivererThreads[index].interrupt();
 						}
+						//#MIDP_EXCLUDE_END
+						/*#MIDP_INCLUDE_BEGIN
+						myLogger.log(Logger.WARNING, "Deliverer "+name+" appears to be stuck!!!!!");
+						#MIDP_INCLUDE_END*/
 					}
 					ch.notifyFailureToSender(msg, receiverID, new InternalError(e.getMessage()));
 				}
@@ -285,7 +290,9 @@ class MessageManager {
 			while (active) {
 				// Get a message from the OutBox (block until there is one)
 				PendingMsg pm = outBox.get();
+				//#J2ME_EXCLUDE_BEGIN
 				DeliveryTracing.beginTracing();
+				//#J2ME_EXCLUDE_END
 				
 				lastDeliveryStartTime = System.currentTimeMillis();
 				GenericMessage msg = pm.getMessage();
@@ -321,7 +328,12 @@ class MessageManager {
 							if (deliveryTime > threshold) {
 								totSlowDeliveryCnt += k;
 								String msgDetail = k == 1 ? "message size = "+msg.length() : "block of "+k+" messages with overall size = "+msg.length();
+								//#J2ME_EXCLUDE_BEGIN
 								myLogger.log(Logger.WARNING, "Deliverer Thread "+name+ " - Delivery-time over threshold ("+deliveryTime+"). Receiver = "+receiverID.getLocalName()+", "+msgDetail+". "+DeliveryTracing.report());
+								//#J2ME_EXCLUDE_END
+								/*#J2ME_INCLUDE_BEGIN
+								myLogger.log(Logger.WARNING, "Deliverer Thread "+name+ " - Delivery-time over threshold ("+deliveryTime+"). Receiver = "+receiverID.getLocalName()+", "+msgDetail+".");
+								#J2ME_INCLUDE_END*/
 								long threshold2 = k == 1 ? deliveryTimeThreshold2 : Math.min(deliveryTimeThreshold2 * k, 150000);
 								if (deliveryTime > threshold2) {
 									totVerySlowDeliveryCnt++;
@@ -469,7 +481,29 @@ class MessageManager {
 		return "Submitted-messages = "+totSubmittedCnt+", Served-messages = "+totServedCnt+", Discarded-messages = "+totDiscardedCnt+", Queue-size (byte) = "+outBox.getSize();
 	}
 
+	//#MIDP_EXCLUDE_BEGIN
 	private java.text.SimpleDateFormat timeFormat = new java.text.SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+	//#MIDP_EXCLUDE_END
+	/*#MIDP_INCLUDE_BEGIN
+	private String formatDate(long date) {
+		java.util.Calendar calendar = java.util.Calendar.getInstance();
+		calendar.setTime(new java.util.Date(date));
+		java.lang.StringBuffer sb = new java.lang.StringBuffer();
+		sb.append(calendar.get(java.util.Calendar.YEAR));
+		sb.append("/");
+		sb.append(calendar.get(java.util.Calendar.MONTH));
+		sb.append("/");
+		sb.append(calendar.get(java.util.Calendar.DAY_OF_MONTH));
+		sb.append(" ");
+		sb.append(calendar.get(java.util.Calendar.HOUR));
+		sb.append(":");
+		sb.append(calendar.get(java.util.Calendar.MINUTE));
+		sb.append(":");
+		sb.append(calendar.get(java.util.Calendar.SECOND));
+		return sb.toString();
+	}
+	#MIDP_INCLUDE_END*/
+	
 	// For debugging purpose
 	String[] getThreadPoolStatus() {
 		String[] status = new String[deliverers.length];
@@ -477,10 +511,20 @@ class MessageManager {
 			Deliverer d = deliverers[i];
 			String details = null;
 			if (d.isStuck()) {
+				//#MIDP_EXCLUDE_BEGIN
 				details = "STUCK!!! last-delivery-start-time="+timeFormat.format(new java.util.Date(d.getLastDeliveryStartTime()));
+				//#MIDP_EXCLUDE_END
+				/*#MIDP_INCLUDE_BEGIN
+				details = "STUCK!!! last-delivery-start-time="+formatDate(d.getLastDeliveryStartTime()); 
+				#MIDP_INCLUDE_END*/
 			}
 			else {
+				//#MIDP_EXCLUDE_BEGIN
 				details = "last-delivery-end-time="+timeFormat.format(new java.util.Date(d.getLastDeliveryEndTime()));
+				//#MIDP_EXCLUDE_END
+				/*#MIDP_INCLUDE_BEGIN
+				details = "last-delivery-end-time="+formatDate(d.getLastDeliveryEndTime()); 
+				#MIDP_INCLUDE_END*/
 			}
 			status[i] = "("+d.name+": thread-alive="+delivererThreads[i].isAlive()+", Served-messages="+d.getServedCnt()+", "+details+")";
 		}

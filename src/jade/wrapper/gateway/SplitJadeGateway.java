@@ -11,6 +11,7 @@ import jade.wrapper.StaleProxyException;
 
 //#J2ME_EXCLUDE_FILE
 //#ANDROID_EXCLUDE_FILE
+//#DOTNET_EXCLUDE_FILE
 
 public class SplitJadeGateway extends DynamicJadeGateway {
 

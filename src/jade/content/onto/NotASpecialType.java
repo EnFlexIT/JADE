@@ -8,7 +8,6 @@ public class NotASpecialType extends OntologyException {
 		super("");
 	}
 	
-	@Override
     public Throwable fillInStackTrace() {
         return this;
     }

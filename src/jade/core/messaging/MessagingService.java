@@ -56,12 +56,10 @@ import jade.core.ProfileException;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.core.replication.MainReplicationHandle;
-import jade.core.sam.AbsoluteCounterValueProvider;
 //#J2ME_EXCLUDE_BEGIN
+import jade.core.sam.AbsoluteCounterValueProvider;
 import jade.core.sam.AverageMeasureProviderImpl;
-import jade.core.sam.MeasureProvider;
 import jade.core.sam.SAMHelper;
-import jade.core.sam.CounterValueProvider;
 //#J2ME_EXCLUDE_END
 
 import jade.domain.FIPANames;
@@ -454,9 +452,13 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
 	
 	private void stopSAM() {
+		//#J2ME_EXCLUDE_BEGIN
+		//#DOTNET_EXCLUDE_BEGIN
 		if (samTimer != null) {
 			samTimer.cancel();
 		}
+		//#DOTNET_EXCLUDE_END
+		//#J2ME_EXCLUDE_END
 	}
 
 	// kindly provided by David Bernstein, 15/6/2005
@@ -1746,7 +1748,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				ContainerID cid = getAgentLocation(receiverID);
 				MessagingSlice targetSlice = oneShotDeliver(cid, msg, receiverID);
 				if (targetSlice != null) {
+					//#J2ME_EXCLUDE_BEGIN
 					DeliveryTracing.setTracingInfo("Target-node", targetSlice.getNode().getName());
+					//#J2ME_EXCLUDE_END
 					return;
 				}
 			}
@@ -1762,7 +1766,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 					if (msg.getTraceID() != null) {
 						myLogger.log(Logger.INFO, msg.getTraceID() + " - Delivery OK.");
 					}
+					//#J2ME_EXCLUDE_BEGIN
 					DeliveryTracing.setTracingInfo("Target-node", cachedSlice.getNode().getName());
+					//#J2ME_EXCLUDE_END
 					return;
 				} catch (IMTPException imtpe) {
 					if (msg.getTraceID() != null) {
@@ -1778,7 +1784,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			}
 			
 			// Either the receiver was not found in cache or the cache entry was no longer valid
+			//#J2ME_EXCLUDE_BEGIN
 			DeliveryTracing.setTracingInfo("Messaging-cache-miss", true);
+			//#J2ME_EXCLUDE_END
 			deliverUntilOK(msg, receiverID);
 		}
 	}
@@ -1804,7 +1812,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				if (myContainer.isLocalAgent(receiverID)) {
 					MessagingSlice localSlice = (MessagingSlice)getIMTPManager().createSliceProxy(getName(), getHorizontalInterface(), getLocalNode());
 					localSlice.dispatchLocally(msg.getSender(), msg, receiverID);
+					//#J2ME_EXCLUDE_BEGIN
 					DeliveryTracing.setTracingInfo("Target-node", localSlice.getNode().getName());
+					//#J2ME_EXCLUDE_END
 					return;
 				}
 				else {
@@ -1816,7 +1826,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			if (targetSlice != null) {
 				// On successful message dispatch, put the slice into the slice cache
 				cachedSlices.put(receiverID, targetSlice);
+				//#J2ME_EXCLUDE_BEGIN
 				DeliveryTracing.setTracingInfo("Target-node", targetSlice.getNode().getName());
+				//#J2ME_EXCLUDE_END
 				return;
 			}
 		}

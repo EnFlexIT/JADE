@@ -187,7 +187,7 @@
 	</target>
 	
 	<target name="jade-tag" if="jade-exists" depends="check-jade">
-		<ant antfile="build.xml" target="doTag" dir="${jade-home}"/>
+		<ant antfile="build.xml" target="setWCInfo" dir="${jade-home}"/>
 	</target>	
 	
 	<target name="check-jade">

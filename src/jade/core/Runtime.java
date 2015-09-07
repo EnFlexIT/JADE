@@ -86,10 +86,12 @@ public class Runtime {
 	// Private constructor to forbid instantiation outside the class.
 	private Runtime() {
 		//#MIDP_EXCLUDE_BEGIN
+		//#DOTNET_EXCLUDE_BEGIN
 		VersionManager vm = new VersionManager();
 		version = vm.getVersion();
 		revision = vm.getRevision();
 		date = vm.getDate();
+		//#DOTNET_EXCLUDE_END
 		//#MIDP_EXCLUDE_END
 	}
 

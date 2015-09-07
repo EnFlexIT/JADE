@@ -1,5 +1,3 @@
-/*--- formatted by Jindent 2.1, (www.c-lab.de/~jindent) ---*/
-
 /*
  * ***************************************************************
  * The LEAP libraries, when combined with certain JADE platform components,
@@ -34,10 +32,6 @@
 
 package jade.imtp.leap;
 
-import jade.core.*;
-import java.io.IOException;
-import java.io.DataOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.Vector;
 
 /**

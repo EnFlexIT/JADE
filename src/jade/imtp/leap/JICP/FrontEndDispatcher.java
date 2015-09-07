@@ -1086,6 +1086,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		}
 	} // END of inner class IncomingCommandServer
 	
+	//#J2ME_EXCLUDE_BEGIN
 	private java.util.logging.Level getLevel(java.util.logging.Level level) {
 		if (verbosity > 0) {
 			if (level == Logger.FINE) {
@@ -1100,4 +1101,22 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		}
 		return level;
 	}
+	//#J2ME_EXCLUDE_END
+
+	/*#J2ME_INCLUDE_BEGIN
+	private int getLevel(int level) {
+		if (verbosity > 0) {
+			if (level == Logger.FINE) {
+				return Logger.INFO; 
+			}
+			else if (level == Logger.FINER) {
+				return verbosity >= 2 ? Logger.INFO : Logger.FINE; 
+			}
+			else if (level == Logger.FINEST) {
+				return verbosity >= 3 ? Logger.INFO : verbosity == 2 ? Logger.FINE : Logger.FINER; 
+			}
+		}
+		return level;
+	}
+	#J2ME_INCLUDE_END*/
 }

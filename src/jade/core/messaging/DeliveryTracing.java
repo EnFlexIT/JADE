@@ -2,6 +2,8 @@ package jade.core.messaging;
 
 import java.util.HashMap;
 
+//#J2ME_EXCLUDE_FILE
+
 public class DeliveryTracing extends HashMap<String, Object> {
 
 	private static final ThreadLocal<DeliveryTracing> tracing = new ThreadLocal<DeliveryTracing>();

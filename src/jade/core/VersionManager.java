@@ -4,12 +4,14 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import jade.util.Logger;
+
+//#MIDP_EXCLUDE_FILE
+//#DOTNET_EXCLUDE_FILE
 
 public class VersionManager {
 	
-	private static Logger logger = Logger.getLogger(VersionManager.class.getName());
+	private static Logger logger = Logger.getMyLogger(VersionManager.class.getName());
 	
 	private static final String GROUP = "Jade Informations";
 	private static final String WCVER = "Specification-Version";
@@ -26,7 +28,7 @@ public class VersionManager {
 			
 			// Check if class is into jar 
 			if (!classPath.startsWith("jar")) {
-				logger.log(Level.WARNING, "VersionManager not from jar -> no version information available");
+				logger.log(Logger.WARNING, "VersionManager not from jar -> no version information available");
 			  return;
 			}
 
@@ -38,7 +40,7 @@ public class VersionManager {
 			is.close();
 		}
 		catch (Exception e) {
-			logger.log(Level.WARNING, "Error retrieving versions info", e);
+			logger.log(Logger.WARNING, "Error retrieving versions info", e);
 		}
 	}
 	

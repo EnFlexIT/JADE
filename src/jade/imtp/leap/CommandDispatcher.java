@@ -949,7 +949,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 			
 			long elapsed = System.currentTimeMillis() - start;
 			if (elapsed > 100) {
-				response.addParam((int) elapsed);
+				response.addParam(new Integer((int) elapsed));
 			}
 			return serializeCommand(response);
 		} 
