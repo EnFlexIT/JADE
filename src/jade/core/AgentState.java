@@ -42,16 +42,16 @@ public class AgentState {
        in the <code>Agent</code> class.
        @return A prototype object for the requested state.
     */
-    public static AgentState getInstance(int value) {
-	for(int i = 0; i < STATES.length; i++) {
-	    AgentState as = STATES[i];
-	    if(as.getValue() == value) {
-		return as;
-	    }
-	}
+	public static AgentState getInstance(int value) {
+		for(int i = 0; i < STATES.length; i++) {
+			AgentState as = STATES[i];
+			if(as.getValue() == value) {
+				return as;
+			}
+		}
 
-	return null;
-    }
+		return null;
+	}
 
     /**
        Access the whole prototypes array.
