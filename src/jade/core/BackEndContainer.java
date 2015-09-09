@@ -231,7 +231,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	 @return the actual name of the agent
 	 */
 	public String bornAgent(String name) throws JADESecurityException, IMTPException {
-		name = JADEManagementOntology.adjustAgentName(name, new String[]{getID().getName()});
+		name = JADEManagementOntology.adjustAgentName(name, new String[]{getID().getName(), myProfile.getParameter(Profile.AGENT_TAG, "")});
 		AID id = new AID(AID.createGUID(name, getPlatformID()), AID.ISGUID);
 		GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_CREATED, jade.core.management.AgentManagementSlice.NAME, null);
 		cmd.addParam(id);

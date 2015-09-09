@@ -117,4 +117,5 @@ public interface JADEManagementVocabulary extends ExceptionVocabulary {
   
   // additional constants.
   public static final String CONTAINER_WILDCARD = "%C";
+  public static final String AGENT_TAG_WILDCARD = "%A";
 }

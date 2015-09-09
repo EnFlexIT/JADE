@@ -45,7 +45,7 @@ import jade.domain.FIPAAgentManagement.AlreadyRegistered;
 public class JADEManagementOntology extends Ontology implements JADEManagementVocabulary {
  
 	
-	private static final String[] WILDCARDS = new String[]{CONTAINER_WILDCARD};
+	private static final String[] WILDCARDS = new String[]{CONTAINER_WILDCARD, AGENT_TAG_WILDCARD};
 	
   // The singleton instance of this ontology
 	private static Ontology theInstance = new JADEManagementOntology();

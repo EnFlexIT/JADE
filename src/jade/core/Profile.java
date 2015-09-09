@@ -233,6 +233,13 @@ public abstract class Profile {
 	 **/
 	public static final String CONTAINER_NAME = "container-name";
 	
+	
+	/**
+	 * This constant is the key of the property whose value will substitute the %A wildcard 
+	 * in names of all agents that will start in the local container.
+	 */
+	public static final String AGENT_TAG = "agent-tag";
+	
 	/**
 	 * This constant is the key of the property whose value contains the
 	 * list of ACLCODECSs that have to be launched at bootstrap time.
