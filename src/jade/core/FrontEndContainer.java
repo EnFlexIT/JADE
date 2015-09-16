@@ -266,7 +266,35 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	 * Request the FrontEnd to return a local agent reference by his local name
 	 */
 	final Agent getLocalAgent(String localName) {
-		return (Agent) localAgents.get(localName);
+		Agent a = (Agent) localAgents.get(localName);
+		if (a == null && localName.contains("%")) {
+			// Possibly the agent is retrieved by means of its name containing wildcards.
+			// If this is the case the correspondence name-with-wildcards <--> real-name is kept in the "agents" property (see start() method)
+			String agentsProp = configProperties.getProperty(MicroRuntime.AGENTS_KEY);
+			try{
+				Vector specs = Specifier.parseSpecifierList(agentsProp);
+				Enumeration e = specs.elements();
+				while (e.hasMoreElements()) {
+					Specifier sp = (Specifier) e.nextElement();
+					if (localName.equals(sp.getName())) {
+						// Found
+						Object[] args = sp.getArgs();
+						if((args != null) && args.length >0) {
+							// Arghhh! the agent did not start correctly
+						}
+						else {
+							String actualName = sp.getClassName();
+							a = (Agent) localAgents.get(actualName);
+						}
+						break;
+					}
+				}
+			}
+			catch (Exception e) {
+				logger.log(Logger.WARNING, "Exception parsing agent specifiers "+e);
+			}
+		}
+		return a;	
 	}
 	
 	/////////////////////////////////////
