@@ -55,6 +55,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	
 	// The table of local agents
 	private Hashtable localAgents = new Hashtable(1);
+	// Maps local agent names containing wildcards with their actual names
+	private Hashtable actualNames = new Hashtable(1);
 	
 	// The table of locally installed services
 	private Hashtable localServices = new Hashtable(1);
@@ -190,15 +192,17 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			Enumeration e = specs.elements();
 			while (e.hasMoreElements()) {
 				Specifier sp = (Specifier) e.nextElement();
-				Agent a = (Agent) localAgents.remove(sp.getName());
+				String originalName = sp.getName();
+				Agent a = (Agent) localAgents.remove(originalName);
 				if(a != null){
 					Object[] args = sp.getArgs();
 					if((args != null) && args.length >0){
 						//there was an exception notifying the main...
-						logger.log(Logger.SEVERE, "Error starting agent " + sp.getName() + ". " + sp.getClassName() + " " + args[0]);
+						logger.log(Logger.SEVERE, "Error starting agent " + originalName + ". " + sp.getClassName() + " " + args[0]);
 					}else{
 						String actualName = sp.getClassName();
 						activateAgent(actualName, a);
+						manageNameMapping(originalName, actualName);
 					}
 				}else{
 					logger.log(Logger.WARNING, "Agent " + sp.getName() + " not found locally.");
@@ -214,6 +218,12 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		configProperties.remove(MicroRuntime.AGENTS_KEY);
 		
 		notifyStarted();
+	}
+	
+	private void manageNameMapping(String originalName, String actualName) {
+		if (!originalName.equals(actualName)) {
+			actualNames.put(originalName,  actualName);
+		}
 	}
 	
 	private void manageProtoOption(Properties pp) {
@@ -267,34 +277,14 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	 */
 	final Agent getLocalAgent(String localName) {
 		Agent a = (Agent) localAgents.get(localName);
-		if (a == null && localName.contains("%")) {
-			// Possibly the agent is retrieved by means of its name containing wildcards.
-			// If this is the case the correspondence name-with-wildcards <--> real-name is kept in the "agents" property (see start() method)
-			String agentsProp = configProperties.getProperty(MicroRuntime.AGENTS_KEY);
-			try{
-				Vector specs = Specifier.parseSpecifierList(agentsProp);
-				Enumeration e = specs.elements();
-				while (e.hasMoreElements()) {
-					Specifier sp = (Specifier) e.nextElement();
-					if (localName.equals(sp.getName())) {
-						// Found
-						Object[] args = sp.getArgs();
-						if((args != null) && args.length >0) {
-							// Arghhh! the agent did not start correctly
-						}
-						else {
-							String actualName = sp.getClassName();
-							a = (Agent) localAgents.get(actualName);
-						}
-						break;
-					}
-				}
-			}
-			catch (Exception e) {
-				logger.log(Logger.WARNING, "Exception parsing agent specifiers "+e);
+		if (a == null) {
+			String actualName = (String) actualNames.get(localName);
+			if (actualName != null) {
+				// For the searched agent there was a name change due to wildcard substitution --> Retrieve it with its actual name
+				a = (Agent) localAgents.get(actualName);
 			}
 		}
-		return a;	
+		return a;
 	}
 	
 	/////////////////////////////////////
@@ -311,6 +301,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			Agent a = initAgentInstance(name, className, (Object[]) args);
 			String newName = myBackEnd.bornAgent(name);
 			activateAgent(newName, a);
+			manageNameMapping(name, newName);
 		}
 		catch (Exception e) {
 			String msg = "Exception creating new agent. ";
@@ -330,6 +321,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			Agent a = initAgentInstance(name, className, args);
 			String newName = myBackEnd.bornAgent(name);
 			activateAgent(newName, a);
+			manageNameMapping(name, newName);
 		}
 		catch (Exception e) {
 			String msg = "Exception creating new agent. ";
