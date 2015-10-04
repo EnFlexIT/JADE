@@ -279,9 +279,13 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		Agent a = (Agent) localAgents.get(localName);
 		if (a == null) {
 			String actualName = (String) actualNames.get(localName);
+			logger.log(Logger.INFO, " localAgent "+localName+" not found: try with its mapped name "+actualName);
 			if (actualName != null) {
 				// For the searched agent there was a name change due to wildcard substitution --> Retrieve it with its actual name
 				a = (Agent) localAgents.get(actualName);
+				if (a != null) {
+					logger.log(Logger.INFO, " localAgent "+actualName+" found");
+				}
 			}
 		}
 		return a;
