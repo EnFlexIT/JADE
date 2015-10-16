@@ -29,6 +29,9 @@ import java.util.Date;
 
 import jade.core.Service;
 import jade.core.ServiceException;
+import jade.core.Timer;
+import jade.core.TimerDispatcher;
+import jade.core.TimerListener;
 import jade.util.Logger;
 
 class Poller extends Thread {
@@ -123,25 +126,29 @@ class Poller extends Thread {
 	 * relevant information from each SAM Service slice.  
 	 */
 	void poll() {
-		myLogger.log(Logger.FINE, "Retrieving SAM information from all nodes");
+		myLogger.log(Logger.FINE, "SAMService poller - Retrieving SAM information from all nodes");
 		Date timeStamp = new Date();
 		SAMInfo globalInfo = new SAMInfo();
 		try {
 			Service.Slice[] slices = myService.getAllSlices();
 			for (int i = 0; i < slices.length; i++) {
 				SAMSlice s = (SAMSlice) slices[i];
+				String nodeName = s.getNode().getName();
+				Timer timer = startWatchDog(Thread.currentThread(), nodeName);
 				try {
-					startWatchDog();
+					if (myLogger.isLoggable(Logger.FINER))
+						myLogger.log(Logger.FINER, "SAMService poller - Retrieving SAM information from node "+nodeName);
 					SAMInfo sliceInfo = s.getSAMInfo();
 					globalInfo.update(sliceInfo);
-					myLogger.log(Logger.FINER, "SAM information successfully retrieved from node "+s.getNode().getName());
+					if (myLogger.isLoggable(Logger.FINEST))
+						myLogger.log(Logger.FINEST, "SAMService poller - SAM information successfully retrieved from node "+nodeName);
 				}
 				catch (Exception imtpe) {
 					// Note that getAllSlices() always retrieves "fresh" slices --> no need for any retry
-					myLogger.log(Logger.WARNING, "Error retrieving SAM information from node "+s.getNode().getName(), imtpe);
+					myLogger.log(Logger.WARNING, "SAMService poller - Error retrieving SAM information from node "+nodeName, imtpe);
 				}
 				finally {
-					stopWatchDog();
+					stopWatchDog(timer);
 				}
 			}
 			
@@ -152,18 +159,25 @@ class Poller extends Thread {
 			}
 		}
 		catch (ServiceException se) {
-			myLogger.log(Logger.WARNING, "Error retrieving SAM slices", se);
+			myLogger.log(Logger.WARNING, "SAMService poller - Error retrieving SAM slices", se);
 		}
 		catch (Exception e) {
-			myLogger.log(Logger.WARNING, "Unexpected error polling SAM information", e);
+			myLogger.log(Logger.WARNING, "SAMService poller - Unexpected error polling SAM information", e);
 		}
 	}
 	
-	private void startWatchDog() {
-		// FIXME: To be implemented
+	private Timer startWatchDog(final Thread thread, final String nodeName) {
+		return TimerDispatcher.getTimerDispatcher().add(new Timer(10000, new TimerListener() {
+			@Override
+			public void doTimeOut(Timer t) {
+				myLogger.log(Logger.WARNING, "SAMService - WatchDog timer expired while retrieving SAM information from node "+nodeName);
+				thread.interrupt();
+				myLogger.log(Logger.WARNING, "SAMService - Poller Thread interrupted!!!");
+			}
+		}));
 	}
 
-	private void stopWatchDog() {
-		// FIXME: To be implemented
+	private void stopWatchDog(Timer t) {
+		TimerDispatcher.getTimerDispatcher().remove(t);
 	}
 }
