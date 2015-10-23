@@ -40,6 +40,7 @@ class Poller extends Thread {
 	private long period;
 	private boolean active;
 	
+	private Timer watchDogTimer = null;
 	private Logger myLogger = Logger.getMyLogger(getClass().getName()); 
 	
 	Poller(SAMService service, long p, SAMInfoHandler[] hh) {
@@ -134,7 +135,7 @@ class Poller extends Thread {
 			for (int i = 0; i < slices.length; i++) {
 				SAMSlice s = (SAMSlice) slices[i];
 				String nodeName = s.getNode().getName();
-				Timer timer = startWatchDog(Thread.currentThread(), nodeName);
+				startWatchDog(Thread.currentThread(), nodeName);
 				try {
 					if (myLogger.isLoggable(Logger.FINER))
 						myLogger.log(Logger.FINER, "SAMService poller - Retrieving SAM information from node "+nodeName);
@@ -148,7 +149,7 @@ class Poller extends Thread {
 					myLogger.log(Logger.WARNING, "SAMService poller - Error retrieving SAM information from node "+nodeName, imtpe);
 				}
 				finally {
-					stopWatchDog(timer);
+					stopWatchDog();
 				}
 			}
 			
@@ -166,18 +167,28 @@ class Poller extends Thread {
 		}
 	}
 	
-	private Timer startWatchDog(final Thread thread, final String nodeName) {
-		return TimerDispatcher.getTimerDispatcher().add(new Timer(10000, new TimerListener() {
+	private synchronized void startWatchDog(final Thread thread, final String nodeName) {
+		watchDogTimer = TimerDispatcher.getTimerDispatcher().add(new Timer(System.currentTimeMillis()+10000, new TimerListener() {
 			@Override
 			public void doTimeOut(Timer t) {
-				myLogger.log(Logger.WARNING, "SAMService - WatchDog timer expired while retrieving SAM information from node "+nodeName);
-				thread.interrupt();
-				myLogger.log(Logger.WARNING, "SAMService - Poller Thread interrupted!!!");
+				synchronized (Poller.this) {
+					if (t == watchDogTimer) {
+						// The watchDog timer could have been cleared just between expiration and doTimeOut() execution
+						myLogger.log(Logger.WARNING, "SAMService - WatchDog timer expired while retrieving SAM information from node "+nodeName);
+						thread.interrupt();
+						myLogger.log(Logger.WARNING, "SAMService - Poller Thread interrupted!!!");
+					}
+				}
 			}
 		}));
 	}
 
-	private void stopWatchDog(Timer t) {
-		TimerDispatcher.getTimerDispatcher().remove(t);
+	private synchronized void stopWatchDog() {
+		if (watchDogTimer != null) {
+			TimerDispatcher.getTimerDispatcher().remove(watchDogTimer);
+			watchDogTimer = null;
+		}
+		// Anyway reset the interrupted state of the Poller Thread
+		Thread.interrupted();
 	}
 }
