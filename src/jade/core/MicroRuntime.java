@@ -284,7 +284,14 @@ public class MicroRuntime {
 		if (instance == null) {
 			throw new ControllerException("Agent " + localName + " not found.");
 		} 
-		return new MicroAgentControllerImpl(localName, myFrontEnd);
+		return new MicroAgentControllerImpl(instance.getLocalName(), myFrontEnd);
+	}
+	
+	public static int size() throws ControllerException {
+		if(myFrontEnd == null) {
+			throw new ControllerException("FrontEndContainer  not found");
+		}
+		return myFrontEnd.size();
 	}
 	
 	/**

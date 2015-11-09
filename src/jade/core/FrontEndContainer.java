@@ -272,6 +272,10 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	}
 	//#MIDP_EXCLUDE_END
 	
+	int size() {
+		return localAgents.size();
+	}
+	
 	/**
 	 * Request the FrontEnd to return a local agent reference by his local name
 	 */
@@ -340,7 +344,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	 */
 	public final void killAgent(String name) throws NotFoundException, IMTPException {
 		waitUntilStarted();
-		Agent agent = (Agent) localAgents.get(name);
+		Agent agent = getLocalAgent(name);
 		if(agent == null) {
 			System.out.println("FrontEndContainer killing: " + name + " NOT FOUND");
 			throw new NotFoundException("KillAgent failed to find " + name);
@@ -357,7 +361,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	 */
 	public final void suspendAgent(String name) throws NotFoundException, IMTPException {
 		waitUntilStarted();
-		Agent agent = (Agent) localAgents.get(name);
+		Agent agent = getLocalAgent(name);
 		if(agent == null) {
 			throw new NotFoundException("SuspendAgent failed to find " + name);
 		}
@@ -370,7 +374,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	 */
 	public final void resumeAgent(String name) throws NotFoundException, IMTPException {
 		waitUntilStarted();
-		Agent agent = (Agent) localAgents.get(name);
+		Agent agent = getLocalAgent(name);
 		if(agent == null) {
 			throw new NotFoundException("ResumeAgent failed to find " + name);
 		}
