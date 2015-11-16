@@ -900,7 +900,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	// Methods actually accessing the DF Knowledge base
 	//////////////////////////////////////////////////////
 	
-	void DFRegister(DFAgentDescription dfd) throws AlreadyRegistered {
+	protected void DFRegister(DFAgentDescription dfd) throws AlreadyRegistered {
 		
 		//checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, dfd);
 		Object old = agentDescriptions.register(dfd.getName(), dfd);
@@ -926,31 +926,33 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	}
 	
 	//this method is called into the prepareResponse of the DFFipaAgentManagementBehaviour to perform a Deregister action
-	void DFDeregister(DFAgentDescription dfd) throws NotRegistered {
+	protected void DFDeregister(DFAgentDescription dfd) throws NotRegistered {
 		//checkMandatorySlots(FIPAAgentManagementOntology.DEREGISTER, dfd);
 		Object old = agentDescriptions.deregister(dfd.getName());
 		
 		if(old == null)
 			throw new NotRegistered();
 		
-		if (children.remove(dfd.getName()))
+		if (children.remove(dfd.getName())) {
 			try {
 				gui.removeChildren(dfd.getName());
 			} catch (Exception e) {}
-			// for subscriptions
-			dfd.clearAllServices(); //clear all services since we are deregistering
-			subManager.handleChange(dfd, (DFAgentDescription)old);
-			try{
-				// refresh the GUI if shown, exception thrown if the GUI was not shown
-				// this refresh must be here, otherwise the GUI is not synchronized with
-				// registration/deregistration made without using the GUI
-				gui.removeAgentDesc(dfd.getName(),df.this.getAID());
-				gui.showStatusMsg("Deregistration of agent: " + dfd.getName().getName() +" done.");
-			}catch(Exception e1){}
+		}
+		
+		// for subscriptions
+		dfd.clearAllServices(); //clear all services since we are deregistering
+		subManager.handleChange(dfd, (DFAgentDescription)old);
+		try{
+			// refresh the GUI if shown, exception thrown if the GUI was not shown
+			// this refresh must be here, otherwise the GUI is not synchronized with
+			// registration/deregistration made without using the GUI
+			gui.removeAgentDesc(dfd.getName(),df.this.getAID());
+			gui.showStatusMsg("Deregistration of agent: " + dfd.getName().getName() +" done.");
+		}catch(Exception e1){}
 	}
 	
 	
-	void DFModify(DFAgentDescription dfd) throws NotRegistered {
+	protected void DFModify(DFAgentDescription dfd) throws NotRegistered {
 		//checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, dfd);
 		Object old = agentDescriptions.register(dfd.getName(), dfd);
 		if(old == null) {
@@ -968,11 +970,11 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		
 	}
 	
-	List DFSearch(DFAgentDescription dfd, int maxResults) {
+	protected List DFSearch(DFAgentDescription dfd, int maxResults) {
 		return agentDescriptions.search(dfd, maxResults);
 	}
 	
-	KBIterator DFIteratedSearch(DFAgentDescription dfd) {
+	protected KBIterator DFIteratedSearch(DFAgentDescription dfd) {
 		return agentDescriptions.iterator(dfd);
 	}
 	

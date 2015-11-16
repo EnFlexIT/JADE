@@ -261,6 +261,7 @@ implements PDPContextManager.Listener, JICPMediatorManager
 	 * and for each of them start a ConnectionHandler that handles it. 
 	 */
 	public void run() {
+		int chCount = 0;
 		while (state != TERMINATING) {
 			try {
 				// Accept connection
@@ -272,7 +273,7 @@ implements PDPContextManager.Listener, JICPMediatorManager
 					myLogger.log(Logger.FINEST,"Incoming connection from "+addr+":"+port);
 				
 				Connection c = connFactory.createConnection(s);
-				ConnectionHandler ch = new ConnectionHandler(c, addr, port);
+				ConnectionHandler ch = new ConnectionHandler(c, addr, port, chCount++);
 
 				if(myLogger.isLoggable(Logger.FINEST))
 					myLogger.log(Logger.FINEST,"Create new ConnectionHandler ("+ch+")");
@@ -367,10 +368,11 @@ implements PDPContextManager.Listener, JICPMediatorManager
 		 * Constructor declaration
 		 * @param s
 		 */
-		public ConnectionHandler(Connection c, InetAddress addr, int port) {
+		public ConnectionHandler(Connection c, InetAddress addr, int port, int count) {
 			this.c = c;
 			this.addr = addr;
 			this.port = port;
+			setName("JICP-CH-"+count);
 		}
 
 		/**
