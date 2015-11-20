@@ -33,7 +33,7 @@ import jade.core.behaviours.Behaviour;
  * This is an example of recursive aggregation of composite agent behaviours.
  * A composite behaviour is created, composed of some Sequential Behaviours,
  * and OneShot behaviours.
- * @author Giovanni Rimassa - Università di Parma
+ * @author Giovanni Rimassa - University of Parma
  * @version  $Date$ $Revision$
  */
 public class ComplexBehaviourAgent extends Agent {
