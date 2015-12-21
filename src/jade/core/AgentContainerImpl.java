@@ -625,7 +625,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	public void shutDown() {
 		if (verboseShutdown) {
-			myLogger.log(Logger.INFO, "Container shutdown procedure activated.");
+			myLogger.log(Logger.INFO, "Container shutdown activated.");
 		}
 		checkCreationTime();
 
