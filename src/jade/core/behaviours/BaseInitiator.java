@@ -23,6 +23,8 @@
  *****************************************************************/
 package jade.core.behaviours;
 
+//#J2ME_EXCLUDE_FILE
+
 import jade.content.lang.leap.LEAPCodec;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;

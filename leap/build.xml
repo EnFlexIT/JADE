@@ -108,7 +108,7 @@
 	</target>
 	
 	<!-- ALL -->
-	<target name = "all" depends = "j2se, pjava, midp, dotnet, android" description = "Set the property for all environments"/>
+	<target name = "all" depends = "j2se, pjava, midp, android" description = "Set the property for all environments"/>
 
 
 	<!-- ******* ACTIONS that can be specified for the above java environments ******** -->

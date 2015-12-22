@@ -23,6 +23,8 @@
  *****************************************************************/
 package jade.core.behaviours;
 
+//#J2ME_EXCLUDE_FILE
+
 import jade.content.AgentAction;
 import jade.content.ContentElement;
 import jade.content.ContentException;
