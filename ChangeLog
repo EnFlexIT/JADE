@@ -1,3 +1,80 @@
+MAJOR CHANGES in JADE 4.4.0 (23 12 2015)
+==========================================================================
+Kernel
+- Class MainDetectionManager made public to allow detecting if a Main Container is up and running from an external program 
+- Implemented SplitJadeGateway class and modified JadeGateway to support split container by means of the JadeGateway.SPLIT_CONTAINER property
+- Activate BEManagementService -> IOEventServer after a while to allow the correct starting and registration to the main-container
+- Distinguished between connectionTimeout and readTimeout in JICPPeer.
+- Added Profile constant for the priviledge-logical-names parameter.
+- Added support for agent-tag wildcard
+- Added support for getting the number of agents living in the front-end of a split container
+- Fixed bug in UDPMonitoring Service: An unexpected error in deadline expiration processing could cause the whole Timer to stop working
+- Fixed bug notified by gioce90: PlatformController.Listener.killedPlatform() was not invoked at platform shutdown
+
+Messaging
+- Added support for multiple message delivery in MessagingService to speed up performances 
+- Added support for posting a block of messages into an agent message queue to speed up performances
+- Modified MessageManager to try to minimize the impact of stuck deliverers.
+- Added MessageManager related SAM metrics
+- Added support for tracing delivery information when dispatching slow down
+- Modified TopicManagementService to avoid broadcasting agent deregistrations while the platform is shutting down.
+
+Behaviours
+- Added ActionExecutor behaviour that strongly simplifies the creation of behaviours intended to request the execution of an action and getting the result
+
+Content Management
+- Overridden fillInStackTrace() method in NotAnAggregate and NotASpecialType to speed up Ontological elements encoding/decoding
+
+AMS/DF
+- Added support for verbose shutdown to trace all steps of the shutdown process
+
+Others
+- Removed special character blocking compilation. Problem reported by Piyush Hari
+- Added support for creating a summary of SAM metrics
+- Added watchdog when retrieving SAM info to avoid blocking when a container hangs (e.g. due to OutOfMemory).
+- Added support for JVM global monitoring
+- Improved logs
+- Modified VersionManager building
+
+
+Add-ons
+- Security
+  - Fixed problem when notifying failure to sender
+                
+- WSIG
+  - Added support for Predicate
+  - Implemented automatic startup
+  - Implemented HTTPInfo to manage in/out headers
+  - Implemented managing of xml attributes in REST xml request
+  - Managed mapper methods invocation exception
+  - Fixed bug in managing REST Fault
+  - Fixed console informations 
+  - Fixed bugs in endpoint configuration
+  - Removed unused libraries
+
+- Test Suite Framework
+  - Cleanup operations moved at the end of the Thread
+  - Modified TSDaemon to exploit destroyForcibly() method introduced in Java8
+  - Modified TSDaemon to add a check on error loop
+  - Modified TSDaemon log() method to include time stamp
+  - Modified TestUtility localLaunch() method to optimize the classpath
+
+- Miscellaneous (MISC)
+  - Added getter method in DistributionManager to access AgentSelectionPolicy
+  - Added method in AssignmentManager to get all items currently assigned to a given agent
+  - Fixed AssignmentManager manageSelectionDone() method
+  - Modified AssignmentManager to take into account pending items load
+  - Fixed bug on items redistribution when a dead target agent does not restart in due time
+  - Properly managed case of leader duplication in leader election mechanism
+  - ContainerMonitorAgent modified to reply using SYNCH-DELIVERY
+
+  
+POSSIBLE BACKWARD INCOMPATIBILITIES:
+We do NOT expect any backward incompatibility with respect to the previous JADE version.
+
+
+
+
 MAJOR CHANGES in JADE 4.3.3 (10 12 2014)
 ==========================================================================
 Kernel
