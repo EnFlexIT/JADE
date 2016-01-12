@@ -127,6 +127,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	private boolean joined;
 	private boolean verboseShutdown;
+	private boolean securityOn = false; // Only used for performance optimization when security is not active
 
 	// Default constructor
 	AgentContainerImpl() {
@@ -467,6 +468,10 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			ServiceDescriptor dsc = (ServiceDescriptor) it.next();
 			try {
 				dsc.getService().boot(myProfile);
+				if (dsc.getName().equals("jade.core.security.Security")) {
+					// Security active. This is just for performance optimization when security is not active
+					securityOn = true;
+				}
 			} 
 			catch(Throwable t) {
 				if ( dsc.isMandatory() ) {
@@ -1202,18 +1207,20 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	private void initCredentials(Command cmd, AID id) {
 		//#MIDP_EXCLUDE_BEGIN
-		Agent agent = localAgents.acquire(id);
-		if (agent != null) {
-			try {
-				CredentialsHelper ch = (CredentialsHelper) agent.getHelper("jade.core.security.Security");
-				cmd.setPrincipal(ch.getPrincipal());
-				cmd.setCredentials(ch.getCredentials());
+		if (securityOn) {
+			Agent agent = localAgents.acquire(id);
+			if (agent != null) {
+				try {
+					CredentialsHelper ch = (CredentialsHelper) agent.getHelper("jade.core.security.Security");
+					cmd.setPrincipal(ch.getPrincipal());
+					cmd.setCredentials(ch.getCredentials());
+				}
+				catch (ServiceException se) {
+					// The security plug-in is not there. Just ignore it
+				}
 			}
-			catch (ServiceException se) {
-				// The security plug-in is not there. Just ignore it
-			}
+			localAgents.release(id);
 		}
-		localAgents.release(id);
 		//#MIDP_EXCLUDE_END
 	}
 
