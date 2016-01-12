@@ -36,11 +36,28 @@ package jade.content.onto;
  */
 public class UnknownSchemaException extends OntologyException {
 
+	private boolean fillStackTrace = true;
+	
     /**
      * Constructor
      */
     public UnknownSchemaException() {
         super(null);
+    }
+    
+    public UnknownSchemaException(boolean fillStackTrace) {
+    	this();
+    	this.fillStackTrace = fillStackTrace;
+    }
+    
+    
+    public Throwable fillInStackTrace() {
+    	if (fillStackTrace) {
+    		return super.fillInStackTrace();
+    	}
+    	else {
+	        return this;
+    	}
     }
 }
 

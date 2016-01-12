@@ -56,7 +56,7 @@ public class JavaCollectionOntology extends Ontology {
 		if (abs instanceof AbsAggregate) {
 			return introspector.internalizeAggregate(null, (AbsAggregate) abs, null, globalOnto);
 		}
-		throw new UnknownSchemaException();
+		throw new UnknownSchemaException(false);
 	}
 	
 	/**
@@ -66,7 +66,7 @@ public class JavaCollectionOntology extends Ontology {
 			return introspector.externalizeAggregate(null, obj, null, globalOnto);
 		}
 		catch (NotAnAggregate naa) {
-			throw new UnknownSchemaException();
+			throw new UnknownSchemaException(false);
 		}
 	}
 	//#APIDOC_EXCLUDE_END
