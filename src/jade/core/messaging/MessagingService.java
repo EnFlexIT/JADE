@@ -437,6 +437,13 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 							return myMessageManager.getVerySlowDeliveryCnt();
 						}
 					});
+					samHelper.addCounterValueProvider("Message-Manager-multiple-delivery-count#"+myContainer.getID().getName(), new AbsoluteCounterValueProvider() {
+						@Override
+						public long getValue() {
+							return myMessageManager.getMultipleDeliveryCnt();
+						}
+					});
+					samHelper.addEntityMeasureProvider("Message-Manager-avg-msg-count-per-multiple-delivery#"+myContainer.getID().getName(), myMessageManager.getAvgMsgCountPerMultipleDeliveryProvider());
 				}
 			}
 		}
@@ -1087,7 +1094,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 						// Sender indicated in the message different than the real sender --> store the latter in the REAL_SENDER user defined param
 						msg.addUserDefinedParameter(ACLMessage.REAL_SENDER, g.getSender().getName());
 					}
-					mm[k] = g.getACLMessage();
+					mm[k] = msg;
 					k++;
 				}
 				

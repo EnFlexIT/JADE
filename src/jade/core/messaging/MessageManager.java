@@ -26,13 +26,13 @@ package jade.core.messaging;
 import jade.util.Logger;
 import jade.lang.acl.ACLMessage;
 import jade.domain.FIPAAgentManagement.InternalError;
-
 import jade.core.AID;
 import jade.core.ResourceManager;
 import jade.core.Profile;
 import jade.core.ProfileException;
 import jade.core.NotFoundException;
 import jade.core.UnreachableException;
+import jade.core.sam.AverageMeasureProviderImpl;
 
 /**
  * This class manages the delivery of ACLMessages to remote destinations
@@ -83,6 +83,9 @@ class MessageManager {
 	private long totDiscardedCnt = 0;
 	private long totSlowDeliveryCnt = 0;
 	private long totVerySlowDeliveryCnt = 0;
+	
+	private long totMultipleDeliveryCnt = 0; // How many times multiple-message-delivery was triggered 
+	private AverageMeasureProviderImpl avgMsgCountPerMultipleDelivery = new AverageMeasureProviderImpl(); // Average number of messages delivered in multiple-message-delivery
 	
 	
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());
@@ -318,6 +321,10 @@ class MessageManager {
 					int k = msg.getMessagesCnt();
 					servedCnt += k;
 					totServedCnt += k;
+					if (k > 1) {
+						totMultipleDeliveryCnt++;
+						avgMsgCountPerMultipleDelivery.addSample(k);
+					}
 					outBox.handleServed(receiverID, k);
 					
 					lastDeliveryEndTime = System.currentTimeMillis();
@@ -476,9 +483,17 @@ class MessageManager {
 		return totVerySlowDeliveryCnt;
 	}
 	
+	long getMultipleDeliveryCnt() {
+		return totMultipleDeliveryCnt;
+	}
+	
+	AverageMeasureProviderImpl getAvgMsgCountPerMultipleDeliveryProvider() {
+		return avgMsgCountPerMultipleDelivery;
+	}
+	
 	// For debugging purpose
 	String getGlobalInfo() {
-		return "Submitted-messages = "+totSubmittedCnt+", Served-messages = "+totServedCnt+", Discarded-messages = "+totDiscardedCnt+", Queue-size (byte) = "+outBox.getSize();
+		return "Submitted-messages = "+totSubmittedCnt+", Served-messages = "+totServedCnt+", Discarded-messages = "+totDiscardedCnt+", Queue-size (byte) = "+outBox.getSize()+", Multiple-delivery-occurrences = "+totMultipleDeliveryCnt;
 	}
 
 	//#MIDP_EXCLUDE_BEGIN
