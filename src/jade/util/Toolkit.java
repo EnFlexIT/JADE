@@ -28,14 +28,23 @@ import java.util.Properties;
 
 public class Toolkit {
 
-	private static final String DELIM_START =  "{";
-	private static final String DELIM_STOP = "}";
+	public static final String DELIM_START =  "{";
+	public static final String DELIM_STOP = "}";
+	
+	// If a substitution parameter is not found
+	public static final int MISSING_PARAM_POLICY_REMOVE = 0;   // Hello {x} World --> Hello World 
+	public static final int MISSING_PARAM_POLICY_LEAVE = 1;   // Hello {x} World --> Hello {x} World  
+	public static final int MISSING_PARAM_POLICY_FAIL = 2;     // Throw IllegalArgumentException
 	
 	public static String substituteParameters(String expression, Properties parameters) {
 		return substituteParameters(expression, parameters, DELIM_START, DELIM_STOP);
 	}
 	
 	public static String substituteParameters(String expression, Properties parameters, String startDelim, String stopDelim) {
+		return substituteParameters(expression, parameters, startDelim, stopDelim, MISSING_PARAM_POLICY_REMOVE);
+	}
+	
+	public static String substituteParameters(String expression, Properties parameters, String startDelim, String stopDelim, int missingParamPolicy) {
 		if (expression == null || parameters == null || parameters.isEmpty()) {
 			return expression;
 		}
@@ -73,12 +82,36 @@ public class Toolkit {
 						// such that we can solve "Hello {x2}" as "Hello p1" also where 
 						// x2={x1}
 						// x1=p1
-						String recursiveReplacement = substituteParameters(replacement, parameters, startDelim, stopDelim);
+						String recursiveReplacement = substituteParameters(replacement, parameters, startDelim, stopDelim, missingParamPolicy);
 						sbuf.append(recursiveReplacement);
+					}
+					else {
+						// Missing parameter
+						if (missingParamPolicy == MISSING_PARAM_POLICY_LEAVE) {
+							// Copy without substituting
+							sbuf.append(startDelim).append(key).append(stopDelim);
+						}
+						else if (missingParamPolicy == MISSING_PARAM_POLICY_FAIL) {
+							// Throws an exception
+							throw new IllegalArgumentException("Missing substitution parameter "+key+" found at position " + paramStart + '.');
+						}
+						else {
+							// Remove the param (default): just don't copy anything
+						}
 					}
 					position = paramEnd + stopDelim.length();
 				}
 			}
 		}
+	}
+	
+	public static void main(String[] args) {
+		String s = "Hello {x}...{y}...{z} World";
+		Properties pp = new Properties();
+		pp.setProperty("x", "ciao");
+		String s1 = substituteParameters(s, pp, DELIM_START, DELIM_STOP, MISSING_PARAM_POLICY_REMOVE);
+		System.out.println(s1);
+		String s2 = substituteParameters(s, pp, DELIM_START, DELIM_STOP, MISSING_PARAM_POLICY_LEAVE);
+		System.out.println(s2);
 	}
 }
