@@ -580,7 +580,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 							myLogger.log(Logger.FINE, "[Thread="+Thread.currentThread().getName()+"] BE "+myID+" - Waiting for response from FE "+pkt.getSessionID());
 						}
 						
-						long responseTimeout = responseTimeoutOffset + (long)(responseTimeoutMultiplicativeFactor * pkt.getLength());
+						long responseTimeout = JICPProtocol.computeTimeout(responseTimeoutOffset, responseTimeoutMultiplicativeFactor, pkt.getLength());
 						pkt = waitForResponse(inpCnt, responseTimeout);
 						if (pkt != null) {
 							if(myLogger.isLoggable(Logger.FINE)) {

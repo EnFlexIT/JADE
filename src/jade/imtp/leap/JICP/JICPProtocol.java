@@ -99,6 +99,7 @@ public class JICPProtocol extends TransportProtocol {
 	 */
 	public static final String  DEFAULT_RECIPIENT_ID = "";
 
+	
 	public static final int DEFAULT_CREATION_ATTEMPTS = 1; // No retry
 	/**
 	 * Default MaxDisconnection and retry times for the mediator mechanism
@@ -106,8 +107,11 @@ public class JICPProtocol extends TransportProtocol {
 	public static final long DEFAULT_MAX_DISCONNECTION_TIME = 600000; // 10 min
 	public static final long DEFAULT_RETRY_TIME = 10000;              // 10 sec
 	public static final long DEFAULT_KEEP_ALIVE_TIME = 60000;         // 1 min
+	// Default timeout when creating the connection with the BackEnd (for each single attempt)
+	public static final long DEFAULT_CONNECTION_TIMEOUT = 30000; // 30 sec
+	// Default timeout when waiting for the response to a given packet
 	public static final long DEFAULT_RESPONSE_TIMEOUT_OFFSET = 30000;  // 30 sec
-	public static final double DEFAULT_RESPONSE_TIMEOUT_MULTIPLICATIVE_FACTOR = ((double)1000) / (5 * 1024);  // 5Kb/1sec
+	public static final double DEFAULT_RESPONSE_TIMEOUT_MULTIPLICATIVE_FACTOR = ((double)1000) / (5 * 1024);  // 1 sec more every 5Kbyte
 	
 	/**
 	 * Keys
@@ -127,6 +131,7 @@ public class JICPProtocol extends TransportProtocol {
 	public static final String MEDIATOR_ID_KEY = "mediator-id";	
 	public static final String MSISDN_KEY = "msisdn";	
 	public static final String VERSION_KEY = "version";	
+	public static final String CONNECTION_TIMEOUT_KEY = "connection-timeout";
 	public static final String RESPONSE_TIMEOUT_OFFSET_KEY = "response-timeout-offset";
 	public static final String RESPONSE_TIMEOUT_MULTIPLICATIVE_FACTOR_KEY = "response-timeout-multiplicative-factor";
 	
@@ -209,6 +214,14 @@ public class JICPProtocol extends TransportProtocol {
 	public String getName() {
 		return NAME;
 	} 
+	
+	public static final long computeTimeout(long timeoutOffset, double factor, int packetLength) {
+		// factor < 0 means "use default"
+		if (factor < 0) {
+			factor = DEFAULT_RESPONSE_TIMEOUT_MULTIPLICATIVE_FACTOR;
+		}
+		return timeoutOffset + (long)(factor * packetLength);
+	}
 
 }
 

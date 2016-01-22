@@ -68,6 +68,8 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	private long retryTime = JICPProtocol.DEFAULT_RETRY_TIME;
 	private long maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
 	private long keepAliveTime = JICPProtocol.DEFAULT_KEEP_ALIVE_TIME;
+	protected long connectionTimeout = JICPProtocol.DEFAULT_CONNECTION_TIMEOUT;
+	private long responseTimeoutOffset = JICPProtocol.DEFAULT_RESPONSE_TIMEOUT_OFFSET;
 	private long connectionDropDownTime = -1;
 
 	private Timer kaTimer, cdTimer;
@@ -199,6 +201,32 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			}
 			if (myLogger.isLoggable(Logger.CONFIG)) {
 				myLogger.log(Logger.CONFIG, "Keep-alive time="+keepAliveTime);
+			}
+			
+			// Timeout when creating the connection with the BackEnd 
+			tmp = props.getProperty(JICPProtocol.CONNECTION_TIMEOUT_KEY);
+			try {
+				connectionTimeout = Long.parseLong(tmp);
+			} 
+			catch (Exception e) {
+				// Use default
+				props.setProperty(JICPProtocol.CONNECTION_TIMEOUT_KEY, String.valueOf(connectionTimeout));
+			}
+			if (myLogger.isLoggable(Logger.CONFIG)) {
+				myLogger.log(Logger.CONFIG, "Connection timeout="+connectionTimeout);
+			}
+			
+			// Response timeout offset (actual timeout is offset + increment proportional to packet length) 
+			tmp = props.getProperty(JICPProtocol.RESPONSE_TIMEOUT_OFFSET_KEY);
+			try {
+				responseTimeoutOffset = Long.parseLong(tmp);
+			} 
+			catch (Exception e) {
+				// Use default
+				props.setProperty(JICPProtocol.RESPONSE_TIMEOUT_OFFSET_KEY, String.valueOf(responseTimeoutOffset));
+			}
+			if (myLogger.isLoggable(Logger.CONFIG)) {
+				myLogger.log(Logger.CONFIG, "Response timeout offset="+responseTimeoutOffset);
 			}
 
 			// Connection-drop-down time 
@@ -454,7 +482,8 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				clearTimers();
 				writePacket(pkt, myConnection);
 				myLogger.log(getLevel(Logger.FINEST), myMediatorID+" - Waiting for response, SID = "+pkt.getSessionID());
-				JICPPacket response = waitForResponse(outCnt, JICPProtocol.DEFAULT_RESPONSE_TIMEOUT_OFFSET);
+				long responseTimeout = JICPProtocol.computeTimeout(responseTimeoutOffset, -1, pkt.getLength());
+				JICPPacket response = waitForResponse(outCnt, responseTimeout);
 				if (response != null) {
 					updateTimers();
 					if (myLogger.isLoggable(getLevel(Logger.FINER))) {
@@ -617,7 +646,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	 * @throws IOException
 	 */
 	protected JICPConnection getConnection(TransportAddress ta) throws IOException {
-		return new JICPConnection(ta);
+		return new JICPConnection(ta, (int) connectionTimeout);
 	}
 
 	// This is synchronized to be sure that commands and responses are always written in a non-overlapping way
@@ -949,7 +978,8 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			try {
 				lastOutgoingResponse = null;
 				writePacket(pkt, myConnection);
-				JICPPacket rsp = waitForResponse(-1, JICPProtocol.DEFAULT_RESPONSE_TIMEOUT_OFFSET);
+				long responseTimeout = JICPProtocol.computeTimeout(responseTimeoutOffset, -1, pkt.getLength());
+				JICPPacket rsp = waitForResponse(-1, responseTimeout);
 				myLogger.log(Logger.INFO, "DROP_DOWN response received");
 
 				if (rsp.getType() != JICPProtocol.ERROR_TYPE) {
