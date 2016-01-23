@@ -610,32 +610,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		//#PJAVA_EXCLUDE_BEGIN
 		boolean autocleanup = getBooleanProperty(sAutocleanup, AUTOCLEANUP);
 		if (autocleanup) {
-			logger.log(Logger.CONFIG, "Agent "+getLocalName()+" - Autocleanup activated");
-			// Finally add the behaviour that listens for AMS notifications 
-			// about dead agents.
-			amsSubscriber = new AMSSubscriber() {
-				protected void installHandlers(java.util.Map handlersTable) {
-					handlersTable.put(IntrospectionVocabulary.DEADAGENT, new EventHandler() {
-						public void handle(Event ev) {
-							DeadAgent da = (DeadAgent)ev;
-							AID id = da.getAgent();
-							// Deregister the dead agent in case it was registered
-							try {
-								DFAgentDescription dfd = new DFAgentDescription();
-								dfd.setName(id);
-								DFDeregister(dfd);
-							}
-							catch (Exception e) {
-								// Just do nothing
-							}
-							// Unsubscribe the dead agent in case it was subscribed
-							unsubscribeDeadAgent(id);
-						}
-					});
-					
-				}
-			};
-			addBehaviour(amsSubscriber);
+			activateAutoCleanup();
 		}
 		//#PJAVA_EXCLUDE_END
 		
@@ -648,6 +623,38 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			dfSubscriptionResponder.createSubscription(s.getMessage());
 		}
 	}  // End of method setup()
+	
+	
+	//#PJAVA_EXCLUDE_BEGIN
+	protected void activateAutoCleanup() {
+		logger.log(Logger.CONFIG, "Agent "+getLocalName()+" - Autocleanup activated");
+		// Finally add the behaviour that listens for AMS notifications 
+		// about dead agents.
+		amsSubscriber = new AMSSubscriber() {
+			protected void installHandlers(java.util.Map handlersTable) {
+				handlersTable.put(IntrospectionVocabulary.DEADAGENT, new EventHandler() {
+					public void handle(Event ev) {
+						DeadAgent da = (DeadAgent)ev;
+						AID id = da.getAgent();
+						// Deregister the dead agent in case it was registered
+						try {
+							DFAgentDescription dfd = new DFAgentDescription();
+							dfd.setName(id);
+							DFDeregister(dfd);
+						}
+						catch (Exception e) {
+							// Just do nothing
+						}
+						// Unsubscribe the dead agent in case it was subscribed
+						unsubscribeDeadAgent(id);
+					}
+				});
+				
+			}
+		};
+		addBehaviour(amsSubscriber);
+	}
+	//#PJAVA_EXCLUDE_END
 
 	private void unsubscribeDeadAgent(AID id) {
 		Vector ss = dfSubscriptionResponder.getSubscriptions(id);
@@ -985,9 +992,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	
 	/**
 	 Serve the Register action of the FIPA management ontology.
-	 Package scoped since it is called by DFFipaAgentManagementBehaviour.
 	 */
-	void registerAction(Register r, AID requester) throws FIPAException {
+	protected void registerAction(Register r, AID requester) throws FIPAException {
 		DFAgentDescription dfd = (DFAgentDescription) r.getDescription();
 		
 		// Check mandatory slots
@@ -1002,14 +1008,12 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		
 		// Do it
 		DFRegister(dfd);
-		
 	}
 	
 	/**
 	 Serve the Deregister action of the FIPA management ontology.
-	 Package scoped since it is called by DFFipaAgentManagementBehaviour.
 	 */
-	void deregisterAction(Deregister d, AID requester) throws FIPAException {
+	protected void deregisterAction(Deregister d, AID requester) throws FIPAException {
 		DFAgentDescription dfd = (DFAgentDescription) d.getDescription();
 		
 		// Check mandatory slots
@@ -1019,14 +1023,12 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		
 		// Do it
 		DFDeregister(dfd);
-		
 	}
 	
 	/**
 	 Serve the Modify action of the FIPA management ontology.
-	 Package scoped since it is called by DFFipaAgentManagementBehaviour.
 	 */
-	void modifyAction(Modify m, AID requester) throws FIPAException {
+	protected void modifyAction(Modify m, AID requester) throws FIPAException {
 		DFAgentDescription dfd = (DFAgentDescription) m.getDescription();
 		
 		// Check mandatory slots
@@ -1040,13 +1042,12 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	
 	/**
 	 Serve the Search action of the FIPA management ontology.
-	 Package scoped since it is called by DFFipaAgentManagementBehaviour.
 	 @return the List of descriptions matching the template specified 
 	 in the Search action. If no description is found an empty List
 	 is returned. In case a recursive search is required it returns 
 	 null to indicate that the result is not yet available.
 	 */
-	List searchAction(Search s, AID requester) throws FIPAException {
+	protected List searchAction(Search s, AID requester) throws FIPAException {
 		DFAgentDescription dfd = (DFAgentDescription) s.getDescription();
 		SearchConstraints constraints = s.getConstraints();
 		List result = null;
@@ -1082,11 +1083,10 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	/**
 	 Serve a Search action of the FIPA management ontology requested
 	 using an iterated-fipa-request protocol.
-	 Package scoped since it is called by DFIteratedSearchManagementBehaviour.
 	 @return an iterator over the DFAgentDescription matching the specified
 	 search template.
 	 */
-	KBIterator iteratedSearchAction(Search s, AID requester) throws FIPAException {
+	protected KBIterator iteratedSearchAction(Search s, AID requester) throws FIPAException {
 		DFAgentDescription dfd = (DFAgentDescription) s.getDescription();
 		
 		if(logger.isLoggable(Logger.CONFIG))
