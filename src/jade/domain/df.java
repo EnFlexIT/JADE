@@ -646,7 +646,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 							// Just do nothing
 						}
 						// Unsubscribe the dead agent in case it was subscribed
-						unsubscribeDeadAgent(id);
+						unsubscribeAgent(id);
 					}
 				});
 				
@@ -656,7 +656,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	}
 	//#PJAVA_EXCLUDE_END
 
-	private void unsubscribeDeadAgent(AID id) {
+	protected void unsubscribeAgent(AID id) {
 		Vector ss = dfSubscriptionResponder.getSubscriptions(id);
 		for (int i = 0; i < ss.size(); i++) {
 			try {
