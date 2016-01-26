@@ -105,6 +105,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	public static final String PLATFORM_IDENTIFIER = "x-sender-platform-identifer";
 	public static final String MTP_IDENTIFIER = "x-sender-mtp-identifer";
 	
+	/** Defines the maximum number of delivery attempts when an agent is found in the GADT, but not in the container it is supposed to be (see deliverUntilOK()) */
+	public static final String MAX_DELIVERY_RETRY_ATTEMPTS = "jade_core_messaging_MessagingService_maxdeliveryretryattempts";
+	public static final int MAX_DELIVERY_RETRY_ATTEMPTS_DEFAULT = 20;
+	
 	//#J2ME_EXCLUDE_BEGIN
 	// SAM related configurations
 	public static final String DELIVERY_TIME_MEASUREMENT_RATE = "jade_core_messaging_MessagingService_deliverytimemeasurementrate";
@@ -146,6 +150,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	
 	// The routing table mapping MTP addresses to their hosting slice
 	private RoutingTable routes;
+	
+	private int maxDeliveryRetryAttempts;
 	
 	// The map of local and global (used in the Main Container) aliases
 	private Hashtable localAliases = new Hashtable();
@@ -235,6 +241,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		
 		// Look in the profile and check whether we must accept foreign agents
 		acceptForeignAgents = myProfile.getBooleanProperty(Profile.ACCEPT_FOREIGN_AGENTS, false);
+		
+		maxDeliveryRetryAttempts = MAX_DELIVERY_RETRY_ATTEMPTS_DEFAULT;
+		try {
+			maxDeliveryRetryAttempts = Integer.parseInt(myProfile.getParameter(MAX_DELIVERY_RETRY_ATTEMPTS, null));
+		}
+		catch (Exception e) {
+			// Keep default
+		}
 		
 		// Initialize its own ID
 		platformID = myContainer.getPlatformID();
@@ -1751,15 +1765,19 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		MainContainer impl = myContainer.getMain();
 		if (impl != null) {
 			// Directly use the GADT on the main container
+			int attemptsCnt = 0;
 			while (true) {
 				ContainerID cid = getAgentLocation(receiverID);
 				MessagingSlice targetSlice = oneShotDeliver(cid, msg, receiverID);
 				if (targetSlice != null) {
+					// Success --> Done
 					//#J2ME_EXCLUDE_BEGIN
 					DeliveryTracing.setTracingInfo("Target-node", targetSlice.getNode().getName());
 					//#J2ME_EXCLUDE_END
 					return;
 				}
+				checkRetry(receiverID, cid, attemptsCnt);
+				attemptsCnt++;
 			}
 		} else {
 			// Try first with the cached <AgentID;MessagingSlice> pairs
@@ -1800,6 +1818,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	
 	
 	private void deliverUntilOK(GenericMessage msg, AID receiverID) throws IMTPException, NotFoundException, ServiceException, JADESecurityException {
+		int attemptsCnt = 0;
 		while (true) {
 			ContainerID cid = null;
 			try {
@@ -1831,6 +1850,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			
 			MessagingSlice targetSlice = oneShotDeliver(cid, msg, receiverID);
 			if (targetSlice != null) {
+				// Success --> Done
 				// On successful message dispatch, put the slice into the slice cache
 				cachedSlices.put(receiverID, targetSlice);
 				//#J2ME_EXCLUDE_BEGIN
@@ -1838,6 +1858,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				//#J2ME_EXCLUDE_END
 				return;
 			}
+			checkRetry(receiverID, cid, attemptsCnt);
+			attemptsCnt++;
 		}
 	}
 	
@@ -1888,9 +1910,15 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			}
 		}
 		
+		return null;
+	}
+	
+	private void checkRetry(AID receiver, ContainerID cid, int attemptsCnt) throws NotFoundException {
+		if (maxDeliveryRetryAttempts >= 0 && attemptsCnt >= maxDeliveryRetryAttempts) {
+			throw new NotFoundException("Agent "+receiver.getLocalName()+" not found in container "+cid.getName()+" where it was supposed to be");
+		}
 		// Wait a bit before enabling next delivery attempt
 		try {Thread.sleep(200);} catch (InterruptedException ie) {}
-		return null;
 	}
 	
 	
