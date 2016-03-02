@@ -439,7 +439,12 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		else {
 			// Normal dispatch
 			JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
+			long start = System.currentTimeMillis();
 			pkt = inpManager.dispatch(pkt, flush, oldSessionId);
+			long elapsed = System.currentTimeMillis() - start;
+			if (elapsed > 2000) {
+				myLogger.log(Logger.WARNING, myID+" - JICP command dispatching time over threshold: "+elapsed+" ms");
+			}
 			return pkt.getData();
 		}
 	}
