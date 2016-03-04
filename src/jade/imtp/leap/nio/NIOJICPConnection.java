@@ -293,22 +293,27 @@ public class NIOJICPConnection extends Connection {
 			// for subclasses the subsequent transformers must transform all data from the packet before sending
 			throw new IOException("still need to transform: " + toSend.remaining());
 		}
-		int totalWrited = 0;
+		int totalWritten = 0;
 		totalToWrite = bb.remaining();
+		Level lv = Level.FINE;
+		if (totalToWrite > 100000) {
+			log.log(Level.INFO, "writePacket: writing \"BIG\" packet. Size = "+totalToWrite);
+			lv = Level.INFO;
+		}
 		while (bb.hasRemaining()) {
-			int toWrite = bb.remaining();
-			int writed = writeToChannel(bb);
-			totalWrited += writed;
-			if (log.isLoggable(Level.FINE)) {
-				log.fine("writePacket: bytes written " + writed + ", needed to write: " + toWrite);
+			int written = writeToChannel(bb);
+			totalWritten += written;
+			int stillToWrite = bb.remaining();
+			if (log.isLoggable(lv)) {
+				log.log(lv, "writePacket: " + written + " bytes written. " + stillToWrite + " bytes still to write");
 			}
 		}
 		
-		if (log.isLoggable(Level.FINE)) {
-			log.fine("writePacket: total bytes written " + totalWrited + ", total needed to write: " + totalToWrite);
+		if (log.isLoggable(lv)) {
+			log.log(lv, "writePacket: " + totalWritten + " total bytes written (packet length was " + totalToWrite + ")");
 		}
 
-		return totalWrited;
+		return totalWritten;
 	}
 
 	private ByteBuffer transformBeforeWrite(ByteBuffer data) throws IOException {

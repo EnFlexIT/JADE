@@ -46,309 +46,317 @@ import jade.util.Logger;
 public class JICPPacket {
 	public static final int MAX_SIZE = 10000000;
 
-  /**
-   * The type of data included in the packet
-   */
-  private byte   type;
+	/**
+	 * The type of data included in the packet
+	 */
+	private byte   type;
 
-  /**
-   * Bit encoded information about the content of the packet:
-   */
-  private byte   info;
+	/**
+	 * Bit encoded information about the content of the packet:
+	 */
+	private byte   info;
 
-  /**
-   * An optional identifier for the session this packet belongs to
-   */
-  private byte   sessionID = -1;
-  
-  /**
-   * An optional field indicating the actual recipient for this JICPPacket. 
-   * - A JICPServer receiving a JICPPacket from a remote container
-   * interprets this field as the ID of a local Mediator.
-   * - A Mediator receiving a JICPPacket from its mediated container
-   * interprets this field as the serialized transport address of 
-   * final destination to forward the packet.
-   */
-  private String recipientID;
+	/**
+	 * An optional identifier for the session this packet belongs to
+	 */
+	private byte   sessionID = -1;
 
-  /**
-   * The payload data itself, as a byte array
-   */
-  private byte[] data;
+	/**
+	 * An optional field indicating the actual recipient for this JICPPacket. 
+	 * - A JICPServer receiving a JICPPacket from a remote container
+	 * interprets this field as the ID of a local Mediator.
+	 * - A Mediator receiving a JICPPacket from its mediated container
+	 * interprets this field as the serialized transport address of 
+	 * final destination to forward the packet.
+	 */
+	private String recipientID;
 
-  /**
-   * Empty constructor
-   */
-  private JICPPacket() {
-  } 
+	/**
+	 * The payload data itself, as a byte array
+	 */
+	private byte[] data;
+	
+	private static final Logger logger = Logger.getJADELogger("jade.imtp.leap.JICP.JICPPacket");
 
-  /**
-   * Constructor.
-   * @param type The type of data included in the packet
-   * @param data The data itself, as a byte array.
-   */
-  public JICPPacket(byte type, byte info, byte[] data) {
-    init(type, info, null, data);
-  }
+	/**
+	 * Empty constructor
+	 */
+	private JICPPacket() {
+	} 
 
-  /**
-   * Constructor used to set the recipientID.
-   * @param type The type of data included in the packet
-   * @param data The data itself, as a byte array.
-   */
-  public JICPPacket(byte type, byte info, String recipientID, byte[] data) {
-    init(type, info, recipientID, data);
-  }
+	/**
+	 * Constructor.
+	 * @param type The type of data included in the packet
+	 * @param data The data itself, as a byte array.
+	 */
+	public JICPPacket(byte type, byte info, byte[] data) {
+		init(type, info, null, data);
+	}
 
-  /**
-   * constructs a JICPPacket of type JICPProtocol.ERROR_TYPE and sets the
-   * data to the string representation of the exception.
-   */
-  public JICPPacket(String explanation, Exception e) {
-    if (e != null) {
-      explanation = explanation+": "+e.getClass().getName()+"#"+e.getMessage();
-    } 
+	/**
+	 * Constructor used to set the recipientID.
+	 * @param type The type of data included in the packet
+	 * @param data The data itself, as a byte array.
+	 */
+	public JICPPacket(byte type, byte info, String recipientID, byte[] data) {
+		init(type, info, recipientID, data);
+	}
 
-    init(JICPProtocol.ERROR_TYPE, JICPProtocol.DEFAULT_INFO, null, explanation.getBytes());
-  }
+	/**
+	 * constructs a JICPPacket of type JICPProtocol.ERROR_TYPE and sets the
+	 * data to the string representation of the exception.
+	 */
+	public JICPPacket(String explanation, Exception e) {
+		if (e != null) {
+			explanation = explanation+": "+e.getClass().getName()+"#"+e.getMessage();
+		} 
 
-  /**
-   */
-  private void init(byte t, byte i, String id, byte[] d) {
-    type = t;
-  	info = i;
-  	sessionID = -1;
-    data = d;
-    
-    setRecipientID(id);
+		init(JICPProtocol.ERROR_TYPE, JICPProtocol.DEFAULT_INFO, null, explanation.getBytes());
+	}
 
-    if (data != null) {
-    	info |= JICPProtocol.DATA_PRESENT_INFO;
-    	//if ((info & JICPProtocol.COMPRESSED_INFO) != 0) {
-      //	data = JICPCompressor.compress(data);
-    	//}
-    }
-  } 
+	/**
+	 */
+	private void init(byte t, byte i, String id, byte[] d) {
+		type = t;
+		info = i;
+		sessionID = -1;
+		data = d;
 
-  /**
-   * @return The type of data included in the packet.
-   */
-  public byte getType() {
-    return type;
-  } 
+		setRecipientID(id);
 
-  /**
-   * @return the info field of this packet
-   */
-  public byte getInfo() {
-    return info;
-  } 
+		if (data != null) {
+			info |= JICPProtocol.DATA_PRESENT_INFO;
+			//if ((info & JICPProtocol.COMPRESSED_INFO) != 0) {
+			//	data = JICPCompressor.compress(data);
+			//}
+		}
+	} 
 
-  /**
-   * @return The sessionID of this packet.
-   */
-  public byte getSessionID() {
-    return sessionID;
-  } 
+	/**
+	 * @return The type of data included in the packet.
+	 */
+	public byte getType() {
+		return type;
+	} 
 
-  /**
-   * Set the sessionID of this packet and adjust the info field
-   * accordingly.
-   */
-  public void setSessionID(byte id) {
-    sessionID = id;
-    
-    if (sessionID >= 0) {
-    	info |= JICPProtocol.SESSION_ID_PRESENT_INFO;
-    }
-    else {
-    	info &= (~JICPProtocol.SESSION_ID_PRESENT_INFO);
-    }
-  } 
+	/**
+	 * @return the info field of this packet
+	 */
+	public byte getInfo() {
+		return info;
+	} 
 
-  /**
-   * @return The recipientID of this packet.
-   */
-  public String getRecipientID() {
-    return recipientID;
-  } 
+	/**
+	 * @return The sessionID of this packet.
+	 */
+	public byte getSessionID() {
+		return sessionID;
+	} 
 
-  /**
-   * Set the recipientID of this packet and adjust the info field
-   * accordingly.
-   */
-  public void setRecipientID(String id) {
-    recipientID = id;
-    
-    if (recipientID != null) {
-    	info |= JICPProtocol.RECIPIENT_ID_PRESENT_INFO;
-    }
-    else {
-    	info &= (~JICPProtocol.RECIPIENT_ID_PRESENT_INFO);
-    }
-  } 
+	/**
+	 * Set the sessionID of this packet and adjust the info field
+	 * accordingly.
+	 */
+	public void setSessionID(byte id) {
+		sessionID = id;
 
-  /**
-   * Set the TERMINATED_INFO flag in the info field.
-   */
-  public void setTerminatedInfo(boolean set) {
-    if (set) {
-      info |= JICPProtocol.TERMINATED_INFO;
-    }
-    else {
-      info &= (~JICPProtocol.TERMINATED_INFO);
-    }
-  } 
+		if (sessionID >= 0) {
+			info |= JICPProtocol.SESSION_ID_PRESENT_INFO;
+		}
+		else {
+			info &= (~JICPProtocol.SESSION_ID_PRESENT_INFO);
+		}
+	} 
 
-  /**
-   * @return The actual data included in the packet, as a byte array.
-   */
-  public byte[] getData() {
-    //if (data != null && data.length != 0) {
-    //  return (info & JICPProtocol.COMPRESSED_INFO) != 0 ? JICPCompressor.decompress(data) : data;
-    //} 
-    //else {
-      return data;
-    //} 
-  } 
+	/**
+	 * @return The recipientID of this packet.
+	 */
+	public String getRecipientID() {
+		return recipientID;
+	} 
 
-  /**
-   * Writes the packet into the provided <code>OutputStream</code>.
-   * The packet is serialized in an internal representation, so the
-   * data should be retrieved and deserialized with the
-   * <code>readFrom()</code> static method below. The output stream is flushed
-   * but not opened nor closed by this method.
-   * 
-   * @param out The  <code>OutputStream</code> to write the data in
-   * @exception May send a large bunch of exceptions, mainly in the IO
-   * package.
-   */
-  public int writeTo(OutputStream out) throws IOException {
-  	int cnt = 2;
-    // Write the packet type
-    out.write(type);
+	/**
+	 * Set the recipientID of this packet and adjust the info field
+	 * accordingly.
+	 */
+	public void setRecipientID(String id) {
+		recipientID = id;
 
-    // Write the packet info
-    out.write(info);
+		if (recipientID != null) {
+			info |= JICPProtocol.RECIPIENT_ID_PRESENT_INFO;
+		}
+		else {
+			info &= (~JICPProtocol.RECIPIENT_ID_PRESENT_INFO);
+		}
+	} 
 
-    // Write the session ID if present
-    if ((info & JICPProtocol.SESSION_ID_PRESENT_INFO) != 0) {
-      out.write(sessionID);
-      cnt++;
-    }
+	/**
+	 * Set the TERMINATED_INFO flag in the info field.
+	 */
+	public void setTerminatedInfo(boolean set) {
+		if (set) {
+			info |= JICPProtocol.TERMINATED_INFO;
+		}
+		else {
+			info &= (~JICPProtocol.TERMINATED_INFO);
+		}
+	} 
 
-    // Write recipient ID only if != null
-    if ((info & JICPProtocol.RECIPIENT_ID_PRESENT_INFO) != 0) {
-    	out.write(recipientID.length());
-    	out.write(recipientID.getBytes());
-    	cnt += (1 + recipientID.length());
-    } 
+	/**
+	 * @return The actual data included in the packet, as a byte array.
+	 */
+	public byte[] getData() {
+		//if (data != null && data.length != 0) {
+		//  return (info & JICPProtocol.COMPRESSED_INFO) != 0 ? JICPCompressor.decompress(data) : data;
+		//} 
+		//else {
+		return data;
+		//} 
+	} 
 
-    // Write data only if != null
-    if (data != null) {
-      // Size
-    	int size = data.length;
-    	out.write(size);
-    	out.write(size >> 8);      	
-    	out.write(size >> 16);      	
-    	out.write(size >> 24);      	
-    	cnt += 4;
-    	// Payload
-    	if (size > 0) {
-      	out.write(data, 0, size);
-      	cnt += size;
-    	}
-    }
-  	// DEBUG
-  	//System.out.println(getLength()+" bytes written");
-    return cnt;
-  } 
+	/**
+	 * Writes the packet into the provided <code>OutputStream</code>.
+	 * The packet is serialized in an internal representation, so the
+	 * data should be retrieved and deserialized with the
+	 * <code>readFrom()</code> static method below. The output stream is flushed
+	 * but not opened nor closed by this method.
+	 * 
+	 * @param out The  <code>OutputStream</code> to write the data in
+	 * @exception May send a large bunch of exceptions, mainly in the IO
+	 * package.
+	 */
+	public int writeTo(OutputStream out) throws IOException {
+		int cnt = 2;
+		// Write the packet type
+		out.write(type);
 
-  /**
-   * This static method reads from a given
-   * <code>DataInputStream</code> and returns the JICPPacket that
-   * it reads. The input stream is not opened nor closed by this method.
-   * 
-   * @param in The <code>InputStream</code> to read from
-   * @exception May send a large bunch of exceptions, mainly in the IO
-   * package.
-   */
-  public static JICPPacket readFrom(InputStream in) throws IOException {
-    JICPPacket p = new JICPPacket();
+		// Write the packet info
+		out.write(info);
 
-    // Read packet type
-    p.type = read(in);
+		// Write the session ID if present
+		if ((info & JICPProtocol.SESSION_ID_PRESENT_INFO) != 0) {
+			out.write(sessionID);
+			cnt++;
+		}
 
-    // Read the packet info
-    p.info = read(in);
+		// Write recipient ID only if != null
+		if ((info & JICPProtocol.RECIPIENT_ID_PRESENT_INFO) != 0) {
+			out.write(recipientID.length());
+			out.write(recipientID.getBytes());
+			cnt += (1 + recipientID.length());
+		} 
 
-    // Read session ID if present
-    if ((p.info & JICPProtocol.SESSION_ID_PRESENT_INFO) != 0) {
-    	p.sessionID = read(in);
-    }
-    	
-    // Read recipient ID if present
-    if ((p.info & JICPProtocol.RECIPIENT_ID_PRESENT_INFO) != 0) {
-    	int size = (read(in) & 0x000000ff);
-    	byte[] bb = new byte[size];
-    	in.read(bb, 0, size);
-      p.recipientID = new String(bb);
-    } 
+		// Write data only if != null
+		if (data != null) {
+			// Size
+			int size = data.length;
+			out.write(size);
+			out.write(size >> 8);      	
+			out.write(size >> 16);      	
+			out.write(size >> 24);      	
+			cnt += 4;
+			// Payload
+			if (size > 0) {
+				out.write(data, 0, size);
+				cnt += size;
+			}
+		}
+		// DEBUG
+		//System.out.println(getLength()+" bytes written");
+		return cnt;
+	} 
 
-    // Read data if present
-    if ((p.info & JICPProtocol.DATA_PRESENT_INFO) != 0) {
-    	int b1 = read(in);
-    	int b2 = read(in);
-    	int size = ((b2 << 8) & 0x0000ff00) | (b1 & 0x000000ff);
-    	int b3 = read(in);
-    	int b4 = read(in);
-    	size |= ((b4 << 24) & 0xff000000) | ((b3 << 16) & 0x00ff0000);
-    	if (size == 0) {
-      	p.data = new byte[0];
-    	} 
-    	else {
-      	// Read the actual data
-      	p.data = new byte[size];
+	/**
+	 * This static method reads from a given
+	 * <code>DataInputStream</code> and returns the JICPPacket that
+	 * it reads. The input stream is not opened nor closed by this method.
+	 * 
+	 * @param in The <code>InputStream</code> to read from
+	 * @exception May send a large bunch of exceptions, mainly in the IO
+	 * package.
+	 */
+	public static JICPPacket readFrom(InputStream in) throws IOException {
+		JICPPacket p = new JICPPacket();
 
-      	int cnt = 0;
-      	int n;
-      	do {
-        	n = in.read(p.data, cnt, size-cnt);
-        	if (n == -1) {
-          	throw new EOFException("EOF reading packet data");
-        	} 
-        	cnt += n;
-      	} 
-      	while (cnt < size);
-    	}
-      //Logger.println("JICPPacket read. Type:"+p.type+" Info:"+p.info+" RID:"+p.recipientID+" Data-length:"+(p.data != null ? p.data.length : 0));
-    } 
+		// Read packet type
+		p.type = read(in);
+		long firstByteTime = System.currentTimeMillis();
 
-    // DEBUG
-    //System.out.println(p.getLength()+" bytes read");
-    return p;
-  } 
+		// Read the packet info
+		p.info = read(in);
 
-  private static final byte read(InputStream in) throws IOException {
-  	int i = in.read();
-  	if (i == -1) {
-  		throw new EOFException("EOF reading packet header");
-  	}
-  	return (byte) i;
-  }
-  
-  public int getLength() {
-  	int cnt = 2;
-    if ((info & JICPProtocol.SESSION_ID_PRESENT_INFO) != 0) {
-    	cnt++;
-    }
-    if ((info & JICPProtocol.RECIPIENT_ID_PRESENT_INFO) != 0) {
-    	cnt += (1 + recipientID.getBytes().length);
-    }
-    if ((info & JICPProtocol.DATA_PRESENT_INFO) != 0) {
-    	cnt += (4 + data.length);
-    }
-    return cnt;
-  }
+		// Read session ID if present
+		if ((p.info & JICPProtocol.SESSION_ID_PRESENT_INFO) != 0) {
+			p.sessionID = read(in);
+		}
+
+		// Read recipient ID if present
+		if ((p.info & JICPProtocol.RECIPIENT_ID_PRESENT_INFO) != 0) {
+			int size = (read(in) & 0x000000ff);
+			byte[] bb = new byte[size];
+			in.read(bb, 0, size);
+			p.recipientID = new String(bb);
+		} 
+
+		// Read data if present
+		if ((p.info & JICPProtocol.DATA_PRESENT_INFO) != 0) {
+			int b1 = read(in);
+			int b2 = read(in);
+			int size = ((b2 << 8) & 0x0000ff00) | (b1 & 0x000000ff);
+			int b3 = read(in);
+			int b4 = read(in);
+			size |= ((b4 << 24) & 0xff000000) | ((b3 << 16) & 0x00ff0000);
+			if (size == 0) {
+				p.data = new byte[0];
+			} 
+			else {
+				// Read the actual data
+				p.data = new byte[size];
+
+				int cnt = 0;
+				int n;
+				do {
+					n = in.read(p.data, cnt, size-cnt);
+					if (n == -1) {
+						throw new EOFException("EOF reading packet data");
+					} 
+					cnt += n;
+				} 
+				while (cnt < size);
+			}
+			//Logger.println("JICPPacket read. Type:"+p.type+" Info:"+p.info+" RID:"+p.recipientID+" Data-length:"+(p.data != null ? p.data.length : 0));
+		} 
+		
+		long packetReadTime = System.currentTimeMillis() - firstByteTime;
+		if (packetReadTime > 2000) {
+			logger.log(Logger.WARNING, "JICPPacket read time over threshold: "+packetReadTime+" ms. Packet size = "+p.getLength());
+		}
+
+		// DEBUG
+		//System.out.println(p.getLength()+" bytes read");
+		return p;
+	} 
+
+	private static final byte read(InputStream in) throws IOException {
+		int i = in.read();
+		if (i == -1) {
+			throw new EOFException("EOF reading packet header");
+		}
+		return (byte) i;
+	}
+
+	public int getLength() {
+		int cnt = 2;
+		if ((info & JICPProtocol.SESSION_ID_PRESENT_INFO) != 0) {
+			cnt++;
+		}
+		if ((info & JICPProtocol.RECIPIENT_ID_PRESENT_INFO) != 0) {
+			cnt += (1 + recipientID.getBytes().length);
+		}
+		if ((info & JICPProtocol.DATA_PRESENT_INFO) != 0) {
+			cnt += (4 + data.length);
+		}
+		return cnt;
+	}
 }
 

@@ -378,9 +378,7 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 	// KILL CONTAINER
 	void killContainerAction(final KillContainer kc, final AID requester, final JADEPrincipal requesterPrincipal, final Credentials requesterCredentials) throws FIPAException {
 		final ContainerID cid = kc.getContainer();
-		if (logger.isLoggable(Logger.FINE)) {
-			logger.log(Logger.FINE, "Agent " + requester + " requesting Kill-container " + cid);
-		}
+		logger.log(Logger.INFO, "Agent "+getLocalName()+" - KillContainer request received from "+requester.getLocalName()+". Container=" + cid);
 
 		// Notify a KILL_CONTAINER_REQUESTED introspection event to all tools
 		KillContainerRequested kcr = new KillContainerRequested();
