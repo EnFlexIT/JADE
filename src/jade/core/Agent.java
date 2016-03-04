@@ -782,6 +782,21 @@ public class Agent implements Runnable, Serializable
 	}
 	
 	/**
+	 * Returns true if the agent implemented by this Agent object is alive (regardless of the
+	 * actual agent internal state).
+	 * This means that the internal Thread of this Agent object exists and is alive.
+	 * @return true if the agent implemented by this Agent object is alive
+	 */
+	public boolean isAlive() {
+		if (myThread != null) {
+			return myThread.isAlive();
+		}
+		else {
+			return false;
+		}
+	}
+	
+	/**
 	 This method adds a new platform address to the AID of this Agent.
 	 It is called by the container when a new MTP is activated
 	 in the platform (in the local container - installMTP() -  

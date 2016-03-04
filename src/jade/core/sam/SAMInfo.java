@@ -37,10 +37,17 @@ import java.util.Map;
 public class SAMInfo implements Serializable {
 	private static final long serialVersionUID = 84762938792387L;
 	
-	public static final String AGGREGATION_SEPARATOR = "#";
+	public static final String DEFAULT_AGGREGATION_SEPARATOR = "#";
+	public static final char DEFAULT_AGGREGATION_SEPARATOR_CHAR = '#';
+	public static final String SUM_AGGREGATION_SEPARATOR = "+";
+	public static final char SUM_AGGREGATION_SEPARATOR_CHAR = '+';
+	
+	public static final int AVG_AGGREGATION = 0;
+	public static final int SUM_AGGREGATION = 1;
 
 	private Map<String, AverageMeasure> entityMeasures;
 	private Map<String, Long> counterValues;
+	
 	
 	SAMInfo() {
 		this(new HashMap<String, AverageMeasure>(), new HashMap<String, Long>());
@@ -121,16 +128,16 @@ public class SAMInfo implements Serializable {
 		Map<String, AverageMeasure> aggregatedMeasures = new HashMap<String, AverageMeasure>();
 		for (String entityName : measures.keySet()) {
 			AverageMeasure am = measures.get(entityName);
-			int k = entityName.lastIndexOf(AGGREGATION_SEPARATOR);
-			if (k > 0) {
+			AggregationInfo ai = getAggregationInfo(entityName, AVG_AGGREGATION);
+			if (ai != null) {
 				// This is an "aggregated measure component" (aaa#bbb) --> accumulate component contribution
-				String aggregatedEntityName = entityName.substring(0, k);
+				String aggregatedEntityName = ai.aggregatedName;
 				AverageMeasure agM = aggregatedMeasures.get(aggregatedEntityName);
 				if (agM == null) {
 					agM = new AverageMeasure();
 					aggregatedMeasures.put(aggregatedEntityName, agM);
 				}
-				agM.update(am);
+				agM.update(am, ai.aggregation);
 			}
 		}
 		return aggregatedMeasures;
@@ -153,7 +160,7 @@ public class SAMInfo implements Serializable {
 		Map<String, Long> aggregatedCounters = new HashMap<String, Long>();
 		for (String counterName : counters.keySet()) {
 			Long c = counters.get(counterName);
-			int k = counterName.lastIndexOf(AGGREGATION_SEPARATOR);
+			int k = counterName.lastIndexOf(DEFAULT_AGGREGATION_SEPARATOR);
 			if (k > 0) {
 				// This is an "aggregated counter component" (aaa#bbb) --> accumulate component contribution
 				String aggregatedCounterName = counterName.substring(0, k);
@@ -177,4 +184,38 @@ public class SAMInfo implements Serializable {
 			cc2.put(counterName, old + c);
 		}
 	}
+	
+	
+	public static final AggregationInfo getAggregationInfo(String name, int defaultAggregation) {
+		for (int i = name.length() - 1; i >= 0; --i) {
+			AggregationInfo ai = null;
+			char c = name.charAt(i);
+			if (c == DEFAULT_AGGREGATION_SEPARATOR_CHAR) {
+				ai = new AggregationInfo(defaultAggregation);
+			}
+			else if (c == SUM_AGGREGATION_SEPARATOR_CHAR) {
+				ai = new AggregationInfo(SUM_AGGREGATION);
+			}
+			
+			if (ai != null) {
+				ai.aggregatedName = name.substring(0, i);
+				return ai;
+			}
+		}
+		
+		return null;
+	}
+	
+	
+	/**
+	 * Inner class AggregationInfo
+	 */
+	private static class AggregationInfo {
+		private int aggregation;
+		private String aggregatedName;
+		
+		AggregationInfo(int aggregation) {
+			this.aggregation = aggregation;
+		}
+	} // END of inner class AggregationInfo
 }

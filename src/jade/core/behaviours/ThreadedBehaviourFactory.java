@@ -376,13 +376,17 @@ public class ThreadedBehaviourFactory {
 								// deadlock conditions.
 								return;
 							}
-							if (!myBehaviour.isRunnable()) {
+							while (!myBehaviour.isRunnable()) {
+								checkAgentTerminated();
 								threadState = BLOCKED_STATE;
-								wait();
+								// Wake every minute: if the agent died in the meanwhile the checkAgentTerminated() method
+								// makes the Thread jump out of the loop and terminate
+								wait(10000);
 							}
 						}
 					}
 					threadState = RUNNING_STATE;
+					checkAgentTerminated();
 				}
 				exitValue = myBehaviour.onEnd();
 				threadState = TERMINATED_STATE;
@@ -414,6 +418,15 @@ public class ThreadedBehaviourFactory {
 				else {
 					terminate();
 				}
+			}
+		}
+		
+		private void checkAgentTerminated() {
+			if (myAgent == null) {
+				throw new Agent.Interrupted();
+			}
+			else if (!myAgent.isAlive()){
+				throw new Agent.Interrupted();
 			}
 		}
 		

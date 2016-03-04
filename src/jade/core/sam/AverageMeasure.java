@@ -28,7 +28,11 @@ package jade.core.sam;
 import java.io.Serializable;
 
 /**
- * The class used by the System Activity Monitoring (SAM) Service to represent an average measure  
+ * The class used by the System Activity Monitoring (SAM) Service to represent an aggregated 
+ * measure i.e. a measure that is calculated aggregating several samples.
+ * Actually the right name for this class should be AggregatedMeasure. The name 
+ * AverageMeasure comes from the fact that computing the average of the samples is the
+ * default way of aggregating them. However SUM can be used as an alternative aggregation. 
  */
 public class AverageMeasure implements Serializable, Provider {
 	private static final long serialVersionUID = 423475294834L;
@@ -65,6 +69,10 @@ public class AverageMeasure implements Serializable, Provider {
 	}
 	
 	public void update(AverageMeasure am) {
+		update(am, SAMInfo.AVG_AGGREGATION);
+	}
+	
+	public void update(AverageMeasure am, int aggregation) {
 		if (Double.compare(value, Double.NaN) == 0) {
 			// Local value is NaN --> Whatever it is get the other value 
 			value = am.getValue();
@@ -73,11 +81,19 @@ public class AverageMeasure implements Serializable, Provider {
 		else if (Double.compare(am.getValue(), Double.NaN) != 0) {
 			// Both local and other values != NaN --> Do the actual update
 			// NOTE: if other value == NaN --> just do nothing
-			double totValue = value * nSamples + am.getValue() * am.getNSamples();
-			int totSamples = nSamples + am.getNSamples();
-			
-			value = (totSamples != 0 ? totValue / totSamples : 0.0);
-			nSamples = totSamples;
+			if (aggregation == SAMInfo.SUM_AGGREGATION) {
+				// SUM Aggregation
+				value = value + am.getValue();
+				nSamples = nSamples + am.getNSamples();
+			}
+			else {
+				// Default aggregation: AVG
+				double totValue = value * nSamples + am.getValue() * am.getNSamples();
+				int totSamples = nSamples + am.getNSamples();
+				
+				value = (totSamples != 0 ? totValue / totSamples : 0.0);
+				nSamples = totSamples;
+			}
 		}
 		
 		// FIXME: update variance
