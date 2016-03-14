@@ -69,13 +69,34 @@ public class Toolkit {
 			else {
 				// Parameter found. Append from current position to the char before the param
 				sbuf.append(expression.substring(position, paramStart));
-				// Then manage param substitution
-				int paramEnd = expression.indexOf(stopDelim, paramStart);
-				if (paramEnd == -1) {
+				// Then manage param substitution -> search the closing delimiter 
+				// considering all potential sub-placeholder
+				int openDelimCount = 0;
+				int paramEnd = paramStart + 1;
+				while (paramEnd < expression.length()) {
+					String ch = Character.toString(expression.charAt(paramEnd));
+					if (ch.equals(stopDelim)) {
+						if (openDelimCount == 0) {
+							break;
+						}
+						else {
+							openDelimCount--;
+						}
+					}
+					else if (ch.equals(startDelim)) {
+						openDelimCount++;
+					}
+					paramEnd++;
+				}
+				if (paramEnd >= expression.length()) {
 					throw new IllegalArgumentException('"' + expression + "\" has no closing brace. Opening brace at position " + paramStart + '.');
 				} 
 				else {
 					String key = expression.substring(paramStart + startDelim.length(), paramEnd);
+					// Manage sub-placeholder (eg. {A{B}})
+					key = substituteParameters(key, parameters, startDelim, stopDelim, missingParamPolicy);
+					
+					// Try to substitute the key
 					String replacement = parameters.getProperty(key, null);
 					if (replacement != null) {
 						// Do parameter substitution on the replacement string
