@@ -19,16 +19,16 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package test.proto.responderBehaviours.contractNet;
 
-import jade.core.Agent;
-import jade.core.behaviours.*;
-import jade.proto.*;
-import jade.lang.acl.*;
-import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPANames;
+import jade.domain.FIPAAgentManagement.FailureException;
+import jade.domain.FIPAAgentManagement.NotUnderstoodException;
+import jade.domain.FIPAAgentManagement.RefuseException;
+import jade.lang.acl.ACLMessage;
+import jade.proto.ContractNetResponder;
 
 /**
    @author Giovanni Caire - TILAB
@@ -37,15 +37,16 @@ public class ProposeNothingReplier extends ContractNetResponder {
 	public ProposeNothingReplier() {
 		super(null, createMessageTemplate(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET));
 	}
-	
-  protected ACLMessage prepareResponse(ACLMessage cfp) throws NotUnderstoodException, RefuseException {
+
+	@Override
+	protected ACLMessage handleCfp(ACLMessage cfp) throws NotUnderstoodException, RefuseException {
 		ACLMessage response = cfp.createReply();
 		response.setPerformative(ACLMessage.PROPOSE);
 		return response;
-  }
+	}
 
-    	
-	protected ACLMessage prepareResultNotification(ACLMessage cfp, ACLMessage propose, ACLMessage accept ) throws FailureException {
+	@Override
+	protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept ) throws FailureException {
 		return null;
 	}
 }

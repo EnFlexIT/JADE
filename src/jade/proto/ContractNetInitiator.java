@@ -176,12 +176,16 @@ public class ContractNetInitiator extends Initiator {
 	// States exit values
 	private static final int ALL_RESPONSES_RECEIVED = 1;
 	private static final int ALL_RESULT_NOTIFICATIONS_RECEIVED = 2;
+	private static final int MORE_ACCEPTANCES = 3;
 
 	// When step == 1 we deal with CFP and responses
 	// When step == 2 we deal with ACCEPT/REJECT_PROPOSAL and result notifications
 	private int step = 1;
 	// If set to true all responses not yet received are skipped
 	private boolean skipNextRespFlag = false;
+	// Indicates that a new tranche of acceptances must be sent after all result notifications 
+	// have been received
+	private boolean moreAcceptancesToSend = false;
 
 	/**
 	 * Constructor for the class that creates a new empty DataStore
@@ -215,6 +219,8 @@ public class ContractNetInitiator extends Initiator {
 		registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESPONSES, ALL_RESPONSES_RECEIVED);
 		registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESULT_NOTIFICATIONS, ALL_RESULT_NOTIFICATIONS_RECEIVED);
 		registerDefaultTransition(HANDLE_ALL_RESPONSES, SEND_INITIATIONS, getToBeReset());
+		registerTransition(HANDLE_ALL_RESULT_NOTIFICATIONS, SEND_INITIATIONS, MORE_ACCEPTANCES, getToBeReset());
+		registerDefaultTransition(HANDLE_ALL_RESULT_NOTIFICATIONS, DUMMY_FINAL);
 
 		// Create and register the states specific to the ContractNet protocol
 		Behaviour b = null;
@@ -271,9 +277,12 @@ public class ContractNetInitiator extends Initiator {
 			public void action() {
 				handleAllResultNotifications((Vector) getDataStore().get(ALL_RESULT_NOTIFICATIONS_KEY));
 			}
+			public int onEnd() {
+				return moreAcceptancesToSend ? MORE_ACCEPTANCES : super.onEnd();
+			}
 		};
 		b.setDataStore(getDataStore());		
-		registerLastState(b, HANDLE_ALL_RESULT_NOTIFICATIONS);	
+		registerState(b, HANDLE_ALL_RESULT_NOTIFICATIONS);	
 	}
 
 	//#APIDOC_EXCLUDE_BEGIN
@@ -289,8 +298,12 @@ public class ContractNetInitiator extends Initiator {
 	protected void sendInitiations(Vector initiations) {
 		// By default the initiations parameter points to the Vector of the CFPs. 
 		// However at step 2 we need to deal with the acceptances
-		if (step == 2) {
+		if (step >= 2) {
 			initiations = (Vector) getDataStore().get(ALL_ACCEPTANCES_KEY);
+			if (moreAcceptancesToSend) {
+				moreAcceptancesToSend = false;
+				getDataStore().put(ALL_RESULT_NOTIFICATIONS_KEY, new Vector());
+			}
 		}
 
 		super.sendInitiations(initiations);
@@ -586,6 +599,24 @@ public class ContractNetInitiator extends Initiator {
 		reset();
 		getDataStore().put(ALL_CFPS_KEY, nextMessages);
 	}
+	
+	/**
+	 * This method can be called to send acceptances to responder agents that replied with 
+	 * PROPOSE not all together but in more tranches. This is useful, for instance, to send 
+	 * an ACCEPT_PROPOSAL to the best proposer immediately and the REJECT_PROPOSALs to the 
+	 * other proposers only after the reception of the final INFORM from the best proposer.
+	 * To achieve that the first tranche of acceptances is managed normally. However by 
+	 * calling the moreAcceptances() method in one of the result notifications handler methods
+	 * (i.e. handleInform(), handleFailure(), handleAllResultNotifications()) an additional 
+	 * tranche of acceptances is specified and the protocol goes on. 
+	 * @param nextAcceptances An additional tranche of acceptance messages
+	 */
+	public void moreAcceptances(Vector nextAcceptances) {
+		if (nextAcceptances != null) {
+			getDataStore().put(ALL_ACCEPTANCES_KEY, nextAcceptances);
+			moreAcceptancesToSend = true;
+		}
+	}
 
 	protected void reinit() {
 		step = 1;
@@ -631,10 +662,10 @@ public class ContractNetInitiator extends Initiator {
 		static final int REPLY_RECEIVED = 1;
 
 		private int state = INIT;
-		private int step;
+		private int sessionStep;
 
-		public Session(int step) {
-			this.step = step;
+		public Session(int s) {
+			this.sessionStep = s;
 		}
 
 		public String getId() {
@@ -644,7 +675,7 @@ public class ContractNetInitiator extends Initiator {
 		/** Return true if received ACLMessage is consistent with the protocol */
 		public boolean update(int perf) {
 			if (state == INIT) {
-				if (step == 1) {
+				if (sessionStep == 1) {
 					switch (perf) {
 					case ACLMessage.PROPOSE:
 					case ACLMessage.REFUSE:

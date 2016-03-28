@@ -5,6 +5,12 @@
 	]>
 -->
 	<TestsList> 
+		<Test name="Send acceptances one by one" skip="false">
+			<TestClassName>test.proto.tests.contractNet.TestMoreAcceptances</TestClassName>
+			<WhatTest> Tests sending the acceptances to agents that replied with a PROPOSE one by one.</WhatTest>
+			<HowWorkTest>All handlers are defined overriding methods.</HowWorkTest>
+			<WhenTestPass> The test passes if the execution terminates correctly... </WhenTestPass>
+		</Test>		
 		<Test name="Normal flow with 1 responder" skip="false">
 			<TestClassName>test.proto.tests.contractNet.TestNormal1Resp</TestClassName>
 			<WhatTest> Tests the normal flow of messages with a single responder.</WhatTest>
