@@ -30,7 +30,6 @@ import java.util.List;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
-
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
@@ -58,7 +57,7 @@ public class RuntimeService extends Service {
 	public void onCreate() {
 		logger.log(Logger.INFO, "JADE runtime service created");
 		
-		// Create an ad-hoc TimerDispatcher that does not reply on Object.wait(ms) since this
+		// Create an ad-hoc TimerDispatcher that does not rely on Object.wait(ms) since this
 		// is based on a clock that is paused when the terminal enters deep sleep (CPU off, display dark...)
 		TimerDispatcher td = new AndroidTimerDispatcher(this);
 		TimerDispatcher.setTimerDispatcher(td);
@@ -76,10 +75,8 @@ public class RuntimeService extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		logger.log(Logger.SEVERE,
-				"JADE runtime service can only be used locally");
-
-		throw new UnsupportedOperationException();
+		logger.log(Logger.INFO, "Start Command invoked");
+		return START_NOT_STICKY;
 	}
 
 	@Override
@@ -262,7 +259,7 @@ public class RuntimeService extends Service {
 
 	public void createAgentContainer(final Profile profile, final RuntimeCallback<AgentContainerHandler> callback) {
 		// FIXME: We should properly handle synchronizations between two or more 
-		// container creations requests occurring ion parallel
+		// container creations requests occurring in parallel
 		RuntimeHelper.completeProfile(profile);
 		new Thread() {
 			@Override
