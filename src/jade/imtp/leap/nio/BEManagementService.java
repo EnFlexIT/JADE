@@ -1397,7 +1397,7 @@ public class BEManagementService extends BaseService {
 		}
 
 		public void run() {
-			myLogger.log(Logger.INFO, "Thread " + Thread.currentThread().getName() + " started");
+			myLogger.log(Logger.INFO, "LoopManager Thread " + Thread.currentThread().getName() + " started");
 			String prefix = myServer.getLogPrefix() + "LM-" + myIndex +": ";
 			
 			// This call is necessary if this is a replaced LoopManager. It has no effects otherwise
@@ -1482,7 +1482,7 @@ public class BEManagementService extends BaseService {
 			catch (Exception e) {}
 			state = TERMINATED_STATE;
 			
-			myLogger.log(Logger.INFO, "Thread " + Thread.currentThread().getName() + " terminated");			
+			myLogger.log(Logger.INFO, "LoopManager Thread " + Thread.currentThread().getName() + " terminated");			
 		}
 		
 		
@@ -1533,6 +1533,7 @@ public class BEManagementService extends BaseService {
 			}
 			finally {
 				long elapsedTime = System.currentTimeMillis() - readStartTime;
+				readStartTime = -1;
 				if (dataProcessingTimeProvider != null) {
 					dataProcessingTimeProvider.addSample(elapsedTime);
 				}
@@ -1549,7 +1550,6 @@ public class BEManagementService extends BaseService {
 						processingTimeGT1SecCounter++;
 					}
 				}
-				readStartTime = -1;
 			}
 		}
 

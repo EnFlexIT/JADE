@@ -73,7 +73,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 	  Initialize this NIOMediator
 	 */
 	public void init(JICPMediatorManager mgr, String id, Properties props) throws ICPException {
-		myLogger.log(Logger.INFO, "BackEndDispatcher starting...");
+		myLogger.log(Logger.INFO, "BackEndDispatcher "+id+" starting...");
 		myMediatorManager = mgr;
 		myID = id;
 		myProperties = props;
@@ -123,7 +123,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		catch (Exception e) {
 			// Keep default
 		}
-		myLogger.log(Logger.INFO, "Next command for FE will have sessionID "+inpCnt);
+		myLogger.log(Logger.CONFIG, "Next command for FE will have sessionID "+inpCnt);
 		
 		/* lastSid
 		int lastSid = 0x0f;
@@ -313,7 +313,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			handleDropDown(c, pkt, addr, port);
 			break;
 		case JICPProtocol.COMMAND_TYPE:
-			myLogger.log(Logger.INFO, "BE "+myID+" - COMMAND received: "+pkt.getSessionID());
+			myLogger.log(Logger.FINE, "BE "+myID+" - COMMAND received: "+pkt.getSessionID());
 			if (peerActive) {
 				reply = outManager.handleCommand(pkt);
 			}
@@ -324,12 +324,12 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			}
 			break;
 		case JICPProtocol.KEEP_ALIVE_TYPE:
-			myLogger.log(Logger.INFO, "BE "+myID+" - KEEP_ALIVE received");
+			myLogger.log(Logger.FINE, "BE "+myID+" - KEEP_ALIVE received");
 			reply = outManager.handleKeepAlive(pkt);
 			break;
 		case JICPProtocol.RESPONSE_TYPE:
 		case JICPProtocol.ERROR_TYPE:
-			myLogger.log(Logger.INFO, "BE "+myID+" - RESPONSE/ERROR received: "+pkt.getSessionID());
+			myLogger.log(Logger.FINE, "BE "+myID+" - RESPONSE/ERROR received: "+pkt.getSessionID());
 			inpManager.notifyIncomingResponseReceived(pkt);
 			break;
 		default:
@@ -339,7 +339,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		if (reply != null) {
 			try {
 				writePacket(myConnection, reply);
-				myLogger.log(Logger.INFO, "BE "+myID+" - RESPONSE sent back: "+reply.getSessionID());
+				myLogger.log(Logger.FINE, "BE "+myID+" - RESPONSE sent back: "+reply.getSessionID());
 			}
 			catch (IOException ioe) {
 	      		myLogger.log(Logger.WARNING, myID+": Communication error sending back response. "+ioe);
@@ -412,9 +412,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 	 */
 	public void shutdown() {
 		active = false;
-		if(myLogger.isLoggable(Logger.INFO)) {
-			myLogger.log(Logger.INFO, myID+": shutting down");
-		}
+		myLogger.log(Logger.INFO, "BackEndDispatcher "+myID+" shutting down...");
 		
 		// Deregister from the JICPServer
 		if (myID != null) {
@@ -720,9 +718,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			int type = pkt.getType();
 			if (type == JICPProtocol.COMMAND_TYPE || type == JICPProtocol.RESPONSE_TYPE || type == JICPProtocol.CONNECT_MEDIATOR_TYPE) {
 				peerActive = false;
-				if (myLogger.isLoggable(Logger.INFO)) {
-					myLogger.log(Logger.INFO, myID+": Peer termination notification received");
-				}
+				myLogger.log(Logger.INFO, myID+": Peer termination notification received");
 				if (pkt.getType() == JICPProtocol.COMMAND_TYPE) {
 					// Spontaneous FE termination. Unblock any Thread waiting for a response. It will behave as if the response timeout was expired
 					inpManager.notifyIncomingResponseReceived(null);

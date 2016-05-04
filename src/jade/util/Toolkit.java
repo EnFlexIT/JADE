@@ -127,7 +127,7 @@ public class Toolkit {
 	}
 	
 	public static void main(String[] args) {
-		String s = "Hello {x}...{y}...{z} World";
+		String s = "Hello {x}...{y{d}}...{z} World";
 		Properties pp = new Properties();
 		pp.setProperty("x", "ciao");
 		String s1 = substituteParameters(s, pp, DELIM_START, DELIM_STOP, MISSING_PARAM_POLICY_REMOVE);
