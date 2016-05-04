@@ -18,7 +18,7 @@ public class AndroidTimerDispatcher extends TimerDispatcher {
 	private PendingIntent pendingIntent;
 
 	
-	AndroidTimerDispatcher(Context context) {
+	public AndroidTimerDispatcher(Context context) {
 		super();
 		this.context = context;
 
