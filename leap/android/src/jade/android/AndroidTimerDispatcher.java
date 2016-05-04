@@ -10,7 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 
-class AndroidTimerDispatcher extends TimerDispatcher {
+public class AndroidTimerDispatcher extends TimerDispatcher {
 
 	public static final String WAKE_TD_ACTION = "JADE.WAKE_TD";
 	
