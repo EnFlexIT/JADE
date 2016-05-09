@@ -203,6 +203,20 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		if (pkt.getType() == JICPProtocol.CONNECT_MEDIATOR_TYPE) {
 			// Unblock any Thread waiting for a response. It will behave as if the response timeout was expired
 			inpManager.notifyIncomingResponseReceived(null);
+			
+			// In some cases the front-end disconnects and we do not detect that.
+			// When it reconnects, close the previous connection if still there.
+			// NOTE (09 May 2016): The following lines were in the synchronized block below.
+			// However in some cases SocketChannel.write() can take several minutes due to 
+			// NoRouteToHost problem. In these cases when the FE tries to reconnect, the 
+			// Thread executing this method hangs trying to enter the synchronized block below
+			// (lock held bay dispatch()). Let's see if this has side effects
+			if (myConnection != null && myConnection != c) {
+				try {
+					myConnection.close();
+				} catch(Exception e) {
+				}
+			}
 		}
 		
 		// Lock the buffer of pending commands (if any) for flushing (MicroStub.beginFlush()) 
@@ -218,15 +232,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			lastReceivedTime = System.currentTimeMillis();
 	
 			if (peerActive) {
-				// In some cases the front-end disconnects and we do not detect that.
-				// When it reconnects, close the previous connection if still there.
-				if (myConnection != null && myConnection != c) {
-					try {
-						myConnection.close();
-					} catch(Exception e) {
-					}
-				}
-				
+				// *** See note above
 				myConnection = c;
 				myLogger.log(Logger.INFO, myID+": Connection = "+myConnection);
 				
@@ -510,7 +516,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 	protected void requestRefresh() {
 	}
 	
-	public synchronized boolean isConnected() {
+	public boolean isConnected() {
 		return myConnection != null;
 	}
 	
