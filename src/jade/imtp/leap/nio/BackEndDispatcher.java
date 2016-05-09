@@ -263,6 +263,19 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 		// In case someone was waiting for a response notify it the response will never arrive
 		inpManager.notifyIncomingResponseReceived(null);
 		
+		// NOTE (09 May 2016): The following 5 lines were included in the sinchronized block below (***).
+		// We moved it here since we experimented that writing to the SocketChannel in certain cases 
+		// may take several minutes due to NoRouteToHost problem.
+		// In such cases when the KEEP ALIVE timeout expires this method is called but hangs trying to enter 
+		// the synchronized block below (lock held by the Thread executing dispatch()).
+		// So we first close the connection (SocketChannel write should exit with exception) and then 
+		// enter the synchronized block. Let's see if this modification does not have side effects.
+		try {
+			c.close();
+		} catch(Exception e1) {
+			myLogger.log(Logger.WARNING, myID+": Unexpected error closing Connection = "+c, e1);
+		}
+			
 		synchronized (this) {
 			if (active && peerActive) {
 				if (c == myConnection) {
@@ -272,11 +285,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 					setExpirationDeadline();
 				}
 			}
-			try {
-				c.close();
-			} catch(Exception e1) {
-				myLogger.log(Logger.WARNING, myID+": Unexpected error closing Connection = "+c, e1);
-			}
+			// *** See note above
 		}
 	}
 	
