@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.SystemClock;
 
 public class AndroidTimerDispatcher extends TimerDispatcher {
 
@@ -27,12 +28,14 @@ public class AndroidTimerDispatcher extends TimerDispatcher {
 		filter.addAction(WAKE_TD_ACTION);
 		context.registerReceiver(new BroadcastReceiver() {
 			public void onReceive(Context ctx, Intent i) {
-				myLogger.log(Logger.FINE, "TD Alarm go off!!! Intent action = "+i.getAction());
+				myLogger.log(Logger.INFO, "TD Alarm go off!!! Intent action = "+i.getAction());
 				synchronized (AndroidTimerDispatcher.this) {
 					wakeUp();
 				}
 			}
 		}, filter);
+		
+		myLogger.log(Logger.INFO, "Android TD created");
 	}
 
 	protected void sleep(long sleepTime) throws InterruptedException {
@@ -43,8 +46,8 @@ public class AndroidTimerDispatcher extends TimerDispatcher {
 			Intent i = new Intent();
 			i.setAction(WAKE_TD_ACTION);
 			pendingIntent = PendingIntent.getBroadcast(context, 0, i, 0);
-			am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+sleepTime, pendingIntent);
-			myLogger.log(Logger.FINE, "TD Alarm activated");
+			am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime()+sleepTime, pendingIntent);
+			myLogger.log(Logger.INFO, "TD Alarm activated");
 		}
 		
 		wait(0);
