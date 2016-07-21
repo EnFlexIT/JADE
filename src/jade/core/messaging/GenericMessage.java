@@ -191,15 +191,16 @@ public class GenericMessage implements Serializable {
 	}
 
 	public int length() {
-		int length = 0;
+		// Message size is VERY rawly estimated to be 100 + payload length
+		int length = 100;
 		if (payload != null) {
-			length = payload.length;
+			length += payload.length;
 		}
 		else {
 			if (msg != null) {
 				byte[] content = msg.getByteSequenceContent();
 				if (content != null) {
-					length = content.length;
+					length += content.length;
 				}
 			}
 		}
