@@ -1106,6 +1106,38 @@ public class ACLMessage implements Serializable {
 	   #MIDP_INCLUDE_END*/
 	
 	/**
+	 * Normal clone() method actually perform a deep-clone of the ACLMessage object.
+	 * This method instead clones the ACLMessage object itself but not the objects pointed to by the ACLMessage fields.
+	 * @return A new ACLMessage whose fields points to the same object as the original 
+	 * ACLMessage object
+	 */
+	public ACLMessage shallowClone() {
+		ACLMessage result = new ACLMessage(performative);
+		result.source = source;
+		result.dests = dests;
+		result.reply_to = reply_to;
+		
+		result.content = content;
+		result.byteSequenceContent = byteSequenceContent;
+		
+		result.encoding = encoding;
+		result.language = language;
+		result.ontology = ontology;
+		
+		result.reply_byInMillisec = reply_byInMillisec;
+		result.reply_with = reply_with;
+		result.in_reply_to = in_reply_to;		
+		result.protocol = protocol;
+		result.conversation_id = conversation_id;
+		
+		result.userDefProps = userDefProps;
+		
+		result.messageEnvelope = messageEnvelope; 
+		
+		return result;
+	}
+	
+	/**
 	 * Resets all the message slots.
 	 */
 	public void reset() {   
@@ -1134,6 +1166,8 @@ public class ACLMessage implements Serializable {
 		if (userDefProps != null) {
 			userDefProps.clear();
 		}
+		
+		postTimeStamp = -1;
 	}
 	
 	/**

@@ -722,6 +722,10 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	 Issue a SEND_MESSAGE VerticalCommand for each receiver
 	 */
 	public void handleSend(ACLMessage msg, AID sender, boolean needClone) {
+		if (needClone) {
+			msg = (ACLMessage) msg.clone();
+		}
+		
 		Iterator it = msg.getAllIntendedReceiver();
 		// If there are multiple receivers the message must always be cloned
 		// since the MessageManager will modify it. If there is a single 
@@ -737,7 +741,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			cmd.addParam(sender);
 			ACLMessage toBeSent = null;
 			if (needClone) {
-				toBeSent = (ACLMessage) msg.clone();
+				toBeSent = (ACLMessage) msg.shallowClone();
 			}
 			else {
 				toBeSent = msg;
