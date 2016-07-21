@@ -103,74 +103,97 @@ class MessageManager {
 	}
 
 	public void initialize(Profile p) {
+		String tmp = null;
+		
 		// POOL_SIZE
 		int poolSize = POOL_SIZE_DEFAULT;
 		try {
-			String tmp = p.getParameter("jade_core_messaging_MessageManager_poolsize", null);
+			tmp = p.getParameter("jade_core_messaging_MessageManager_poolsize", null);
 			poolSize = Integer.parseInt(tmp);
 		}
 		catch (Exception e) {
-			// Do nothing and keep default value
+			// Keep default. If a value was specified print a warning
+			if (tmp != null) {
+				myLogger.log(Logger.WARNING, "\""+tmp+"\" is not a valid int value for parameter jade_core_messaging_MessageManager_poolsize. Keep default");
+			}
 		}
 
 		// DELIVERY_TIME_THRESHOLD 1 (Slow)
 		deliveryTimeThreshold = DELIVERY_TIME_THRESHOLD_DEFAULT;
 		try {
-			String tmp = p.getParameter("jade_core_messaging_MessageManager_deliverytimethreshold", null);
-			deliveryTimeThreshold = Integer.parseInt(tmp);
+			tmp = p.getParameter("jade_core_messaging_MessageManager_deliverytimethreshold", null);
+			deliveryTimeThreshold = Long.parseLong(tmp);
 		}
 		catch (Exception e) {
-			// Do nothing and keep default value
+			// Keep default. If a value was specified print a warning
+			if (tmp != null) {
+				myLogger.log(Logger.WARNING, "\""+tmp+"\" is not a valid int long for parameter jade_core_messaging_MessageManager_deliverytimethreshold. Keep default");
+			}
 		}
 		
 		// DELIVERY_TIME_THRESHOLD 2 (Very Slow)
 		deliveryTimeThreshold2 = DELIVERY_TIME_THRESHOLD2_DEFAULT;
 		try {
-			String tmp = p.getParameter("jade_core_messaging_MessageManager_deliverytimethreshold2", null);
-			deliveryTimeThreshold2 = Integer.parseInt(tmp);
+			tmp = p.getParameter("jade_core_messaging_MessageManager_deliverytimethreshold2", null);
+			deliveryTimeThreshold2 = Long.parseLong(tmp);
 		}
 		catch (Exception e) {
-			// Do nothing and keep default value
+			// Keep default. If a value was specified print a warning
+			if (tmp != null) {
+				myLogger.log(Logger.WARNING, "\""+tmp+"\" is not a valid long value for parameter jade_core_messaging_MessageManager_deliverytimethreshold2. Keep default");
+			}
 		}
 		
 		// DELIVERY_STUCK_TIME (If delivery is pending since more than this time, likely we are stuck)
 		deliveryStuckTime = DELIVERY_STUCK_TIME_DEFAULT;
 		try {
-			String tmp = p.getParameter("jade_core_messaging_MessageManager_deliveryStuckTime", null);
-			deliveryStuckTime = Integer.parseInt(tmp);
+			tmp = p.getParameter("jade_core_messaging_MessageManager_deliveryStuckTime", null);
+			deliveryStuckTime = Long.parseLong(tmp);
 		}
 		catch (Exception e) {
-			// Do nothing and keep default value
+			// Keep default. If a value was specified print a warning
+			if (tmp != null) {
+				myLogger.log(Logger.WARNING, "\""+tmp+"\" is not a valid long value for parameter jade_core_messaging_MessageManager_deliveryStuckTime. Keep default");
+			}
 		}
 		
 		// OUT_BOX_WARNING_SIZE
 		int warningQueueSize = WARNING_QUEUE_SIZE_DEFAULT;
 		try {
-			String tmp = p.getParameter("jade_core_messaging_MessageManager_warningqueuesize", null);
+			tmp = p.getParameter("jade_core_messaging_MessageManager_warningqueuesize", null);
 			warningQueueSize = Integer.parseInt(tmp);
 		}
 		catch (Exception e) {
-			// Do nothing and keep default value
+			// Keep default. If a value was specified print a warning
+			if (tmp != null) {
+				myLogger.log(Logger.WARNING, "\""+tmp+"\" is not a valid int value for parameter jade_core_messaging_MessageManager_warningqueuesize. Keep default");
+			}
 		}
 		
 		// OUT_BOX_MAX_SIZE
 		int maxQueueSize = MAX_QUEUE_SIZE_DEFAULT;
 		try {
-			String tmp = p.getParameter("jade_core_messaging_MessageManager_maxqueuesize", null);
+			tmp = p.getParameter("jade_core_messaging_MessageManager_maxqueuesize", null);
 			maxQueueSize = Integer.parseInt(tmp);
 		}
 		catch (Exception e) {
-			// Do nothing and keep default value
+			// Keep default. If a value was specified print a warning
+			if (tmp != null) {
+				myLogger.log(Logger.WARNING, "\""+tmp+"\" is not a valid int value for parameter jade_core_messaging_MessageManager_maxqueuesize. Keep default");
+			}
 		}
 
 		// OUT_BOX_SLEEP_TIME_FACTOR
 		int sleepTimeFactor = SLEEP_TIME_FACTOR_DEFAULT;
 		try {
-			String tmp = p.getParameter("jade_core_messaging_MessageManager_sleeptimefactor", null);
+			tmp = p.getParameter("jade_core_messaging_MessageManager_sleeptimefactor", null);
 			sleepTimeFactor = Integer.parseInt(tmp);
 		}
 		catch (Exception e) {
-			// Do nothing and keep default value
+			// Keep default. If a value was specified print a warning
+			if (tmp != null) {
+				myLogger.log(Logger.WARNING, "\""+tmp+"\" is not a valid int value for parameter jade_core_messaging_MessageManager_sleeptimefactor. Keep default");
+			}
 		}
 		
 		// MULTIPLE_DELIVERY
