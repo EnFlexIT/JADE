@@ -295,22 +295,31 @@ public class NIOJICPConnection extends Connection {
 		}
 		int totalWritten = 0;
 		totalToWrite = bb.remaining();
-		Level lv = Level.FINE;
+		boolean bigPacket = false;
 		if (totalToWrite > 100000) {
-			log.log(Level.INFO, "writePacket: writing \"BIG\" packet. Size = "+totalToWrite);
-			lv = Level.INFO;
+			log.log(Level.INFO, this+".writePacket(): writing \"BIG\" packet. Size = "+totalToWrite);
+			bigPacket = true;
 		}
+		int roundsCnt = 0;
 		while (bb.hasRemaining()) {
 			int written = writeToChannel(bb);
 			totalWritten += written;
+			roundsCnt++;
 			int stillToWrite = bb.remaining();
-			if (log.isLoggable(lv)) {
-				log.log(lv, "writePacket: " + written + " bytes written. " + stillToWrite + " bytes still to write");
+			if (log.isLoggable(Level.FINE)) {
+				log.log(Level.FINE, this+"writePacket: " + written + " bytes written. " + stillToWrite + " bytes still to write");
 			}
+			// FIXME: The right solution here is NOT to configure the socket as blocking (BEManagementService CREATE/CONNECT_MEDIATOR)
+			// and wait until we get a WRITE_OP
+			if (written == 0) {
+				// The send buffer is full. Wait a bit for it to flush
+				try {Thread.sleep(50);}catch (Exception e) {}
+			}
+			roundsCnt++;
 		}
 		
-		if (log.isLoggable(lv)) {
-			log.log(lv, "writePacket: " + totalWritten + " total bytes written (packet length was " + totalToWrite + ")");
+		if (bigPacket) {
+			log.log(Level.INFO, this+"writePacket: \"BIG\" packet written in "+roundsCnt+" rounds. " + totalWritten + " total bytes written (packet length was " + totalToWrite + ")");
 		}
 
 		return totalWritten;
