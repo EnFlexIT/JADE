@@ -1721,14 +1721,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		catch (NotFoundException nfe) {
 			// The receiver does not exist --> Send a FAILURE message
 			if (msg.getTraceID() != null) {
-				myLogger.log(Logger.WARNING, msg.getTraceID()+" - Receiver does not exist.", nfe);
+				myLogger.log(Logger.WARNING, msg.getTraceID()+" - Receiver "+receiverID.getLocalName()+" does not exist.", nfe);
 			}
 			notifyFailureToSender(msg, receiverID, new InternalError(ACLMessage.AMS_FAILURE_AGENT_NOT_FOUND + ": " + nfe.getMessage()));
 		} 
 		catch (IMTPException imtpe) {
 			// Can't reach the destination container --> Send a FAILURE message
 			String id = (msg.getTraceID() != null ? msg.getTraceID() : MessageManager.stringify(msg));
-			myLogger.log(Logger.WARNING, id+" - Receiver unreachable.", imtpe);
+			myLogger.log(Logger.WARNING, id+" - Receiver "+receiverID.getLocalName()+" unreachable.", imtpe);
 			notifyFailureToSender(msg, receiverID, new InternalError(ACLMessage.AMS_FAILURE_AGENT_UNREACHABLE + ": " + imtpe.getMessage()));
 		} 
 		catch (ServiceException se) {
