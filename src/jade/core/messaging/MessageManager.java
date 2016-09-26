@@ -23,6 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.messaging;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jade.util.Logger;
 import jade.lang.acl.ACLMessage;
 import jade.domain.FIPAAgentManagement.InternalError;
@@ -354,7 +357,11 @@ class MessageManager {
 					long deliveryTime = lastDeliveryEndTime - lastDeliveryStartTime;
 					try {
 						if (deliveryTimeThreshold > 0) {
-							long threshold = k == 1 ? deliveryTimeThreshold : Math.min(deliveryTimeThreshold * k, 30000);
+							// For normal messages just compare delivery time with deliveryTimeThreshold.
+							// For multiple-messages compute the threshold as (deliveryTimeThreshold / 2) * number-of-messages --> So if deliveryTimeThreshold is 1000 and 
+							// we have a multiple-message with 5 messages --> threshold is 2500. 
+							// Always consider slow delivery over 10 sec (regardless of how many messages are there).
+							long threshold = k == 1 ? deliveryTimeThreshold : Math.min((deliveryTimeThreshold/2) * k, 10000);
 							if (deliveryTime > threshold) {
 								totSlowDeliveryCnt += k;
 								String msgDetail = k == 1 ? "message size = "+msg.length() : "block of "+k+" messages with overall size = "+msg.length();
@@ -364,7 +371,9 @@ class MessageManager {
 								/*#J2ME_INCLUDE_BEGIN
 								myLogger.log(Logger.WARNING, "Deliverer Thread "+name+ " - Delivery-time over threshold ("+deliveryTime+"). Receiver = "+receiverID.getLocalName()+", "+msgDetail+".");
 								#J2ME_INCLUDE_END*/
-								long threshold2 = k == 1 ? deliveryTimeThreshold2 : Math.min(deliveryTimeThreshold2 * k, 150000);
+								
+								// See comment above 
+								long threshold2 = k == 1 ? deliveryTimeThreshold2 : Math.min((deliveryTimeThreshold2/2) * k, 30000);
 								if (deliveryTime > threshold2) {
 									totVerySlowDeliveryCnt++;
 								}
@@ -450,26 +459,64 @@ class MessageManager {
 	/**
 	 */
 	public static final String stringify(GenericMessage m) {
-		ACLMessage msg = m.getACLMessage();
-		if (msg != null) {
-			StringBuffer sb = new StringBuffer("(");
-			sb.append(ACLMessage.getPerformative(msg.getPerformative()));
-			sb.append(" sender: ");
-			sb.append(msg.getSender().getName());
-			if (msg.getOntology() != null) {
-				sb.append(" ontology: ");
-				sb.append(msg.getOntology());
+		if (m instanceof MultipleGenericMessage) {
+			// MULTIPLE message
+			StringBuffer sb = new StringBuffer("[SET");
+			MultipleGenericMessage mm = (MultipleGenericMessage) m;
+			List<GenericMessage> l = mm.getMessages();
+			int cnt = 0;
+			for (GenericMessage gm : l) {
+				sb.append(" ");
+				sb.append(stringify(gm));
+				// Avoid stringifying to many messages
+				cnt++;
+				if (cnt > 10 && cnt < l.size()) {
+					sb.append("..."+l.size()+" messages in total");
+					break;
+				}
 			}
-			if (msg.getConversationId() != null) {
-				sb.append(" conversation-id: ");
-				sb.append(msg.getConversationId());
-			}
-			sb.append(')');
+			sb.append("]");
 			return sb.toString();
 		}
 		else {
-			return ("\"Unavailable\"");
+			// SINGLE (normal) message
+			ACLMessage msg = m.getACLMessage();
+			if (msg != null) {
+				StringBuffer sb = new StringBuffer("(");
+				sb.append(ACLMessage.getPerformative(msg.getPerformative()));
+				sb.append(" sender: ");
+				sb.append(msg.getSender().getName());
+				if (msg.getOntology() != null) {
+					sb.append(" ontology: ");
+					sb.append(msg.getOntology());
+				}
+				if (msg.getConversationId() != null) {
+					sb.append(" conversation-id: ");
+					sb.append(msg.getConversationId());
+				}
+				sb.append(')');
+				return sb.toString();
+			}
+			else {
+				return ("\"Unavailable\"");
+			}
 		}
+	}
+	
+	public static void main(String[] args) {
+		GenericMessage gm = new GenericMessage();
+		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+		msg.setSender(new AID("pippo@P1", AID.ISGUID));
+		msg.addReceiver(new AID("pluto@P1", AID.ISGUID));
+		gm.setACLMessage(msg);
+		System.out.println(stringify(gm));
+		
+		MultipleGenericMessage mgm = new MultipleGenericMessage(200);
+		List<GenericMessage> l = new ArrayList<GenericMessage>();
+		l.add(gm);
+		l.add(gm);
+		mgm.setMessages(l);
+		System.out.println(stringify(mgm));
 	}
 
 	// For debugging purpose

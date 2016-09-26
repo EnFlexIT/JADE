@@ -8,7 +8,7 @@ import java.util.List;
 public class MultipleGenericMessage extends GenericMessage {
 
 	private List<GenericMessage> messages = new ArrayList<GenericMessage>(); 
-	private int length;
+	private int length; // Raw estimation of bytes taken by this MGM
 	
 	public MultipleGenericMessage(int length) {
 		this.length = length;
