@@ -249,8 +249,14 @@ public class SAMService extends BaseService {
 		}
 		
 		public void addHandler(SAMInfoHandler handler, boolean first) {
-			if (poller != null) {
-				poller.addHandler(handler, first);
+			try {
+    			if (poller != null) {
+    				handler.initialize(myProfile);
+    				poller.addHandler(handler, first);
+    			}
+			}
+			catch (Exception e) {
+				throw new RuntimeException("Handler initialization error.", e);
 			}
 		}
 
