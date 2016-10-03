@@ -95,7 +95,7 @@ class UDPMonitorClient {
 					try {
 						channel.send(ping, new InetSocketAddress(serverHost, serverPort));
 					} 
-					catch (IOException e) {
+					catch (Exception e) {
 						logger.log(Logger.WARNING, "Error sending UDP ping message to "+serverHost+":"+serverPort+" for node " + node.getName());
 					} 
 					Thread.sleep(pingDelay - 5);
