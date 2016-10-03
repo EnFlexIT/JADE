@@ -156,7 +156,12 @@ class Poller extends Thread {
 			globalInfo.computeAggregatedValues();
 			
 			for (SAMInfoHandler h : handlers) {
-				h.handle(timeStamp, globalInfo);
+				try {
+					h.handle(timeStamp, globalInfo);
+				}
+				catch (Exception e) {
+					myLogger.log(Logger.WARNING, "SAMService poller - Error processing info by handler "+h, e);
+				}
 			}
 		}
 		catch (ServiceException se) {

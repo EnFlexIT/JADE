@@ -41,6 +41,8 @@ public class SAMInfo implements Serializable {
 	public static final char DEFAULT_AGGREGATION_SEPARATOR_CHAR = '#';
 	public static final String SUM_AGGREGATION_SEPARATOR = "+";
 	public static final char SUM_AGGREGATION_SEPARATOR_CHAR = '+';
+	public static final String AVG_AGGREGATION_SEPARATOR = "@";
+	public static final char AVG_AGGREGATION_SEPARATOR_CHAR = '@';
 	
 	public static final int AVG_AGGREGATION = 0;
 	public static final int SUM_AGGREGATION = 1;
@@ -130,7 +132,7 @@ public class SAMInfo implements Serializable {
 			AverageMeasure am = measures.get(entityName);
 			AggregationInfo ai = getAggregationInfo(entityName, AVG_AGGREGATION);
 			if (ai != null) {
-				// This is an "aggregated measure component" (aaa#bbb) --> accumulate component contribution
+				// This is a contribution to an "aggregated measure" (aaa#bbb) --> accumulate component contribution
 				String aggregatedEntityName = ai.aggregatedName;
 				AverageMeasure agM = aggregatedMeasures.get(aggregatedEntityName);
 				if (agM == null) {
@@ -157,21 +159,27 @@ public class SAMInfo implements Serializable {
 	}
 	
 	private static Map<String, Long> oneShotComputeAggregatedCounters(Map<String, Long> counters) {
-		Map<String, Long> aggregatedCounters = new HashMap<String, Long>();
+		Map<String, CounterAggregator> aggregatedCounters = new HashMap<String, CounterAggregator>();
 		for (String counterName : counters.keySet()) {
 			Long c = counters.get(counterName);
-			int k = counterName.lastIndexOf(DEFAULT_AGGREGATION_SEPARATOR);
-			if (k > 0) {
-				// This is an "aggregated counter component" (aaa#bbb) --> accumulate component contribution
-				String aggregatedCounterName = counterName.substring(0, k);
-				Long agC = aggregatedCounters.get(aggregatedCounterName);
+			AggregationInfo ai = getAggregationInfo(counterName, SUM_AGGREGATION);
+			if (ai != null) {
+				// This is a contribution to an "aggregated counter" (aaa#bbb) --> accumulate component contribution
+				String aggregatedCounterName = ai.aggregatedName;
+				CounterAggregator agC = aggregatedCounters.get(aggregatedCounterName);
 				if (agC == null) {
-					agC = new Long(0);
+					agC = new CounterAggregator();
+					aggregatedCounters.put(aggregatedCounterName, agC);
 				}
-				aggregatedCounters.put(aggregatedCounterName, agC + c);
+				agC.update(c, ai.aggregation);
 			}
 		}
-		return aggregatedCounters;
+		
+		Map<String, Long> result = new HashMap<String, Long>(aggregatedCounters.size());
+		for (Map.Entry<String, CounterAggregator> entry : aggregatedCounters.entrySet()) {
+			result.put(entry.getKey(), entry.getValue().getAggregatedValue());
+		}
+		return result;
 	}
 	
 	private static void addAllCounters(Map<String, Long> cc1, Map<String, Long> cc2) {
@@ -196,6 +204,9 @@ public class SAMInfo implements Serializable {
 			else if (c == SUM_AGGREGATION_SEPARATOR_CHAR) {
 				ai = new AggregationInfo(SUM_AGGREGATION);
 			}
+			else if (c == AVG_AGGREGATION_SEPARATOR_CHAR) {
+				ai = new AggregationInfo(AVG_AGGREGATION);
+			}
 			
 			if (ai != null) {
 				ai.aggregatedName = name.substring(0, i);
@@ -210,7 +221,7 @@ public class SAMInfo implements Serializable {
 	/**
 	 * Inner class AggregationInfo
 	 */
-	private static class AggregationInfo {
+	public static class AggregationInfo {
 		private int aggregation;
 		private String aggregatedName;
 		
@@ -218,4 +229,29 @@ public class SAMInfo implements Serializable {
 			this.aggregation = aggregation;
 		}
 	} // END of inner class AggregationInfo
+	
+	
+	/**
+	 * Inner class CounterAggregator
+	 */
+	private static class CounterAggregator {
+		private double aggregatedVal = 0;
+		private int contributionsCnt = 0;
+		
+		public void update(long contribution, int aggregation) {
+			if (aggregation == AVG_AGGREGATION) {
+				aggregatedVal = (aggregatedVal * contributionsCnt + contribution) / (contributionsCnt+1);
+				contributionsCnt++;
+			}
+			else {
+				// Default aggregation: SUM
+				aggregatedVal += contribution;
+			}
+		}
+		
+		public long getAggregatedValue() {
+			return (long) aggregatedVal;
+		}
+	} // END of inner class CounterAggregator
+	
 }
