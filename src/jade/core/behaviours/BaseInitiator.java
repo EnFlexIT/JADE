@@ -45,6 +45,7 @@ import java.util.Vector;
 public abstract class BaseInitiator extends AchieveREInitiator {
 	private static final long serialVersionUID = -6505544004754497428L;
 	
+	private AID target;
 	private String defaultTargetDescription;
 	
 	protected OutcomeManager outcome;
@@ -133,7 +134,8 @@ public abstract class BaseInitiator extends AchieveREInitiator {
 				v.add(initiation);
 				Iterator it = initiation.getAllReceiver();
 				if (it.hasNext()) {
-					defaultTargetDescription = "Agent "+((AID) it.next()).getLocalName();
+					target = (AID) it.next();
+					defaultTargetDescription = "Agent "+target.getLocalName();
 				}
 			}
 		}
@@ -157,7 +159,7 @@ public abstract class BaseInitiator extends AchieveREInitiator {
 	
 	@Override
 	public void handleFailure(ACLMessage failure) {
-		if (failure.getSender().equals(myAgent.getAMS())) {
+		if (failure.getSender().equals(myAgent.getAMS()) && !target.equals(myAgent.getAMS())) {
 			// Target agent does not exist
 			outcome.error(getTargetDescription()+" does not exist or cannot be reached", null);
 		}

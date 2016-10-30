@@ -89,7 +89,7 @@ public class MessageTransportProtocol implements MTP {
 		try {
 			return new HTTPAddress(rep);
 		} catch(MalformedURLException mue) {
-			throw new MTPException("Address mismatch: this is not a valid HTTP address.");
+			throw new MTPException("Address mismatch: "+rep+" is not a valid HTTP address.", mue);
 		}
 	}
 	
