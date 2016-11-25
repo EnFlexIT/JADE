@@ -20,7 +20,7 @@ to participate into negotiations (possibly occurring in parallel) where an initi
 a task to an agent among a set of candidates.
 @author Giovanni Caire - TILAB
 */
-public class MultiSessionContractNetResponderAgent extends Agent {
+public class ParallelContractNetResponderAgent extends Agent {
 
 	protected void setup() {
 		System.out.println("Agent "+getLocalName()+" waiting for CFP...");
