@@ -857,7 +857,18 @@ public class Agent implements Runnable, Serializable
 			}
 			myThread.join(5000);
 			if (myThread.isAlive()) {
-				System.out.println("*** Warning: Agent " + myName + " did not terminate when requested to do so.");
+				StringBuffer sb = new StringBuffer("*** Warning: Agent " + myName + " did not terminate when requested to do so.");
+				//#J2ME_EXCLUDE_BEGIN
+				StackTraceElement[] ss = myThread.getStackTrace();
+				if (ss != null && ss.length > 0) {
+					sb.append(" Agent Thread is in method "+ss[0]+"\n");
+					sb.append("*** Full stack trace is\n");
+					for(int i=0; i < ss.length; i++) {
+						sb.append("*** \t at " + ss[i] + "\n");
+					}
+				}
+				//#J2ME_EXCLUDE_END
+				System.out.println(sb.toString());
 				if(!myThread.equals(Thread.currentThread())) {
 					myThread.interrupt();
 					System.out.println("*** Second interrupt issued.");
