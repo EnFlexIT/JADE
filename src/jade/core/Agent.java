@@ -26,16 +26,17 @@ package jade.core;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 
+import jade.util.Logger;
 import jade.util.leap.Serializable;
 import jade.util.leap.Iterator;
+
 import java.util.Hashtable;
 import java.util.Enumeration;
 
 import jade.core.behaviours.Behaviour;
-
 import jade.lang.acl.*;
-
 import jade.security.JADESecurityException;
+
 
 //#MIDP_EXCLUDE_BEGIN
 import java.io.InputStream;
@@ -46,7 +47,6 @@ import java.io.ObjectOutputStream;
 
 import jade.core.mobility.AgentMobilityHelper;
 import jade.core.mobility.Movable;
-
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Map;
@@ -84,6 +84,8 @@ public class Agent implements Runnable, Serializable
 //#APIDOC_EXCLUDE_END
 {
 	private static final long     serialVersionUID = 3487495895819000L;
+	
+	private static Logger log = Logger.getJADELogger(Agent.class.getName());
 
 	/**
 	 Inner class Interrupted.
@@ -849,15 +851,18 @@ public class Agent implements Runnable, Serializable
 	 * by using custom class loader and dynamic proxies and JDK 1.3.
 	 * FIXME: the timeout value should be got by Profile
 	 */
-	public void join() {
+	public boolean join() {
 		//#MIDP_EXCLUDE_BEGIN
 		try {
 			if(myThread == null) {
-				return;
+				return true;
 			}
 			myThread.join(5000);
-			if (myThread.isAlive()) {
-				StringBuffer sb = new StringBuffer("*** Warning: Agent " + myName + " did not terminate when requested to do so.");
+			if (!myThread.isAlive()) {
+				return true;
+			}
+			else {
+				StringBuffer sb = new StringBuffer("*** Agent " + myName + " did not terminate when requested to do so.");
 				//#J2ME_EXCLUDE_BEGIN
 				StackTraceElement[] ss = myThread.getStackTrace();
 				if (ss != null && ss.length > 0) {
@@ -868,10 +873,10 @@ public class Agent implements Runnable, Serializable
 					}
 				}
 				//#J2ME_EXCLUDE_END
-				System.out.println(sb.toString());
+				log.log(Logger.WARNING, sb.toString());
 				if(!myThread.equals(Thread.currentThread())) {
 					myThread.interrupt();
-					System.out.println("*** Second interrupt issued.");
+					log.log(Logger.WARNING, "*** Second interrupt issued.");
 				}
 			}
 		}
@@ -883,12 +888,14 @@ public class Agent implements Runnable, Serializable
 		 if (myThread != null && myThread.isAlive()) {
 		 try {
 		 myThread.join();
+		 return true;
 		 } 
 		 catch (InterruptedException ie) {
 		 ie.printStackTrace();
 		 } 
 		 } 
 		 #MIDP_INCLUDE_END*/
+		return false;
 	}
 	//#APIDOC_EXCLUDE_END
 

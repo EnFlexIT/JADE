@@ -630,7 +630,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	public void shutDown() {
 		if (verboseShutdown) {
-			myLogger.log(Logger.INFO, "Container shutdown activated.");
+			myLogger.log(Logger.INFO, "*** Container shutdown activated.");
 		}
 		checkCreationTime();
 
@@ -647,20 +647,25 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 				continue;
 
 			if (verboseShutdown) {
-				myLogger.log(Logger.INFO, "--- Killing agent "+a.getLocalName());
+				myLogger.log(Logger.INFO, "*** --- Killing agent "+a.getLocalName());
 			}
 			a.doDelete();
 			if (verboseShutdown) {
-				myLogger.log(Logger.INFO, "--- Waiting for agent "+a.getLocalName()+" termination ...");
+				myLogger.log(Logger.INFO, "*** --- Waiting for agent "+a.getLocalName()+" termination ...");
 			}
-			a.join();
+			boolean terminated = a.join();
 			if (verboseShutdown) {
-				myLogger.log(Logger.INFO, "--- Agent "+a.getLocalName()+" terminated");
+				if (terminated) {
+					myLogger.log(Logger.INFO, "*** --- Agent "+a.getLocalName()+" terminated");
+				}
+				else {
+					myLogger.log(Logger.WARNING, "*** --- Agent "+a.getLocalName()+" still running. Skip it");
+				}
 			}
 			a.resetToolkit();
 		}
 		if (verboseShutdown) {
-			myLogger.log(Logger.INFO, "All agents terminated");
+			myLogger.log(Logger.INFO, "*** All agents terminated");
 		}
 
 		try {
