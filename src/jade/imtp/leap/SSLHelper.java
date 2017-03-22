@@ -26,7 +26,7 @@ public class SSLHelper {
 	 * use this to indicate which cipher suites we support
 	 */
 	public static final List supportedKeys =
-		Collections.unmodifiableList(Arrays.asList(new String[] {"SSL_DH_anon_WITH_RC4_128_MD5"}));
+		Collections.unmodifiableList(Arrays.asList(new String[] {"TLS_ECDH_anon_WITH_AES_128_CBC_SHA"}));
 
 	public static String[] getSupportedKeys() {
 		return (String[]) supportedKeys.toArray(new String[0]);
@@ -102,7 +102,7 @@ public class SSLHelper {
 		// Create the SSLContext without authentication if necessary
 		if (ctx == null) {
 			try {
-				ctx = SSLContext.getInstance("TLS");
+				ctx = SSLContext.getInstance("TLSv1.2");
 				ctx.init(null, null, null);
 			} catch (Exception e) {
 				throw new ICPException("Error creating SSLContext.",e);
@@ -128,7 +128,7 @@ public class SSLHelper {
 			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
 			kmf.init(ks, passphrase);
 			// create and init context
-			ctx = SSLContext.getInstance("TLS");
+			ctx = SSLContext.getInstance("TLSv1.2");
 			ctx.init(kmf.getKeyManagers(), null, null);
 		} catch (Exception e) {
 			throw new ICPException("Error creating SSLContext.",e);
