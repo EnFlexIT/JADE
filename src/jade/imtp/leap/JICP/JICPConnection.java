@@ -73,13 +73,28 @@ public class JICPConnection extends Connection {
 	 * Constructor declaration
 	 */
 	public JICPConnection(TransportAddress ta, int timeout) throws IOException {
+		this(ta, timeout, null, 0);
+	}
+	
+	public JICPConnection(TransportAddress ta, int timeout, String bindHost, int bindPort) throws IOException {
 		//#MIDP_EXCLUDE_BEGIN
 		// For some reason the local address or port may be in use
 		while (true) {
 			try { 
 				//#PJAVA_EXCLUDE_BEGIN
 				sc = new Socket();
-				bindSocket(sc);
+				if (bindHost != null || bindPort > 0) {
+					// Local binding explicitly specified
+					if (bindHost != null) {
+						sc.bind(new InetSocketAddress(bindHost, bindPort));
+					}
+					else {
+						sc.bind(new InetSocketAddress(bindPort));
+					}
+				}
+				else {
+					bindSocket(sc);
+				}
 				sc.setTcpNoDelay(true);
 				sc.connect(new InetSocketAddress(ta.getHost(), Integer.parseInt(ta.getPort())), timeout);
 				socketCnt++;
@@ -113,7 +128,7 @@ public class JICPConnection extends Connection {
 	}
 
 	protected void bindSocket(Socket sc) {
-		// Just do nothing
+		// Just do nothing.
 	}
 	
 	/**

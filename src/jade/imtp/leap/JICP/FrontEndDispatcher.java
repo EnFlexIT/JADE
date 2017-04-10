@@ -71,6 +71,10 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	protected long connectionTimeout = JICPProtocol.DEFAULT_CONNECTION_TIMEOUT;
 	private long responseTimeoutOffset = JICPProtocol.DEFAULT_RESPONSE_TIMEOUT_OFFSET;
 	private long connectionDropDownTime = -1;
+	
+	// Host and port to bind the local side of the connection with the BE (useful in case more than one Network Interface is available)
+	private String bindHost;
+	private int bindPort;
 
 	private Timer kaTimer, cdTimer;
 	// Lock used to synchronize sections managing timers for KEEP_ALIVE and DROP_DOWN. 
@@ -241,6 +245,19 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 				myLogger.log(Logger.CONFIG, "Connection-drop-down time="+connectionDropDownTime);
 			}
 
+			// bind-host & bind-port 
+			bindHost = props.getProperty("bind-host");
+			bindPort = 0;
+			try {
+				bindPort = Integer.parseInt(props.getProperty("bind-port"));
+			} 
+			catch (Exception e) {
+				// Use default
+			}
+			if (myLogger.isLoggable(Logger.CONFIG)) {
+				myLogger.log(Logger.CONFIG, "Connection-local binding: host="+bindHost+", port="+bindPort);
+			}
+			
 			// Retrieve the ConnectionListener if any
 			try {
 				Object obj = props.get("connection-listener");
@@ -646,7 +663,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	 * @throws IOException
 	 */
 	protected JICPConnection getConnection(TransportAddress ta) throws IOException {
-		return new JICPConnection(ta, (int) connectionTimeout);
+		return new JICPConnection(ta, (int) connectionTimeout, bindHost, bindPort);
 	}
 
 	// This is synchronized to be sure that commands and responses are always written in a non-overlapping way
