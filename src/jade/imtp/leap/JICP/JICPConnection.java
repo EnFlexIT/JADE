@@ -81,6 +81,7 @@ public class JICPConnection extends Connection {
 	public JICPConnection(TransportAddress ta, int timeout, String bindHost, int bindPort) throws IOException {
 		//#MIDP_EXCLUDE_BEGIN
 		// For some reason the local address or port may be in use
+		int bindExceptionCnt = 0;
 		while (true) {
 			try { 
 				//#PJAVA_EXCLUDE_BEGIN
@@ -110,6 +111,12 @@ public class JICPConnection extends Connection {
 				break;
 			}
 			catch (BindException be) {
+				bindExceptionCnt++;
+				if (bindExceptionCnt >= 10) {
+					myLogger.log(Logger.SEVERE, "Error binding JICPSConnection with bindHost="+bindHost+" and bindPort="+bindPort);
+					throw be;
+				}
+				
 				// Do nothing and try again
 			}
 		}

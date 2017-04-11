@@ -96,6 +96,7 @@ public class JICPSConnection extends JICPConnection {
 
 		// For some reason the local address or port may be
 		// in use
+		int bindExceptionCnt = 0;
 		while (true) {
 			try {
 				sc = scsf.createSocket();
@@ -120,6 +121,12 @@ public class JICPSConnection extends JICPConnection {
 				os = getOutputStream();
 				break;
 			} catch (BindException be) {
+				bindExceptionCnt++;
+				if (bindExceptionCnt >= 10) {
+					myLogger.log(Logger.SEVERE, "Error binding JICPSConnection with bindHost="+bindHost+" and bindPort="+bindPort);
+					throw be;
+				}
+				
 				// Do nothing and try again
 			}
 		}
