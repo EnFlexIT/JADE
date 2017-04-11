@@ -73,8 +73,8 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	private long connectionDropDownTime = -1;
 	
 	// Host and port to bind the local side of the connection with the BE (useful in case more than one Network Interface is available)
-	private String bindHost;
-	private int bindPort;
+	protected String bindHost;
+	protected int bindPort;
 
 	private Timer kaTimer, cdTimer;
 	// Lock used to synchronize sections managing timers for KEEP_ALIVE and DROP_DOWN. 

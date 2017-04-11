@@ -52,9 +52,11 @@ import jade.util.Logger;
  * @author Steffen Rusitschka - Siemens
  */
 public class JICPConnection extends Connection {
-
+	
+	
 	//#MIDP_EXCLUDE_BEGIN
 	protected Socket       sc;
+	protected static Logger myLogger = Logger.getMyLogger(JICPSConnection.class.getName());
 	//#MIDP_EXCLUDE_END
 	/*#MIDP_INCLUDE_BEGIN
 	protected StreamConnection sc;
@@ -85,6 +87,7 @@ public class JICPConnection extends Connection {
 				sc = new Socket();
 				if (bindHost != null || bindPort > 0) {
 					// Local binding explicitly specified
+					myLogger.log(Logger.INFO, "Binding JICPConnection with bindHost="+bindHost+" and bindPort="+bindPort);
 					if (bindHost != null) {
 						sc.bind(new InetSocketAddress(bindHost, bindPort));
 					}

@@ -33,13 +33,21 @@
  */
 package jade.imtp.leap.JICP;
 
+
 //#J2ME_EXCLUDE_FILE
-import jade.mtp.TransportAddress;
+import java.io.IOException;
+import java.net.BindException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+
 import jade.imtp.leap.SSLHelper;
+
+import jade.mtp.TransportAddress;
 import jade.util.Logger;
-import java.io.*;
-import java.net.*;
-import javax.net.ssl.*;
 
 /**
  * Class declaration
@@ -59,18 +67,22 @@ public class JICPSConnection extends JICPConnection {
 	 * Constructor declaration
 	 */
 	public JICPSConnection(TransportAddress ta) throws IOException {
-		constructJICPSConnectionNoAuth(ta);
+		this(ta, false, 0, null, 0);
 	}
 
 	public JICPSConnection(TransportAddress ta, boolean useSSLAuth) throws IOException {
+		this(ta, useSSLAuth, 0, null, 0);
+	}
+	
+	public JICPSConnection(TransportAddress ta, boolean useSSLAuth, int timeout, String bindHost, int bindPort) throws IOException {
 		if (useSSLAuth) {
-			constructJICPSConnectionWithAuth(ta);
+			constructJICPSConnectionWithAuth(ta, timeout, bindHost, bindPort);
 		} else {
-			constructJICPSConnectionNoAuth(ta);
+			constructJICPSConnectionNoAuth(ta, timeout, bindHost, bindPort);
 		}
 	} // end constructor
 
-	private void constructJICPSConnectionNoAuth(TransportAddress ta) throws IOException {
+	private void constructJICPSConnectionNoAuth(TransportAddress ta, int timeout, String bindHost, int bindPort) throws IOException {
 		myLogger.log(Logger.INFO, "Creating JICPSConnection with NO-AUTHENTICATION (only confidentiality).");
 
 		if (scsf == null) {
@@ -86,7 +98,21 @@ public class JICPSConnection extends JICPConnection {
 		// in use
 		while (true) {
 			try {
-				sc = scsf.createSocket(ta.getHost(), Integer.parseInt(ta.getPort()));
+				sc = scsf.createSocket();
+				if (bindHost != null || bindPort > 0) {
+					// Local binding explicitly specified
+					myLogger.log(Logger.INFO, "Binding JICPSConnection with bindHost="+bindHost+" and bindPort="+bindPort);
+					if (bindHost != null) {
+						sc.bind(new InetSocketAddress(bindHost, bindPort));
+					}
+					else {
+						sc.bind(new InetSocketAddress(bindPort));
+					}
+				}
+				else {
+					bindSocket(sc);
+				}
+				sc.connect(new InetSocketAddress(ta.getHost(), Integer.parseInt(ta.getPort())), timeout);
 				socketCnt++;
 				((SSLSocket) sc).setEnabledCipherSuites(SSLHelper.getSupportedKeys());
 				sc.setTcpNoDelay(true);
@@ -99,7 +125,7 @@ public class JICPSConnection extends JICPConnection {
 		}
 	}
 
-	private void constructJICPSConnectionWithAuth(TransportAddress ta) throws IOException {
+	private void constructJICPSConnectionWithAuth(TransportAddress ta, int timeout, String bindHost, int bindPort) throws IOException {
 		if (myLogger.isLoggable(Logger.FINE)) {
 			myLogger.log(Logger.FINE,
 					"Creating JICPSConnection with MUTUAL AUTHENTICATION.");
@@ -118,7 +144,21 @@ public class JICPSConnection extends JICPConnection {
 		// in use
 		while (true) {
 			try {
-				sc = scsf.createSocket(ta.getHost(), Integer.parseInt(ta.getPort()));
+				sc = scsf.createSocket();
+				if (bindHost != null || bindPort > 0) {
+					// Local binding explicitly specified
+					myLogger.log(Logger.INFO, "Binding JICPSConnection with bindHost="+bindHost+" and bindPort="+bindPort);
+					if (bindHost != null) {
+						sc.bind(new InetSocketAddress(bindHost, bindPort));
+					}
+					else {
+						sc.bind(new InetSocketAddress(bindPort));
+					}
+				}
+				else {
+					bindSocket(sc);
+				}
+				sc.connect(new InetSocketAddress(ta.getHost(), Integer.parseInt(ta.getPort())), timeout);
 				socketCnt++;
 				is = sc.getInputStream();
 				os = getOutputStream();

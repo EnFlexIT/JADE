@@ -23,7 +23,7 @@ public class FrontEndSDispatcher extends FrontEndDispatcher {
      * @throws IOException
      */
     protected JICPConnection getConnection(TransportAddress ta) throws IOException {
-        return new JICPSConnection(ta);
+        return new JICPSConnection(ta, false, (int) connectionTimeout, bindHost, bindPort);
     }
 
 }
