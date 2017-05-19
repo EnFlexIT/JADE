@@ -542,7 +542,7 @@ class UDPMonitorServer {
 				addDeadline(nodeID, unreachLimit);
 			}
 		} else if (oldState == UDPNodeFailureMonitor.STATE_UNREACHABLE) {
-			if (checker == null || checker.isNetworkUp()) {
+			if (checker == null || checker.isNetworkUp(nodeID)) {
 				// Unreachable-limit Expired! If no NetworkChecker is specified or the NetworkChecker says
 				// that the network is properly working, consider the monitored node DEAD.
 				newState = UDPNodeFailureMonitor.STATE_FINAL;

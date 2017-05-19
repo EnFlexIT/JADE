@@ -38,5 +38,5 @@ import jade.core.Profile;
  */
 public interface NetworkChecker {
 	void initialize(Profile p);
-	boolean isNetworkUp();
+	boolean isNetworkUp(String nodeID);
 }
