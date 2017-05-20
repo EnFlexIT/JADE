@@ -51,25 +51,25 @@ import java.util.Enumeration;
  * @author Giovanni Caire - TILAB
  */
 public class MaskableJICPPeer extends JICPPeer {
-  private Vector              masks = new Vector();
+	private Vector              masks = new Vector();
 
-  /**
-   * Default constructor
-   */
-  public MaskableJICPPeer() {
-    super();
-  }
+	/**
+	 * Default constructor
+	 */
+	public MaskableJICPPeer() {
+		super();
+	}
 
-  /**
-   * Start listening for internal platform messages on the specified port
-   */
-  public TransportAddress activate(ICP.Listener l, String peerID, Profile p) throws ICPException {
-  	// Initialize masks
-  	try {
-	  	StringBuffer sb = null;
+	/**
+	 * Start listening for internal platform messages on the specified port
+	 */
+	public TransportAddress activate(ICP.Listener l, String peerID, Profile p) throws ICPException {
+		// Initialize masks
+		try {
+			StringBuffer sb = null;
 			int idLength;
 			if (peerID != null) {
-	  		sb = new StringBuffer(peerID);
+				sb = new StringBuffer(peerID);
 				sb.append('-');
 				idLength = sb.length();
 			}
@@ -77,140 +77,140 @@ public class MaskableJICPPeer extends JICPPeer {
 				sb = new StringBuffer();
 				idLength = 0;
 			}
-			
+
 			// Unreachable networks
 			sb.append(JICPProtocol.UNREACHABLE_KEY);
 			List ls = p.getSpecifiers(sb.toString());
 			if (ls != null) {
 				Iterator it = ls.iterator();
-	    	while (it.hasNext()) {
-	    		Specifier s = (Specifier) it.next();	
-	    		// Note that in this case the className field of a specifier does 
-	    		// not have anything to do with a class.
-      		updateMask(s.getClassName());
-	    	}
-    	} 
-  	}
-  	catch (ProfileException pe) {
-  		throw new ICPException("Profile error. "+pe.getMessage());
-  	}
-			
-    return super.activate(l, peerID, p);
-  }
-  	
-  /**
-   * deliver a serialized command to a given transport address
-   */
-  public byte[] deliverCommand(TransportAddress ta, byte[] payload, boolean requireFreshConnection) throws ICPException {
-    if (!isMasked(ta.getHost())) {
-      return super.deliverCommand(ta, payload, requireFreshConnection);
-    } 
-    else {
-      throw new ICPException("Destination masked");
-    } 
-  } 
+				while (it.hasNext()) {
+					Specifier s = (Specifier) it.next();	
+					// Note that in this case the className field of a specifier does 
+					// not have anything to do with a class.
+					updateMask(s.getClassName());
+				}
+			} 
+		}
+		catch (ProfileException pe) {
+			throw new ICPException("Profile error. "+pe.getMessage());
+		}
 
-  /**
-   * Method declaration
-   * 
-   * @param m
-   * 
-   * @throws ICPException
-   * 
-   * @see
-   */
-  private void updateMask(String m) throws ICPException {
-    int[] mask = parseIP(m);
-    masks.addElement(mask);
-  } 
+		return super.activate(l, peerID, p);
+	}
 
-  /**
-   * Method declaration
-   * 
-   * @param host
-   * 
-   * @return
-   * 
-   * @see
-   */
-  private boolean isMasked(String host) {
-    try {
-      int[]       ipAddr = parseIP(host);
+	/**
+	 * deliver a serialized command to a given transport address
+	 */
+	public byte[] deliverCommand(TransportAddress ta, byte[] payload, boolean requireFreshConnection) throws ICPException {
+		if (!isMasked(ta.getHost())) {
+			return super.deliverCommand(ta, payload, requireFreshConnection);
+		} 
+		else {
+			throw new ICPException("Destination masked");
+		} 
+	} 
 
-      Enumeration e = masks.elements();
-      // Loop on mask items
-      while (e.hasMoreElements()) {
-        int[]   mask = (int[]) e.nextElement();
-        // Check whether the host is masked by this mask item
-        boolean masked = true;
-        for (int i = 0; i < mask.length; ++i) {
-          if (ipAddr[i] != mask[i]) {
-            masked = false;
+	/**
+	 * Method declaration
+	 * 
+	 * @param m
+	 * 
+	 * @throws ICPException
+	 * 
+	 * @see
+	 */
+	private void updateMask(String m) throws ICPException {
+		int[] mask = parseIP(m);
+		masks.addElement(mask);
+	} 
 
-            break;
-          } 
-        } 
+	/**
+	 * Method declaration
+	 * 
+	 * @param host
+	 * 
+	 * @return
+	 * 
+	 * @see
+	 */
+	private boolean isMasked(String host) {
+		try {
+			int[]       ipAddr = parseIP(host);
 
-        if (masked) {
-          return true;
-        } 
-      } 
+			Enumeration e = masks.elements();
+			// Loop on mask items
+			while (e.hasMoreElements()) {
+				int[]   mask = (int[]) e.nextElement();
+				// Check whether the host is masked by this mask item
+				boolean masked = true;
+				for (int i = 0; i < mask.length; ++i) {
+					if (ipAddr[i] != mask[i]) {
+						masked = false;
 
-      return false;
-    } 
-    catch (ICPException icpe) {
-      // If the host is not in the form a.b.c.d --> it cannot be masked
-      return false;
-    } 
-  } 
+						break;
+					} 
+				} 
 
-  /**
-   * Method declaration
-   * 
-   * @param addr
-   * 
-   * @return
-   * 
-   * @throws ICPException
-   * 
-   * @see
-   */
-  private int[] parseIP(String addr) throws ICPException {
-    int[] abcd = new int[4];
-    int   first = 0;
-    int   n = 0;
-    try {
-      boolean stop = false;
-      while (n < 3 &&!stop) {
-        int last = addr.indexOf('.', first);
-        if (last < 0) {
-          last = addr.length();
-          stop = true;
-        } 
+				if (masked) {
+					return true;
+				} 
+			} 
 
-        String tmp = addr.substring(first, last);
-        abcd[n] = Integer.parseInt(tmp);
-        first = last+1;
-        n++;
-      } 
+			return false;
+		} 
+		catch (ICPException icpe) {
+			// If the host is not in the form a.b.c.d --> it cannot be masked
+			return false;
+		} 
+	} 
 
-    } 
-    catch (NumberFormatException nfe) {
-    } 
+	/**
+	 * Method declaration
+	 * 
+	 * @param addr
+	 * 
+	 * @return
+	 * 
+	 * @throws ICPException
+	 * 
+	 * @see
+	 */
+	private int[] parseIP(String addr) throws ICPException {
+		int[] abcd = new int[4];
+		int   first = 0;
+		int   n = 0;
+		try {
+			boolean stop = false;
+			while (n < 3 &&!stop) {
+				int last = addr.indexOf('.', first);
+				if (last < 0) {
+					last = addr.length();
+					stop = true;
+				} 
 
-    if (n == 0) {
-      throw new ICPException("Wrong mask");
-    } 
+				String tmp = addr.substring(first, last);
+				abcd[n] = Integer.parseInt(tmp);
+				first = last+1;
+				n++;
+			} 
 
-    int[] ipAddr = new int[n];
-    for (int i = 0; i < n; ++i) {
-      ipAddr[i] = abcd[i];
-    } 
+		} 
+		catch (NumberFormatException nfe) {
+		} 
 
-    abcd = null;
+		if (n == 0) {
+			throw new ICPException("Wrong mask");
+		} 
 
-    return ipAddr;
-  } 
+		int[] ipAddr = new int[n];
+		for (int i = 0; i < n; ++i) {
+			ipAddr[i] = abcd[i];
+		} 
+
+		abcd = null;
+
+		return ipAddr;
+	} 
 
 }
 
