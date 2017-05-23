@@ -459,6 +459,7 @@ class MessageManager {
 	/**
 	 */
 	public static final String stringify(GenericMessage m) {
+		//#J2ME_EXCLUDE_BEGIN
 		if (m instanceof MultipleGenericMessage) {
 			// MULTIPLE message
 			StringBuffer sb = new StringBuffer("[SET");
@@ -479,6 +480,7 @@ class MessageManager {
 			return sb.toString();
 		}
 		else {
+			//#J2ME_EXCLUDE_END
 			// SINGLE (normal) message
 			ACLMessage msg = m.getACLMessage();
 			if (msg != null) {
@@ -500,9 +502,12 @@ class MessageManager {
 			else {
 				return ("\"Unavailable\"");
 			}
+			//#J2ME_EXCLUDE_BEGIN
 		}
+		//#J2ME_EXCLUDE_END
 	}
 	
+	//#J2ME_EXCLUDE_BEGIN
 	public static void main(String[] args) {
 		GenericMessage gm = new GenericMessage();
 		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -518,6 +523,7 @@ class MessageManager {
 		mgm.setMessages(l);
 		System.out.println(stringify(mgm));
 	}
+	//#J2ME_EXCLUDE_END
 
 	// For debugging purpose
 	String[] getQueueStatus() {
