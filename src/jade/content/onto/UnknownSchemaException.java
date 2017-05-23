@@ -50,7 +50,7 @@ public class UnknownSchemaException extends OntologyException {
     	this.fillStackTrace = fillStackTrace;
     }
     
-    
+  //#J2ME_EXCLUDE_BEGIN
     public Throwable fillInStackTrace() {
     	if (fillStackTrace) {
     		return super.fillInStackTrace();
@@ -59,5 +59,6 @@ public class UnknownSchemaException extends OntologyException {
 	        return this;
     	}
     }
+  //#J2ME_EXCLUDE_END
 }
 

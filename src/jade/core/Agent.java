@@ -85,7 +85,7 @@ public class Agent implements Runnable, Serializable
 {
 	private static final long     serialVersionUID = 3487495895819000L;
 	
-	private static Logger log = Logger.getJADELogger(Agent.class.getName());
+	private Logger log = Logger.getJADELogger(this.getClass().getName());
 
 	/**
 	 Inner class Interrupted.

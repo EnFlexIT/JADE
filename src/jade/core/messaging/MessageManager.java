@@ -23,8 +23,10 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.messaging;
 
+//#J2ME_EXCLUDE_BEGIN
 import java.util.ArrayList;
 import java.util.List;
+//#J2ME_EXCLUDE_END
 
 import jade.util.Logger;
 import jade.lang.acl.ACLMessage;
@@ -35,7 +37,9 @@ import jade.core.Profile;
 import jade.core.ProfileException;
 import jade.core.NotFoundException;
 import jade.core.UnreachableException;
+//#J2ME_EXCLUDE_BEGIN
 import jade.core.sam.AverageMeasureProviderImpl;
+//#J2ME_EXCLUDE_END
 
 /**
  * This class manages the delivery of ACLMessages to remote destinations
@@ -87,8 +91,10 @@ class MessageManager {
 	private long totSlowDeliveryCnt = 0;
 	private long totVerySlowDeliveryCnt = 0;
 	
-	private long totMultipleDeliveryCnt = 0; // How many times multiple-message-delivery was triggered 
+	private long totMultipleDeliveryCnt = 0; // How many times multiple-message-delivery was triggered
+	//#J2ME_EXCLUDE_BEGIN
 	private AverageMeasureProviderImpl avgMsgCountPerMultipleDelivery = new AverageMeasureProviderImpl(); // Average number of messages delivered in multiple-message-delivery
+	//#J2ME_EXCLUDE_END
 	
 	
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());
@@ -349,7 +355,9 @@ class MessageManager {
 					totServedCnt += k;
 					if (k > 1) {
 						totMultipleDeliveryCnt++;
+						//#J2ME_EXCLUDE_BEGIN
 						avgMsgCountPerMultipleDelivery.addSample(k);
+						//#J2ME_EXCLUDE_END
 					}
 					outBox.handleServed(receiverID, k);
 					
@@ -563,9 +571,11 @@ class MessageManager {
 		return totMultipleDeliveryCnt;
 	}
 	
+	//#J2ME_EXCLUDE_BEGIN
 	AverageMeasureProviderImpl getAvgMsgCountPerMultipleDeliveryProvider() {
 		return avgMsgCountPerMultipleDelivery;
 	}
+	//#J2ME_EXCLUDE_END
 	
 	// For debugging purpose
 	String getGlobalInfo() {

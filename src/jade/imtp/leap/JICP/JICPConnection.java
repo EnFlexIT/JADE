@@ -56,7 +56,7 @@ public class JICPConnection extends Connection {
 	
 	//#MIDP_EXCLUDE_BEGIN
 	protected Socket       sc;
-	protected static Logger myLogger = Logger.getMyLogger(JICPSConnection.class.getName());
+	protected static Logger myLogger = Logger.getMyLogger(JICPConnection.class.getName());
 	//#MIDP_EXCLUDE_END
 	/*#MIDP_INCLUDE_BEGIN
 	protected StreamConnection sc;
