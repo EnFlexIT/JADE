@@ -103,8 +103,16 @@ class BeanOntologyBuilder {
 		char c;
 		if (methodName.startsWith(BOOLEAN_GETTER_PREFIX)) {
 			c = methodName.charAt(2);
-		} else {
-			c = methodName.charAt(3);
+		} 
+		else {
+			if (methodName.length() > 3) {
+				c = methodName.charAt(3);
+			}
+			else {
+				// We can get here if the class has a method called get(...)
+				// FIX provided by Christian Roemer
+				return false;
+			}
 		}
 		if (!Character.isUpperCase(c) && '_' != c) {
 			// its 3th (isXXX) or 4th (getXXX) char is not uppercase or is not '_'
