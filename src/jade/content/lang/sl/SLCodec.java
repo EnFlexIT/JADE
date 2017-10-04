@@ -64,7 +64,7 @@ public class SLCodec extends SimpleSLCodec {
 public class SLCodec extends StringCodec {
 
 	public static final String PRESERVE_JAVA_TYPES = "SL-preserve-java-types";
-	
+
 	private transient SLParser parser;
 	private transient ExtendedSLParser extendedParser;
 	private SL0Ontology slOnto; // ontology of the content language
@@ -73,7 +73,7 @@ public class SLCodec extends StringCodec {
 	private transient StringBuffer buffer = null; 
 	/** This variable is true, when meta symbols are allowed (metas are a semantics-specific extension to the SL Grammar) **/
 	private boolean metaAllowed = true; //FIXME set/unset this variable to do
-	
+
 	private boolean preserveJavaTypes = false;
 
 	/**
@@ -101,7 +101,7 @@ public class SLCodec extends StringCodec {
 	public SLCodec(int slType) {
 		this(slType, readPreserveJavaTypesProperty());
 	}
-	
+
 	/**
 	 * Create an SLCodec for the given profile of SL-language specifying whether or not java primitive types 
 	 * (long, int, float, double) must be preserved.
@@ -126,12 +126,12 @@ public class SLCodec extends StringCodec {
 		String strPreserveJavaTypes = System.getProperty(PRESERVE_JAVA_TYPES);
 		return "true".equals(strPreserveJavaTypes);
 	}
-	
+
 	private void initParser() {
 		int	slType	= jade.domain.FIPANames.ContentLanguage.FIPA_SL0.equals(getName()) ? 0
-					: jade.domain.FIPANames.ContentLanguage.FIPA_SL2.equals(getName()) ? 1 
-					: jade.domain.FIPANames.ContentLanguage.FIPA_SL2.equals(getName()) ? 2 : 3;
-		
+				: jade.domain.FIPANames.ContentLanguage.FIPA_SL2.equals(getName()) ? 1 
+						: jade.domain.FIPANames.ContentLanguage.FIPA_SL2.equals(getName()) ? 2 : 3;
+
 		if (preserveJavaTypes) {
 			extendedParser = new ExtendedSLParser(new StringReader(""));
 			extendedParser.setSLType(slType);
@@ -141,11 +141,11 @@ public class SLCodec extends StringCodec {
 			parser.setSLType(slType); 
 		}
 	}
-	
+
 	public boolean getPreserveJavaTypes() {
 		return preserveJavaTypes;
 	}
-	
+
 	/**
 	 * Encodes a content into a String.
 	 * @param content the content as an abstract descriptor.
@@ -226,9 +226,22 @@ public class SLCodec extends StringCodec {
 				buffer.append(propositionSymbol);
 				buffer.append(' ');
 				try {
-					encodeAndAppend((AbsVariable)val.getAbsObject(slotNames[0])); //FIXME. The hypothesis is that the first slot is the variable
+					encodeAndAppend((AbsVariable)val.getAbsObject(slotNames[0])); 
 					buffer.append(' ');
 					encodeAndAppend((AbsPredicate)val.getAbsObject(slotNames[1]));
+				} catch (RuntimeException e) {
+					throw new CodecException("A Quantifier requires a variable and a formula arguments",e);
+				}
+			} else if (slOnto.isConditionedQuantifier(propositionSymbol)) {
+				// Conditioned Quantifier operator of the extended-SL language (FOREACH)
+				buffer.append(propositionSymbol);
+				buffer.append(' ');
+				try {
+					encodeAndAppend((AbsVariable)val.getAbsObject(slotNames[0])); 
+					buffer.append(' ');
+					encodeAndAppend((AbsPredicate)val.getAbsObject(slotNames[1]));
+					buffer.append(' ');
+					encodeAndAppend((AbsPredicate)val.getAbsObject(slotNames[2]));
 				} catch (RuntimeException e) {
 					throw new CodecException("A Quantifier requires a variable and a formula arguments",e);
 				}
@@ -303,6 +316,12 @@ public class SLCodec extends StringCodec {
 		}
 	}
 
+	private void encodeAndAppend(AbsReference val) throws CodecException {
+		String objectType = val.getType();
+		String name = val.getName();
+		buffer.append(AbsReference.asString(objectType, name));
+	}
+
 	private void encodeAndAppend(AbsConcept val) throws CodecException {
 		String functionSymbol = val.getTypeName();
 		buffer.append('(');
@@ -371,7 +390,7 @@ public class SLCodec extends StringCodec {
 			// Note: Use US-ASCII charSet and Base64 encoding 
 			byte[] b = (byte[]) v;
 			b = Base64.encodeBase64(b);
-			
+
 			buffer.append('#');
 			buffer.append(b.length);
 			buffer.append('"');
@@ -404,6 +423,7 @@ public class SLCodec extends StringCodec {
 		//	if (val instanceof AbsAgentAction) return toString( (AbsAgentAction)val);
 		else if (val instanceof AbsAggregate) encodeAndAppend( (AbsAggregate)val);
 		else if (val instanceof AbsConcept)   encodeAndAppend( (AbsConcept)val);
+		else if (val instanceof AbsReference)   encodeAndAppend( (AbsReference)val);
 		else throw new CodecException("SLCodec cannot encode this object "+val);
 	}
 
@@ -426,6 +446,9 @@ public class SLCodec extends StringCodec {
 	 * @throws CodecException
 	 */
 	public synchronized AbsContentElement decode(Ontology ontology, String content) throws CodecException {
+		if (ontology == null) {
+			ontology = slOnto;
+		}
 		try {
 			AbsContentElementList tuple = null;
 			if (preserveJavaTypes) {
@@ -456,6 +479,9 @@ public class SLCodec extends StringCodec {
 	 * @since JADE 3.4
 	 */
 	public synchronized AbsTerm decodeTerm(Ontology ontology, String term) throws CodecException {
+		if (ontology == null) {
+			ontology = slOnto;
+		}
 		try {
 			if (preserveJavaTypes) {
 				extendedParser.reinit(ontology, term);
@@ -500,6 +526,9 @@ public class SLCodec extends StringCodec {
 	 * @since JADE 3.4
 	 */
 	public synchronized AbsPredicate decodeFormula(Ontology ontology, String formula) throws CodecException {
+		if (ontology == null) {
+			ontology = slOnto;
+		}
 		try {
 			if (preserveJavaTypes) {
 				extendedParser.reinit(ontology, formula);
@@ -537,50 +566,63 @@ public class SLCodec extends StringCodec {
 
 	public static void main(String[] args) {
 		SLCodec codec = null;
-		char contentType = 'C';
-		try {
-			codec = new SLCodec(Integer.parseInt(args[0]));
-			contentType = (args.length > 1 ? args[1].charAt(0) : 'C');
-		} catch (Exception e) {
-			System.out.println("usage: SLCodec SLLevel [ContentType]\n where SLLevel can be 0 for SL0, 1 for SL1, 2 for SL2, 3 or more for full SL \n and where ContentType is a char representing the type of content to be parsed: C for a contentexpression (default), T for a term, F for a formula");
-			System.exit(0);
+		if (args.length > 0) {
+			// Use a standard SL Codec of the indicated level (0, 1, 2)
+			try {
+				codec = new SLCodec(Integer.parseInt(args[0]));
+			} catch (Exception e) {
+				System.out.println("usage: SLCodec SLLevel [ContentType]\n where SLLevel can be 0 for SL0, 1 for SL1, 2 for SL2, 3 or more for full SL \n and where ContentType is a char representing the type of content to be parsed: C for a contentexpression (default), T for a term, F for a formula");
+				System.exit(0);
+			}
+		}
+		else {
+			// Use an extended SL codec
+			codec = new SLCodec(true);
 		}
 
-		while (true) {
-			try {
-				System.out.println("insert an SL " + (contentType == 'F' ? "Well-Formed Formula" : (contentType == 'T' ? "Term" : "Content Expression")) + " to parse (all the expression on a single line!): ");
-				BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
+		try {
+			BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
+			while (true) {
+				char contentType = 'F';
+				System.out.println("Insert an SL expression (either Wff or T:Term):");
 				String str = buff.readLine();
-				System.out.println("\n\n");
-				if (contentType == 'F') {
-					AbsPredicate result = codec.decodeFormula(null, str);
-					System.out.println("DUMP OF THE DECODE OUTPUT (just for debugging):");
-					System.out.println(result);
-					System.out.println("\n\n");
-					System.out.println("AFTER ENCODE:");
-					System.out.println(codec.encodeFormula(null, result));
-					System.out.println("\n\n");
-				} else if (contentType == 'T') {
-					AbsTerm result = codec.decodeTerm(null, str);
-					System.out.println("DUMP OF THE DECODE OUTPUT (just for debugging):");
-					System.out.println(result);
-					System.out.println("\n\n");
-					System.out.println("AFTER ENCODE:");
-					System.out.println(codec.encodeTerm(null, result));
-					System.out.println("\n\n");
-				} else {
-					AbsContentElement result = codec.decode(str);
-					System.out.println("DUMP OF THE DECODE OUTPUT (just for debugging):");
-					System.out.println(result);
-					System.out.println("\n\n");
-					System.out.println("AFTER ENCODE:");
-					System.out.println(codec.encode(result));
-					System.out.println("\n\n");
+				if (str.startsWith("T:")) {
+					contentType = 'T';
+					str = str.substring(2);
 				}
-			} catch(Exception pe) {
-				pe.printStackTrace();
-				//System.exit(0);
+				System.out.println("\n\n");
+				try {
+					if (contentType == 'F') {
+						AbsPredicate result = codec.decodeFormula(null, str);
+						System.out.println("ABS representation:");
+						System.out.println(result);
+						System.out.println("Encoded ABS representation:");
+						System.out.println(codec.encodeFormula(null, result));
+						System.out.println("\n");
+					} else if (contentType == 'T') {
+						AbsTerm result = codec.decodeTerm(null, str);
+						System.out.println("ABS representation:");
+						System.out.println(result);
+						System.out.println("Encoded ABS representation:");
+						System.out.println(codec.encodeTerm(null, result));
+						System.out.println("\n");
+					} else {
+						AbsContentElement result = codec.decode(str);
+						System.out.println("DUMP OF THE DECODE OUTPUT (just for debugging):");
+						System.out.println(result);
+						System.out.println("\n\n");
+						System.out.println("AFTER ENCODE:");
+						System.out.println(codec.encode(result));
+						System.out.println("\n\n");
+					}
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
+		} catch(Exception pe) {
+			pe.printStackTrace();
+			//System.exit(0);
 		}
 	}
 
@@ -686,6 +728,6 @@ public class SLCodec extends StringCodec {
 		return this; 
 	}
 
-//#MIDP_EXCLUDE_END
+	//#MIDP_EXCLUDE_END
 }
 

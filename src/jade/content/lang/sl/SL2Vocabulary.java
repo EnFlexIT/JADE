@@ -49,6 +49,11 @@ public interface SL2Vocabulary extends SL1Vocabulary {
   public static final String         FORALL_WHAT = "what";
   public static final String         FORALL_CONDITION = "condition";
   
+  public static final String         FOREACH = "foreach";
+  public static final String         FOREACH_WHAT = "what";
+  public static final String         FOREACH_WHERE = "where";
+  public static final String         FOREACH_CONDITION = "condition";
+  
   public static final String         BELIEF = "B";
   public static final String         BELIEF_AGENT = "agent";
   public static final String         BELIEF_CONDITION = "condition";

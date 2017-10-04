@@ -32,83 +32,83 @@ import jade.content.abs.*;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class VariableSchema extends TermSchema {
-    public static final String    BASE_NAME = "Variable";
-    private static VariableSchema baseSchema = new VariableSchema();
-    
-    public static final String    NAME = "Name";
-    public static final String    VALUE_TYPE = "ValueType";
+	public static final String    BASE_NAME = "Variable";
+	private static VariableSchema baseSchema = new VariableSchema();
 
-    /**
-     * Construct a schema that vinculates an entity to be a generic
-     * variable.
-     * Note that there are no different types of variable as it 
-     * happens for concepts (e.g. Person, Address...), IREs (e.g. IOTA,
-     * ANY, ALL...) and the like. Therefore there is no VariableSchema
-     * constructor that takes a String parameter.
-     * Not also that the type of the values that can be assumed by
-     * the variable is another story and is defined by the 
-     * VARIABLE_VALUE_TYPE slot of the VariableSchema
-     */
-    private VariableSchema() {
-        super(BASE_NAME);
+	public static final String    NAME = "Name";
+	public static final String    VALUE_TYPE = "ValueType";
 
-        try {
-        	add(NAME, BasicOntology.getInstance().getSchema(BasicOntology.STRING));
-        	add(VALUE_TYPE, BasicOntology.getInstance().getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
-        } 
-        catch (OntologyException oe) {
-            oe.printStackTrace();
-        } 
-    }
+	/**
+	 * Construct a schema that vinculates an entity to be a generic
+	 * variable.
+	 * Note that there are no different types of variable as it 
+	 * happens for concepts (e.g. Person, Address...), IREs (e.g. IOTA,
+	 * ANY, ALL...) and the like. Therefore there is no VariableSchema
+	 * constructor that takes a String parameter.
+	 * Note also that the type of the values that can be assumed by
+	 * the variable is another story and is defined by the 
+	 * VARIABLE_VALUE_TYPE slot of the VariableSchema
+	 */
+	private VariableSchema() {
+		super(BASE_NAME);
 
-    /**
-     * Retrieve the generic base schema for all variables.
-     *
-     * @return the generic base schema for all variables.
-     */
-    public static ObjectSchema getBaseSchema() {
-        return baseSchema;
-    } 
+		try {
+			add(NAME, BasicOntology.getInstance().getSchema(BasicOntology.STRING));
+			add(VALUE_TYPE, BasicOntology.getInstance().getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
+		} 
+		catch (OntologyException oe) {
+			oe.printStackTrace();
+		} 
+	}
 
-    /**
-     * Creates an Abstract descriptor to hold a variable
-     */
-    public AbsObject newInstance() throws OntologyException {
-        return new AbsVariable();
-    } 
+	/**
+	 * Retrieve the generic base schema for all variables.
+	 *
+	 * @return the generic base schema for all variables.
+	 */
+	public static ObjectSchema getBaseSchema() {
+		return baseSchema;
+	} 
 
-		/**
+	/**
+	 * Creates an Abstract descriptor to hold a variable
+	 */
+	public AbsObject newInstance() throws OntologyException {
+		return new AbsVariable();
+	} 
+
+	/**
 	     Check whether a given abstract descriptor complies with this 
 	     schema.
 	     @param abs The abstract descriptor to be checked
 	     @throws OntologyException If the abstract descriptor does not 
 	     complies with this schema
-	   */
-  	public void validate(AbsObject abs, Ontology onto) throws OntologyException {
-			// Check the type of the abstract descriptor
-  		if (!(abs instanceof AbsVariable)) {
-				throw new OntologyException(abs+" is not an AbsVariable");
-			}
-			
-			// Check the slots
-			validateSlots(abs, onto);
-  	}
-  	
-  	/**
-  	   A variable can be put whereever a term of whatever type is
+	 */
+	public void validate(AbsObject abs, Ontology onto) throws OntologyException {
+		// Check the type of the abstract descriptor
+		if (!(abs instanceof AbsVariable)) {
+			throw new OntologyException(abs+" is not an AbsVariable");
+		}
+
+		// Check the slots
+		validateSlots(abs, onto);
+	}
+
+	/**
+  	   A variable can be put wherever a term of whatever type is
   	   required --> A VariableSchema is
   	   compatible with s if s descends from TermSchema.getBaseSchema()
-  	 */
-  	public boolean isCompatibleWith(ObjectSchema s) {
-  		if (s != null) {
-  			return s.descendsFrom(TermSchema.getBaseSchema());
-  		}
-  		else {
-  			return false;
-  		}
-  	}
-  		
-  	/**
+	 */
+	public boolean isCompatibleWith(ObjectSchema s) {
+		if (s != null) {
+			return s.descendsFrom(TermSchema.getBaseSchema());
+		}
+		else {
+			return false;
+		}
+	}
+
+	/**
   	   Return true if 
   	   - s is the base schema for the XXXSchema class this schema is
   	     an instance of (e.g. s is ConceptSchema.getBaseSchema() and this 
@@ -116,17 +116,17 @@ public class VariableSchema extends TermSchema {
   	   - s is the base schema for a super-class of the XXXSchema class
   	     this schema is an instance of (e.g. s is TermSchema.getBaseSchema()
   	     and this schema is an instance of ConceptSchema)
-  	 */
-  	protected boolean descendsFrom(ObjectSchema s) {
-  		if (s != null) {
-  			if (s.equals(getBaseSchema())) {
-	  			return true;
-  			}
-  			return super.descendsFrom(s);
-  		}
-  		else {
-  			return false;
-  		}
-  	}
+	 */
+	protected boolean descendsFrom(ObjectSchema s) {
+		if (s != null) {
+			if (s.equals(getBaseSchema())) {
+				return true;
+			}
+			return super.descendsFrom(s);
+		}
+		else {
+			return false;
+		}
+	}
 }
 

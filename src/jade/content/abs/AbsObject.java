@@ -42,6 +42,7 @@ public interface AbsObject extends Serializable {
 	public static final int ABS_VARIABLE = 7;
 	public static final int ABS_CONTENT_ELEMENT_LIST = 8;
 	public static final int ABS_CONCEPT_SLOT_FUNCTION = 9;
+	public static final int ABS_REFERENCE = 10;
 	
     /**
      * @return The name of the type of the object held by this

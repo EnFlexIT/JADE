@@ -262,6 +262,7 @@ class ExtendedSLParser implements ExtendedSLParserConstants {
     case UNARYLOGICALOP:
     case BINARYLOGICALOP:
     case QUANTIFIER:
+    case CONDITIONEDQUANTIFIER:
     case WORD2:
     case STRING_LITERAL2:
       val = Wff_NoBrace();
@@ -296,11 +297,21 @@ class ExtendedSLParser implements ExtendedSLParserConstants {
     throw new Error("Missing return statement in function");
   }
 
+  final public AbsReference Reference() throws ParseException {
+  AbsReference val=null; Token v;
+    v = jj_consume_token(REFERENCE);
+   val = AbsReference.parse(v.image.substring(1)); {if (true) return val;}
+    throw new Error("Missing return statement in function");
+  }
+
   final public AbsTerm Term() throws ParseException {
   Token v; AbsTerm val=null; String s;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case VARIABLE:
       val = Variable();
+      break;
+    case REFERENCE:
+      val = Reference();
       break;
     case INTEGER:
     case HEXINTEGER:
@@ -447,6 +458,7 @@ class ExtendedSLParser implements ExtendedSLParserConstants {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case LBRACE:
       case VARIABLE:
+      case REFERENCE:
       case INTEGER:
       case HEXINTEGER:
       case LONG:
@@ -487,6 +499,7 @@ class ExtendedSLParser implements ExtendedSLParserConstants {
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case LBRACE:
     case VARIABLE:
+    case REFERENCE:
     case INTEGER:
     case HEXINTEGER:
     case LONG:
@@ -519,6 +532,7 @@ class ExtendedSLParser implements ExtendedSLParserConstants {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case LBRACE:
         case VARIABLE:
+        case REFERENCE:
         case INTEGER:
         case HEXINTEGER:
         case LONG:
@@ -725,6 +739,24 @@ class ExtendedSLParser implements ExtendedSLParserConstants {
            val.set(Codec.UNNAMEDPREFIX+"1", arg1);
         }
       break;
+    case CONDITIONEDQUANTIFIER:
+      t = jj_consume_token(CONDITIONEDQUANTIFIER);
+                               if (slType<2) {if (true) throw new ParseException("NotFullSL_QuantifierExpression_NotParsable_UseAtLeastSL2");} AbsVariable var1;
+      var1 = Variable();
+      arg1 = Wff();
+      arg2 = Wff();
+    val = new AbsPredicate(t.image);
+    try {
+           slotNames = curOntology.getSchema(t.image).getNames();
+           val.set(slotNames[0], var1);
+           val.set(slotNames[1], arg1);
+           val.set(slotNames[2], arg2);
+        } catch (Exception e) {
+           val.set(Codec.UNNAMEDPREFIX+"0", var1);
+           val.set(Codec.UNNAMEDPREFIX+"1", arg1);
+           val.set(Codec.UNNAMEDPREFIX+"2", arg2);
+        }
+      break;
     case MODALOP:
       t = jj_consume_token(MODALOP);
                  if (slType<2) {if (true) throw new ParseException("NotFullSL_ModalOperatorExpression_NotParsable_UseAtLeastSL2");}
@@ -793,6 +825,7 @@ class ExtendedSLParser implements ExtendedSLParserConstants {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case LBRACE:
         case VARIABLE:
+        case REFERENCE:
         case INTEGER:
         case HEXINTEGER:
         case LONG:
@@ -975,10 +1008,10 @@ class ExtendedSLParser implements ExtendedSLParserConstants {
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x210c020,0x2000020,0x4000040,0x210c020,0xb800c000,0x5800c000,0x21cffa0,0xcff00,0x21fffa0,0x4000c000,0x21cffa0,0x30000,0x21fffa0,0x30000,0x8000000,0x2100020,0x210c020,0x210c020,0x21cffa0,0xa000c000,0x3f00,0xc000,0x100000,};
+      jj_la1_0 = new int[] {0x4218020,0x4000020,0x8000040,0x4218020,0x70018000,0xb0018000,0x439ffa0,0x19fe00,0x43fffa0,0x80018000,0x439ffa0,0x60000,0x43fffa0,0x60000,0x10000000,0x4200020,0x4218020,0x4218020,0x439ffa0,0x40018000,0x7e00,0x18000,0x200000,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x70,0x0,0x0,0x70,0x3f,0x31,0x70,0x30,0x70,0x30,0x70,0x0,0x70,0x0,0x1,0x40,0x70,0x70,0x70,0x3e,0x0,0x30,0x40,};
+      jj_la1_1 = new int[] {0x1c0,0x0,0x0,0x1c0,0xff,0xc2,0x1c0,0xc0,0x1c0,0xc0,0x1c0,0x0,0x1c0,0x0,0x2,0x100,0x1c0,0x1c0,0x1c0,0xfd,0x0,0xc0,0x100,};
    }
 
   /** Constructor with InputStream. */
@@ -987,7 +1020,7 @@ class ExtendedSLParser implements ExtendedSLParserConstants {
   }
   /** Constructor with InputStream and supplied encoding */
   public ExtendedSLParser(java.io.InputStream stream, String encoding) {
-    try { jj_input_stream = new SimpleCharStream(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e.getMessage(), e); }
+    try { jj_input_stream = new SimpleCharStream(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
     token_source = new ExtendedSLParserTokenManager(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
@@ -1001,7 +1034,7 @@ class ExtendedSLParser implements ExtendedSLParserConstants {
   }
   /** Reinitialise. */
   public void ReInit(java.io.InputStream stream, String encoding) {
-    try { jj_input_stream.ReInit(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e.getMessage(), e); }
+    try { jj_input_stream.ReInit(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
     token_source.ReInit(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
@@ -1095,7 +1128,7 @@ class ExtendedSLParser implements ExtendedSLParserConstants {
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[39];
+    boolean[] la1tokens = new boolean[41];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -1112,7 +1145,7 @@ class ExtendedSLParser implements ExtendedSLParserConstants {
         }
       }
     }
-    for (int i = 0; i < 39; i++) {
+    for (int i = 0; i < 41; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

@@ -102,6 +102,25 @@ public class AbsObjectImpl implements AbsObject {
 	} 
 
 	/**
+	 * This method enables all order-based getter methods in AbsPredicate
+	 */
+	protected AbsObject getAbsObject(int index) {
+		String name = (String) orderedKeys.get(index);
+		return getAbsObject(name);
+	}
+	
+	/**
+	 * This method enables the omonimous method in AbsPredicate
+	 */
+	protected AbsObject[] getValues() {
+		AbsObject[] values = new AbsObject[orderedKeys.size()];
+		for (int i = 0; i < orderedKeys.size(); ++i) {
+			values[i] = getAbsObject((String) orderedKeys.get(i));
+		}
+		return values;
+	}
+	
+	/**
 	 * @return the name of all attributes.
 	 * @see AbsObject#getNames()
 	 */

@@ -264,11 +264,19 @@ AbsVariable Variable():
   {val = new AbsVariable(); val.setName(v.image.substring(1)); return val;}
 }
 
+AbsReference Reference():
+{ AbsReference val=null; Token v;}
+{
+  v=<REFERENCE>
+  /*{val = new AbsReference(); val.setName(v.image.substring(1)); return val;}*/
+  {val = AbsReference.parse(v.image.substring(1)); return val;}
+}
 
 AbsTerm Term():
 { Token v; AbsTerm val=null; String s;}
 {
  (  val=Variable() 
+  | val=Reference()
   | val=Constant()
   | LBrace() 
    (   val=FunctionalTerm_NoBrace()
@@ -464,7 +472,7 @@ AbsPredicate Wff_NoBrace() :
     }
 
   | t=<QUANTIFIER> {if (slType<2) throw new ParseException("NotFullSL_QuantifierExpression_NotParsable_UseAtLeastSL2"); AbsVariable var; } 
-    var=Variable() arg1=Wff() 
+    var=Variable() arg1=Wff()
    {val = new AbsPredicate(t.image); 
     try {
 	   slotNames = curOntology.getSchema(t.image).getNames();
@@ -476,6 +484,21 @@ AbsPredicate Wff_NoBrace() :
         }
     }
 
+  | t=<CONDITIONEDQUANTIFIER> {if (slType<2) throw new ParseException("NotFullSL_QuantifierExpression_NotParsable_UseAtLeastSL2"); AbsVariable var1; } 
+    var1=Variable() arg1=Wff() arg2=Wff()
+   {val = new AbsPredicate(t.image); 
+    try {
+	   slotNames = curOntology.getSchema(t.image).getNames();
+	   val.set(slotNames[0], var1);
+	   val.set(slotNames[1], arg1);
+	   val.set(slotNames[2], arg2);
+        } catch (Exception e) {
+           val.set(Codec.UNNAMEDPREFIX+"0", var1);
+           val.set(Codec.UNNAMEDPREFIX+"1", arg1);
+           val.set(Codec.UNNAMEDPREFIX+"2", arg2);
+        }
+    }
+	
   | t=<MODALOP> {if (slType<2) throw new ParseException("NotFullSL_ModalOperatorExpression_NotParsable_UseAtLeastSL2");} term=Term() arg1=Wff()
    {val = new AbsPredicate(t.image); 
     try {
@@ -630,6 +653,7 @@ TOKEN:
   < LBRACE     : "("       > : OPERATORSTATE
 | < RBRACE     : ")"       >
 | < VARIABLE   : "?" <WORD> | "?" <STRING_LITERAL> >
+| < REFERENCE  : "$" <WORD> | "$" <STRING_LITERAL> >
 | < INTEGER    : (["+","-"])? (["0"-"9"])+ >
 | < HEXINTEGER : (["+","-"])? "0" ["x","X"] (["0"-"9" , "a"-"f" , "A"-"F"])+ >
 | < LONG    : (["+","-"])? (["0"-"9"])+ "L" >
@@ -701,6 +725,7 @@ TOKEN:
 | < UNARYLOGICALOP : "not" > : DEFAULT
 | < BINARYLOGICALOP : "and" | "or" | "implies" | "equiv" > : DEFAULT
 | < QUANTIFIER : "forall" | "exists" > : DEFAULT
+| < CONDITIONEDQUANTIFIER : "foreach" > : DEFAULT
 | < WORD2: (~["\u0000"-"\u0020","(",")","\"","#","0"-"9",":","-","?"]) 
           (~["\u0000"-"\u0020","(",")","\""])* > : DEFAULT
 | < STRING_LITERAL2:

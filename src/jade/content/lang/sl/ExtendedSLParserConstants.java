@@ -17,59 +17,63 @@ public interface ExtendedSLParserConstants {
   /** RegularExpression Id. */
   int VARIABLE = 7;
   /** RegularExpression Id. */
-  int INTEGER = 8;
+  int REFERENCE = 8;
   /** RegularExpression Id. */
-  int HEXINTEGER = 9;
+  int INTEGER = 9;
   /** RegularExpression Id. */
-  int LONG = 10;
+  int HEXINTEGER = 10;
   /** RegularExpression Id. */
-  int FLOATONE = 11;
+  int LONG = 11;
   /** RegularExpression Id. */
-  int FLOATTWO = 12;
+  int FLOATONE = 12;
   /** RegularExpression Id. */
-  int FLOAT = 13;
+  int FLOATTWO = 13;
   /** RegularExpression Id. */
-  int WORD = 14;
+  int FLOAT = 14;
   /** RegularExpression Id. */
-  int STRING_LITERAL = 15;
+  int WORD = 15;
   /** RegularExpression Id. */
-  int PARAMETERNAME = 16;
+  int STRING_LITERAL = 16;
   /** RegularExpression Id. */
-  int PARAMETERNAME_STRING = 17;
+  int PARAMETERNAME = 17;
   /** RegularExpression Id. */
-  int DATETIME = 18;
+  int PARAMETERNAME_STRING = 18;
   /** RegularExpression Id. */
-  int PREFIXBYTELENGTHENCODEDSTRING = 19;
+  int DATETIME = 19;
   /** RegularExpression Id. */
-  int METASYMBOL = 20;
+  int PREFIXBYTELENGTHENCODEDSTRING = 20;
   /** RegularExpression Id. */
-  int LBRACE2 = 25;
+  int METASYMBOL = 21;
   /** RegularExpression Id. */
-  int RBRACE2 = 26;
+  int LBRACE2 = 26;
   /** RegularExpression Id. */
-  int ACTION = 27;
+  int RBRACE2 = 27;
   /** RegularExpression Id. */
-  int REFERENTIALOP = 28;
+  int ACTION = 28;
   /** RegularExpression Id. */
-  int MODALOP = 29;
+  int REFERENTIALOP = 29;
   /** RegularExpression Id. */
-  int ARITHMETICOP = 30;
+  int MODALOP = 30;
   /** RegularExpression Id. */
-  int ACTIONOP = 31;
+  int ARITHMETICOP = 31;
   /** RegularExpression Id. */
-  int ACTIONOPLL = 32;
+  int ACTIONOP = 32;
   /** RegularExpression Id. */
-  int UNARYLOGICALOP = 33;
+  int ACTIONOPLL = 33;
   /** RegularExpression Id. */
-  int BINARYLOGICALOP = 34;
+  int UNARYLOGICALOP = 34;
   /** RegularExpression Id. */
-  int QUANTIFIER = 35;
+  int BINARYLOGICALOP = 35;
   /** RegularExpression Id. */
-  int WORD2 = 36;
+  int QUANTIFIER = 36;
   /** RegularExpression Id. */
-  int STRING_LITERAL2 = 37;
+  int CONDITIONEDQUANTIFIER = 37;
   /** RegularExpression Id. */
-  int METASYMBOL2 = 38;
+  int WORD2 = 38;
+  /** RegularExpression Id. */
+  int STRING_LITERAL2 = 39;
+  /** RegularExpression Id. */
+  int METASYMBOL2 = 40;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -86,6 +90,7 @@ public interface ExtendedSLParserConstants {
     "\"(\"",
     "\")\"",
     "<VARIABLE>",
+    "<REFERENCE>",
     "<INTEGER>",
     "<HEXINTEGER>",
     "<LONG>",
@@ -114,6 +119,7 @@ public interface ExtendedSLParserConstants {
     "\"not\"",
     "<BINARYLOGICALOP>",
     "<QUANTIFIER>",
+    "\"foreach\"",
     "<WORD2>",
     "<STRING_LITERAL2>",
     "<METASYMBOL2>",

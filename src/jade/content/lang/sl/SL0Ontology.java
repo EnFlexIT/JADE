@@ -67,6 +67,11 @@ class SL0Ontology extends Ontology implements SL0Vocabulary {
 		return false;
 	}
 	
+	boolean isConditionedQuantifier(String symbol) {
+		// There are no conditioned-quantifiers in SL0
+		return false;
+	}
+	
 	boolean isModalOp(String symbol) {
 		// There are no modal operators in SL0
 		return false;
