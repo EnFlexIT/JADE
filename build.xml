@@ -135,6 +135,11 @@ ant dist - to create the distribution files
 		<javacc jdkversion="1.4" javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/content/lang/sl" target="src/jade/content/lang/sl/ExtendedSLParser.jj"/>
 	</target>
 
+	<!-- To just recreate the ExtendedSLParser  -->
+	<target name="StandAloneMakeExtendedSLParser" depends="init">
+		<javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/content/lang/sl" target="src/jade/content/lang/sl/ExtendedSLParser.jj"/>
+	</target>
+	
 	<!--  _______________________________________________
 	                          compile
 	      _______________________________________________ -->
