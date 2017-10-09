@@ -5,7 +5,7 @@ import jade.content.schema.VariableSchema;
 
 /**
  * A term representing a reference to an object or an attribute of an object 
- * typically expressed as $OBJECT_TYPE#name
+ * typically expressed as &OBJECT_TYPE#name
  * where name may be either an ObjectID or have the form ObjectID.attribute
  * 
  * @author Caire
@@ -13,16 +13,16 @@ import jade.content.schema.VariableSchema;
 public class AbsReference extends AbsObjectImpl implements AbsTerm {
 	private static final long serialVersionUID = 6167359403561714663L;
 	
-	public static final String REFERENCE_PREFIX = "$";
+	public static final String REFERENCE_PREFIX = "&";
 	public static final String REFERENCE_NAME_SEPARATOR = "#";
 	public static final String REFERENCE_ATTRIBUTE_SEPARATOR = ".";
 
 	/**
 	 * Create an AbsReference from its String representation. The latter
-	 * can have the form $OBJECT_TYPE#name or OBJECT_TYPE#name.
+	 * can have the form &OBJECT_TYPE#name or OBJECT_TYPE#name.
 	 */
 	public static AbsReference parse(String referenceStr) {
-		// If referenceStr starts with $ remove it 
+		// If referenceStr starts with & remove it 
 		if (referenceStr.charAt(0) == REFERENCE_PREFIX.charAt(0)) {
 			referenceStr = referenceStr.substring(1);
 		}

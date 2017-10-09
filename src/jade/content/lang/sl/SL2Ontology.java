@@ -63,6 +63,7 @@ class SL2Ontology extends SL1Ontology implements SL2Vocabulary {
 			ps.add(EQUIV_RIGHT, (PredicateSchema) PredicateSchema.getBaseSchema());
 
 			add(VariableSchema.getBaseSchema());
+			add(ReferenceSchema.getBaseSchema());
 			add(new IRESchema(IOTA));
 			add(new IRESchema(ANY));
 			add(new IRESchema(ALL));
