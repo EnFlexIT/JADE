@@ -32,6 +32,7 @@ import jade.content.onto.basic.*;
 import jade.content.lang.sl.SL0Vocabulary;
 import jade.core.AID;
 import jade.core.CaseInsensitiveString;
+import jade.domain.FIPAAgentManagement.Property;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ISO8601;
 import jade.util.leap.*;
@@ -102,6 +103,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 			add(new PrimitiveSchema(DATE), Date.class);
 			add(new PrimitiveSchema(BYTE_SEQUENCE), byte[].class);
 			add(new ConceptSchema(AID), AID.class);
+			add(new ConceptSchema(PROPERTY), Property.class);
 			add(new AgentActionSchema(ACLMSG), ACLMessage.class); 
 			add(new PredicateSchema(TRUE_PROPOSITION), TrueProposition.class);
 			add(new PredicateSchema(FALSE_PROPOSITION), FalseProposition.class);
@@ -130,6 +132,11 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 			aidSchema.add(AID_ADDRESSES, (TermSchema) getSchema(STRING), 0, ObjectSchema.UNLIMITED);
 			aidSchema.add(AID_RESOLVERS, aidSchema, 0, ObjectSchema.UNLIMITED);
 
+			// Property Schema
+			ConceptSchema propertySchema = (ConceptSchema)getSchema(PROPERTY);
+		  	propertySchema.add(PROPERTY_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
+		  	propertySchema.add(PROPERTY_VALUE, (TermSchema)TermSchema.getBaseSchema(), ObjectSchema.OPTIONAL);  // In a template we can specify a null value
+			
 			// ACLMessage Schema
 			AgentActionSchema msgSchema = (AgentActionSchema)getSchema(ACLMSG);
 			msgSchema.add(ACLMSG_SENDER, (ConceptSchema) getSchema(AID), ObjectSchema.OPTIONAL);
@@ -257,6 +264,12 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.AID)) { 
 				return AbsHelper.internaliseAID((AbsConcept) abs);
 			}
+			
+			// PROPERTY
+			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.PROPERTY)) { 
+				return AbsHelper.internaliseProperty((AbsConcept) abs, referenceOnto);
+			}
+			
 			// TRUE_PROPOSITION
 			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.TRUE_PROPOSITION)) { 
 				TrueProposition t = new TrueProposition();
@@ -367,6 +380,10 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 				return AbsHelper.externaliseAID((AID)obj);
 			}
 
+			if(obj instanceof Property) {
+				return AbsHelper.externaliseProperty((Property)obj, referenceOnto);
+			}
+			
 			if (obj instanceof ContentElementList) {
 				return AbsHelper.externaliseContentElementList((ContentElementList) obj, referenceOnto);
 			} 

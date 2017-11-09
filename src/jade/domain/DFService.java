@@ -23,20 +23,25 @@
 
 package jade.domain;
 
-import jade.util.leap.*;
+import java.util.Date;
 
-import jade.domain.FIPAAgentManagement.*;
-import jade.core.Agent;
+import jade.content.lang.sl.SL0Vocabulary;
+import jade.content.lang.sl.SimpleSLTokenizer;
 import jade.core.AID;
+import jade.core.Agent;
 import jade.core.behaviours.WakerBehaviour;
-
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.FIPAManagementVocabulary;
+import jade.domain.FIPAAgentManagement.MissingParameter;
+import jade.domain.FIPAAgentManagement.MultiValueProperty;
+import jade.domain.FIPAAgentManagement.Property;
+import jade.domain.FIPAAgentManagement.SearchConstraints;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ISO8601;
-
-import jade.content.lang.sl.SimpleSLTokenizer;
-import jade.content.lang.sl.SL0Vocabulary;
-
-import java.util.Date;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
+import jade.util.leap.List;
 
 /**
  * This class provides a set of static methods to communicate with
@@ -799,6 +804,17 @@ public class DFService extends FIPAService {
 				while (it.hasNext()) {
 					id.addResolvers((AID) it.next());
 				}
+			}
+			// UserDefinedSlot
+			else if (slotName.startsWith(SL0Vocabulary.AID_PROPERTY_PREFIX)) {
+				String key = slotName.substring(SL0Vocabulary.AID_PROPERTY_PREFIX.length());
+				String value = parser.getElement();
+				id.addUserDefinedSlot(key, value);
+			}
+			// Unknown slot
+			else {
+				// Just consume the element
+				parser.getElement();
 			}
 		}
 		parser.consumeChar(')');

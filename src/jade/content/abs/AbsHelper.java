@@ -27,15 +27,21 @@ package jade.content.abs;
 //#APIDOC_EXCLUDE_FILE
 
 import jade.content.onto.*;
+
+import java.util.Enumeration;
+
 import jade.content.*;
+import jade.content.lang.sl.SL0Vocabulary;
 import jade.content.schema.*;
 import jade.util.leap.HashSet;
 import jade.util.leap.List;
+import jade.util.leap.Properties;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import jade.util.leap.Set;
 import jade.core.AID;
 import jade.core.CaseInsensitiveString;
+import jade.domain.FIPAAgentManagement.Property;
 import jade.lang.acl.ACLMessage;
 
 
@@ -148,9 +154,39 @@ public class AbsHelper {
 			}
 			aid.set(BasicOntology.AID_RESOLVERS, resolvers);
 		}
+		
+		// UserDefinedSlot
+		Properties userDefinedSlot = obj.getAllUserDefinedSlot();
+		if (!userDefinedSlot.isEmpty()) {
+		    Enumeration enumeration = userDefinedSlot.propertyNames();
+		    while (enumeration.hasMoreElements()) {
+		      String key = (String) enumeration.nextElement();
+		      String value = userDefinedSlot.getProperty(key);
+		      aid.set(BasicOntology.AID_PROPERTY_PREFIX+key, value);
+		    }
+		}
+		
 		return aid;
 	} 
+	
+	/**
+	 * Converts a <code>PROPERTY</code> into an <code>AbsConcept</code> 
+	 * representing a PROPERTY 
+	 * @param obj the <code>PROPERTY</code>
+	 * @return the abstract descriptor.
+	 */
+	public static AbsConcept externaliseProperty(Property obj, Ontology onto) throws OntologyException {
+		AbsConcept aid = new AbsConcept(BasicOntology.PROPERTY);
+		// Name
+		aid.set(BasicOntology.PROPERTY_NAME, obj.getName());
 
+		// Value
+		AbsObject abs = onto.fromObject(obj.getValue());
+		aid.set(BasicOntology.PROPERTY_VALUE, abs);
+		
+		return aid;
+	} 
+	
 	/**
 	 * Converts a <code>ContentElementList</code> into an
 	 * <code>AbsContentElementList</code> using
@@ -310,32 +346,75 @@ public class AbsHelper {
 		OntoAID ret = new OntoAID();
 
 		try {
+			int c = 1;
+			
 			// Name
 			ret.setName(aid.getString(BasicOntology.AID_NAME));
 
 			// Addresses
 			AbsAggregate addresses = (AbsAggregate) aid.getAbsObject(BasicOntology.AID_ADDRESSES);
 			if (addresses != null) {
+				c ++;
 				for (int i = 0; i < addresses.size(); ++i) {
 					String addr = ((AbsPrimitive) addresses.get(i)).getString();
 					ret.addAddresses(addr);
 				}
 			}
+			
 			// Resolvers
 			AbsAggregate resolvers = (AbsAggregate) aid.getAbsObject(BasicOntology.AID_RESOLVERS);
 			if (resolvers != null) {
+				c ++;
 				for (int i = 0; i < resolvers.size(); ++i) {
 					OntoAID res = internaliseAID((AbsConcept) resolvers.get(i));
 					ret.addResolvers(res);
 				}
 			}
+
+			// UserDefinedSlot
+			if (aid.getCount() > c) {
+				for (String slotName : aid.getNames()) {
+					if (slotName.startsWith(SL0Vocabulary.AID_PROPERTY_PREFIX)) {
+						String key = slotName.substring(SL0Vocabulary.AID_PROPERTY_PREFIX.length());
+						String value = aid.getString(slotName);
+						ret.addUserDefinedSlot(key, value);
+					}
+				}
+			}
+			
 			return ret;
 		}
 		catch (Exception e) {
 			throw new OntologyException(aid+" is not a valid AID");
 		}
 	} 
+	
+	/**
+	 * Converts an <code>AbsConcept</code> representing a PROPERTY 
+	 * into an Property 
+	 * @return the Property
+	 * @throws OntologyException if <code>property</code> does not 
+	 * represent a valid PROPERTY
+	 */
+	public static Property internaliseProperty(AbsConcept property, Ontology onto) throws OntologyException {
+		Property ret = new Property();
 
+		try {
+			// Name
+			ret.setName(property.getString(BasicOntology.PROPERTY_NAME));
+
+			// Value
+			AbsObject abs = property.getAbsObject(BasicOntology.PROPERTY_VALUE);
+			Object o = onto.toObject(abs);
+			ret.setValue(o);
+			
+			return ret;
+		}
+		catch (Exception e) {
+			throw new OntologyException(property+" is not a valid PROPERTY");
+		}
+	} 
+	
 	/**
 	 * Converts to an <code>AbsContentElementList</code> into a 
 	 * ContentElementList using the 

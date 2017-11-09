@@ -38,7 +38,8 @@ public interface SL0Vocabulary {
   public static final String         AID_NAME = "name";
   public static final String         AID_ADDRESSES = "addresses";
   public static final String         AID_RESOLVERS = "resolvers";
-
+  public static final String         AID_PROPERTY_PREFIX = "X-";
+  
   public static final String         ACLMSG = "fipa-acl-message";
   public static final String         ACLMSG_PERFORMATIVE = "performative";
   public static final String         ACLMSG_SENDER = "sender";
@@ -55,6 +56,11 @@ public interface SL0Vocabulary {
   public static final String         ACLMSG_BYTE_SEQUENCE_CONTENT = "bs-content";
   public static final String         ACLMSG_ENCODING = "encoding";
   
+  // Generic concepts: Property
+  public static final String 		PROPERTY = "property";
+  public static final String 		PROPERTY_NAME = "name";
+  public static final String 		PROPERTY_VALUE = "value";
+
   // Generic propositions: 
   // TRUE_PROP (i.e. the proposition that is true under whatever condition) 
   // FALSE_PROP (i.e. the proposition that is false under whatever condition) 

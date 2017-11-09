@@ -637,10 +637,14 @@ public class SLCodec extends StringCodec {
 	private String[] getSlotNames(AbsObject abs) throws CodecException {
 		String[] slotNames = null;
 		String type = abs.getTypeName();
-		if (domainOnto != null) {
+		if (domainOnto != null && abs.getTypeName() != SL0Vocabulary.AID) {
 			// If an ontology is specified, get the slot names from it 
-			// (and not directly from the abstract descriptor val) to preserve 
-			// the order
+			// (and not directly from the abstract descriptor val) to preserve the order
+			//
+			// NOTA: Per supportare la gestione degli UserDefinedSlot di AID e' necessario
+			// recuperare i nomi degli slot non dall'ontologia ma direttamente dall'abstract decriptor
+			// questo in quanto gli UserDefinedSlot secondo lo standard FIPA sono gestiti come 
+			// slot con il formato :X-<key> <value> che non posso essere descritti ontologicamente 
 			try {
 				ObjectSchema s = domainOnto.getSchema(type);
 				if (s == null) {
