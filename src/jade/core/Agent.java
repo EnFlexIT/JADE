@@ -1907,6 +1907,14 @@ public class Agent implements Runnable, Serializable
 	}
 
 	/**
+	 * Return the number of behaviours currently included in the agent pool (both runnable
+	 * and blocked).
+	 */
+	public int getBehavioursCnt() {
+		return myScheduler.size();
+	}
+
+	/**
 	 Send an <b>ACL</b> message to another agent. This methods sends
 	 a message to the agent specified in <code>:receiver</code>
 	 message field (more than one agent can be specified as message

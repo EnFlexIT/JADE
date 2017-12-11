@@ -232,6 +232,9 @@ class Scheduler implements Serializable {
 		return b;
 	}
 	
+	public synchronized int size() {
+		return blockedBehaviours.size() + readyBehaviours.size();
+	}
 	
 	//#MIDP_EXCLUDE_BEGIN
 	
