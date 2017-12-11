@@ -1587,7 +1587,7 @@ public class Agent implements Runnable, Serializable
 			// When it is needed no more, delete it from the behaviours queue
 			if(currentBehaviour.done()) {
 				currentBehaviour.onEnd();
-				myScheduler.remove(currentBehaviour);
+				removeBehaviour(currentBehaviour);
 				currentBehaviour = null;
 			}
 			else {
