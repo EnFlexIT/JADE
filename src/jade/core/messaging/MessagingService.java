@@ -394,7 +394,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 					samHelper.addEntityMeasureProvider("Message-Delivery-Time", deliveryTimeMeasureProvider);
 				}
 				
-				// POSTED MESSAGE COUNT
+				// POSTED MESSAGE COUNT: Number of messages posted to the agents' queues (received by agents in this container)
 				boolean enablePostedMessageCount = "true".equalsIgnoreCase(myProfile.getParameter(ENABLE_POSTED_MESSAGE_COUNT, "false"));
 				if (enablePostedMessageCount) {
 					samHelper.addCounterValueProvider("Posted-message-count#"+myContainer.getID().getName(), new AbsoluteCounterValueProvider() {

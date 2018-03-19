@@ -65,6 +65,7 @@ public class AMSEventQueueFeeder implements AgentManager.Listener {
 		ba.setState(AMSAgentDescription.ACTIVE);
 		ba.setOwnership(ownership);
 		ba.setClassName((String) agentID.getAllUserDefinedSlot().get(AID.AGENT_CLASSNAME));
+		ba.setCloneOriginator((String) agentID.getAllUserDefinedSlot().get(AID.CLONE_ORIGINATOR));
 
 		EventRecord er = new EventRecord(ba, localContainer);
 		er.setWhen(ev.getTime());

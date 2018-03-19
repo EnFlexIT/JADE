@@ -137,6 +137,8 @@ public class AgentMobilityService extends BaseService {
 	// The handle to the MainReplicationService to keep GADT in synch when agents move
 	private MainReplicationHandle replicationHandle;
 	
+	private boolean tracCloneOriginator;
+	
 	public void init(AgentContainer ac, Profile p) throws ProfileException {
 		super.init(ac, p);
 		
@@ -146,6 +148,7 @@ public class AgentMobilityService extends BaseService {
 	public void boot(Profile myProfile) throws ServiceException {
 		// Initialize the MainReplicationHandle
 		replicationHandle = new MainReplicationHandle(this, myContainer.getServiceFinder());
+		tracCloneOriginator = myProfile.getBooleanProperty("trac-clone-originator", true);
 	}
 
 	public String getName() {
@@ -546,6 +549,9 @@ public class AgentMobilityService extends BaseService {
 				
 				// Create the agent on the destination container with the new AID
 				AID newID = new AID(newName, AID.ISLOCALNAME);
+				if (tracCloneOriginator) {
+					newID.addUserDefinedSlot(AID.CLONE_ORIGINATOR, agentID.getLocalName());
+				}
 				try {
 					dest.createAgent(newID, bytes, classSiteName, CLONING, CREATE_AND_START);
 				}

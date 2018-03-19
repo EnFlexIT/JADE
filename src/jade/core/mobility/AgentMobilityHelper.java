@@ -46,7 +46,6 @@ import jade.util.leap.List;
    @author Giovanni Rimassa - FRAMeTech s.r.l.
 */
 public interface AgentMobilityHelper extends ServiceHelper {
-
 	void registerMovable(Movable m);
 	void move(Location destination);
 	void clone(Location destination, String newName);

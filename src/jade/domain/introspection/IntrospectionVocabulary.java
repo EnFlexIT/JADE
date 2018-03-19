@@ -77,7 +77,8 @@ public interface IntrospectionVocabulary {
   public static final String BORNAGENT_STATE = "state";
   public static final String BORNAGENT_OWNERSHIP = "ownership";
   public static final String BORNAGENT_CLASS_NAME = "class-name";
-  
+  public static final String BORNAGENT_CLONE_ORIGINATOR = "clone-originator";
+    
   public static final String DEADAGENT = "dead-agent";
   public static final String DEADAGENT_AGENT = "agent";
   public static final String DEADAGENT_WHERE = "where";

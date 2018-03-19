@@ -129,6 +129,11 @@ public class AID implements Comparable, Serializable {
 	 */
 	public static final String AGENT_CLASSNAME = "JADE-agent-classname";
 	
+	/** 
+	 * Key to retrieve the name of the originator agent in case the agent represented by this AID was cloned
+	 */
+	public static final String CLONE_ORIGINATOR = "JADE-Clone-Originator";
+
 	/**
 	 * This method permits to set the symbolic name of an agent.
 	 * The passed parameter must be a GUID and not a local name. 

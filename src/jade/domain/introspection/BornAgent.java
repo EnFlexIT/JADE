@@ -47,6 +47,7 @@ public class BornAgent implements Event {
 	private String state;
 	private String ownership;
 	private String className;
+	private String cloneOriginator;
 
 
 	/**
@@ -153,5 +154,16 @@ public class BornAgent implements Event {
 	 */
 	public String getClassName() {
 		return className;
+	}
+
+	public void setCloneOriginator(String cloneOriginator) {
+		this.cloneOriginator = cloneOriginator;
+	}
+
+	/**
+	 * @return the name of the originator agent in case the newly born agent was cloned. Null otherwise
+	 */
+	public String getCloneOriginator() {
+		return cloneOriginator;
 	}
 }
