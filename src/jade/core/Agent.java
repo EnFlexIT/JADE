@@ -504,6 +504,11 @@ public class Agent implements Runnable, Serializable
 	private transient LifeCycle mySuspendedLifeCycle;
 	//#MIDP_EXCLUDE_END
 
+	// Statistics
+	private long postedMessagesCnt = 0;
+	private long receivedMessagesCnt = 0;
+	private long executedBehavioursCnt = 0;
+	
 	/**
 	 This flag is used to distinguish the normal AP_ACTIVE state from
 	 the particular case in which the agent state is set to AP_ACTIVE
@@ -514,7 +519,7 @@ public class Agent implements Runnable, Serializable
 	 */
 	private boolean terminating = false;
 
-	//#MIDP_EXCLUDE_BEGIN
+	//#MIDP_EXCLUDE_BEGIN	
 	/** 
 	 When set to false (default) all behaviour-related events (such as ADDED_BEHAVIOUR
 	 or CHANGED_BEHAVIOUR_STATE) are not generated in order to improve performances.
@@ -939,7 +944,17 @@ public class Agent implements Runnable, Serializable
 		return msgQueue.getMaxSize();
 	}
 
-
+	public long getPostedMessagesCnt() {
+		return postedMessagesCnt;
+	}
+	
+	public long getReceivedMessagesCnt() {
+		return receivedMessagesCnt;
+	}
+	
+	public long getExecutedBehavioursCnt() {
+		return executedBehavioursCnt;
+	}
 	/////////////////////////////////
 	// Agent state management
 	/////////////////////////////////
@@ -1583,6 +1598,7 @@ public class Agent implements Runnable, Serializable
 
 			// Just do it!
 			currentBehaviour.actionWrapper();
+			executedBehavioursCnt++;
 
 			// When it is needed no more, delete it from the behaviours queue
 			if(currentBehaviour.done()) {
@@ -1967,6 +1983,7 @@ public class Agent implements Runnable, Serializable
 			msg = msgQueue.receive(pattern);
 			//#MIDP_EXCLUDE_BEGIN
 			if (msg != null) {
+				receivedMessagesCnt++;
 				myToolkit.handleReceived(myAID, msg);
 			 }
 			//#MIDP_EXCLUDE_END
@@ -2178,6 +2195,7 @@ public class Agent implements Runnable, Serializable
 				myToolkit.handlePosted(myAID, msg);
 				//#MIDP_EXCLUDE_END
 				msgQueue.addLast(msg);
+				postedMessagesCnt++;
 				doWake();
 			}
 		}
@@ -2193,6 +2211,7 @@ public class Agent implements Runnable, Serializable
 				myToolkit.handlePosted(myAID, msg);
 				//#MIDP_EXCLUDE_END
 				msgQueue.addLast(msg);
+				postedMessagesCnt++;
 			}
 			doWake();
 		}
