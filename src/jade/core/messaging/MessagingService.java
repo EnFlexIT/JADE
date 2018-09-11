@@ -1140,33 +1140,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			if (gMsg.getTraceID() != null) {
 				myLogger.log(Logger.INFO, gMsg.getTraceID()+" - Message posted");
 			}
-		}
-		
-		private void manageMessage(AID senderID, GenericMessage msg, AID receiverID) throws NotFoundException {
-			//#J2ME_EXCLUDE_BEGIN
-			// If gmsg represents a MultipleGenericMessage recursively call restore() for each message
-			if (msg instanceof MultipleGenericMessage) {
-				System.out.println("Multiple delivery: posting "+((MultipleGenericMessage) msg).getMessages().size()+" messages to receiver "+receiverID.getLocalName());
-				for (GenericMessage g : ((MultipleGenericMessage) msg).getMessages()) {
-					manageMessage(g.getSender(), g, receiverID);
-				}
-				return;
-			}
-			//#J2ME_EXCLUDE_END
-			
-			if (msg.getTraceID() != null) {
-				myLogger.log(Logger.INFO, msg.getTraceID()+" - MessagingService target sink posting message to receiver "+receiverID.getLocalName());
-			}
-			postMessage(senderID, msg.getACLMessage(), receiverID);
-			//#J2ME_EXCLUDE_BEGIN
-			postedMessageCounter++;
-			updateDeliveryTimeMeasurement(msg);
-			//#J2ME_EXCLUDE_END
-			if (msg.getTraceID() != null) {
-				myLogger.log(Logger.INFO, msg.getTraceID()+" - Message posted");
-				
-			}
-		}
+		}		
 		
 		private MTPDescriptor handleInstallMTP(VerticalCommand cmd) throws IMTPException, ServiceException, MTPException {
 			Object[] params = cmd.getParams();

@@ -1018,6 +1018,23 @@ public class ACLMessage implements Serializable {
 	public String toString(){
 		return StringACLCodec.toString(this);
 	}
+	
+	public String shortToString() {
+		StringBuilder sb = new StringBuilder("(");
+		sb.append(ACLMessage.getPerformative(getPerformative()));
+		sb.append(" sender: ");
+		sb.append(source != null ? source.getName() : "NULL");
+		if (ontology != null) {
+			sb.append(" ontology: ");
+			sb.append(ontology);
+		}
+		if (getConversationId() != null) {
+			sb.append(" conversation-id: ");
+			sb.append(conversation_id);
+		}
+		sb.append(" ...)");
+		return sb.toString();
+	}
 	//#MIDP_EXCLUDE_END
 	
 	/**
@@ -1180,7 +1197,11 @@ public class ACLMessage implements Serializable {
 	 * @return the ACLMessage to send as a reply
 	 */
 	public ACLMessage createReply() {
-		ACLMessage m = new ACLMessage(getPerformative());
+		return createReply(getPerformative());
+	}
+	
+	public ACLMessage createReply(int performative) {
+		ACLMessage m = new ACLMessage(performative);
 		Iterator it = getAllReplyTo(); 
 		while (it.hasNext())
 			m.addReceiver((AID)it.next());

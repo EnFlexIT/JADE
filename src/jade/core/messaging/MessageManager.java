@@ -492,20 +492,7 @@ class MessageManager {
 			// SINGLE (normal) message
 			ACLMessage msg = m.getACLMessage();
 			if (msg != null) {
-				StringBuffer sb = new StringBuffer("(");
-				sb.append(ACLMessage.getPerformative(msg.getPerformative()));
-				sb.append(" sender: ");
-				sb.append(msg.getSender().getName());
-				if (msg.getOntology() != null) {
-					sb.append(" ontology: ");
-					sb.append(msg.getOntology());
-				}
-				if (msg.getConversationId() != null) {
-					sb.append(" conversation-id: ");
-					sb.append(msg.getConversationId());
-				}
-				sb.append(')');
-				return sb.toString();
+				return msg.shortToString();
 			}
 			else {
 				return ("\"Unavailable\"");

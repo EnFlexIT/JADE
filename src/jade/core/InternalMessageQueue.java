@@ -186,9 +186,24 @@ class InternalMessageQueue implements MessageQueue {
 		for (Iterator i = iterator(); i.hasNext(); messages.add(i.next()));
 	}
 	
-	// For debugging purpose
-	Object[] getAllMessages() {
-		return list.toArray();
+
+	public String dump(int limit) { 
+		StringBuilder sb = new StringBuilder();
+		Object[] messages = list.toArray();
+		if (messages.length > 0) {
+			int max = limit > 0 ? limit : messages.length;
+			for (int j = 0; j < max; ++j) {
+				sb.append("Message # ");
+				sb.append(j);
+				sb.append('\n');
+				sb.append(messages[j]);
+				sb.append('\n');
+			}
+		}
+		else {
+			sb.append("Queue is empty\n");
+		}
+		return sb.toString();
 	}
 	
 	void cleanOldMessages(long maxTime, MessageTemplate pattern) {

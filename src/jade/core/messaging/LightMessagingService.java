@@ -556,14 +556,11 @@ public class LightMessagingService extends BaseService
         }
 
         // Implementation of the service-specific horizontal interface MessagingSlice
-        public void dispatchLocally(AID senderAID, GenericMessage msg,
-            AID receiverID) throws IMTPException, NotFoundException {
-            boolean found = myContainer.postMessageToLocalAgent(msg.getACLMessage(),
-                    receiverID);
+        public void dispatchLocally(AID senderAID, GenericMessage msg, AID receiverID) throws IMTPException, NotFoundException {
+            boolean found = myContainer.postMessageToLocalAgent(msg.getACLMessage(), receiverID);
 
             if (!found) {
-                throw new NotFoundException(
-                    "Messaging service slice failed to find " + receiverID);
+                throw new NotFoundException("Messaging service slice failed to find " + receiverID);
             }
         }
 
