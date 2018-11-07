@@ -925,14 +925,16 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		allContainers = containers.names();
 		for(int i = 0; i < allContainers.length; i++) {
 			ContainerID targetID = allContainers[i];
-			if(!targetID.equals(localContainerID)) {
-				shutdownContainer(targetID, "Main Container", requesterPrincipal, requesterCredentials);
-				cnt++;
+			if (targetID.getMain()) {
+				if(!targetID.equals(localContainerID)) {
+					shutdownContainer(targetID, "Main Container", requesterPrincipal, requesterCredentials);
+					cnt++;
+				}
 			}
 		}
 		
 		if (cnt > 0 && verboseShutdown) {
-			myLogger.log(Logger.FINE, "Backup Main Containers shutdown completed.");
+			myLogger.log(Logger.INFO, "Backup Main Containers shutdown completed.");
 		}
 		
 		// Finally, kill the local container
