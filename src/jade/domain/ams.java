@@ -223,21 +223,25 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 		// the Main Container JVM unexpectedly exits
 		Thread t = new Thread() {
 			public void run() {
-				logger.log(Logger.FINE, ">>>>>>>>> Shutdown Hook activated. AMS state = "+ams.this.getState());				
-				if (!shuttingDown && ams.this.getState() != Agent.AP_DELETED) {
+				logger.log(Logger.FINE, ">>>>>>>>> Shutdown Hook activated. AMS state = "+ams.this.getState());
+				// Mutual exclusion with normal shutdown
+				synchronized(ams.this) {
+					if (shuttingDown || ams.this.getState() == Agent.AP_DELETED) {
+						return;
+					}
+					
 					notifyShutdownPlatformRequested();
 					
 					shuttingDown = true;
-					try {
-						logger.log(Logger.WARNING, ">>>>>>>>> Main Container JVM is terminating. Activate platform shutdown");
-						myPlatform.shutdownPlatform(null, null);
-						logger.log(Logger.WARNING, ">>>>>>>>> Platform shutdown completed");
-					} catch (Exception e) {
-						logger.log(Logger.SEVERE, ">>>>>>>>> Platform shutdown error", e);
-					}
-					finally {
-						shuttingDown = false;
-					}
+				}
+				
+				try {
+					logger.log(Logger.WARNING, ">>>>>>>>> Main Container JVM is terminating. Activate platform shutdown");
+					myPlatform.shutdownPlatform(null, null);
+					logger.log(Logger.WARNING, ">>>>>>>>> Platform shutdown completed");
+				} catch (Exception e) {
+					logger.log(Logger.SEVERE, ">>>>>>>>> Platform shutdown error", e);
+					shuttingDown = false;
 				}
 			}
 		};
@@ -419,14 +423,15 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 	}
 
 	// SHUTDOWN PLATFORM
-	void shutdownPlatformAction(ShutdownPlatform sp, final AID requester, final JADEPrincipal requesterPrincipal, final Credentials requesterCredentials) throws FIPAException {
+	// Mutual exclusion with shutdown-hook
+	synchronized void shutdownPlatformAction(ShutdownPlatform sp, final AID requester, final JADEPrincipal requesterPrincipal, final Credentials requesterCredentials) throws FIPAException {
+		logger.log(Logger.INFO, "AMS - Activating platform shutdown. Requester = " + requester.getName());
+
 		if (shuttingDown) {
-			logger.log(Logger.INFO, "AMS - Platform shutting-down already active. Requester = " + requester.getName());
+			logger.log(Logger.INFO, "AMS - Platform shut-down already active. Just do nothing");
 			return;
 		}
 		
-		logger.log(Logger.INFO, "AMS - Activating platform shutdown. Requester = " + requester.getName());
-
 		// Notify a SHUTDOWN_PLATFORM_REQUESTED introspection event to all tools
 		notifyShutdownPlatformRequested();
 		
@@ -438,8 +443,6 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 				} 
 				catch (JADESecurityException ae) {
 					logger.log(Logger.SEVERE, "Agent " + requester.getName() + " does not have permission to perform action Shutdown-Platform: " + ae);
-				}
-				finally {
 					shuttingDown = false;
 				}
 			}
