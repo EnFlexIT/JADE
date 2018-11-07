@@ -234,6 +234,8 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 						logger.log(Logger.WARNING, ">>>>>>>>> Platform shutdown completed");
 					} catch (Exception e) {
 						logger.log(Logger.SEVERE, ">>>>>>>>> Platform shutdown error", e);
+					}
+					finally {
 						shuttingDown = false;
 					}
 				}
@@ -418,6 +420,11 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 
 	// SHUTDOWN PLATFORM
 	void shutdownPlatformAction(ShutdownPlatform sp, final AID requester, final JADEPrincipal requesterPrincipal, final Credentials requesterCredentials) throws FIPAException {
+		if (shuttingDown) {
+			logger.log(Logger.INFO, "AMS - Platform shutting-down already active. Requester = " + requester.getName());
+			return;
+		}
+		
 		logger.log(Logger.INFO, "AMS - Activating platform shutdown. Requester = " + requester.getName());
 
 		// Notify a SHUTDOWN_PLATFORM_REQUESTED introspection event to all tools
@@ -431,6 +438,8 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 				} 
 				catch (JADESecurityException ae) {
 					logger.log(Logger.SEVERE, "Agent " + requester.getName() + " does not have permission to perform action Shutdown-Platform: " + ae);
+				}
+				finally {
 					shuttingDown = false;
 				}
 			}
