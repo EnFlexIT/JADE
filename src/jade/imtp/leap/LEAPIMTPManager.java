@@ -115,7 +115,7 @@ public class LEAPIMTPManager implements IMTPManager {
 				} 
 				catch (Exception e) {
 					if(logger.isLoggable(Logger.SEVERE))
-						logger.log(Logger.SEVERE,"Error adding ICP. "+e);
+						logger.log(Logger.SEVERE,"Error adding ICP. ", e);
 				} 
 			}
 			

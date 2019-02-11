@@ -598,7 +598,7 @@ implements PDPContextManager.Listener, JICPMediatorManager
 						// Send back an error response
 						if(myLogger.isLoggable(Logger.WARNING))
 							myLogger.log(Logger.WARNING,"Uncorrect JICP data type: "+pkt.getType());
-					reply = new JICPPacket("Uncorrect JICP data type: "+pkt.getType(), null);
+						reply = new JICPPacket("Uncorrect JICP data type: "+pkt.getType(), null);
 					}
 					status = REQUEST_SERVED;
 					

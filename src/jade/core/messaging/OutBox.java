@@ -36,7 +36,7 @@ class OutBox {
 	
 	private long lastDiscardedLogTime = -1;
 	private long discardedSinceLastLogCnt = 0;
-	private long servedCnt = 0;
+	private long servedSinceLastDiscardedLogCnt = -1;
 
 	// The messages to be delivered organized as an hashtable that maps
 	// a receiver AID into the Box of messages to be delivered to that receiver
@@ -71,12 +71,11 @@ class OutBox {
 			// Avoid printing more than 1 log per sec
 			synchronized (this) {
 				if ((time - lastDiscardedLogTime) > 1000) {
-					boolean continuousDiscarding = (time - lastDiscardedLogTime) < 1100;
-					String servedWhileDiscardingStr = continuousDiscarding ? " ("+servedCnt+" messages served in the meanwhile)" : "";
+					String servedWhileDiscardingStr = servedSinceLastDiscardedLogCnt >= 0 ? " ("+servedSinceLastDiscardedLogCnt+" messages served since last discard-log)" : "";
 					myLogger.log(Logger.SEVERE, String.valueOf(discardedSinceLastLogCnt+1)+" message(s) discarded by MessageManager! Current-queue-size = "+size+", max-size = "+maxSize+", number of pending messages = "+pendingCnt+", size of last message = "+msg.length()+servedWhileDiscardingStr);
 					lastDiscardedLogTime = time;
 					discardedSinceLastLogCnt = 0;
-					servedCnt = 0;
+					servedSinceLastDiscardedLogCnt = 0;
 				}
 				else {
 					discardedSinceLastLogCnt++;
@@ -231,7 +230,9 @@ class OutBox {
 	 * Otherwise just mark it as idle (not busy).
 	 */
 	synchronized final void handleServed(AID receiverID, int n) {
-		servedCnt += n;
+		if (servedSinceLastDiscardedLogCnt >= 0) {
+			servedSinceLastDiscardedLogCnt += n;
+		}
 		boolean logActivated = myLogger.isLoggable(Logger.FINER);
 		if (logActivated)
 			myLogger.log(Logger.FINER,"Entering handleServed for "+receiverID.getName());
@@ -251,14 +252,14 @@ class OutBox {
 			myLogger.log(Logger.FINER,"Exiting handleServed for "+receiverID.getName());
 	}
 
-	private void increaseSize(int k) {
+	private void increaseSize(int lastMessageSize) {
 		long sleepTime = 0;
 		synchronized (this) {
 			pendingCnt++;
-			size += k;
+			size += lastMessageSize;
 			if (size > warningSize) {
 				if (!overWarningSize) {
-					myLogger.log(Logger.WARNING, "MessageManager queue size ("+size+") > "+warningSize+". Number of pending messages = "+pendingCnt+", size of last message = "+k);
+					myLogger.log(Logger.WARNING, "MessageManager queue size ("+size+") > "+warningSize+". Number of pending messages = "+pendingCnt+", size of last message = "+lastMessageSize);
 					overWarningSize = true;
 				}
 				if (sleepTimeFactor > 0) {
