@@ -5,8 +5,11 @@ package jade.core;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.util.Logger;
+
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 public class ExtendedMessageQueue implements MessageQueue {
 
@@ -104,10 +107,7 @@ public class ExtendedMessageQueue implements MessageQueue {
 	@Override
 	public ACLMessage receive(MessageTemplate pattern) {
 		ACLMessage result = null;
-		// This is just for the MIDP implementation where iterator.remove() is not supported. 
-		// We don't surround it with preprocessor directives to avoid making the code unreadable
-		int cnt = 0;
-		for (Iterator messages = list.iterator(); messages.hasNext(); cnt++) {
+		for (Iterator messages = list.iterator(); messages.hasNext();) {
 			ACLMessage msg = (ACLMessage)messages.next();
 			if (pattern == null || pattern.match(msg)) {
 				messages.remove();
@@ -116,6 +116,27 @@ public class ExtendedMessageQueue implements MessageQueue {
 			}
 		}
 		return result;
+	}
+	
+	@Override
+	public List<ACLMessage> receive(MessageTemplate pattern, int max) {
+		List<ACLMessage> mm = null;
+		int cnt = 0;
+		for (Iterator messages = list.iterator(); messages.hasNext();) {
+			ACLMessage msg = (ACLMessage)messages.next();
+			if (pattern == null || pattern.match(msg)) {
+				messages.remove();
+				if (mm == null) {
+					mm = new ArrayList<ACLMessage>(max);
+				}
+				mm.add(msg);
+				cnt++;
+				if (cnt == max) {
+					break;
+				}
+			}
+		}
+		return mm;
 	}
 
 	@Override

@@ -71,6 +71,14 @@ public interface MessageQueue {
 	 */
 	ACLMessage receive(MessageTemplate pattern);
 
+	//#J2ME_EXCLUDE_BEGIN
+	/**
+	 * Return and remove the first n messages that match the
+	 * specified message template.
+	 */
+	java.util.List<ACLMessage> receive(MessageTemplate pattern, int max);
+	//#J2ME_EXCLUDE_END
+	
 	//#MIDP_EXCLUDE_BEGIN
 	/**
 	 * Copy all messages to a given list.

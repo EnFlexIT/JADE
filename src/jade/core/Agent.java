@@ -505,6 +505,7 @@ public class Agent implements Runnable, Serializable
 	//#MIDP_EXCLUDE_END
 
 	// Statistics
+	private long sentMessagesCnt = 0;
 	private long postedMessagesCnt = 0;
 	private long receivedMessagesCnt = 0;
 	private long executedBehavioursCnt = 0;
@@ -520,12 +521,8 @@ public class Agent implements Runnable, Serializable
 	private boolean terminating = false;
 
 	//#MIDP_EXCLUDE_BEGIN	
-	/** 
-	 When set to false (default) all behaviour-related events (such as ADDED_BEHAVIOUR
-	 or CHANGED_BEHAVIOUR_STATE) are not generated in order to improve performances.
-	 These events in facts are very frequent.
-	 */
 	private boolean generateBehaviourEvents = false;
+	private boolean generateMessageEvents = true;
 	//#MIDP_EXCLUDE_END
 
 	/*#MIDP_INCLUDE_BEGIN
@@ -944,6 +941,10 @@ public class Agent implements Runnable, Serializable
 		return msgQueue.getMaxSize();
 	}
 
+	public long getSentMessagesCnt() {
+		return sentMessagesCnt;
+	}
+	
 	public long getPostedMessagesCnt() {
 		return postedMessagesCnt;
 	}
@@ -1950,6 +1951,7 @@ public class Agent implements Runnable, Serializable
 		}
 		boolean cloneMessage = !("true".equals(msg.clearUserDefinedParameter(ACLMessage.NO_CLONE)));
 		myToolkit.handleSend(msg, myAID, cloneMessage);
+		sentMessagesCnt++;
 	}
 
 	/**
@@ -1984,12 +1986,32 @@ public class Agent implements Runnable, Serializable
 			//#MIDP_EXCLUDE_BEGIN
 			if (msg != null) {
 				receivedMessagesCnt++;
-				myToolkit.handleReceived(myAID, msg);
+				if (generateMessageEvents) {
+					myToolkit.handleReceived(myAID, msg);
+				}
 			 }
 			//#MIDP_EXCLUDE_END
 		}
 		return msg;
 	}
+	
+	//#J2ME_EXCLUDE_BEGIN
+	public final java.util.List<ACLMessage> receive(MessageTemplate pattern, int max) {
+		java.util.List<ACLMessage> mm = null;
+		synchronized (msgQueue) {
+			mm = msgQueue.receive(pattern, max);
+			if (mm != null) {
+				receivedMessagesCnt += mm.size();
+				if (generateMessageEvents) {
+					for (ACLMessage msg : mm) {
+						myToolkit.handleReceived(myAID, msg);
+					}
+				}
+			 }
+		}
+		return mm;
+	}
+	//#J2ME_EXCLUDE_END
 
 	/**
 	 Receives an <b>ACL</b> message from the agent message
@@ -2154,15 +2176,29 @@ public class Agent implements Runnable, Serializable
 			myToolkit.handleChangeBehaviourState(myAID, b, from, to);
 		}
 	}
+	//#APIDOC_EXCLUDE_END
 
+	/**
+	 * Allow disabling/enabling (default: enabled) the generation of message-related 
+	 * events (such as NOTIFY_POSTED or NOTIFY_RECEIVED) 
+	 */
+	public void setGenerateMessageEvents(boolean b) {
+		generateMessageEvents = b;
+	}
+
+	public boolean getGenerateMessageEvents() {
+		return generateMessageEvents;
+	}
+	
+	/**
+	 * Allow enabling/disabling (default: disabled) the generation of message-related 
+	 * events (such as NOTIFY_BEHAVIOUR_ADDED or NOTIFY_CHANGED_BEHAVIOUR_STATE) 
+	 */
 	public void setGenerateBehaviourEvents(boolean b) {
 		generateBehaviourEvents = b;
 	}
-	//#APIDOC_EXCLUDE_END
 
-
-	// For persistence service
-	private boolean getGenerateBehaviourEvents() {
+	public boolean getGenerateBehaviourEvents() {
 		return generateBehaviourEvents;
 	}
 
@@ -2192,7 +2228,9 @@ public class Agent implements Runnable, Serializable
 		synchronized (msgQueue) {
 			if (msg != null) {
 				//#MIDP_EXCLUDE_BEGIN
-				myToolkit.handlePosted(myAID, msg);
+				if (generateMessageEvents) {
+					myToolkit.handlePosted(myAID, msg);
+				}
 				//#MIDP_EXCLUDE_END
 				msgQueue.addLast(msg);
 				postedMessagesCnt++;

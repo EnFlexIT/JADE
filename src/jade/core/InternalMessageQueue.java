@@ -29,6 +29,7 @@ import jade.util.leap.EnumIterator;
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
 
+import java.util.ArrayList;
 import java.util.Vector;
 
 import jade.lang.acl.ACLMessage;
@@ -142,6 +143,29 @@ class InternalMessageQueue implements MessageQueue {
 		}
 		return result;
 	}
+	
+	//#J2ME_EXCLUDE_BEGIN
+	@Override
+	public java.util.List<ACLMessage> receive(MessageTemplate pattern, int max) {
+		java.util.List<ACLMessage> mm = null;
+		int cnt = 0;
+		for (Iterator messages = list.iterator(); messages.hasNext();) {
+			ACLMessage msg = (ACLMessage)messages.next();
+			if (pattern == null || pattern.match(msg)) {
+				messages.remove();
+				if (mm == null) {
+					mm = new java.util.ArrayList<ACLMessage>(max);
+				}
+				mm.add(msg);
+				cnt++;
+				if (cnt == max) {
+					break;
+				}
+			}
+		}
+		return mm;
+	}
+	//#J2ME_EXCLUDE_END
 
 	private Iterator iterator() {
 		//#MIDP_EXCLUDE_BEGIN
@@ -151,21 +175,6 @@ class InternalMessageQueue implements MessageQueue {
 		 return new EnumIterator(list.elements());
 		 #MIDP_INCLUDE_END*/
 	}
-
-	//#J2ME_EXCLUDE_BEGIN	
-	// For persistence service
-	private void setMessages(java.util.List l) {
-		// FIXME: To be implemented
-		System.out.println(">>> MessageQueue::setMessages() <<<");
-	}
-
-	// For persistence service
-	private java.util.List getMessages() {
-		// FIXME: To be implemented
-		System.out.println(">>> MessageQueue::getMessages() <<<");
-		return null;
-	}
-	//#J2ME_EXCLUDE_END
 
 
 	// For persistence service
