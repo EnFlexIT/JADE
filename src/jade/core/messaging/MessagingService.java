@@ -59,6 +59,8 @@ import jade.core.replication.MainReplicationHandle;
 //#J2ME_EXCLUDE_BEGIN
 import jade.core.sam.AbsoluteCounterValueProvider;
 import jade.core.sam.AverageMeasureProviderImpl;
+import jade.core.sam.MeasureProvider;
+import jade.core.sam.MediatedMeasureProvider;
 import jade.core.sam.SAMHelper;
 //#J2ME_EXCLUDE_END
 
@@ -119,7 +121,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	//#J2ME_EXCLUDE_END
 	
 	// The profile passed to this object
-	private Profile myProfile;
+	protected Profile myProfile;
 	
 	// A flag indicating whether or not we must accept foreign agents
 	private boolean acceptForeignAgents = false;
@@ -128,7 +130,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	private String platformID;
 	
 	// The concrete agent container, providing access to LADT, etc.
-	private AgentContainer myContainer;
+	protected AgentContainer myContainer;
 	
 	// The local slice for this service
 	private final ServiceComponent localSlice = new ServiceComponent();
@@ -146,12 +148,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	private IncomingEncodingFilter encInFilter;
 	
 	// The cached AID -> MessagingSlice associations
-	private Map cachedSlices; 
+	protected Map cachedSlices; 
 	
 	// The routing table mapping MTP addresses to their hosting slice
 	private RoutingTable routes;
 	
-	private int maxDeliveryRetryAttempts;
+	protected int maxDeliveryRetryAttempts;
 	
 	// The map of local and global (used in the Main Container) aliases
 	private Hashtable localAliases = new Hashtable();
@@ -407,19 +409,34 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				// MESSAGE MANAGER METRICS
 				boolean enableMessageManagerMetrics = "true".equalsIgnoreCase(myProfile.getParameter(ENABLE_MESSAGE_MANAGER_METRICS, "false"));
 				if (enableMessageManagerMetrics) {
-					avgQueueSizeBytesProvider = new AverageMeasureProviderImpl();
-					samHelper.addEntityMeasureProvider("Message-Manager-avg-queue-size-bytes#"+myContainer.getID().getName(), avgQueueSizeBytesProvider);
-					avgQueueSizeMessagesProvider = new AverageMeasureProviderImpl();
-					samHelper.addEntityMeasureProvider("Message-Manager-avg-queue-size-messages#"+myContainer.getID().getName(), avgQueueSizeMessagesProvider);
-
-					samTimer = new Timer();
-					samTimer.scheduleAtFixedRate(new TimerTask() {
+					avgQueueSizeBytesProvider = new MediatedMeasureProvider(new MeasureProvider() {
 						@Override
-						public void run() {
-							avgQueueSizeBytesProvider.addSample(myMessageManager.getSize());
-							avgQueueSizeMessagesProvider.addSample(myMessageManager.getPendingCnt());
+						public Number getValue() {
+							return myMessageManager.getSize();
 						}
-					}, 0, 30000);
+					});
+					samHelper.addEntityMeasureProvider("Message-Manager-avg-queue-size-bytes#"+myContainer.getID().getName(), avgQueueSizeBytesProvider);
+					avgQueueSizeMessagesProvider = new MediatedMeasureProvider(new MeasureProvider() {
+						@Override
+						public Number getValue() {
+							return myMessageManager.getPendingCnt();
+						}
+					});
+					samHelper.addEntityMeasureProvider("Message-Manager-avg-queue-size-messages#"+myContainer.getID().getName(), avgQueueSizeMessagesProvider);
+					
+//					avgQueueSizeBytesProvider = new AverageMeasureProviderImpl();
+//					samHelper.addEntityMeasureProvider("Message-Manager-avg-queue-size-bytes#"+myContainer.getID().getName(), avgQueueSizeBytesProvider);
+//					avgQueueSizeMessagesProvider = new AverageMeasureProviderImpl();
+//					samHelper.addEntityMeasureProvider("Message-Manager-avg-queue-size-messages#"+myContainer.getID().getName(), avgQueueSizeMessagesProvider);
+//
+//					samTimer = new Timer();
+//					samTimer.scheduleAtFixedRate(new TimerTask() {
+//						@Override
+//						public void run() {
+//							avgQueueSizeBytesProvider.addSample(myMessageManager.getSize());
+//							avgQueueSizeMessagesProvider.addSample(myMessageManager.getPendingCnt());
+//						}
+//					}, 0, 30000);
 					
 					samHelper.addCounterValueProvider("Message-Manager-submitted-count#"+myContainer.getID().getName(), new AbsoluteCounterValueProvider() {
 						@Override
@@ -472,19 +489,19 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		//#J2ME_EXCLUDE_END
 	}
 	
-	private void stopSAM() {
-		//#J2ME_EXCLUDE_BEGIN
-		//#DOTNET_EXCLUDE_BEGIN
-		if (samTimer != null) {
-			samTimer.cancel();
-		}
-		//#DOTNET_EXCLUDE_END
-		//#J2ME_EXCLUDE_END
-	}
+//	private void stopSAM() {
+//		//#J2ME_EXCLUDE_BEGIN
+//		//#DOTNET_EXCLUDE_BEGIN
+//		if (samTimer != null) {
+//			samTimer.cancel();
+//		}
+//		//#DOTNET_EXCLUDE_END
+//		//#J2ME_EXCLUDE_END
+//	}
 
 	// kindly provided by David Bernstein, 15/6/2005
 	public void shutdown() {
-		stopSAM();
+//		stopSAM();
 		// clone addresses (externally because leap list doesn't
 		// implement Cloneable) so don't get concurrent modification
 		// exception on the list as the MTPs are being uninstalled
@@ -826,7 +843,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		}
 	}
 	
-	private ContainerID getAgentLocation(AID agentID) throws IMTPException, NotFoundException {
+	protected ContainerID getAgentLocation(AID agentID) throws IMTPException, NotFoundException {
 		MainContainer impl = myContainer.getMain();
 		if(impl != null) {
 			agentID = resolveGlobalAlias(agentID);
@@ -1731,7 +1748,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		return ret;
 	}
 	
-	void deliverInLocalPlatfrom(GenericMessage msg, AID receiverID) throws IMTPException, ServiceException, NotFoundException, JADESecurityException {
+	protected void deliverInLocalPlatfrom(GenericMessage msg, AID receiverID) throws IMTPException, ServiceException, NotFoundException, JADESecurityException {
 		if (msg.getTraceID() != null) {
 			myLogger.log(Logger.INFO, msg.getTraceID() + " - Activating local-platform delivery");
 		}
@@ -2080,7 +2097,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	// Only for debugging:
 	private volatile int traceCnt = 0;
 	
-	private void checkTracing(GenericMessage msg) {
+	protected void checkTracing(GenericMessage msg) {
 		ACLMessage acl = msg.getACLMessage();
 		if (acl != null) {
 			if (myLogger.isLoggable(Logger.FINE) || "true".equals(acl.getUserDefinedParameter(ACLMessage.TRACE))) {

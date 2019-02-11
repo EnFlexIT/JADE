@@ -423,7 +423,8 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		services.add(dsc);
 		
 		//#MIDP_EXCLUDE_BEGIN
-		dsc = startService("jade.core.messaging.MessagingService", false);
+		String messagingServiceClass = myProfile.getParameter("messaging-service-class", "jade.core.messaging.MessagingService");
+		dsc = startService(messagingServiceClass, false);
 		//#MIDP_EXCLUDE_END
 		/*#MIDP_INCLUDE_BEGIN
 		 dsc = startService("jade.core.messaging.LightMessagingService", false);
