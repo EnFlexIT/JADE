@@ -29,8 +29,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.AgentContainer;
 import jade.core.BaseService;
@@ -54,10 +57,12 @@ import jade.util.Logger;
  */
 public class SAMService extends BaseService {
 	public static final String POLLING_PERIOD = "jade_core_sam_SAMService_pollingperiod";
-	public static final int POLLING_PERIOD_DEFAULT = 1; // 15 minutes
+	public static final int POLLING_PERIOD_DEFAULT = 1; // 1 minute
 	
 	public static final String SAM_INFO_HANDLERS = "jade_core_sam_SAMService_handlers";
 	public static final String SAM_INFO_HANDLERS_DEFAULT = "jade.core.sam.DefaultSAMInfoHandlerImpl";
+
+	public static final String AGENTS_TO_MONITOR = "jade_core_sam_SAMService_agentstomonitor";
 	
 	private List<EntityInfo> monitoredEntities = new ArrayList<EntityInfo>();
 	private List<CounterInfo> monitoredCounters = new ArrayList<CounterInfo>();
@@ -71,7 +76,13 @@ public class SAMService extends BaseService {
 	private Filter outgoingFilter = null;
 	
 	private Profile myProfile;
+	private AgentContainer myContainer;
 	
+	private Timer samTimer;
+	private List<MediatedMeasureProvider> providers = new ArrayList<MediatedMeasureProvider>();
+	private MediatedMeasureProvider[] providersArray;
+	
+	private String[] agentsToMonitor;
 	
 	public String getName() {
 		return SAMHelper.SERVICE_NAME;
@@ -80,6 +91,7 @@ public class SAMService extends BaseService {
 	@Override
 	public void init(AgentContainer ac, Profile p) throws ProfileException {
 		super.init(ac, p);
+		myContainer = ac;
 		if (p.isMain()) {
 			outgoingFilter = new Filter() {
 				@Override
@@ -123,6 +135,61 @@ public class SAMService extends BaseService {
 		if (myProfile.isMasterMain()) {
 			startPolling();
 		}
+		
+		try {
+			jade.util.leap.List specs = myProfile.getSpecifiers(AGENTS_TO_MONITOR);
+			if (specs != null) {
+				jade.util.leap.Iterator it = specs.iterator();
+				while (it.hasNext()) {
+					Specifier s = (Specifier) it.next();
+					final String name = s.getClassName();
+					// FIXME: manage specifier arguments queue, sent, posted, received
+					MediatedMeasureProvider provider = new MediatedMeasureProvider(new MeasureProvider() {
+						@Override
+						public Number getValue() {
+							Number ret = Double.NaN;
+							AID id = new AID(name, AID.ISLOCALNAME);
+							Agent a = myContainer.acquireLocalAgent(id);
+							if (a != null) {
+								ret = a.getCurQueueSize();
+								myContainer.releaseLocalAgent(id);
+							}
+							return ret;
+						}
+					});
+					myHelper.addEntityMeasureProvider(name+"-avg-queue-size", provider);
+					myHelper.addCounterValueProvider(name+"-sent-message-count", new AbsoluteCounterValueProvider() {
+						@Override
+						public long getValue() {
+							long ret = -1;
+							AID id = new AID(name, AID.ISLOCALNAME);
+							Agent a = myContainer.acquireLocalAgent(id);
+							if (a != null) {
+								ret = a.getSentMessagesCnt();
+								myContainer.releaseLocalAgent(id);
+							}
+							return ret;
+						}
+					});
+					myHelper.addCounterValueProvider(name+"-received-message-count", new AbsoluteCounterValueProvider() {
+						@Override
+						public long getValue() {
+							long ret = -1;
+							AID id = new AID(name, AID.ISLOCALNAME);
+							Agent a = myContainer.acquireLocalAgent(id);
+							if (a != null) {
+								ret = a.getReceivedMessagesCnt();
+								myContainer.releaseLocalAgent(id);
+							}
+							return ret;
+						}
+					});
+				}
+			}
+		}
+		catch (ProfileException pe) {
+			myLogger.log(Logger.WARNING, "Error processing "+AGENTS_TO_MONITOR+" configuration property", pe);
+		}
 	}
 	
 	private void startPolling() throws ServiceException {
@@ -162,6 +229,7 @@ public class SAMService extends BaseService {
 		if (poller != null) {
 			poller.stopPolling();
 		}
+		stopTimer();
 		super.shutdown();
 	}
 	
@@ -325,6 +393,10 @@ public class SAMService extends BaseService {
 		
 		void addProvider(AverageMeasureProvider provider) {
 			providers.add(provider);
+			
+			if (provider instanceof MediatedMeasureProvider) {
+				connect((MediatedMeasureProvider) provider);
+			}
 		}
 		
 		AverageMeasure getMeasure() {
@@ -400,5 +472,29 @@ public class SAMService extends BaseService {
 		CounterInfo info = new CounterInfo(counterName);
 		monitoredCounters.add(info);
 		return info;
+	}
+	
+	
+	private synchronized void connect(MediatedMeasureProvider p) {
+		providers.add(p);
+		providersArray = providers.toArray(new MediatedMeasureProvider[0]);
+		
+		if (samTimer == null) {
+			samTimer = new Timer();
+			samTimer.scheduleAtFixedRate(new TimerTask() {
+				@Override
+				public void run() {
+					for (MediatedMeasureProvider provider : providersArray) {
+						provider.collectNewValue();
+					}
+				}
+			}, 0, 19000); // Tick every 19 secs
+		}
+	}
+	
+	synchronized void stopTimer() {
+		if (samTimer != null) {
+			samTimer.cancel();
+		}
 	}
 }
