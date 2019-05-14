@@ -155,7 +155,15 @@ public class PerformanceHelperAgent extends Agent {
 				if (cnt < 4000) {
 					cnt++;
 					reset();
-					myAgent.addBehaviour(this);
+					// NOTE: We can't just do addBehaviour(this) since this behaviour is about to 
+					// be removed from the agent and that will set its myAgent variable to null
+					final Behaviour toBeReadded = this;
+					myAgent.addBehaviour(new OneShotBehaviour() {
+						@Override
+						public void action() {
+							myAgent.addBehaviour(toBeReadded);
+						}
+					});
 				}
 				else {
 					checker.remove(this);
