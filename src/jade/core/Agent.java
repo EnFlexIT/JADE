@@ -1996,6 +1996,16 @@ public class Agent implements Runnable, Serializable
 	}
 	
 	//#J2ME_EXCLUDE_BEGIN
+	/**
+	 * Read up to max messages from the agent message queue.
+	 * This can be useful for performance reasons in situations where an agent has to 
+	 * deal with a heavy load of messages.
+	 * @param pattern The MessageTemplate specifying which messages must be read. Setting this
+	 * to null is equivalent to a MatchAll template
+	 * @param max The maximum number of messages to read
+	 * @return The read messages in form of a List or null if no message matching the specified 
+	 * template is currently present in the agent message queue 
+	 */
 	public final java.util.List<ACLMessage> receive(MessageTemplate pattern, int max) {
 		java.util.List<ACLMessage> mm = null;
 		synchronized (msgQueue) {

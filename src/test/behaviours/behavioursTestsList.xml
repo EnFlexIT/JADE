@@ -5,6 +5,13 @@
 	]>
 -->
 	<TestsList> 
+		<Test name="OntologyServer" skip="false">
+			<TestClassName>test.behaviours.tests.TestOntologyServer</TestClassName>
+			<WhatTest> Tests the correct working of the OntologyServer class.</WhatTest>
+			<HowWorkTest></HowWorkTest>
+			<WhenTestPass></WhenTestPass>
+		</Test>
+
 		<Test name="Send and Receive loop" skip="false">
 			<TestClassName>test.behaviours.tests.TestSendReceiveLoop</TestClassName>
 			<WhatTest> Tests the block/restart mechanism during high speed local message dispatching.</WhatTest>

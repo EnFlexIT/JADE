@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,7 +48,7 @@ import jade.util.Logger;
  * </code>
  * <br>
  * will be searched.<br>
- * Serving methods are responsible for sending back responses if any.  
+ * Serving methods are responsible for sending back responses if any.
  */
 public class OntologyServer extends CyclicBehaviour {
 	private static final long serialVersionUID = -2997404961058073783L;
@@ -85,6 +86,7 @@ public class OntologyServer extends CyclicBehaviour {
 	
 	private ConversationList ignoredConversations;
 	private boolean printFullUnexpectedMessages = true;
+	private int maxProcessedMessagesPerRun = 1;
 	private MessageTemplate template;
 	private Set<Integer> performativesRequiringReply = new HashSet<Integer>();
 	
@@ -144,6 +146,16 @@ public class OntologyServer extends CyclicBehaviour {
 	
 	public void setMessageTemplate(MessageTemplate template) {
 		this.template = template;
+	}
+	
+	/**
+	 * Instruct the OntologyServer to process up to maxProcessedMessagesPerRun messages
+	 * each time it is scheduled for execution. This can be useful for performance reasons
+	 * when the agent executing this behaviour has to deal with a heavy load of messages
+	 * @param maxProcessedMessagesPerRun
+	 */
+	public void setMaxProcessedMessagesPerRun(int maxProcessedMessagesPerRun) {
+		this.maxProcessedMessagesPerRun = maxProcessedMessagesPerRun;
 	}
 	
 	/**
@@ -230,14 +242,33 @@ public class OntologyServer extends CyclicBehaviour {
 	}
 
 	public final void action() {
-		ACLMessage msg = myAgent.receive(template);
-		if (msg != null) {
-			if (myLogger.isLoggable(Logger.FINER)) {
-				myLogger.log(Logger.FINER, "Agent "+myAgent.getName()+" - "+getBehaviourName()+": Serving incoming message "+msg);
+		boolean messageReceived = false;
+		if (maxProcessedMessagesPerRun == 1) {
+			// Process a single message
+			ACLMessage msg = myAgent.receive(template);
+			if (msg != null) {
+				messageReceived = true;
+				if (myLogger.isLoggable(Logger.FINER)) {
+					myLogger.log(Logger.FINER, "Agent "+myAgent.getName()+" - "+getBehaviourName()+": Serving incoming message "+msg);
+				}
+				handleMessage(msg);
 			}
-			handleMessage(msg);
 		}
 		else {
+			// Process multiple messages
+			List<ACLMessage> mm = myAgent.receive(template, maxProcessedMessagesPerRun);
+			if (mm != null) {
+				for (ACLMessage msg : mm) {
+					messageReceived = true;
+					if (myLogger.isLoggable(Logger.FINER)) {
+						myLogger.log(Logger.FINER, "Agent "+myAgent.getName()+" - "+getBehaviourName()+": Serving incoming message "+msg);
+					}
+					handleMessage(msg);
+				}
+			}
+		}
+		
+		if (!messageReceived) {
 			block();
 		}
 	}
