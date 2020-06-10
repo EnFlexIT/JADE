@@ -101,8 +101,8 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 		// Merge back-end and front-end services
 		String feServices = pp.getProperty(MicroRuntime.BE_REQUIRED_SERVICES_KEY);
 		if (feServices != null) {
-			Vector ss = Specifier.parseList(pp.getProperty(Profile.SERVICES), ';');
-			Vector fess = Specifier.parseList(feServices, ';');
+			Vector ss = Specifier.parseList(pp.getProperty(Profile.SERVICES), Specifier.SPECIFIER_SEPARATOR);
+			Vector fess = Specifier.parseList(feServices, Specifier.SPECIFIER_SEPARATOR);
 			for (int i = 0; i < fess.size(); ++i) {
 				String s = (String) fess.get(i);
 				if (!ss.contains(s)) {

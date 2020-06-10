@@ -39,6 +39,8 @@ import java.util.Vector;
  */
 public class Specifier {
 	public static final char SPECIFIER_SEPARATOR = ';';
+	public static final String ARG_SEPARATOR = ",";
+	public static final String ESCAPE_CHAR = "\\";
 	public static final String NULL_SPECIFIER_LIST = "null";
 
 	private String   name = null;
@@ -100,7 +102,7 @@ public class Specifier {
 	/**
 	 * This method is used by Boot, ProfileImpl, and RMA in order
 	 * to have a String representation of this Specifier according to the
-	 * format <code>name:className(arg1 arg2 argn)</code>
+	 * format <code>name:className(arg1,arg2,argn)</code>
 	 *
 	 * @return A string representation of this specifier, according to
 	 * the format above.
@@ -116,16 +118,12 @@ public class Specifier {
 			tmp.append(className);
 		}
 		if (args != null) {
+			char argSeparator = getArgSeparator();
 			tmp.append("(");
 			for (int i=0; i<args.length; i++) {
 				tmp.append(args[i]);
 				if (i<args.length-1) {
-					//#ALL_EXCLUDE_BEGIN
-					tmp.append(" ");
-					//#ALL_EXCLUDE_END
-					/*#ALL_INCLUDE_BEGIN
-					tmp.append(",");
-					//#ALL_INCLUDE_END*/
+					tmp.append(argSeparator);
 				}
 			}
 			tmp.append(")");
@@ -133,6 +131,33 @@ public class Specifier {
 		return tmp.toString();
 	}
 
+	public static char getArgSeparator() {
+		String separator = ARG_SEPARATOR;
+		//#J2ME_INCLUDE_BEGIN
+		separator = System.getProperty("arg-separator", ARG_SEPARATOR);
+		//#J2ME_INCLUDE_END
+		if (separator.length() > 0) {
+			return separator.charAt(0);
+		}
+		else {
+			return ARG_SEPARATOR.charAt(0);
+		}
+	}
+	
+	public static Character getEscapeChar() {
+		String escapeChar = ESCAPE_CHAR;
+		//#J2ME_INCLUDE_BEGIN
+		escapeChar = System.getProperty("escape-char", ESCAPE_CHAR);
+		//#J2ME_INCLUDE_END
+		if (escapeChar.length() > 0) {
+			return escapeChar.charAt(0);
+		}
+		else {
+			// No escaping
+			return null;
+		}
+	}
+	
 	/**
      This static utility method can parse the string representation of
      a list of specifiers. The general format of a specifier is used,
@@ -148,10 +173,11 @@ public class Specifier {
 	 */
 	public static Vector parseSpecifierList(String specsLine) throws Exception {
 		Vector specs = parseList(specsLine, SPECIFIER_SEPARATOR);
+		char argSeparator = getArgSeparator();
 		for (int i = 0; i < specs.size(); ++i) {
 			String s = (String) specs.elementAt(i);
 			if (s.length() > 0) {
-				specs.setElementAt(parseSpecifier(s, ','), i);
+				specs.setElementAt(parseSpecifier(s, argSeparator), i);
 			}
 			else {
 				specs.removeElementAt(i--);
@@ -169,7 +195,13 @@ public class Specifier {
 
 	public static final Vector parseList(String list, char delimiter) {
 		Vector v = new Vector();
-
+        boolean escaping = false;
+        char escapeChar = (char) -1;
+        Character escapeCharacter = getEscapeChar();
+        if (escapeCharacter != null) {
+        	escaping = true;
+        	escapeChar = escapeCharacter;
+        }
 		if (list != null && !list.equals("") && !list.equals(NULL_SPECIFIER_LIST)) {
 			// Copy the string with the specifiers into an array of char
 			char[] specsChars = new char[list.length()];
@@ -182,8 +214,23 @@ public class Specifier {
 
 			while (i < specsChars.length) {
 				char c = specsChars[i];
-
-				if (c != delimiter) {
+                
+				if (escaping && c == escapeChar) {
+					// If next char (if any) is the delimiter, discard current char (escape) and append
+					// next one as it is, else append both current and next char
+					i++;
+					if (i < specsChars.length) {
+						char nextC = specsChars[i];
+						if (nextC != delimiter) {
+							sbElement.append(c);
+						}
+						sbElement.append(nextC);
+					}
+					else {
+						sbElement.append(c);
+					}
+				}
+				else if (c != delimiter) {
 					sbElement.append(c);
 				} 
 				else {
@@ -279,24 +326,8 @@ public class Specifier {
 	/**
 	 */
 	private static String[] parseArguments(String args, char argsDelimiter) {
-		Vector argList = new Vector();
-		int  argStart = 0;
-		int  argEnd = args.indexOf(argsDelimiter);
-
-		while (argEnd >= 0) {
-			String arg = args.substring(argStart, argEnd);
-
-			argList.addElement(arg.trim());
-
-			argStart = argEnd+1;
-			argEnd = args.indexOf(argsDelimiter, argStart);
-		} 
-
-		// Last argument
-		String arg = args.substring(argStart, args.length());
-
-		argList.addElement(arg.trim());
-
+		Vector argList = parseList(args, argsDelimiter);
+		
 		// Convert the List into an Array
 		String arguments[] = new String[argList.size()];
 		int    i = 0;
