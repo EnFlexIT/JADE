@@ -74,7 +74,7 @@ class ActionProcessor {
 	public static final String  REFRESHAMSAGENT_ACTION = "Refresh Agent List";
 	public static final String  REGISTERREMOTEAGENTWITHAMS_ACTION = "Register Remote Agent with local AMS";
 	
-	public static final Map actions=new HashMap();
+	public Map actions=new HashMap();
 	
 	public ActionProcessor(rma anRma,MainWindow mWnd,MainPanel panel) {
 		this.panel=panel;
