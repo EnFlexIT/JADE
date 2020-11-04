@@ -42,6 +42,7 @@ import jade.security.JADESecurityException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Modifier;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 
@@ -1252,18 +1253,18 @@ public class Agent implements Runnable, Serializable
 
 	//#MIDP_EXCLUDE_BEGIN
 	/**
-	 Write this agent to an output stream; this method can be used to
-	 record a snapshot of the agent state on a file or to send it
-	 through a network connection. Of course, the whole agent must
-	 be serializable in order to be written successfully.
-	 <br>
-	 <b>NOT available in MIDP</b>
-	 <br>
-	 @param s The stream this agent will be sent to. The stream is
-	 <em>not</em> closed on exit.
-	 @exception IOException Thrown if some I/O error occurs during
-	 writing.
-	 @see jade.core.Agent#read(InputStream s)
+	 * Write this agent to an output stream; this method can be used to
+	 * record a snapshot of the agent state on a file or to send it
+	 * through a network connection. Of course, the whole agent must
+	 * be serializable in order to be written successfully.
+	 * The saved state of the agent can later be restored via the restoreFields() method
+	 * <br>
+	 * <b>NOT available in MIDP</b>
+	 * <br>
+	 * @param s The stream this agent will be sent to. The stream is
+	 * <em>not</em> closed on exit.
+	 * @exception IOException Thrown if some I/O error occurs during writing.
+	 * @see jade.core.Agent#restoreFields(InputStream s)
 	 */
 	public void write(OutputStream s) throws IOException {
 		ObjectOutput out = new ObjectOutputStream(s);
@@ -1327,21 +1328,66 @@ public class Agent implements Runnable, Serializable
 	 }*/
 
 	/**
-	 This method reads a previously saved agent, replacing the current
-	 state of this agent with the one previously saved. The stream
-	 must contain the saved state of <b>the same agent</b> that it is
-	 trying to restore itself; that is, <em>both</em> the Java object
-	 <em>and</em> the agent name must be the same.
-	 <br>
-	 <b>NOT available in MIDP</b>
-	 <br>
-	 @param s The input stream the agent state will be read from.
-	 @exception IOException Thrown if some I/O error occurs during
-	 stream reading.
-	 <em>Note: This method is currently not implemented</em>
+	 * Reads a previously saved agent state, and restore the agent user-defined fields
+	 * replacing their current values.
+	 * Only non-transient and non-static fields declared in the class of the agent will
+	 * be restored. Fields declared in super-classes are left unchanged.
+	 * The jade.core.Restore annotation can be used to skip the restoration of a field
+	 * or to specify a user-defined method to perform the restoration.  
+	 * <br>
+	 * <b>NOT available in MIDP</b>
+	 * <br>
+	 * @param s The input stream the agent state will be read from.
 	 */
-	public void restore(InputStream s) throws IOException {
-		// FIXME: Not implemented
+	public void restoreFields(InputStream s) throws Exception {
+		java.io.ObjectInput in = new ObjectInputStream(s);
+		String savedName = in.readUTF();
+		if (!savedName.equals(getLocalName())) {
+			throw new Exception("Saved name "+savedName+" does not match with agent name "+getLocalName());
+		}
+		Agent a = (Agent) in.readObject();
+		
+		Class c = this.getClass();
+		java.lang.reflect.Field[] ff = c.getDeclaredFields();
+		for (java.lang.reflect.Field f : ff) {
+			log.log(Logger.INFO, "Agent "+getLocalName()+" - Considering field "+f.getName());
+			int mm = f.getModifiers();
+			// Static and transient field are NOT restored
+			if (!(Modifier.isStatic(mm) || Modifier.isTransient(mm))) {
+				String restoreMethod = Restore.DEFAULT_RESTORE;
+				Restore restoreAnn = f.getAnnotation(Restore.class);
+				if (restoreAnn != null) {
+					if (restoreAnn.skip()) {
+						// Skip restoring this field
+						continue;
+					}
+					else {
+						restoreMethod = restoreAnn.method();
+					}
+				}
+				
+				if (!f.isAccessible()) {
+					f.setAccessible(true);
+				}
+				if (restoreMethod.equals(Restore.DEFAULT_RESTORE)) {
+					// Restore via the default method i.e. replace the field value
+					log.log(Logger.INFO, "Agent "+getLocalName()+" - Restoring field "+f.getName());
+					Object val = f.get(a);
+					f.set(this, val);
+				}
+				else {
+					// Restore via a user-defined method
+					log.log(Logger.INFO, "Agent "+getLocalName()+" - Restoring field "+f.getName()+" via user-defined method "+restoreMethod);
+					java.lang.reflect.Method m = c.getDeclaredMethod(restoreMethod, f.getType());
+					if (!m.isAccessible()) {
+						m.setAccessible(true);
+					}
+					Object val = f.get(a);
+					m.invoke(this, val);
+				}
+				log.log(Logger.INFO, "Agent "+getLocalName()+" - Field "+f.getName()+" restored value: "+f.get(this));
+			}
+		}
 	}
 
 	/**
