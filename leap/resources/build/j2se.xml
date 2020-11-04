@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Note that targets in this ANT build file are always invoked by other targets in the 
+     main LEAP build file. In some cases they refer to properties that are not set locally -->        
+<project name="JADE-LEAP for J2SE" default="do-demo">
+	<!-- PROPERTIES specific for J2SE -->
+	<property name="doc" value="${j2se-root}/doc"/>
+	<property name="filtered.src" location="${j2se-root}/filtered/src"/>
+	<property name="apidoc-title" value="JADE v${version} API"/>
+	<property name="apidoc-footer" value="&lt;center>These are the official &lt;i>&lt;a href=&quot;http://jade.tilab.com&quot; target=top>JADE&lt;/a>&lt;/i> API. For these API backward compatibility is guaranteed accross JADE versions&lt;/center>"/>
+
+	<!-- INIT -->
+	<target name="do-init"  description="Create the appropriate directories">
+		<mkdir dir="${j2se-root}"/>
+		<mkdir dir="${doc}"/>
+	</target>
+
+	
+	<!-- RESET -->
+	<target name="do-reset" description="Reset the build environment">
+		<delete dir = "${j2se-root}"/>
+	</target>
+
+	
+	<!-- CLEAN -->
+	<target name="do-clean" description="Clean class files">
+		<delete dir = "${doc}"/>
+		<mkdir dir="${doc}"/> 
+	</target>
+	
+
+	<!-- APIDOC -->
+	<target name="do-apidoc" description="Generate javadoc for JADE official API only">
+		<!-- 1) Create filtered src directory -->
+		<mkdir dir="${filtered.src}"/>
+      
+		<!-- 2) Copy JADE sources -->
+		<copy todir="${filtered.src}" overwrite="yes">
+			<fileset dir="${jade-src}">
+				<!-- Explicitly exclude all files that cannot include preprocessor directives -->
+				<exclude name="**/jade/content/lang/sl/SLParserConstants.java"/>
+				<exclude name="**/jade/content/lang/sl/ASCII_CharStream.java"/>
+				<exclude name="**/jade/content/lang/sl/SimpleCharStream.java"/>
+				<exclude name="**/jade/content/lang/sl/SLParserTokenManager.java"/>
+				<exclude name="**/jade/content/lang/sl/Token.java"/>
+				<exclude name="**/jade/content/lang/sl/ParseException.java"/>
+				<exclude name="**/jade/content/lang/sl/TokenMgrError.java"/>
+
+				<exclude name="**/jade/content/lang/sl/ExtendedSLParserConstants.java"/>
+				<exclude name="**/jade/content/lang/sl/ExtendedSLParserTokenManager.java"/>
+				
+				<exclude name="**/jade/lang/acl/ACLParserConstants.java"/>
+				<exclude name="**/jade/lang/acl/ASCII_CharStream.java"/>
+				<exclude name="**/jade/lang/acl/SimpleCharStream.java"/>
+				<exclude name="**/jade/lang/acl/ACLParserTokenManager.java"/>
+				<exclude name="**/jade/lang/acl/Token.java"/>
+				<exclude name="**/jade/lang/acl/ParseException.java"/>
+				<exclude name="**/jade/lang/acl/TokenMgrError.java"/>
+			</fileset>
+		</copy>
+           
+		<!-- 3) Preprocess-->
+		<pproc basedir="${filtered.src}" type="apidoc"/>
+        
+		<!-- 4) Generates javadoc-->
+		<javadoc sourcepath="${filtered.src}"
+		         destdir="${doc}"
+		         doctitle="&lt;h1>${apidoc-title}&lt;/h1>"
+		         bottom="${apidoc-footer}"
+		         verbose="false"
+		         windowtitle="${apidoc-title}"
+		         use="true"
+		         packagenames="jade.*"
+		         excludepackagenames="jade.content.frame, jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.core.nodeMonitoring, jade.core.faultRecovery, jade.domain.DFGUIManagement, jade.domain.KBManagement, jade.domain.persistence, jade.gui, jade.imtp.*, jade.mtp.*, jade.security.*, jade.tools.*"/>
+
+		<!-- 5) Remove filtered src -->
+		<delete dir="${filtered.src}"/>
+	</target>
+
+
+	<!-- DEMO -->
+	<target name="do-demo" depends="do-init, check-resources" description="Build the demo for the J2SE environment">
+		<!--
+		<delete dir = "${demo-preprocessed}" quiet="true"/>
+		<delete dir = "${demo-classes}" quiet="true"/>
+		<mkdir dir="${demo-preprocessed}"/>
+		<mkdir dir="${demo-classes}"/>
+		
+		<copy todir="${demo-preprocessed}" overwrite="yes">
+			<fileset dir="${demo-src}">
+			</fileset>
+		</copy>
+		
+		<pproc basedir="${demo-preprocessed}" type="j2se"/>
+	  
+		<javac srcdir="${demo-preprocessed}"
+		       destdir="${demo-classes}"
+		       classpath="${jade-home}/lib/jade.jar"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="off"/>
+		       
+		<delete file="${root}/demo/demoJ2se.jar" quiet="true"/>
+		<jar jarfile="${root}/demo/demoJ2se.jar" basedir="${demo-classes}"/>
+		-->
+		<!-- Step 1: Copy the JADE library -->
+		<copy file="${jade-home}/lib/jade.jar" todir="${demo}/lib"/>
+
+		<!-- Step 2: Build the Chat Ontology library -->
+		<delete dir = "${demo-preprocessed}" quiet="true"/>
+		<delete dir = "${demo-classes}" quiet="true"/>
+		<mkdir dir="${demo-preprocessed}"/>
+		<mkdir dir="${demo-classes}"/>
+		
+		<copy todir="${demo-preprocessed}" overwrite="yes">
+			<fileset dir="${demo-src}">
+				<exclude name="**/client/**"/>
+				<exclude name="**/manager/**"/>
+			</fileset>
+		</copy>
+		<pproc basedir="${demo-preprocessed}" type="j2se"/>
+	  
+		<javac srcdir="${demo-preprocessed}"
+		       destdir="${demo-classes}"
+		       classpath="${demo}/lib/jade.jar"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="off"
+		       fork="yes"
+		       compiler="classic"
+		       source="1.5"
+		       target="1.5"/>
+		       
+		<jar jarfile="${demo}/lib/chatOntology.jar" basedir="${demo-classes}"/>
+		<!--
+		<copy file="${demo}/lib/chatOntology.jar" todir="${demo-dist}/android/lib"/>
+		-->
+		
+		<!-- Step 3: Build the Chat Standard library -->
+		<delete dir = "${demo-preprocessed}" quiet="true"/>
+		<delete dir = "${demo-classes}" quiet="true"/>
+		<mkdir dir="${demo-preprocessed}"/>
+		<mkdir dir="${demo-classes}"/>
+		
+		<copy todir="${demo-preprocessed}" overwrite="yes">
+			<fileset dir="${demo-src}">
+				<exclude name="**/ontology/**"/>
+			</fileset>
+		</copy>
+
+		<pproc basedir="${demo-preprocessed}" type="j2se"/>
+	  
+		<javac srcdir="${demo-preprocessed}"
+		       destdir="${demo-classes}"
+		       classpath="${demo}/lib/jade.jar:${demo}/lib/chatOntology.jar"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="off"
+		       fork="yes"
+		       compiler="classic"
+		       source="1.5"
+		       target="1.5"/>
+		       
+		<jar jarfile="${demo}/lib/chatStandard.jar" basedir="${demo-classes}"/>		
+	</target>
+
+	
+	<!-- The following targets are there to ensure that the jade.jar file is available
+	     as it is necessary for the compilation of the demo. More in details:
+	     - If the jar file is already there, just do nothing
+	     - else if the JADE sources are available, create the jar 
+	     - else ask the user to insert the location of the jar file --> 
+	<target name="check-resources">
+		<available file="${jade-home}/lib/jade.jar" property="Jade" value="${jade-home}/lib/jade.jar"/>
+		<available file="${jade-home}/src/jade/Boot.java" property="jade-sources-available" value="true"/>
+
+		<antcall target="get-jade-jar"/>
+	</target>
+
+	<target name="get-jade-jar" unless="Jade">
+		<antcall target="create-jade-jar"/>
+		<antcall target="input-jade-jar"/>
+	</target>
+
+	<target name="create-jade-jar" if="jade-sources-available">
+		<ant dir="${jade-home}" antfile="build.xml" target="lib" inheritAll="false"/>
+	</target>
+
+	<target name="input-jade-jar" unless="jade-sources-available">
+		<input message="Insert the pathname of the JADE jar file -->" addProperty="Jade"/>
+		<mkdir dir="${jade-home}/lib"/>
+		<copy file="${Jade}" tofile="${jade-home}/lib/jade.jar"/>
+	</target>
+
+</project>

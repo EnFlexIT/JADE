@@ -1,0 +1,102 @@
+<!-- ANT BUILD FILE FOR THE WADE PLATFORM -->
+	
+<project name="JADE unit-tests" default="unittest">
+
+	<property name="jade-home" location=".."/>
+	
+	<property name="src" location="src"/>
+	<property name="lib" location="lib"/>
+	<property name="classes" location="classes"/>
+	<property name="report" location="report"/>
+	
+	<property environment="env"/>
+
+	<path id="jade-classes">
+		<!-- JADE classes. Comment this to run the TestSuite with LEAP -->
+		<fileset dir="${jade-home}/lib">
+			<include name="*.jar"/>
+			<include name="commons-codec/*.jar"/>
+		</fileset>
+
+		<!-- LEAP classes. Uncomment this to run the Test Suite with LEAP
+		<fileset dir="${jade-home}/leap/j2se/lib/">
+			<include name="*.jar"/>
+			<include name="commons-codec/*.jar"/>
+		</fileset>
+		-->
+	</path>
+
+	
+	<!--   _______________________________________________
+	                          INIT
+         _______________________________________________ -->
+	<target name="init">
+		<!-- Create the time stamp -->
+		<tstamp/>
+		<echo>JAVA_HOME = ${env.JAVA_HOME}</echo>
+		<mkdir dir = "${classes}"/>
+		<mkdir dir = "${report}"/>
+	</target>
+
+  
+	<!--  __________________________________________________
+	                          CLEAN
+	      __________________________________________________ -->
+	<target name="clean" depends="cleanreport" description="Clean the JADE unit-test environment">
+		<delete includeEmptyDirs="true" quiet="true">
+			<fileset dir="${classes}"/>
+		</delete>
+	</target>
+
+  
+	
+	<!--  __________________________________________________
+	                          COMPILE
+	____________________________________________________ -->	
+	<target name="compile" depends="init" description="Compile unit tests">
+		<echo>Compiling JADE unit tests...</echo>
+		<javac srcdir="${src}" deprecation="true" destdir="${classes}" debug="true">
+			<classpath>
+				<path refid="jade-classes"/>
+				<pathelement path="${lib}/junit-4.1.jar"/>					
+			</classpath>
+		</javac>
+		<echo>Compilation completed!</echo>
+	</target>
+	
+
+	<!--  __________________________________________________
+	                          UNIT-TEST
+	____________________________________________________ -->	
+	<target name="unittest" depends="cleanreport, compile" description="Run JADE unit tests">
+		<echo>Executing JADE unit tests...</echo>
+		<junit fork="no" haltonfailure="no" printsummary="yes">
+			<formatter type="xml" />
+
+			<batchtest todir="${report}">
+				<fileset dir="${src}">
+					<include name="**/*Test.java"/>
+				</fileset>
+			</batchtest>
+
+			<classpath>
+				<pathelement location="${classes}"/>
+				<path refid="jade-classes"/>
+				<pathelement path="${lib}/junit-4.1.jar"/>					
+			</classpath>
+		</junit>
+		<echo>Execution completed!</echo>
+	</target>
+
+
+	<!--  __________________________________________________
+	                          CLEAN REPORT
+	      __________________________________________________ -->
+	<target name="cleanreport" description="Clean the JADE unit-test report">
+		<delete includeEmptyDirs="true" quiet="true">
+			<fileset dir="${report}"/>
+		</delete>
+	</target>
+
+  
+</project>

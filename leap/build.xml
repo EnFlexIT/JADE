@@ -1,0 +1,643 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="JADE-LEAP" default="complete" basedir=".">
+  
+	<!-- PROPERTIES -->
+	<property environment="env"/>
+	<property file="buildLEAP.properties"/>
+	<property file="../build.properties"/>
+	<property name="java-home" value="${env.JAVA_HOME}"/>
+	<property name="root"      value="."/>
+	<property name="jade-home" value=".."/>
+
+	<property name="buildfiles" value="${root}/resources/build"/>
+
+	<!-- JAVA classes -->
+	<property name="boot-java-classes" value="${java-home}/jre/lib/rt.jar"/>
+   
+	<!-- Directories -->
+	<property name="jade-src" value="${jade-home}/src"/>
+	<property name="leap-src" value="${root}/src"/>
+	<property name="j2se-root" value="${root}/j2se"/>
+	<property name="pjava-root" value="${root}/pjava"/>
+	<property name="midp-root" value="${root}/midp"/>	
+	<property name="dotnet-root" value="${root}/dotnet"/>	
+	<property name="android-root" value="${root}/android"/>	
+	<property name="tmp" value="${root}/tmp"/>	
+	<property name="dist" value="${jade-home}/add-ons"/>	
+	
+	<!-- Javadoc Header and Footer -->
+	<property name="title" value="JADE-LEAP"/>
+	<property name="javadoc-footer" value="&lt;center>&lt;i>&lt;a href=&quot;http://leap.crm-paris.com&quot; target=top>The LEAP Project&lt;/a>&lt;/i>&lt;/center>"/>
+
+	<!-- Properties for compiling the demo -->
+	<property name="demo" value="${root}/demo"/>
+	<property name="demo-src" value="${demo}/src"/>
+	<property name="demo-preprocessed" value="${tmp}/demo/preprocessed"/>
+	<property name="demo-unverified" value="${tmp}/demo/unverified"/>
+	<property name="demo-classes" value="${tmp}/demo/classes"/>
+
+	<!-- Properties for demo distribution -->
+	<property name="android-demo" value="${android-root}/demo"/>
+	<property name="demo-dist" value="${tmp}/demo"/>
+
+	<!-- Additional ANT tasks definition -->
+	<!-- Preprocessor -->
+	<taskdef name = "pproc"    classname="leapTools.Preprocessor">
+		<classpath path ="resources/antTasks/leapTools.jar"/>
+	</taskdef>
+	<!-- Minimizer -->
+	<taskdef name = "minimize"    classname="leapTools.Minimizer">
+		<classpath path ="resources/antTasks/leapTools.jar"/>
+	</taskdef>
+	<!-- Preverifier -->
+	<taskdef  name="preverify" classname="com.stampysoft.ant.j2me.PreverifyTask">
+		<classpath path ="resources/antTasks/StampysoftAntTasks.jar" />
+	</taskdef>
+	<!-- Jad Updater -->
+	<taskdef name="updatejad" classname="com.stampysoft.ant.j2me.UpdateJARSizeTask">
+		<classpath path ="resources/antTasks/StampysoftAntTasks.jar" />
+	</taskdef>  
+	<property name="j2mewtk.home" value="${j2me-wtk-home}"/>
+  
+  
+  
+	<!-- TARGETS -->
+
+	<target name="help" description="show the usage of the most frequently used targets of this ant file">
+		<echo message="ant all rebuild  (to clean and recompile Jade-leap for pjava and midp)"/>
+		<echo message="ant midp rebuild  (to clean and recompile Jade-leap for midp only)"/>
+	</target>
+
+	<!-- ******** JAVA ENVIRONMENTS ********* -->
+	
+	<!-- J2SE -->
+	<target name = "j2se" description = "Set the j2se property --> j2se.xml will be called">
+		<property name = "j2se"  value = "true"/>
+	</target>
+	
+	<!-- PJAVA -->
+	<target name = "pjava" description = "Set the pjava property --> pjava.xml will be called">
+		<property name = "pjava"  value = "true"/>
+	</target>
+
+	<!-- MIDP (j2me-wtk-home must be set in the buildLEAP.properties file) -->
+	<target name = "midp" depends = "midp-do, midp-dont" description = "Set the midp property --> midp.xml will be called (unless j2me-wtk-home is not set)"/>
+	<target name = "midp-do" if = "j2me-wtk-home">
+		<property name = "midp"  value = "true"/>
+	</target>
+	<target name = "midp-dont" unless = "j2me-wtk-home">
+		<echo> WARNING: 'j2me-wtk-home' not specified in buildLEAP.properties. Skipping midp build.</echo>
+	</target>
+
+	<!-- DOTNET (vjc must be set in the buildLEAP.properties file) -->
+	<target name = "dotnet" depends = "dotnet-do, dotnet-dont" description = "Set the dotnet property --> dotnet.xml will be called (unless vjc is not set)"/>
+	<target name = "dotnet-do" if = "dotnet-home">
+		<property name = "dotnet"  value = "true"/>
+	</target>
+	<target name = "dotnet-dont" unless = "dotnet-home">
+		<echo> WARNING: 'dotnet directory' not specified in buildLEAP.properties. Skipping dotnet build.</echo>
+	</target>
+
+	<!-- ANDROID (ANDROI_SDK_HOME must be set) -->
+	<target name = "android" depends = "android-do, android-dont" description = "Set the Android property --> android.xml will be called (unless SDK is not set)"/>
+	<target name = "android-do" if = "android-platform-home">
+		<property name = "android"  value = "true"/>
+	</target>
+	<target name = "android-dont" unless = "android-platform-home">
+		<echo> WARNING: 'Android platform directory' not specified in buildLEAP.properties. Skipping Android build.</echo>
+	</target>
+	
+	<!-- ALL -->
+	<target name = "all" depends = "j2se, pjava, midp, android" description = "Set the property for all environments"/>
+
+
+	<!-- ******* ACTIONS that can be specified for the above java environments ******** -->
+
+	<!-- INIT the whole -->
+	<target name="init" description="Set time stamp">
+		<tstamp />
+
+		<antcall target="jade-tag" />
+
+		<!-- wireless toolkit 1.x -->
+		<condition property="boot-midp-classes-tmp" value="${j2me-wtk-home}/lib/midpapi.zip">
+			<available file="${j2me-wtk-home}/lib/midpapi.zip" />
+		</condition>
+
+		<!-- wireless toolkit 2.x -->
+		<condition property="midp10.jar" value="midpapi10.jar">
+			<available file="${j2me-wtk-home}/lib/midpapi10.jar" />
+		</condition>
+		<condition property="midp20.jar" value="midpapi20.jar">
+			<available file="${j2me-wtk-home}/lib/midpapi20.jar" />
+		</condition>
+		<condition property="cldc10.jar" value="cldcapi10.jar">
+			<available file="${j2me-wtk-home}/lib/cldcapi10.jar" />
+		</condition>
+		<condition property="cldc11.jar" value="cldcapi11.jar">
+			<available file="${j2me-wtk-home}/lib/cldcapi11.jar" />
+		</condition>
+
+		<!-- wireless toolkit 3.x -->
+		<condition property="midp10.jar" value="midp_1.0.jar">
+			<available file="${j2me-wtk-home}/lib/midp_1.0.jar" />
+		</condition>
+		<condition property="midp20.jar" value="midp_2.0.jar">
+			<available file="${j2me-wtk-home}/lib/midp_2.0.jar" />
+		</condition>
+		<condition property="cldc10.jar" value="cldc_1.0.jar">
+			<available file="${j2me-wtk-home}/lib/cldc_1.0.jar" />
+		</condition>
+		<condition property="cldc11.jar" value="cldc_1.1.jar">
+			<available file="${j2me-wtk-home}/lib/cldc_1.1.jar" />
+		</condition>
+
+		<echo>midp10.jar=${midp10.jar}</echo>
+		<echo>midp20.jar=${midp20.jar}</echo>
+		<echo>cldc10.jar=${cldc10.jar}</echo>
+		<echo>cldc11.jar=${cldc11.jar}</echo>
+		<!-- midp version 1.0, wireless toolkit 2.x/3.x -->
+		<condition property="boot-midp-classes-tmp"
+			value="${j2me-wtk-home}/lib/${midp10.jar}${path.separator}${j2me-wtk-home}/lib/${cldc10.jar}">
+			<equals arg1="${midp-version}" arg2="1.0" trim="true" />
+		</condition>
+
+		<!-- midp version 2.0, wireless toolkit 2.x/3.x -->
+		<condition property="boot-midp-classes-tmp"
+			value="${j2me-wtk-home}/lib/${midp20.jar}${path.separator}${j2me-wtk-home}/lib/${cldc11.jar}">
+			<equals arg1="${midp-version}" arg2="2.0" trim="true" />
+		</condition>
+
+		<!-- Add the WMA classes to the bootclasspath if present -->
+		<condition property="boot-midp-classes"
+			value="${boot-midp-classes-tmp}${path.separator}${wma-classes}">
+			<isset property="wma-classes" />
+		</condition>
+		<condition property="boot-midp-classes" value="${boot-midp-classes-tmp}">
+			<not>
+				<isset property="wma-classes" />
+			</not>
+		</condition>
+
+		<mkdir dir="${tmp}" />
+		<echo>================================================================================</echo>
+		<echo>boot-midp-classes-tmp=${boot-midp-classes-tmp}</echo>
+		<echo>boot-midp-classes=${boot-midp-classes}</echo>
+		<echo>================================================================================</echo>
+	</target>
+	
+	<target name="jade-tag" if="jade-exists" depends="check-jade">
+		<ant antfile="build.xml" target="setWCInfo" dir="${jade-home}"/>
+	</target>	
+	
+	<target name="check-jade">
+		<available file="${jade-home}/build.xml" property="jade-exists"/>
+	</target>
+	
+	<!-- SETUP the build environment for the selected java environments -->
+	<target name="setup" depends="init, setup-pjava, setup-midp, setup-dotnet, setup-android" description="Setup the build environment using the appropriate {environment}.xml file"/>
+	<target name="setup-pjava" if="pjava">
+		<ant antfile="${buildfiles}/pjava.xml" target="do-setup" dir="."/>
+	</target>
+	<target name="setup-midp" if="midp">
+		<ant antfile="${buildfiles}/midp.xml" target="do-setup" dir="."/>
+	</target>
+	<target name="setup-dotnet" if="dotnet">
+		<ant antfile="${buildfiles}/dotnet.xml" target="do-setup" dir="."/>
+	</target>
+	<target name="setup-android" if="android">
+		<ant antfile="${buildfiles}/android.xml" target="do-setup" dir="."/>
+	</target>
+
+	
+	<!-- RESET the jade-leap directory structure for the selected java environments -->
+	<target name="reset" depends="init, reset-pjava, reset-midp, reset-dotnet, reset-android" description="Reset the directory structure using the appropriate {environment}.xml file"/>
+	<target name="reset-pjava" if="pjava">
+		<ant antfile="${buildfiles}/pjava.xml" target="do-reset" dir="."/>
+	</target>
+	<target name="reset-midp" if="midp">
+		<ant antfile="${buildfiles}/midp.xml" target="do-reset" dir="."/>
+	</target>
+	<target name="reset-dotnet" if="dotnet">
+		<ant antfile="${buildfiles}/dotnet.xml" target="do-reset" dir="."/>
+	</target>
+	<target name="reset-android" if="android">
+		<ant antfile="${buildfiles}/android.xml" target="do-reset" dir="."/>
+	</target>
+
+	
+	<!-- CLEAN class files for the selected java environments -->
+	<target name="clean" depends="init, clean-pjava, clean-midp, clean-dotnet, clean-android" description="Clean class files using the appropriate {environment}.xml file"/>
+	<target name="clean-pjava" if="pjava">
+		<ant antfile="${buildfiles}/pjava.xml" target="do-clean" dir="."/>
+	</target>
+	<target name="clean-midp" if="midp">
+		<ant antfile="${buildfiles}/midp.xml" target="do-clean" dir="."/>
+	</target>
+	<target name="clean-dotnet" if="dotnet">
+		<ant antfile="${buildfiles}/dotnet.xml" target="do-clean" dir="."/>
+	</target>
+	<target name="clean-android" if="android">
+		<ant antfile="${buildfiles}/android.xml" target="do-clean" dir="."/>
+	</target>
+
+	
+	<!-- Generate ACL and SL PARSERS from jj files for the selected java environments 
+	     Note that there are no parsers in midp -->
+	<target name="parsers" depends="init, parsers-pjava, parsers-dotnet, parsers-android" description="Generate parsers using the appropriate {environment}.xml file"/>
+	<target name="parsers-pjava" if="pjava">
+		<ant antfile="${buildfiles}/pjava.xml" target="do-parsers" dir="."/>
+	</target>
+	<target name="parsers-dotnet" if="dotnet">
+		<ant antfile="${buildfiles}/dotnet.xml" target="do-parsers" dir="."/>
+	</target>
+	<target name="parsers-android" if="android">
+		<ant antfile="${buildfiles}/android.xml" target="do-parsers" dir="."/>
+	</target>
+
+	
+	<!-- COMPILE jade-leap for the selected java environments -->
+	<target name="compile" depends="init, compile-pjava, compile-midp, compile-dotnet, compile-android" description="Compile using the appropriate {environment}.xml file"/>
+	<target name="compile-pjava" if="pjava">
+		<ant antfile="${buildfiles}/pjava.xml" target="do-compile" dir="."/>
+	</target>
+	<target name="compile-midp" if="midp">
+		<ant antfile="${buildfiles}/midp.xml" target="do-compile" dir="."/>
+	</target>
+	<target name="compile-dotnet" if="dotnet">
+		<!--fail unless="env.VJSHARPTOOLS" message="In order to compile JADE for .NET you need to set the VJSHARPTOOLS environment variable"/-->
+		<ant antfile="${buildfiles}/dotnet.xml" target="do-dll" dir="."/>
+	</target>
+	<target name="compile-android" if="android">
+		<ant antfile="${buildfiles}/android.xml" target="do-compile" dir="."/>
+	</target>
+
+	
+	<!-- Create jade-leap LIBRARY (jar files) for the selected java environments -->
+	<target name="lib" depends="init, lib-pjava, lib-midp, lib-android" description="Jar using the appropriate {environment}.xml file"/>
+	<target name="lib-pjava" if="pjava">
+		<ant antfile="${buildfiles}/pjava.xml" target="do-lib" dir="."/>
+	</target>
+	<target name="lib-midp" if="midp">
+		<ant antfile="${buildfiles}/midp.xml" target="do-lib" dir="."/>
+	</target>
+	<target name="lib-android" if="android">
+		<ant antfile="${buildfiles}/android.xml" target="do-lib" dir="."/>
+	</target>
+
+	
+	<!-- Generate JAVADOC for the selected java environments -->
+	<target name="javadoc" depends="init, javadoc-pjava, javadoc-midp, javadoc-android" description="JavaDoc using the appropriate {environment}.xml file"/>
+	<target name="javadoc-pjava" if="pjava">
+		<ant antfile="${buildfiles}/pjava.xml" target="do-javadoc" dir="."/>
+	</target>
+	<target name="javadoc-midp" if="midp">
+		<ant antfile="${buildfiles}/midp.xml" target="do-javadoc" dir="."/>
+	</target>
+	<target name="javadoc-android" if="android">
+		<ant antfile="${buildfiles}/android.xml" target="do-javadoc" dir="."/>
+	</target>
+
+	
+	<!-- Generate filtered JAVADOC -->
+	<target name="apidoc" depends="init" description="Generate filtered JavaDoc">
+		<ant antfile="${buildfiles}/j2se.xml" target="do-apidoc" dir="."/>
+	</target>	
+		
+
+	<!-- ******** The COMPLETE build process ********* -->
+	<target name="rebuild" depends="reset, lib, compile-dotnet" description="Rebuild from scratch using the appropriate {environment}.xml file"/>
+
+	<target name="complete" depends="all, rebuild, javadoc" description = "Build everything"/>
+
+
+	<!-- ******** The DEMO ********* -->
+	<target name="demo" depends="init, demo-j2se, demo-pjava, demo-midp, demo-android" description="Build the demo using the appropriate {environment}.xml file"/>
+	<target name="demo-j2se" if="j2se">
+		<ant antfile="${buildfiles}/j2se.xml" target="do-demo" dir="."/>
+	</target>	
+	<target name="demo-pjava" if="pjava">
+		<ant antfile="${buildfiles}/pjava.xml" target="do-demo" dir="."/>
+	</target>
+	<target name="demo-midp" if="midp">
+		<ant antfile="${buildfiles}/midp.xml" target="do-demo" dir="."/>
+	</target>
+	<target name="demo-android" if="android">
+		<ant antfile="${buildfiles}/android.xml" target="do-demo" dir="."/>
+	</target>
+
+
+	<!-- ******** JADE-LEAP distribution targets ********* -->
+
+	<!-- Create the JADE-LEAP distribution zip files -->
+	<target name="dist" depends="init" description="Create the LEAP distribution file">
+		<echo message="GENERATE THE PDF FORM OF THE LEAP USER GUIDE, PUT IT IN THE LOCAL DIRECTORY (jade/leap) AND THEN PRESS ENTER -->"/>
+		<input/>
+		<mkdir dir="${jade-home}/doc"/>
+		<mkdir dir="${jade-home}/doc/tutorials"/>
+		<copy file="LEAPUserGuide.pdf" todir="${jade-home}/doc/tutorials"/>
+
+
+		<delete file="${dist}/LeapAddOn-${version}.zip" quiet="true"/>
+		<jar jarfile="${dist}/LeapAddOn-${version}.zip" basedir="${jade-home}">
+			<include name="leap/License"/>
+			<include name="leap/COPYING"/>
+			<include name="leap/README.txt"/>
+			<include name="leap/buildLEAP.properties"/>
+			<include name="leap/build.xml"/>
+			<include name="leap/jade-leap.jad"/>
+			<include name="leap/demo/bin/**"/>
+			<include name="leap/demo/dist/**"/>
+			<include name="leap/demo/chat.manifest"/>
+			<include name="leap/demo/chat.dlc"/>
+			<include name="leap/demo/src/**"/>
+			<include name="leap/resources/**"/>
+			<include name="leap/src/**"/>
+			<include name="leap/dotnet/**"/>
+			<include name="leap/android/**"/>
+			<include name="doc/tutorials/LEAPUserGuide.pdf"/>
+		</jar>
+		
+		<antcall description="Build the binary distribution for midp and pjava" target="bin-dist"/>   
+	</target>
+
+	<target name="bin-dist" description="Build the binary distribution for midp and pjava" depends="all, rebuild">
+		<copy todir="pjava/lib" overwrite="yes">
+			<fileset dir="${jade-home}">
+				<include name="COPYING"/>
+				<include name="License"/>
+			</fileset>
+		</copy>
+		<jar jarfile="${dist}/JadeLeapPjava-${version}.zip" basedir="${jade-home}/leap/pjava/lib"/>
+
+		<copy todir="midp/lib" overwrite="yes">
+			<fileset dir="${jade-home}">
+				<include name="COPYING"/>
+				<include name="License"/>
+			</fileset>
+		</copy>
+		<jar jarfile="${dist}/JadeLeapMidp-${version}.zip" basedir="${jade-home}/leap/midp/lib"/>
+
+		<copy todir="android/lib" overwrite="yes">
+			<fileset dir="${jade-home}">
+				<include name="COPYING"/>
+				<include name="License"/>
+			</fileset>
+		</copy>
+		<jar jarfile="${dist}/JadeLeapAndroid-${version}.zip" basedir="${jade-home}/leap/android/lib"/>
+	</target>
+
+	<target name="android-demo-dist" description="Build the distribution package for the android demo">
+		<!-- Step 1: Setup the demo distribution folders -->
+		<delete dir="${demo-dist}" quiet="true"/>
+		<mkdir dir="${demo-dist}"/>
+		<mkdir dir="${demo-dist}/standard"/>
+		<mkdir dir="${demo-dist}/standard/lib"/>
+		<mkdir dir="${demo-dist}/standard/src"/>
+		<mkdir dir="${demo-dist}/standard/bin"/>
+		<mkdir dir="${demo-dist}/android"/>
+		<mkdir dir="${demo-dist}/android/libs"/>
+		<mkdir dir="${demo-dist}/android/src"/>
+		<mkdir dir="${demo-dist}/android/res"/>
+		<mkdir dir="${demo-dist}/android/bin"/>
+
+		<copy file="${jade-home}/lib/jade.jar" todir="${demo-dist}/standard/lib"/>
+		<copy todir="${demo-dist}/standard/src" overwrite="yes">
+			<fileset dir="${demo-src}">
+				<exclude name="**/client/gui/**"/>
+			</fileset>
+		</copy>
+		<pproc basedir="${demo-dist}/standard/src" type="j2se"/>
+
+		<copy file="${android-root}/lib/JadeAndroid.jar" todir="${demo-dist}/android/libs"/>
+		<copy todir="${demo-dist}/android/src" overwrite="yes">
+			<fileset dir="${android-demo}/src">
+			</fileset>
+		</copy>
+
+		<copy todir="${demo-dist}/android/res" overwrite="yes">
+			<fileset dir="${android-demo}/res">
+			</fileset>
+		</copy>
+
+		<copy todir="${demo-dist}/android" overwrite="yes">
+			<fileset dir="${android-demo}/dist">
+			</fileset>
+		</copy>
+		
+		<copy file="${android-demo}/bin/chatClient.apk" todir="${demo-dist}/android/bin"/>
+		<copy file="${android-demo}/AndroidManifest.xml" todir="${demo-dist}/android"/>
+		<copy file="${android-demo}/ant.properties" todir="${demo-dist}/android"/>
+		<copy file="${android-demo}/build.xml" todir="${demo-dist}/android"/>
+		<copy file="${android-demo}/chatClient.keystore" todir="${demo-dist}/android"/>
+		<copy file="${android-demo}/local.properties" todir="${demo-dist}/android"/>
+		<copy file="${android-demo}/proguard.cfg" todir="${demo-dist}/android"/>
+		<copy file="${android-demo}/project.properties" todir="${demo-dist}/android"/>
+
+		<copy todir="${demo-dist}/standard/bin" overwrite="yes">
+			<fileset dir="${demo}/bin">
+				<exclude name="startChatParticipantPjava.bat"/>
+				<exclude name="startChatParticipantPjava.sh"/>
+			</fileset>
+		</copy>
+
+		<copy todir="${demo-dist}/standard" overwrite="yes">
+			<fileset dir="${demo}/dist">
+			</fileset>
+		</copy>
+
+		<!-- Step 2: Build the Chat Ontology library -->
+		<delete dir = "${demo-preprocessed}" quiet="true"/>
+		<delete dir = "${demo-classes}" quiet="true"/>
+		<mkdir dir="${demo-preprocessed}"/>
+		<mkdir dir="${demo-classes}"/>
+		
+		<copy todir="${demo-preprocessed}" overwrite="yes">
+			<fileset dir="${demo-src}">
+				<exclude name="**/client/**"/>
+				<exclude name="**/manager/**"/>
+			</fileset>
+		</copy>
+		
+		<pproc basedir="${demo-preprocessed}" type="j2se"/>
+	  
+		<javac srcdir="${demo-preprocessed}"
+		       destdir="${demo-classes}"
+		       classpath="${demo-dist}/standard/lib/jade.jar"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="off"
+		       fork="yes"
+		       compiler="classic"
+		       source="1.5"
+		       target="1.5"/>
+		       
+		<jar jarfile="${demo-dist}/standard/lib/chatOntology.jar" basedir="${demo-classes}"/>
+		<copy file="${demo-dist}/standard/lib/chatOntology.jar" todir="${demo-dist}/android/libs"/>
+		
+		<!-- Step 3: Build the Chat Standard library -->
+		<delete dir = "${demo-preprocessed}" quiet="true"/>
+		<delete dir = "${demo-classes}" quiet="true"/>
+		<mkdir dir="${demo-preprocessed}"/>
+		<mkdir dir="${demo-classes}"/>
+		
+		<copy todir="${demo-preprocessed}" overwrite="yes">
+			<fileset dir="${demo-src}">
+				<exclude name="**/ontology/**"/>
+			</fileset>
+		</copy>
+
+		<pproc basedir="${demo-preprocessed}" type="j2se"/>
+	  
+		<javac srcdir="${demo-preprocessed}"
+		       destdir="${demo-classes}"
+		       classpath="${demo-dist}/standard/lib/jade.jar:${demo-dist}/standard/lib/chatOntology.jar"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="off"
+		       fork="yes"
+		       compiler="classic"
+		       source="1.5"
+		       target="1.5"/>
+		       
+		<jar jarfile="${demo-dist}/standard/lib/chatStandard.jar" basedir="${demo-classes}"/>
+		
+		<!-- Step 4: Create the distribution archives -->
+		<mkdir dir="${root}/dist"/>		
+		<delete file="${root}/dist/chatAndroid.zip" quiet="true"/>
+		<zip zipfile="${root}/dist/chatAndroid.zip">
+			<zipfileset dir="${demo-dist}/android" prefix="android"/>
+		</zip>		
+
+		<delete file="${root}/dist/chatStandard.zip" quiet="true"/>
+		<zip zipfile="${root}/dist/chatStandard.zip">
+			<zipfileset dir="${demo-dist}/standard" prefix="standard"/>
+		</zip>		
+
+		<delete dir="${demo-dist}" quiet="true"/>
+	</target>
+	
+	<!-- ******** LEAP ant tasks ******** -->
+
+	<target name = "leapTools">
+		<mkdir dir="${tmp}/leapTools"/>
+
+		<javac srcdir  = "resources/src"
+		       destdir = "${tmp}/leapTools"
+			   source="1.1"
+			   target="1.1"/>
+
+		<delete file="resources/antTasks/leapTools.jar" quiet="true"/>
+		<jar jarfile = "resources/antTasks/leapTools.jar" basedir = "${tmp}/leapTools"/>
+		
+		<delete dir = "${tmp}/leapTools"/>
+	</target>
+  
+	
+	<!-- ******** Minimize a jar file ******** -->
+	
+	<target name = "minimize" description = "Gets a jar file and create a new one containing only those classes that are referenced from a givern set of classes" depends = "init">
+		<input message="Insert the pathname of the jar file to minimize (use '/' as directory separator) -->" addproperty="JAR"/>
+		<basename property="name" file="${JAR}" suffix=".jar"/>
+ 		<dirname property="dir" file="${JAR}"/>
+ 		<property name="base" value="${dir}/${name}"/>
+  	
+		<!-- Where to find the .dlc file (same as the jar by default) -->
+		<input message="Insert the pathname of the .dlc (Dynamically Loaded Classes) file to drive the minimization -->" addproperty="DLC" defaultvalue="${base}.dlc"/>
+  	
+		<!-- Where to find the manifest (from the jar by default) -->
+		<input message="Insert the pathname of the manifest file to include in the minimized jar (press ENTER to use the original manifest) -->" addproperty="manifest" defaultValue="*"/>
+		<echo> ${manifest} </echo>
+
+		<!-- Detect all classes that are referenced starting from the .dlc file --> 
+		<java classname="leapTools.Package" fork="true">
+			<classpath>
+				<pathelement location="resources\antTasks\packagingtool.jar"/>
+				<pathelement location="${boot-midp-classes}"/>
+				<pathelement location="${JAR}"/>
+			</classpath>
+			<arg line="-d ${base}-tmp.jar -f ${DLC} -e -s"/>
+		</java>
+		
+		<mkdir dir="${tmp}/t1"/>
+		<mkdir dir="${tmp}/t2"/>
+		
+		<unzip src="${JAR}" dest="${tmp}/t1"/>
+		<unzip src="${base}-tmp.jar" dest="${tmp}/t2"/>
+		
+		<!-- Remove from t1 all .class files that are not in t2 -->
+		<minimize basedir="${tmp}/t1" checkdir="${tmp}/t2" verbose="true"/>
+		
+
+		<condition property="MANIFEST" value="${tmp}/t1/meta-inf/Manifest.mf">
+			<equals arg1="${manifest}" arg2="*"/>
+		</condition>
+		<condition property="MANIFEST" value="${manifest}">
+			<not>
+				<equals arg1="${manifest}" arg2="*"/>
+			</not>
+		</condition>
+		<echo> ${MANIFEST} </echo>
+  	
+		<!-- Produce the minimized jar -->
+		<delete file="${base}-min.jar" quiet="true"/>
+		<jar jarfile="${base}-min.jar" basedir="${tmp}/t1" manifest="${MANIFEST}"/>
+
+		
+		<!-- Create the JAD -->
+		<copy file="${MANIFEST}" toFile="${base}-min.jad" overWrite="yes" />
+		<manifest file="${base}-min.jad" mode="update">
+			<attribute name="MIDlet-Jar-URL" value="${name}-min.jar" />
+		</manifest>
+		<updatejad jad="${base}-min.jad" />
+
+	       
+		<!-- Delete temp files and directories -->
+		<delete file="${base}-tmp.jar" quiet="true"/>
+		<delete dir="${tmp}/t1"/>
+		<delete dir="${tmp}/t2"/>
+	</target>
+
+	
+	<!-- CREATE Visual Studio 2003 complete Solution for .NET version  -->
+	<target name="solution" depends="solution-dotnet"
+	        description="Create Visul Studio 2003 complete solution for .NET version"/>
+	<target name="solution-dotnet" if="dotnet">
+		<fail unless="dotnet-home" message="It is not possible to create new Visual Studio 2003 solution!"/>
+		<ant antfile="${buildfiles}/dotnet.xml" target="create-solution" dir="."/>
+	</target>
+	
+	<!-- CREATE executable file for .NET version  -->
+	<target name="executable" depends="executable-dotnet"
+	        description="Create Visul Studio 2003 complete solution for .NET version"/>
+	<target name="executable-dotnet" if="dotnet">
+		<fail unless="dotnet-home" message="It is not possible to create new executable file!"/>
+		<ant antfile="${buildfiles}/dotnet.xml" target="create-executable" dir="."/>
+	</target>
+	
+	<!-- COMPILE ALL examples for .NET version  -->
+	<target name="all-examples" depends="examples-dotnet"
+	        description="Create .NET examples"/>
+	<target name="examples-dotnet" if="dotnet">
+		<fail unless="dotnet-home" message="It is not possible to create new executable file!"/>
+		<ant antfile="${buildfiles}/dotnet.xml" target="create-examples-J#" dir="."/>
+		<ant antfile="${buildfiles}/dotnet.xml" target="create-examples-C#" dir="."/>
+	</target>
+	
+	<!-- COMPILE J# examples for .NET version  -->
+	<target name="J#-examples" depends="examples-dotnet-J#"
+	        description="Create J#.NET examples"/>
+	<target name="examples-dotnet-J#" if="dotnet">
+		<fail unless="dotnet-home" message="It is not possible to create new executable file!"/>
+		<ant antfile="${buildfiles}/dotnet.xml" target="create-examples-J#" dir="."/>
+	</target>
+	
+	<!-- COMPILE C# examples for .NET version  -->
+	<target name="C#-examples" depends="examples-dotnet-C#"
+	        description="Create C#.NET examples"/>
+	<target name="examples-dotnet-C#" if="dotnet">
+		<fail unless="dotnet-home" message="It is not possible to create new executable file!"/>
+		<ant antfile="${buildfiles}/dotnet.xml" target="create-examples-C#" dir="."/>
+	</target>
+	
+</project>
