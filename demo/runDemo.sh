@@ -1,3 +1,3 @@
 #!/bin/sh
 
-java -jar MeetingScheduler.jar -nomtp -gui "Tizio:demo.MeetingScheduler.MeetingSchedulerAgent" "Caio:demo.MeetingScheduler.MeetingSchedulerAgent"
+java -jar MeetingScheduler.jar -nomtp -gui Tizio:demo.MeetingScheduler.MeetingSchedulerAgent\;Caio:demo.MeetingScheduler.MeetingSchedulerAgent
