@@ -145,5 +145,11 @@ public class Property implements Concept {
 	public Object clone(){
 		return new Property(name, value);
 	}
+
+	@Override
+	public String toString() {
+		return "Property [name=" + name + ", value=" + value.toString() + "]";
+	}
+	
 	
 }
