@@ -45,7 +45,7 @@ import jade.security.JADESecurityException;
  * be allowed regardless of who is requesting it.<br>
  * <br>
  * By default agents living in the Main-Container are trusted and can request any action.
- * This behaviour can be overwritten by setting the examples_service_trustlocalagents configuration
+ * This behaviour can be overwritten by setting the examples_service_AMSProtectionService_trustlocalagents configuration
  * property to false.
  * <br>
  * NOTE: This class is provided as example and is not intended to be a real security service.
