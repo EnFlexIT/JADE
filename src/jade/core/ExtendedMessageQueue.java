@@ -11,6 +11,19 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Extended version of the Agent MessageQueue supporting additional features that can be
+ * useful when dealing with heavy load of messages.
+ * - When message queue max size is exceeded last message is discarded (standard MessageQueue
+ * enqueues the incoming message and removes the first in queue - the eldest one)
+ * - A warningLimit and a warningTemplate can be defined so that, when the warningLimit is exceeded, 
+ * incoming messages matching the warningTemplate are discarded
+ * - Whenever a message is discarded the handleDiscarded() callback method is invoked. Application agents
+ * can redefine this method to provide custom discarding actions
+ *   
+ * @author Caire
+ *
+ */
 public class ExtendedMessageQueue implements MessageQueue {
 
 	protected LinkedList<ACLMessage> list;
@@ -30,11 +43,6 @@ public class ExtendedMessageQueue implements MessageQueue {
 
 	public ExtendedMessageQueue() {
 		this(0, 0, null, null);
-	}
-
-	@Override
-	public boolean isEmpty() {
-		return list.isEmpty();
 	}
 
 	@Override
@@ -59,8 +67,13 @@ public class ExtendedMessageQueue implements MessageQueue {
 	}
 
 	@Override
+	public boolean isEmpty() {
+		return this.size() == 0;
+	}
+
+	@Override
 	public void addFirst(ACLMessage msg) {
-		if((maxSize != 0) && (list.size() >= maxSize)) {
+		if((maxSize != 0) && (this.size() >= maxSize)) {
 			ACLMessage discardedMsg = list.removeLast();
 			handleDiscarded(discardedMsg, false);
 		}
@@ -69,12 +82,12 @@ public class ExtendedMessageQueue implements MessageQueue {
 
 	@Override
 	public void addLast(ACLMessage msg) {
-		if((maxSize != 0) && (list.size() >= maxSize)) {
+		if((maxSize != 0) && (this.size() >= maxSize)) {
 			// Max-size exceeded. Discard message
 			handleDiscarded(msg, false);
 			return;
 		}
-		else if (warningLimit > 0 && list.size() >= warningLimit) {
+		else if (warningLimit > 0 && this.size() >= warningLimit) {
 			// Warning-limit exceeded. Discard message if warningDiscardTemplate matches
 			if (warningDiscardTemplate != null && warningDiscardTemplate.match(msg)) {
 				handleDiscarded(msg, true);
@@ -127,7 +140,7 @@ public class ExtendedMessageQueue implements MessageQueue {
 			if (pattern == null || pattern.match(msg)) {
 				messages.remove();
 				if (mm == null) {
-					mm = new ArrayList<ACLMessage>(max);
+					mm = new ArrayList<ACLMessage>(max > 0 ? max : 16);
 				}
 				mm.add(msg);
 				cnt++;
@@ -152,13 +165,19 @@ public class ExtendedMessageQueue implements MessageQueue {
 		StringBuilder sb = new StringBuilder();
 		Object[] messages = list.toArray();
 		if (messages.length > 0) {
-			int max = limit > 0 ? limit : messages.length;
+			int max = (limit > 0 && limit < messages.length) ? limit : messages.length;
+			int cnt = 0;
 			for (int j = 0; j < max; ++j) {
 				sb.append("Message # ");
 				sb.append(j);
 				sb.append('\n');
 				sb.append(messages[j]);
 				sb.append('\n');
+				cnt++;
+			}
+			if (cnt < messages.length) {
+				sb.append(".......\n");
+				sb.append(String.valueOf(messages.length)+" messages in total\n");
 			}
 		}
 		else {

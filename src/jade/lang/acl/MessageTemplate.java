@@ -504,11 +504,14 @@ public class MessageTemplate implements Serializable {
 			String name = (matchAll ? TopicManagementHelper.TOPIC_TEMPLATE_WILDCARD : (isTemplate ? topicName+'.'+TopicManagementHelper.TOPIC_TEMPLATE_WILDCARD : topicName));
 			return "( Topic: "+name+" )";
 		}
-	}
+	}  // END of inner class MatchTopic
+	
+	
 	/**
 	 @serial
 	 */
 	private MatchExpression toMatch;
+	private String id; 
 	
 	/** Public constructor to use when the user needs to define 
 	 an application specific pattern.	 
@@ -771,6 +774,15 @@ public class MessageTemplate implements Serializable {
 		return toMatch.match(msg);
 	}
 	
+	public void setID(String id) {
+		this.id = id;
+	}
+	
+	public String getID() {
+		return this.id;
+	}
+	
+
 	/**
 	 Retrieve a string representation of this message template.
 	 @return A string describing the syntactic structure of this
@@ -779,4 +791,31 @@ public class MessageTemplate implements Serializable {
 	public String toString(){
 		return toMatch.toString();
 	}
+	
+	@Override
+	public int hashCode() {
+		if (this.id != null) {
+			return this.id.hashCode();
+		}
+		else {
+			return this.toString().hashCode();
+		}
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof MessageTemplate) {
+			MessageTemplate tpl = (MessageTemplate) obj;
+			if (this.id != null) {
+				// If this template has an ID, compare the IDs 
+				return this.id.equals(tpl.id);
+			}
+			else if (tpl.id != null) {
+				// If BOTH templates do not have IDs, compare the string-representations
+				return this.toString().equals(tpl.toString());
+			}
+		}
+		return false;
+	}
+	
 }
