@@ -788,8 +788,8 @@ public class MessageTemplate implements Serializable {
 	 @return A string describing the syntactic structure of this
 	 message template.
 	 */
-	public String toString(){
-		return toMatch.toString();
+	public String toString() {
+		return id != null ? "["+id+"] "+toMatch.toString() : toMatch.toString();
 	}
 	
 	@Override

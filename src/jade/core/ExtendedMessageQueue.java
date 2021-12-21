@@ -162,6 +162,9 @@ public class ExtendedMessageQueue implements MessageQueue {
 	}
 	
 	public String dump(int limit) { 
+		if (limit <= 0) {
+			limit = 100;
+		}
 		StringBuilder sb = new StringBuilder();
 		Object[] messages = list.toArray();
 		if (messages.length > 0) {
