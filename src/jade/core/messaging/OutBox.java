@@ -178,7 +178,7 @@ class OutBox {
 		//#J2ME_EXCLUDE_BEGIN
 		// Multiple-delivery
 		// Activate it if enabled and either there are at least 3 pending messages for the same receiver or we are over the warning size
-		if (b.size() >= 3 || size > warningSize && enableMultipleDelivery) {
+		if ((b.size() >= 3 || size > warningSize) && enableMultipleDelivery) {
 			int mulMessageSize = s;
 			java.util.List<GenericMessage> mm = null;
 			while (!b.isEmpty() && (mulMessageSize < 100000)) { // Max 100 Kbyte
