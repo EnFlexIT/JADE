@@ -20,6 +20,11 @@ public class MultipleGenericMessage extends GenericMessage {
 	
 	public void setMessages(List<GenericMessage> messages) {
 		this.messages = messages;
+		
+		// --- Set the foreign receiver field according to the messages in the list
+		if (messages!=null && messages.size()>0) {
+			this.setForeignReceiver(messages.get(0).hasForeignReceiver());
+		}
 	}
 	
 	@Override
