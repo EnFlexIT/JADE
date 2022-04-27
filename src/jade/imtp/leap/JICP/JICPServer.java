@@ -173,6 +173,28 @@ implements PDPContextManager.Listener, JICPMediatorManager
 			}
 		}
 		
+		// Local-port-range. If specified overrides local-port
+		int[] portRange = null;  // All ports to try
+		sb.setLength(idLength);
+		sb.append(Profile.LOCAL_PORT_RANGE);
+		String strPortRange = p.getParameter(sb.toString(), null);
+        if (strPortRange != null) {		
+			try {
+				String[] r = strPortRange.split("-");
+				int rMin = Integer.parseInt(r[0]);
+				int rMax = Integer.parseInt(r[1]);
+				int rSize = rMax - rMin;
+				portRange = new int[rSize];
+				for (int i=0; i < rSize; ++i) {
+					portRange[i] = rMin + i;
+				}
+			} 
+			catch (Exception e) {
+				myLogger.log(Logger.WARNING, "Wrong local-port-range format "+strPortRange+". Must be <min>-<max>. " + e);
+			}
+        }
+		
+	
 		//#J2ME_EXCLUDE_BEGIN
 		// Get the accept-mediators option
 		acceptMediators = p.getBooleanProperty(ACCEPT_MEDIATORS, true);
@@ -206,7 +228,24 @@ implements PDPContextManager.Listener, JICPMediatorManager
 		//#J2ME_EXCLUDE_END
 		
 		// Create the ServerSocket.  
-		server = myPeer.getServerSocket((acceptLocalHostOnly ? host : null), port, changePortIfBusy);
+		if (portRange == null) {
+			server = myPeer.getServerSocket((acceptLocalHostOnly ? host : null), port, changePortIfBusy);
+		}
+		else {
+			for (int pi : portRange) {
+				try {
+					server = myPeer.getServerSocket((acceptLocalHostOnly ? host : null), pi, false);
+					break;
+				}
+				catch (ICPException ioe) {
+					// Silently catch and try next port in range
+				}
+			}
+			if (server == null) {
+				// All ports in range busy --> Fail
+				throw new ICPException("Cannot bind server socket to "+(host != null ? "host "+host : "localhost")+ " and any ports in range " + strPortRange);
+			}
+		}
 		
 		setDaemon(true);
 		setName("JICPServer-" + getLocalPort());
