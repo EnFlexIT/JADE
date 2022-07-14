@@ -626,8 +626,9 @@ public class AgentManagementService extends BaseService {
 			catch(InstantiationException ie) {
 				throw new IMTPException("Class " + className + " for agent " + agentID + " cannot be instantiated", ie);
 			}
-			catch(IllegalAccessException iae) {
-				throw new IMTPException("Illegal access exception in createAgent()", iae);
+			catch(Throwable t) {
+				myLogger.log(Logger.WARNING, "Unexpected error creating agent "+agentID.getName(), t);
+				throw new IMTPException("Unexpected error creating agent "+agentID, t);
 			}
 		}
 		
