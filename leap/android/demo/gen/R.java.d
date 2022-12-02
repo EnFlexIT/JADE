@@ -13,4 +13,4 @@ C:\Users\Enrico\Documents\Lavoro\TILab\workspace\jade\leap\android\demo\res\valu
 C:\Users\Enrico\Documents\Lavoro\TILab\workspace\jade\leap\android\demo\bin\res\drawable-hdpi\icon.png \
 C:\Users\Enrico\Documents\Lavoro\TILab\workspace\jade\leap\android\demo\bin\res\drawable-ldpi\icon.png \
 C:\Users\Enrico\Documents\Lavoro\TILab\workspace\jade\leap\android\demo\bin\res\drawable-mdpi\icon.png \
-C:\Users\Enrico\Documents\Lavoro\TILab\workspace\jade\leap\android\demo\AndroidManifest.xml \
+C:\Users\Enrico\Documents\Lavoro\TILab\workspace\jade\leap\android\demo\bin\AndroidManifest.xml \

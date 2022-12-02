@@ -134,7 +134,9 @@ public class Specifier {
 	public static char getArgSeparator() {
 		String separator = ARG_SEPARATOR;
 		//#J2ME_INCLUDE_BEGIN
+		//#MIDP_EXCLUDE_BEGIN
 		separator = System.getProperty("arg-separator", ARG_SEPARATOR);
+		//#MIDP_EXCLUDE_END
 		//#J2ME_INCLUDE_END
 		if (separator.length() > 0) {
 			return separator.charAt(0);
@@ -147,10 +149,12 @@ public class Specifier {
 	public static Character getEscapeChar() {
 		String escapeChar = ESCAPE_CHAR;
 		//#J2ME_INCLUDE_BEGIN
+		//#MIDP_EXCLUDE_BEGIN
 		escapeChar = System.getProperty("escape-char", ESCAPE_CHAR);
+		//#MIDP_EXCLUDE_END
 		//#J2ME_INCLUDE_END
 		if (escapeChar.length() > 0) {
-			return escapeChar.charAt(0);
+			return new Character(escapeChar.charAt(0));
 		}
 		else {
 			// No escaping
@@ -200,7 +204,7 @@ public class Specifier {
         Character escapeCharacter = getEscapeChar();
         if (escapeCharacter != null) {
         	escaping = true;
-        	escapeChar = escapeCharacter;
+        	escapeChar = escapeCharacter.charValue();
         }
 		if (list != null && !list.equals("") && !list.equals(NULL_SPECIFIER_LIST)) {
 			// Copy the string with the specifiers into an array of char

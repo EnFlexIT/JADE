@@ -1,5 +1,7 @@
 package jade.core;
 
+//#J2ME_EXCLUDE_FILE
+//#APIDOC_EXCLUDE_FILE
 
 import java.util.List;
 import java.util.LinkedList;

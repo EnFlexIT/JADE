@@ -1018,9 +1018,15 @@ public class ACLMessage implements Serializable {
 	public String toString(){
 		return StringACLCodec.toString(this);
 	}
+	//#MIDP_EXCLUDE_END
 	
 	public String shortToString() {
+		//#MIDP_EXCLUDE_BEGIN
 		StringBuilder sb = new StringBuilder("(");
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+		 StringBuffer sb = new StringBuffer("(");
+		 #MIDP_INCLUDE_END*/
 		sb.append(ACLMessage.getPerformative(getPerformative()));
 		sb.append(" sender: ");
 		sb.append(source != null ? source.getName() : "NULL");
@@ -1035,7 +1041,6 @@ public class ACLMessage implements Serializable {
 		sb.append(" ...)");
 		return sb.toString();
 	}
-	//#MIDP_EXCLUDE_END
 	
 	/**
 	 Clone an <code>ACLMessage</code> object.
