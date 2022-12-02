@@ -792,7 +792,6 @@ public class MessageTemplate implements Serializable {
 		return id != null ? "["+id+"] "+toMatch.toString() : toMatch.toString();
 	}
 	
-	@Override
 	public int hashCode() {
 		if (this.id != null) {
 			return this.id.hashCode();
@@ -802,7 +801,6 @@ public class MessageTemplate implements Serializable {
 		}
 	}
 	
-	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof MessageTemplate) {
 			MessageTemplate tpl = (MessageTemplate) obj;

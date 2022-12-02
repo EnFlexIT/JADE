@@ -29,7 +29,6 @@ import jade.util.leap.EnumIterator;
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
 
-import java.util.ArrayList;
 import java.util.Vector;
 
 import jade.lang.acl.ACLMessage;

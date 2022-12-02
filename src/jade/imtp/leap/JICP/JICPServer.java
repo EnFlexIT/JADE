@@ -232,7 +232,8 @@ implements PDPContextManager.Listener, JICPMediatorManager
 			server = myPeer.getServerSocket((acceptLocalHostOnly ? host : null), port, changePortIfBusy);
 		}
 		else {
-			for (int pi : portRange) {
+			for (int i=0; i<portRange.length; i++) {
+				int pi = portRange[i];
 				try {
 					server = myPeer.getServerSocket((acceptLocalHostOnly ? host : null), pi, false);
 					break;

@@ -925,7 +925,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		allContainers = containers.names();
 		for(int i = 0; i < allContainers.length; i++) {
 			ContainerID targetID = allContainers[i];
-			if (targetID.getMain()) {
+			if (targetID.getMain().booleanValue()) {
 				if(!targetID.equals(localContainerID)) {
 					shutdownContainer(targetID, "Main Container", requesterPrincipal, requesterCredentials);
 					cnt++;

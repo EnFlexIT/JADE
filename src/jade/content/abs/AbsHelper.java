@@ -373,7 +373,8 @@ public class AbsHelper {
 
 			// UserDefinedSlot
 			if (aid.getCount() > c) {
-				for (String slotName : aid.getNames()) {
+				for (int i = 0; i < aid.getNames().length; i++) {
+					String slotName = aid.getNames()[i];
 					if (slotName.startsWith(SL0Vocabulary.AID_PROPERTY_PREFIX)) {
 						String key = slotName.substring(SL0Vocabulary.AID_PROPERTY_PREFIX.length());
 						String value = aid.getString(slotName);
