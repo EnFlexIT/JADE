@@ -146,7 +146,6 @@ public class Property implements Concept {
 		return new Property(name, value);
 	}
 
-	@Override
 	public String toString() {
 		return "Property [name=" + name + ", value=" + value.toString() + "]";
 	}

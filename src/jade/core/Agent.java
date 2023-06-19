@@ -1252,6 +1252,7 @@ public class Agent implements Runnable, Serializable
 	}
 
 	//#MIDP_EXCLUDE_BEGIN
+	//#PJAVA_EXCLUDE_BEGIN
 	/**
 	 * Write this agent to an output stream; this method can be used to
 	 * record a snapshot of the agent state on a file or to send it
@@ -1349,7 +1350,9 @@ public class Agent implements Runnable, Serializable
 		
 		Class c = this.getClass();
 		java.lang.reflect.Field[] ff = c.getDeclaredFields();
-		for (java.lang.reflect.Field f : ff) {
+		
+		for (int i=0; i<ff.length; i++) {
+			java.lang.reflect.Field f = ff[i];
 			log.log(Logger.INFO, "Agent "+getLocalName()+" - Considering field "+f.getName());
 			int mm = f.getModifiers();
 			// Static and transient field are NOT restored
@@ -1389,6 +1392,7 @@ public class Agent implements Runnable, Serializable
 			}
 		}
 	}
+	//#PJAVA_EXCLUDE_END
 
 	/**
 	 This method should not be used by application code. Use the

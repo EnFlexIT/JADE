@@ -110,6 +110,15 @@ public abstract class Profile {
 	public static final String LOCAL_PORT = "local-port";
 	
 	/**
+	 This constant is the name of the property specifying the range to select the TCP port the 
+	 container node must listen to for incoming IMTP messages. The value for that property
+	 must be expressed in the form <min-port>-<max-port>, e.g. 50000-50010 indicating that a free
+	 port will be selected between port 50000 (included) and 50010 (excluded).
+	 If specified, this property overrides the local-port property. 
+ 	 */
+	public static final String LOCAL_PORT_RANGE = "local-port-range";
+	
+	/**
 	 * This constant is the name or address of the host that other containers will have to use 
 	 * to contact this container
 	 */

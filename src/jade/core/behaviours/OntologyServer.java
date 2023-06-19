@@ -87,7 +87,7 @@ public class OntologyServer extends CyclicBehaviour {
 	private ConversationList ignoredConversations;
 	private boolean printFullUnexpectedMessages = true;
 	private int maxProcessedMessagesPerRun = 1;
-	private MessageTemplate template;
+	protected MessageTemplate template;
 	private Set<Integer> performativesRequiringReply = new HashSet<Integer>();
 	
 	private transient Map<String, Method> cachedMethods = new HashMap<String, Method>();
