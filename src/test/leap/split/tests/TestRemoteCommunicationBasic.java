@@ -244,7 +244,7 @@ public class TestRemoteCommunicationBasic extends Test{
 							reply.setContent("Controller received unexpected: " + ACLMessage.getPerformative(msg.getPerformative()) + " from: " + msg.getSender().toString());
 						}
 					}else{
-						//se è null allora è uscito dalla blocking senza ricevere il messaggio.
+						//se null allora uscito dalla blocking senza ricevere il messaggio.
 						reply.setPerformative(ACLMessage.FAILURE);
 						reply.setContent("Controller does not receive any message from ping agent.");
 					}

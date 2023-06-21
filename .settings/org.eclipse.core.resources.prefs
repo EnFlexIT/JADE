@@ -1,2 +1,12 @@
 eclipse.preferences.version=1
+encoding//src/jade/gui/images=UTF-8
+encoding//src/jade/tools/DummyAgent/images=UTF-8
+encoding//src/jade/tools/dfgui/images=UTF-8
+encoding//src/jade/tools/introspector/gui/images=UTF-8
+encoding//src/jade/tools/logging/gui/images=UTF-8
+encoding//src/jade/tools/logging/images=UTF-8
+encoding//src/jade/tools/rma/images=UTF-8
+encoding//src/jade/tools/sniffer/images=UTF-8
+encoding//src/jade/tools/testagent/images=UTF-8
 encoding/<project>=UTF-8
+encoding/src=UTF-8
