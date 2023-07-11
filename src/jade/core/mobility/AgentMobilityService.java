@@ -195,6 +195,157 @@ public class AgentMobilityService extends BaseService {
 		return (String) sites.get(a);
 	}
 	
+	protected byte[] fetchClassFile(String className, String agentName) throws IMTPException, ClassNotFoundException {
+		if (myLogger.isLoggable(Logger.FINE))
+			myLogger.log(Logger.FINE, "Fetching class " + className);
+		
+		String fileName = className.replace('.', '/') + ".class";
+		InputStream classStream = getClass().getClassLoader().getResourceAsStream(fileName);
+		if (classStream == null) {
+			// This is likely redundant, but...
+			classStream = ClassLoader.getSystemResourceAsStream(fileName);
+		}
+		if (classStream == null) {
+			// In PJAVA for some misterious reason getSystemResourceAsStream()
+			// does not work --> Try to do it by hand
+			if (myLogger.isLoggable(Logger.FINER))
+				myLogger.log(Logger.FINER, "Class not found as a system resource. Try manually");
+
+			classStream = manualGetResourceAsStream(fileName);
+		}
+		
+		//#J2ME_EXCLUDE_BEGIN
+		if (classStream == null && agentName != null) {
+			// Maybe the class belongs to a separate Jar file --> Try with the CodeLocator
+			try {
+				AgentManagementService amSrv = (AgentManagementService) myFinder.findService(AgentManagementService.NAME);
+				ClassLoader cLoader = amSrv.getCodeLocator().getAgentClassLoader(new AID(agentName, AID.ISGUID));
+				classStream = cLoader.getResourceAsStream(fileName);
+			}
+			catch (NullPointerException npe) {
+				// No jarfile or class not found in jarfile. Ignore
+			}
+			catch (Exception e) {
+				// Should never happen since findService() never throws exceptions
+				e.printStackTrace();
+			}
+		}
+		//#J2ME_EXCLUDE_END
+		
+		if (classStream == null) {
+			if (myLogger.isLoggable(Logger.WARNING)) {
+				myLogger.log(Logger.WARNING, "Class " + className + " not found");
+			}
+			throw new ClassNotFoundException(className);
+		}
+		
+		try {
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			byte[] bytes = new byte[SIZE_JAR_BUFFER];
+			int read = 0;		
+			DataInputStream dis = new DataInputStream(classStream);
+			while ((read = dis.read(bytes)) >= 0) {
+				baos.write(bytes, 0, read);
+			}
+			dis.close();				
+			if (myLogger.isLoggable(Logger.FINER)) {
+				myLogger.log(Logger.FINER, "Class " + className + " fetched");
+			}
+			return (baos.toByteArray());
+		} 
+		catch (IOException ioe) {
+			throw new ClassNotFoundException("IOException reading class bytes. " + ioe.getMessage());
+		}
+	}
+
+	private InputStream manualGetResourceAsStream(String fileName) {
+		InputStream classStream = null;
+		String currentCp = System.getProperty("java.class.path");
+		StringTokenizer st = new StringTokenizer(currentCp, File.pathSeparator);
+		while (st.hasMoreTokens()) {
+			try {
+				String path = st.nextToken();
+				if (myLogger.isLoggable(Logger.FINER)) {
+					myLogger.log(Logger.FINER, "Searching in path " + path);
+				}
+				if (path.endsWith(".jar")) {
+					if (myLogger.isLoggable(Logger.FINER)) {
+						myLogger.log(Logger.FINER, "It's a jar file");
+					}
+
+					ClassInfo info = getClassStreamFromJar(fileName, path);
+					if (info != null) {
+						classStream = info.getClassStream();
+						break;
+					}
+				} 
+				else {
+					if (myLogger.isLoggable(Logger.FINER)) {
+						myLogger.log(Logger.FINER, "Trying file " + path + "/" + fileName);
+					}
+					
+					File f = new File(path + "/" + fileName);
+					if (f.exists()) {
+						if (myLogger.isLoggable(Logger.FINER)) {
+							myLogger.log(Logger.FINER, "File exists");
+						}
+						classStream = new FileInputStream(f);
+						break;
+					}
+				}
+			} 
+			catch (Exception e) {
+				if (myLogger.isLoggable(Logger.WARNING)) {
+					myLogger.log(Logger.WARNING, e.toString());
+				}
+			}
+		}
+		return classStream;
+	}
+	
+	private ClassInfo getClassStreamFromJar(String classFileName, String jarName) throws IOException {
+		File f = new File(jarName);
+		if (f.exists()) {
+			if (myLogger.isLoggable(Logger.FINER)) {
+				myLogger.log(Logger.FINER, "Jar file exists");
+			}
+		}
+		ZipFile zf = new ZipFile(f);
+		ZipEntry e = zf.getEntry(classFileName);
+		if (e != null) {
+			if (myLogger.isLoggable(Logger.FINER)) {
+				myLogger.log(Logger.FINER, "Entry " + classFileName + " found");
+			}
+			
+			return new ClassInfo(zf.getInputStream(e), (int) e.getSize());
+		}
+		return null;
+	}
+	
+	
+	/**
+	 * Inner class ClassInfo
+	 * This utility bean class is used only to keep together some pieces of information related to a class
+	 */
+	private class ClassInfo {
+		private InputStream classStream;
+		private int length = -1;
+		
+		public ClassInfo(InputStream is, int l) {
+			classStream = is;
+			length = l;
+		}
+		
+		public InputStream getClassStream() {
+			return classStream;
+		}
+		
+		public int getLength() {
+			return length;
+		}
+	} // END of inner class ClassInfo
+	
+	
 	// This inner class handles the messaging commands on the command
 	// issuer side, turning them into horizontal commands and
 	// forwarding them to remote slices when necessary.
@@ -1005,157 +1156,6 @@ public class AgentMobilityService extends BaseService {
 				throw new IMTPException("Unexpected error in agent deserialization.", t);
 			}
 		}
-		
-		private byte[] fetchClassFile(String className, String agentName) throws IMTPException, ClassNotFoundException {
-			if (myLogger.isLoggable(Logger.FINE))
-				myLogger.log(Logger.FINE, "Fetching class " + className);
-			
-			String fileName = className.replace('.', '/') + ".class";
-			InputStream classStream = getClass().getClassLoader().getResourceAsStream(fileName);
-			if (classStream == null) {
-				// This is likely redundant, but...
-				classStream = ClassLoader.getSystemResourceAsStream(fileName);
-			}
-			if (classStream == null) {
-				// In PJAVA for some misterious reason getSystemResourceAsStream()
-				// does not work --> Try to do it by hand
-				if (myLogger.isLoggable(Logger.FINER))
-					myLogger.log(Logger.FINER, "Class not found as a system resource. Try manually");
-
-				classStream = manualGetResourceAsStream(fileName);
-			}
-			
-			//#J2ME_EXCLUDE_BEGIN
-			if (classStream == null && agentName != null) {
-				// Maybe the class belongs to a separate Jar file --> Try with the CodeLocator
-				try {
-					AgentManagementService amSrv = (AgentManagementService) myFinder.findService(AgentManagementService.NAME);
-					ClassLoader cLoader = amSrv.getCodeLocator().getAgentClassLoader(new AID(agentName, AID.ISGUID));
-					classStream = cLoader.getResourceAsStream(fileName);
-				}
-				catch (NullPointerException npe) {
-					// No jarfile or class not found in jarfile. Ignore
-				}
-				catch (Exception e) {
-					// Should never happen since findService() never throws exceptions
-					e.printStackTrace();
-				}
-			}
-			//#J2ME_EXCLUDE_END
-			
-			if (classStream == null) {
-				if (myLogger.isLoggable(Logger.WARNING)) {
-					myLogger.log(Logger.WARNING, "Class " + className + " not found");
-				}
-				throw new ClassNotFoundException(className);
-			}
-			
-			try {
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				byte[] bytes = new byte[SIZE_JAR_BUFFER];
-				int read = 0;		
-				DataInputStream dis = new DataInputStream(classStream);
-				while ((read = dis.read(bytes)) >= 0) {
-					baos.write(bytes, 0, read);
-				}
-				dis.close();				
-				if (myLogger.isLoggable(Logger.FINER)) {
-					myLogger.log(Logger.FINER, "Class " + className + " fetched");
-				}
-				return (baos.toByteArray());
-			} 
-			catch (IOException ioe) {
-				throw new ClassNotFoundException("IOException reading class bytes. " + ioe.getMessage());
-			}
-		}
-		
-		private InputStream manualGetResourceAsStream(String fileName) {
-			InputStream classStream = null;
-			String currentCp = System.getProperty("java.class.path");
-			StringTokenizer st = new StringTokenizer(currentCp, File.pathSeparator);
-			while (st.hasMoreTokens()) {
-				try {
-					String path = st.nextToken();
-					if (myLogger.isLoggable(Logger.FINER)) {
-						myLogger.log(Logger.FINER, "Searching in path " + path);
-					}
-					if (path.endsWith(".jar")) {
-						if (myLogger.isLoggable(Logger.FINER)) {
-							myLogger.log(Logger.FINER, "It's a jar file");
-						}
-
-						ClassInfo info = getClassStreamFromJar(fileName, path);
-						if (info != null) {
-							classStream = info.getClassStream();
-							break;
-						}
-					} 
-					else {
-						if (myLogger.isLoggable(Logger.FINER)) {
-							myLogger.log(Logger.FINER, "Trying file " + path + "/" + fileName);
-						}
-						
-						File f = new File(path + "/" + fileName);
-						if (f.exists()) {
-							if (myLogger.isLoggable(Logger.FINER)) {
-								myLogger.log(Logger.FINER, "File exists");
-							}
-							classStream = new FileInputStream(f);
-							break;
-						}
-					}
-				} 
-				catch (Exception e) {
-					if (myLogger.isLoggable(Logger.WARNING)) {
-						myLogger.log(Logger.WARNING, e.toString());
-					}
-				}
-			}
-			return classStream;
-		}
-		
-		private ClassInfo getClassStreamFromJar(String classFileName, String jarName) throws IOException {
-			File f = new File(jarName);
-			if (f.exists()) {
-				if (myLogger.isLoggable(Logger.FINER)) {
-					myLogger.log(Logger.FINER, "Jar file exists");
-				}
-			}
-			ZipFile zf = new ZipFile(f);
-			ZipEntry e = zf.getEntry(classFileName);
-			if (e != null) {
-				if (myLogger.isLoggable(Logger.FINER)) {
-					myLogger.log(Logger.FINER, "Entry " + classFileName + " found");
-				}
-				
-				return new ClassInfo(zf.getInputStream(e), (int) e.getSize());
-			}
-			return null;
-		}
-		
-		
-		/**
-		 * Inner class ClassInfo
-		 * This utility bean class is used only to keep together some pieces of information related to a class
-		 */
-		private class ClassInfo {
-			private InputStream classStream;
-			private int length = -1;
-			
-			public ClassInfo(InputStream is, int l) {
-				classStream = is;
-				length = l;
-			}
-			
-			public InputStream getClassStream() {
-				return classStream;
-			}
-			
-			public int getLength() {
-				return length;
-			}
-		} // END of inner class ClassInfo
-		
 		
 		private void handleTransferResult(AID agentID, boolean result, List messages) throws IMTPException, NotFoundException {
 			if(myLogger.isLoggable(Logger.FINER))
