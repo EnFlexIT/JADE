@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+	<TestsList> 
+		<Test name="Agent creation and destruction" skip="false">
+			<TestClassName>test.domain.ams.tests.TestCreateKillAgent</TestClassName>
+			<WhatTest>Tests creating and killing agents by requesting the AMS to perform the CreateAgent and KillAgent actions of the JADEManagementOntology.</WhatTest>
+			<HowWorkTest> 
+				The test creates a remote container C1 in the load phase and then
+				<UL>
+	   			<LI>requests the AMS to create an agent A on C1;</LI>
+	   			<LI>sends a message to A and waits for a reply;</LI>
+	   			<LI>requests the AMS to create another agent with the same name (should throw an exception);</LI>
+			    <LI>requests the AMS to kill A;</LI>
+			    <LI>sends a message to A and waits for a reply (should get back a FAILURE from the AMS);</LI>
+			    </UL>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+		</Test>
+		
+		<Test name="Agent suspension and resumption" skip="false">
+			<TestClassName>test.domain.ams.tests.TestSuspendResumeAgent</TestClassName>
+			<WhatTest>Tests suspending and resuming agents by requesting the AMS to perform the Modify (with proper state values) action of the FIPAManagementOntology.</WhatTest>
+			<HowWorkTest> 
+				In the load phase a peripheral container is created and a dummy replyer agent is started on it. 
+				Then the following steps are performed: 
+				1) Send a test message 1 to the target replyer agent (a reply should immediately be received).
+				2) Request the AMS to suspend the target replyer agent.
+				3) Send a test message 2 to the target replyer agent (no reply should be received since the agent is suspended).
+				4) Request the AMS to resume the target replyer agent.
+				5) Wait for the reply to test message 2 that should immediately be received since the agent was resumed.
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+		</Test>	
+		
+		<Test name="Install / Uninstall MTP" skip="false">
+			<TestClassName>test.domain.ams.tests.TestInstallMTP</TestClassName>
+			<WhatTest>Tests installing and un-installing MTPs by requesting the AMS to perform the InstallMTP and UninstallMTP actions of the JADEManagementOntology.</WhatTest>
+			<HowWorkTest> 
+				The test creates a remote container C1 in the load phase and then
+				<UL>
+	   			<LI>requests the AMS to install an iiop MTP on C1;</LI>
+	   			<LI>chechs that the new address has been added to the local AID;</LI>
+	   			<LI>searches the AMS for himself and checks that the new address has been added to the AMSDescription;</LI>
+			    <LI>gets the platform description and check that the new address has been added;</LI>
+			    <LI>requests the AMS to un-install the MTP;</LI>
+	   			<LI>chechs that the address has been removed from the local AID;</LI>
+	   			<LI>searches the AMS for himself and checks that the address has been removed from the AMSDescription;</LI>
+			    <LI>gets the platform description and check that the address has been removed;</LI>
+			    </UL>			
+		  </HowWorkTest>
+			<WhenTestPass>The test passes if the address of the installed/uninstalled MTP is correctly added/removed to i) the agent AID, ii) the AMS-Description of the Agent and iii) the Platform description. 
+			</WhenTestPass> 
+		</Test>				
+		
+		<Test name="MTP management on container crash" skip="false">
+			<TestClassName>test.domain.ams.tests.TestMTPCrash</TestClassName>
+			<WhatTest>Test the correct management of MTP addresses when a container running an MTP i) is started and ii) crashes.
+			</WhatTest>
+			<HowWorkTest>All the steps of this test are identical to those of the 'Install / Uninstall MTP' test except steps 1 and 5.
+			Here a container with an MTP on it is created/killed instead of requesting the AMS to install/uninstall an MTP on an existing container. 
+	    </HowWorkTest>
+			<WhenTestPass>The test passes if the address of the new/dead MTP is correctly added/removed to i) the agent AID, ii) the AMS-Description of the Agent and iii) the Platform description. 
+			</WhenTestPass> 
+		</Test>				
+		
+		<Test name="Notification failure to sender" skip="false">
+			<TestClassName>test.domain.ams.tests.TestNotificationFailureToSender</TestClassName>
+			<WhatTest>Test the "notification failure to sender" mechanism.
+			</WhatTest>
+			<HowWorkTest>In this test we send a message to a number of agents that do not exist. Some of them look like local agents while others look like living on remote platforms and have a fake address or no address at all.
+	    </HowWorkTest>
+			<WhenTestPass>The test passes if we receive from the AMS one FAILURE message for each addressed agent.
+			</WhenTestPass> 
+		</Test>				
+		
+		<Test name="Get failed receiver" skip="false">
+			<TestClassName>test.domain.ams.tests.TestFailedReceiver</TestClassName>
+			<WhatTest>Test the getFailedReceiver() method of the AMSService class.
+			</WhatTest>
+			<HowWorkTest>A message is sent to a non-existing agent, the AMS FAILURE is received and the AMSService.getFailedReceiver() method is applied to it.	    
+			</HowWorkTest>
+			<WhenTestPass>The the passes if the returned value is actually the receiver AID.
+			</WhenTestPass> 
+		</Test>				
+		
+		<Test name="Wildcards in agent name for bootstrap agents" skip="false">
+			<TestClassName>test.domain.ams.tests.TestWildcardBootstrapAgent</TestClassName>
+			<WhatTest>Test the usage of wildcards in agent names when starting an agent at container bootstrap
+			</WhatTest>
+			<HowWorkTest>A new container is started specifying on the command line an agent including the %C wildcard in its name
+			</HowWorkTest>
+			<WhenTestPass>The test passes if an agent is created with the expected name (i.e. with the %C wildcard substituted with the container name)
+			</WhenTestPass> 
+		</Test>
+		
+		<Test name="Wildcards in agent name when asking AMS to create agents" skip="false">
+			<TestClassName>test.domain.ams.tests.TestWildcardCreateAgent</TestClassName>
+			<WhatTest>Test the usage of wildcards in agent names when starting an agent asking the AMS.
+			</WhatTest>
+			<HowWorkTest>A new container is started and the AMS is asking to create an agent with a name using wildcard.
+			</HowWorkTest>
+			<WhenTestPass>The test passes if an agent is created with the expected name (i.e. with the %C wildcard substituted with the container name)
+			</WhenTestPass> 
+		</Test>				
+		
+		<Test name="Serializable agent argument" skip="false">
+			<TestClassName>test.domain.ams.tests.TestCreateAgentWithObjectArgs</TestClassName>
+			<WhatTest>Test requesting the AMS to create an agent with a Serializable object as argument.
+			</WhatTest>
+			<HowWorkTest>An agent is created passing a List object (Serializable) as argument. This agent gets the argument and sends it back to the tester agent inside an ACLMessage using the setContentObject() method.
+			</HowWorkTest>
+			<WhenTestPass>The test passes if the List object received by the tester agent includes the same elements as the List Object passed as argument to the created agent.  
+			</WhenTestPass> 
+		</Test>				
+		
+		<Test name="Searching with AMS with max-results=-1" skip="false">
+			<TestClassName>test.domain.ams.tests.TestSearchConstraints</TestClassName>
+			<WhatTest>Searches with the AMS with different values of SearchConstraints and maxResults and checks that the proper number of AMSAgentDescriptions are returned.</WhatTest>
+			<HowWorkTest> 
+Searches with the AMS with different values of SearchConstraints and maxResults and checks that the proper number of AMSAgentDescriptions are returned.
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if the number of returned results is correct.</WhenTestPass>
+		</Test>
+	</TestsList>

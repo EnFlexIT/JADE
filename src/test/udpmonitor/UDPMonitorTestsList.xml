@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+
+<TestsList> 
+		<Test name="Peripheral container with activated UDP monitoring" skip="false">
+			<TestClassName>test.udpmonitor.tests.TestMonitoredContainer</TestClassName>
+			<WhatTest>This test checks whether a peripheral container with activated UDP monitoring is sending ping messages in time</WhatTest>
+			<HowWorkTest> 
+				The test starts a peripheral container and waits 
+				for the appropriate event from the AMS. Next it waits (3 * maximum time a node can be unreachable) 
+				and checks whether the container is still alive.
+		    </HowWorkTest>
+			<WhenTestPass>The test passes if the AMS fires one "ContainerAdded" event and no "RemovedContainer" event</WhenTestPass>
+		</Test>
+		<Test name="Peripheral container with deactivated UDP monitoring" skip="false">
+			<TestClassName>test.udpmonitor.tests.TestUnmonitoredContainer</TestClassName>
+			<WhatTest>This test checks that a peripheral container without the UDP monitoring activated is NOT removed from the platform anyway</WhatTest>
+			<HowWorkTest> 
+				The test starts a peripheral container WITHOUT the UDPNodeMonitoringService and waits 
+				for the appropriate event from the AMS. Next it waits (3 * maximum time a node can be unreachable)
+				and checks whether the container is still alive.
+		    </HowWorkTest>
+			<WhenTestPass>The test passes if the AMS fires one "ContainerAdded" event and one "RemovedContainer" event</WhenTestPass>
+		</Test>
+		<Test name="Unexpected container termination" skip="false">
+			<TestClassName>test.udpmonitor.tests.TestLostConnection</TestClassName>
+			<WhatTest>This test checks whether a peripheral container gets removed from a platform when a container suddenly disappears.</WhatTest>
+			<HowWorkTest> 
+				The test starts a peripheral container and waits 
+				for the appropriate event from the AMS. Next it kills the whole process of the container and checks whether the container gets
+				removed from the platform after the expiration of the ping delay limit and the unreachable limit.
+		    </HowWorkTest>
+			<WhenTestPass>The test passes if the AMS fires one "RemovedContainer" event after the expiration of the ping delay limit and the unreachable limit. 
+				If this event is fired before or any other event is recognized the test fails.</WhenTestPass>		
+		</Test>
+		<Test name="Terminating container" skip="false">
+			<TestClassName>test.udpmonitor.tests.TestTerminatingContainer</TestClassName>
+			<WhatTest>This test checks whether a peripheral container gets removed immediately from a platform when it is killed</WhatTest>
+			<HowWorkTest> 
+				The test starts a peripheral container and waits 
+				for the appropriate event from the AMS. Next it kills the container and checks whether the container gets
+				immediately removed from the platform, ignoring the maximum allowed time for staying in the state UNREACHABLE.
+		    </HowWorkTest>
+			<WhenTestPass>The test passes if the AMS fires one "RemovedContainer" event immediately after the container has been killed.</WhenTestPass>		
+		</Test>
+		<Test name="Reconnecting container" skip="false">
+			<TestClassName>test.udpmonitor.tests.TestReconnectingContainer</TestClassName>
+			<WhatTest>This test checks whether a temporal unreachable container doesn't get removed from the platform.</WhatTest>
+			<HowWorkTest> 
+				The test starts a peripheral container with a modified version of the UDPNodeMonitoringService that supports 
+				interrupting UDPMonitorClients. This is used to make this container stop sending UDP pings for a while so that 
+				it appears to be unreachable.
+		    </HowWorkTest>
+			<WhenTestPass>The test passes if the AMS fires no "RemovedContainer" event. (i.e. the container doesn't get removed)</WhenTestPass>		
+		</Test>
+		<Test name="UDP Monitor Server Unit Tests" skip="true">
+			<TestClassName>test.udpmonitor.tests.TestUDPMonitorServer</TestClassName>
+			<WhatTest>Unit Tests accessing the UDPMonitorServer class directly.</WhatTest>
+			<HowWorkTest> 
+				The following operations are tested:
+				<UL>
+	   			<LI>Add a node for monitoring and wait for an ADDED event</LI>
+	   			<LI>Send regular pings in time</LI>
+	   			<LI>Let the node get into state UNREACHABLE and send a ping to change it's state to REACHABLE</LI>
+			    <LI>Wait without sending a ping until a monitored node gets removed from the platform</LI>
+				<LI>Send a ping with a set termination flag --> the node has to be removed immediately</LI>
+			    <LI>Wait until a node gets into state UNREACHABLE and then start sending regular pings</LI>
+			    <LI>Wait until a node gets into state UNREACHABLE and then send a ping with set termination flag</LI>
+			    <LI>Send ping with a set termination flag before the node gets into state UNREACHABLE</LI>
+				</UL>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+		</Test>
+</TestsList>
+

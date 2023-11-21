@@ -1,0 +1,157 @@
+<?xml version='1.0' encoding='utf-8'?>
+	<!DOCTYPE TesterList [
+		<!ELEMENT TesterList (Tester)*>
+		<!ELEMENT Tester (ClassName, Description, TestsListRif)>
+		<!ATTLIST Tester 
+		    name     CDATA    #REQUIRED
+		    skip     CDATA    #REQUIRED
+		>
+		<!ELEMENT ClassName (#PCDATA)>
+		<!ELEMENT Description (#PCDATA)>
+		<!ELEMENT TestsListRif (#PCDATA)>
+	]>
+	<TesterList> 
+		<Tester name="Content languages and ontologies" skip="false">
+			<ClassName>test.content.ContentTesterAgent</ClassName>
+			<Description> This item includes tests related to the JADE support for user defined content languages and ontologies included in the jade.content package</Description>
+			<TestsListRif>test/content/contentTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="SL Operators" skip="false">
+			<ClassName>test.content.SLOperatorsTesterAgent</ClassName>
+			<Description> This item includes tests related to the usage of the SL operators such as logical operators (AND, OR, NOT) and modal operators (B, I, U).</Description>
+			<TestsListRif>test/content/SLOperatorTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Inter Platform Communication" skip="false">
+			<ClassName>test.interPlatform.InterPlatformCommunicationTesterAgent</ClassName>
+			<Description> This item includes tests related to agent communication across different platforms. </Description>
+			<TestsListRif>test/interPlatform/interPlatformTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Behaviours" skip="false">
+			<ClassName>test.behaviours.BehavioursTesterAgent</ClassName>
+			<Description> This item includes tests related to the behaviour scheduling, execution and block/restart mechanism </Description>
+			<TestsListRif>test/behaviours/behavioursTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="AMS" skip="false">
+			<ClassName>test.domain.ams.AMSTesterAgent</ClassName>
+			<Description> This item includes tests related to the actions that can be requested to the AMS </Description>
+			<TestsListRif>test/domain/ams/amsTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="DF" skip="false">
+			<ClassName>test.domain.df.DFTesterAgent</ClassName>
+			<Description> This item includes tests related to the Yellow Pages service provided by the DF agent according to the FIPA specifications </Description>
+			<TestsListRif>test/domain/df/dfTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Persistent_DF" skip="true">
+			<ClassName>test.domain.df.PersistentDFTesterAgent</ClassName>
+			<Description> This item includes tests related to the persistence of Yellow Pages service provided by the DF agent.</Description>
+			<TestsListRif>test/domain/df/persistentDFTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="JADE Management Ontology" skip="false">
+			<ClassName>test.domain.JADEManagementOntologyTesterAgent</ClassName>
+			<Description> This item includes tests related to the actions included in the JADEManagementOntology such as CreateAgent and KillAgent </Description>
+			<TestsListRif>test/domain/jadeManagementOntoTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Mobility" skip="false">
+			<ClassName>test.mobility.MobilityTesterAgent</ClassName>
+			<Description> This item includes tests related to agent mobility </Description>
+			<TestsListRif>test/mobility/mobilityTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Main-replication" skip="false">
+			<ClassName>test.mainReplication.MainReplicationTesterAgent</ClassName>
+			<Description> This item includes tests related to fault-tolerance/main-replication </Description>
+			<TestsListRif>test/mainReplication/mainReplicationTestsList.xml</TestsListRif>
+		</Tester> 
+		<Tester name="Persistent-delivery" skip="false">
+			<ClassName>test.persDelivery.PersistentDeliveryTesterAgent</ClassName>
+			<Description> This item includes tests related to the Persistent Delivery service </Description>
+			<TestsListRif>test/persDelivery/PersistentDeliveryTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="ContractNet Protocol" skip="false">
+			<ClassName>test.proto.ContractNetTesterAgent</ClassName>
+			<Description> This item includes tests related to the support for the Contract Net interaction protocol </Description>
+			<TestsListRif>test/proto/contractNetProtoTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="AchieveRE Protocol" skip="false">
+			<ClassName>test.proto.AchieveRETesterAgent</ClassName>
+			<Description> This item includes tests related to the support for "FIPA-request like" interaction protocols </Description>
+			<TestsListRif>test/proto/achieveRETestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Propose Protocol" skip="false">
+			<ClassName>test.proto.ProposeTesterAgent</ClassName>
+			<Description> This item includes tests related to the support for "FIPA-propose" interaction protocols </Description>
+			<TestsListRif>test/proto/proposeTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Subscription Protocol" skip="false">
+			<ClassName>test.proto.SubscriptionTesterAgent</ClassName>
+			<Description> This item includes tests related to the support for "FIPA-subscribe" interaction protocols </Description>
+			<TestsListRif>test/proto/subscriptionTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Two-Phase-Commit Protocol" skip="true">
+			<ClassName>test.proto.TwoPhTesterAgent</ClassName>
+			<Description> This item includes tests related to the support for the Two-phase-commit interaction protocols </Description>
+			<TestsListRif>test/proto/twoPhTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="jade.wrapper in-process interface" skip="false">
+			<ClassName>test.inProcess.TesterAgent</ClassName>
+			<Description> This item includes tests for the APIs defined in the jade.wrapper package. The list of tests is still under construction. 
+      </Description>
+			<TestsListRif>test/inProcess/inProcessTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Stress tests" skip="true">
+			<ClassName>test.stress.StressTesterAgent</ClassName>
+			<Description> This item includes stress tests i.e. tests that do not focus on a specific case, but stress the system by performing a lot of operations. 
+      </Description>
+			<TestsListRif>test/stress/stressTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Communication performance and scalability" skip="true">
+			<ClassName>test.roundTripTime.RoundTripTimeTesterAgent</ClassName>
+			<Description> This item includes tests that measure the performances of the message transport mechanism for different types of communication (intra-container, inter-container, inter-platform...) </Description>
+			<TestsListRif>test/roundTripTime/roundTripTimeTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="JADE running on wireless devices" skip="true">
+			<ClassName>test.leap.LEAPTesterAgent</ClassName>
+			<Description> This item includes tests validating the execution of JADE containers and agents on MIDP devices.
+			The execution of this group of tests requires the user to i) load the testleap.jar file on the MIDP device used for the tests and ii) manualy start JADE containers on it when requested. </Description>
+			<TestsListRif>test/leap/LEAPTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="UDP Monitoring" skip="false">
+			<ClassName>test.udpmonitor.UDPMonitorTesterAgent</ClassName>
+			<Description> This item includes tests for the UDP monitoring introduced in JADE 3.3 
+			</Description>
+			<TestsListRif>test/udpmonitor/UDPMonitorTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="LEAP Split-container" skip="true">
+			<ClassName>test.leap.split.LeapSplitTesterAgent</ClassName>
+			<Description> This item included tests on leap split-container.
+			</Description>
+			<TestsListRif>test/leap/split/LeapSplitTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Topic-based message delivery" skip="false">
+			<ClassName>test.topic.TopicTesterAgent</ClassName>
+			<Description> This item includes tests about the topic-based message delivery mechanism implemented by the TopicManagement service.
+			</Description>
+			<TestsListRif>test/topic/topicTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Aliases" skip="false">
+			<ClassName>test.alias.AliasTesterAgent</ClassName>
+			<Description> This item includes tests about the alias management mechanism implemented by the Messaging Service.
+			</Description>
+			<TestsListRif>test/alias/aliasTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Stream content messages" skip="true">
+			<ClassName>test.streaming.StreamingTesterAgent</ClassName>
+			<Description> This item includes tests about the exchange of messages with stream content.
+			</Description>
+			<TestsListRif>test/streaming/streamingTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Bean Ontology Builder" skip="false">
+			<ClassName>test.bob.BeanOntologyBuilderTesterAgent</ClassName>
+			<Description>Test of Bean Ontology Builder functionalities.</Description>
+			<TestsListRif>test/bob/beanOntologyBuilderTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Distribution" skip="false">
+			<ClassName>test.distribution.DistributionTesterAgent</ClassName>
+			<Description>This item includes tests on the features of the distribution package included in the Misc add-on.</Description>
+			<TestsListRif>test/distribution/distributionTestsList.xml</TestsListRif>
+		</Tester>
+	</TesterList>

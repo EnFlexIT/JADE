@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+
+<TestsList> 
+		<Test name="Duplicated assignment" skip="false">
+			<TestClassName>test.distribution.tests.TestDuplicatedAssignment</TestClassName>
+			<WhatTest>This test checks that if the same item is assigned a second time, even before the completion of the first assignment, the callbacks are correctly invoked  
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>
+		
+		<Test name="Items reassignment" skip="false">
+			<TestClassName>test.distribution.tests.TestItemReassignment</TestClassName>
+			<WhatTest>This test checks that items previously assigned to a dead agent are properly reassigned to other available agents
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>
+		
+		<Test name="Items reassignment to restarted agent" skip="false">
+			<TestClassName>test.distribution.tests.TestItemReassignmentToRestartedAgent</TestClassName>
+			<WhatTest>This test checks that items previously assigned to a dead agent are properly reassigned to the same agent if this restarts in due time
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>
+		
+		<Test name="Current load" skip="false">
+			<TestClassName>test.distribution.tests.TestCurrentLoad</TestClassName>
+			<WhatTest>This test checks that the getCurrentLoad() method properly takes into account both already assigned items and items that are going to be assigned, but the assignment is not completed yet  
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>
+		
+</TestsList>
+

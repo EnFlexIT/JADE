@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+	<TestsList> 
+		<Test name="Deadlock on in-process interface (provided by Richard Heycock)" skip="false">
+			<TestClassName>test.stress.deadlock.TestForDeadlock</TestClassName>
+			<WhatTest>Tests a possible deadlock when processing objects passed through the in-process interface from within a behaviour.</WhatTest>
+			<HowWorkTest>An agent is created with a behaviour that gets objects passed by an external source through the O2A communication mechanism. Each object just includes a monitor where the external source starts waiting immediately after posting the object. The behaviour processing objects just signal on that monitor. If there are no objects available the behaviour blocks.</HowWorkTest>
+			<WhenTestPass>The test passes if a certain number of iterations are completed successfully.</WhenTestPass>
+			<Argument key="iterations" value="100000000"> The number of iterations to be performed by the test before it can be considered successful</Argument>
+		</Test>
+	</TestsList>

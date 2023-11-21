@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+	<TestsList> 
+		<Test name="OntologyServer" skip="false">
+			<TestClassName>test.behaviours.tests.TestOntologyServer</TestClassName>
+			<WhatTest> Tests the correct working of the OntologyServer class.</WhatTest>
+			<HowWorkTest></HowWorkTest>
+			<WhenTestPass></WhenTestPass>
+		</Test>
+
+		<Test name="Send and Receive loop" skip="false">
+			<TestClassName>test.behaviours.tests.TestSendReceiveLoop</TestClassName>
+			<WhatTest> Tests the block/restart mechanism during high speed local message dispatching.</WhatTest>
+			<HowWorkTest>The test creates a FSMBehaviour that sends and immediately receives a dummy message. The FSMBehaviour is nested into a Matrioshka of SequentialBehaviour.</HowWorkTest>
+			<WhenTestPass> The test passes if all sent messages are received.</WhenTestPass>
+		</Test>
+
+		<Test name="Behaviour Block with timeout stress test" skip="false">
+			<TestClassName>test.behaviours.tests.TestBlockTimeout</TestClassName>
+			<WhatTest> Tests the behaviour block/restart mechanism when a timeout is specified by stressing it.</WhatTest>
+			<HowWorkTest>It should be noticed that passing this test does not ensure the mechanism works correctly, this test will take a while.</HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+			<Argument key="n-agents" value="10"> Number of senders </Argument>
+			<Argument key="n-messages" value="100"> Number of messages</Argument>
+			<Argument key="period" value="10"> Shortest period in ms</Argument>
+			<Argument key="timeout-increase" value="0"> Failure timeout increase</Argument>
+		</Test>
+		
+		<Test name="Threaded behaviours" skip="false">
+			<TestClassName>test.behaviours.tests.TestThreadedBehaviours</TestClassName>
+			<WhatTest> Tests the mechanism provided by JADE to execute a behaviour in a separated Java Thread.</WhatTest>
+			<HowWorkTest>The test creates a ThreadedBehaviour that calls blockingReceive(), block() and block(timeout).</HowWorkTest>
+			<WhenTestPass> The test passes if the ThreadedBehaviour correctly receives all the expected messages.</WhenTestPass>
+		</Test>
+		
+		<Test name="Threaded behaviours interruption" skip="false">
+			<TestClassName>test.behaviours.tests.TestThreadedBehavioursInterruption</TestClassName>
+			<WhatTest> Tests the interruption of a Threaded Behaviour.</WhatTest>
+			<HowWorkTest>The test creates a cyclic ThreadedBehaviour, then waits one second and interrupts it. Finally it waits for the ThreadedBehaviourFactory used to create the threaded behaviour to be empty.</HowWorkTest>
+			<WhenTestPass> The test passes if the ThreadeBehaviourFactory becomes empty within 5 seconds.</WhenTestPass>
+		</Test>
+		
+		<Test name="Threaded behaviours parent and reset" skip="false">
+			<TestClassName>test.behaviours.tests.TestThreadedBehavioursParent</TestClassName>
+			<WhatTest> Test that the parent behaviour (as returned by the getParent() method) of a behaviour that is executed in a dedicated thread is actually what one would expect.
+			</WhatTest>
+			<HowWorkTest> 
+			</HowWorkTest> 
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>		
+
+		<Test name="Behaviour performance" skip="false">
+			<TestClassName>test.behaviours.tests.TestPerformance</TestClassName>
+			<WhatTest> Tests the performance of the behaviour scheduling/blocking/restarting mechanism by running a number of different behaviours that do all these things.</WhatTest>
+			<HowWorkTest>The complete process is repeated several times and the average time is computed.</HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
+			<Argument key="iterations" value="100"> Number of iterations </Argument>
+		</Test>		
+
+		<Test name="Composite behaviour restart" skip="false">
+			<TestClassName>test.behaviours.CompositeBehaviourRestart</TestClassName>
+			<WhatTest> When a composite behaviour is restarted, its
+			children are notified after its parent receives the
+			notification. If the behaviour
+			is restarted from an arbitrary thread, a race condition
+			between this thread and the agent's thread may happen,
+			causing the children not to be executed (i.e. the
+			agent's thread resumes the execution before the
+			restarting thread completes the notification to the
+			children).  
+
+			This problem has been detected while using parallel
+			behaviours (presumably, the bug will affect
+			serial behaviours as well). It can be solved by reversing the order in
+			which the parent and the children are notified in the
+			CompositeBehaviour::restart method. </WhatTest>
+			<HowWorkTest> A parallel behaviour with one child is
+			added to the agent. Moreover, a thread which will
+			restart this parallel behaviour is started as
+			well. </HowWorkTest>
+			<WhenTestPass> The test is passed iff the child of the
+			parallel behaviour is executed when it is restarted from
+			the thread. </WhenTestPass>
+			<author>Juan Manuel Serrano, jserrano@escet.urjc.es</author>
+		</Test>
+
+		<Test name="Memory leak in block with timeout" skip="true">
+			<TestClassName>test.behaviours.tests.TestMemoryLeakInBlockTimeout</TestClassName>
+			<WhatTest> </WhatTest>
+			<HowWorkTest> </HowWorkTest>
+			<WhenTestPass> </WhenTestPass>
+		</Test>		
+
+	</TestsList>
