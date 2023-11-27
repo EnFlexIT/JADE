@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: JADE Bundle
+Bundle-SymbolicName: JADE;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Automatic-Module-Name: de.enflexit.jade
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-Vendor: EnFlex.IT
+Require-Bundle: org.eclipse.osgi,
+ org.agentgui.core
+Bundle-ActivationPolicy: lazy
+Bundle-ClassPath: lib/
