@@ -1,0 +1,1 @@
+%5 /recurse:*.java %1 /reference:JadeLeap.dll /reference:VJSSupUILib.dll /t:exe /libpath:%2 /main:AgentBooterJSharp /out:%3.exe

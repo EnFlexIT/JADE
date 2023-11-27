@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+	<TestsList> 
+		<Test name="Do Move" skip="false">
+			<TestClassName>test.mobility.tests.TestDoMove</TestClassName>
+			<WhatTest> Tests the mobility proactively initiated by an agent by means of a call to the doMove() method.</WhatTest>
+			<HowWorkTest> 
+				This test requests an example.mobile.MobileAgent to move to another container 
+				and then checks it has actually moved by asking its current location. 
+				This process is repeated 4 times (including moving to the local container).
+			</HowWorkTest>
+			<WhenTestPass> The test passes if the agent move correctly.</WhenTestPass>
+		</Test>	
+		
+		<Test name="Protocol in transit" skip="false">
+			<TestClassName>test.mobility.tests.TestProtocolInTransit</TestClassName>
+			<WhatTest> Tests the execution of an interaction protocol while an agent is in transit.</WhatTest>
+			<HowWorkTest> The mobile agent initiates a Contract-Net protocol with 3 responders.<br/> 
+				Each responder replies with a PROPOSE and puts the name of the container he lives on in the content.<br/>
+				On receiving a PROPOSE the mobile agents moves on the indicated container and accepts all proposals.<br/>
+				When all proposals have been received the mobile agent informs the tester agent.<br/>
+				The same happens for result notifications.
+			</HowWorkTest>
+			<WhenTestPass> The test passes if the tester agent correctly receives the two INFORMs (one for responses and one for notifications) from the mobile agent.</WhenTestPass>
+		</Test>		
+		
+		<Test name="Mobility ontology" skip="false">
+			<TestClassName>test.mobility.tests.TestMobilityOntology</TestClassName>
+			<WhatTest> Tests the MoveAction and CloneAction of the MobilityOntology.</WhatTest>
+			<HowWorkTest> A mobile agent is started on Container-3.<br/>
+			The tester requests the AMS to MOVE the mobile agent on Container-1 and then waits for a confirmation message from the mobile agent (who sends this message in his afterMove() method).<br/>
+			Then the tester requests the AMS to CLONE the mobile agent on Container-2 and then waits for a confirmation message from the clone (who sends this message in his afterClone() method).
+			</HowWorkTest>
+			<WhenTestPass> The test passes if the tester agent correctly receives the two CONFIRMs.</WhenTestPass>
+		</Test>
+		
+		<Test name="Clone big agent" skip="false">
+			<TestClassName>test.mobility.tests.TestCloneBigAgent</TestClassName>
+			<WhatTest> Test agent cloning and the transfer of an agent whose status includes a big amount of data.
+			</WhatTest>
+			<HowWorkTest> A Vector of 100000 10-byte-long elements (total 1MByte) is created. Then the TesterAgent itself is cloned on a remote container. 
+			</HowWorkTest>
+			<WhenTestPass> The test passes if the tester agent is actually cloned and the Vector is correctly transferred.
+			</WhenTestPass>
+		</Test>		
+		
+		<Test name="Dynamic behaviour loading" skip="false">
+			<TestClassName>test.mobility.tests.TestLoadBehaviour</TestClassName>
+			<WhatTest> Test the LoadBehaviour action of the BehaviourLoadingOntology and the LoaderBehaviour.
+			</WhatTest>
+			<HowWorkTest> A behaviour whose code is included in a separate jar file (outside the classpath) is loaded and executed by an agent running a LoaderBehaviour.
+			</HowWorkTest>
+			<WhenTestPass> The test passes if the behaviour is correctly loaded and executed and the tester agent receives the expected notification sent withing the loaded behaviour.
+			</WhenTestPass>
+		</Test>	
+	
+		<Test name="Moving Jar agent" skip="false">
+			<TestClassName>test.mobility.tests.TestMovingJarAgent</TestClassName>
+			<WhatTest> Test the agent mobility for agents loaded from a separate Jar file.
+			</WhatTest>
+			<HowWorkTest> An agent whose code is stored in a separate jar file (not in the classpath) is created and then moved through the AMS.
+			</HowWorkTest>
+			<WhenTestPass> The test passes if the agent is correctly created and moved.
+			</WhenTestPass>
+		</Test>		
+	</TestsList>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+
+<TestsList> 
+		<Test name="Basic alias creation and removal" skip="false">
+			<TestClassName>test.alias.tests.TestAliasCreationRemoval</TestClassName>
+			<WhatTest>This test checks the basic features of the alias management mechanism i.e. alias creation, message delivery to an alias and alias removal
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>
+</TestsList>
+

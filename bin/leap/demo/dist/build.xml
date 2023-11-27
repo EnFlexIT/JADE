@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="jade-chat-demo" default="jar" basedir=".">
+
+	<property name="build" value="build" />
+	<property name="build-jar" value="${build}/jar" />
+	<property name="build-ontology-src" value="${build}/ontology/src" />
+	<property name="build-ontology-classes" value="${build}/ontology/classes" />
+	<property name="build-standard-src" value="${build}/standard/src" />
+	<property name="build-standard-classes" value="${build}/standard/classes" />
+
+	<target name="clean">
+		<delete dir="${build}" />
+	</target>
+
+	<target name="jar" depends="clean">
+		<mkdir dir="${build-jar}" />
+		<mkdir dir="${build-ontology-src}" />
+		<mkdir dir="${build-ontology-classes}" />
+
+		<copy todir="${build-ontology-src}" overwrite="yes">
+			<fileset dir="src">
+				<exclude name="**/client/**" />
+				<exclude name="**/manager/**" />
+			</fileset>
+		</copy>
+
+		<javac srcdir="${build-ontology-src}" destdir="${build-ontology-classes}" classpath="lib/jade.jar" debug="on" optimize="off" deprecation="off" fork="yes" compiler="classic" source="1.5" target="1.5" />
+
+		<jar jarfile="${build-jar}/chatOntology.jar" basedir="${build-ontology-classes}" />
+
+		<mkdir dir="${build-standard-src}" />
+		<mkdir dir="${build-standard-classes}" />
+
+		<copy todir="${build-standard-src}" overwrite="yes">
+			<fileset dir="src">
+				<exclude name="**/ontology/**" />
+			</fileset>
+		</copy>
+
+		<javac srcdir="${build-standard-src}" destdir="${build-standard-classes}" classpath="lib/jade.jar:${build-jar}/chatOntology.jar" debug="on" optimize="off" deprecation="off" fork="yes" compiler="classic" source="1.5" target="1.5" />
+
+		<jar jarfile="${build-jar}/chatStandard.jar" basedir="${build-standard-classes}" />
+
+	</target>
+
+</project>

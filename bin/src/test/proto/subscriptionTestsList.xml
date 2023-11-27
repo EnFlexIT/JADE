@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+	<TestsList> 
+		<Test name="Subscription with Cancel confirmation" skip="false">
+			<TestClassName>test.proto.tests.subscription.TestSubscriptionInitiatorWithCancelConfirmation</TestClassName>
+			<WhatTest> Tests the flow of messages in a subscription protocol where an AGREE is sent in reply to the SUBSCRIBE and an INFORM is sent in reply in reply to the CANCEL.
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>		
+	</TestsList>

@@ -1,0 +1,50 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>de.enflexit.jade</groupId>
+	<artifactId>de.enflexit.jade.depPull</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<dependencies>
+	  <dependencies>
+	    <dependency>
+	      <groupId>org.glassfish.corba</groupId>
+	      <artifactId>glassfish-corba-omgapi</artifactId>
+	      <version>4.2.4</version>
+	      <scope>compile</scope>
+	    </dependency>
+	    <dependency>
+	      <groupId>commons-codec</groupId>
+	      <artifactId>commons-codec</artifactId>
+	      <version>1.15</version>
+	      <scope>compile</scope>
+	    </dependency>
+	    <dependency>
+	      <groupId>junit</groupId>
+	      <artifactId>junit</artifactId>
+	      <version>4.12</version>
+	      <scope>test</scope>
+	    </dependency>
+	    <dependency>
+	      <groupId>com.toedter</groupId>
+	      <artifactId>jcalendar</artifactId>
+	      <version>1.4</version>
+	      <scope>compile</scope>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.glassfish.corba</groupId>
+	      <artifactId>glassfish-corba-orb</artifactId>
+	      <version>4.2.4</version>
+	      <scope>compile</scope>
+	    </dependency>
+	  </dependencies>
+	</build>
+
+
+	<description>Execute this Maven POM to download all libs and its dependencies to the directory '/target/dependency' by calling 
+
+a) mvn dependency:copy-dependencies
+(for the jar-files) or 
+b) mvn dependency:copy-dependencies -Dclassifier=sources
+(for the jar-sources)</description>
+</project>

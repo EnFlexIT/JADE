@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+	<TestsList> 
+		<Test name="Round trip time - single container" skip="false">
+			<TestClassName>test.roundTripTime.tests.TestRTT1Container</TestClassName>
+			<WhatTest> Measures the average round trip time in communication between agents in the same container</WhatTest>
+			<HowWorkTest>A "sender" agent sends an ACLMessage to a "receiver" agent, active in the same container, who replies with another ACLMessage. 
+				This process is repeated n times and the average value is computed.
+				The number of couples sender-receiver can be configured to measure how the roud trip time 
+				varies when the number of active agents and exchanged messages increases.</HowWorkTest>
+			<WhenTestPass>The test completes without exceptions.</WhenTestPass>
+		</Test>		
+		<Test name="Round trip time - two containers" skip="false">
+			<TestClassName>test.roundTripTime.tests.TestRTT2Containers</TestClassName>
+			<WhatTest> Measures the average round trip time in communication between agents in two different containers belonging to the same platform and active on the same host</WhatTest>
+			<HowWorkTest>A "sender" agent sends an ACLMessage to a "receiver" agent, active in a different container, who replies with another ACLMessage. 
+				This process is repeated n times and the average value is computed.
+				The number of couples sender-receiver can be configured to measure how the roud trip time 
+				varies when the number of active agents and exchanged messages increases.</HowWorkTest>
+			<WhenTestPass>The test completes without exceptions.</WhenTestPass>
+		</Test>		
+		<Test name="Round trip time - two containers two hosts" skip="false">
+			<TestClassName>test.roundTripTime.tests.TestRTT2Containers2Hosts</TestClassName>
+			<WhatTest> Measures the average round trip time in communication between agents in two different containers belonging to the same platform and active on two different hosts.
+				<br></br>
+				NOTE: The Test suite remote daemon (test.common.remote.TSDaemon) must be active on another host for this test to succeed.</WhatTest>
+			<HowWorkTest>A "sender" agent sends an ACLMessage to a "receiver" agent, active in a different container on a different host, who replies with another ACLMessage. 
+				This process is repeated n times and the average value is computed.
+				The number of couples sender-receiver can be configured to measure how the roud trip time 
+				varies when the number of active agents and exchanged messages increases.</HowWorkTest>
+			<WhenTestPass>The test completes without exceptions.</WhenTestPass>
+		</Test>		
+		<Test name="Round trip time - two platforms IIOP" skip="false">
+			<TestClassName>test.roundTripTime.tests.TestRTT2Platforms2HostsIIOP</TestClassName>
+			<WhatTest> Measures the average round trip time in communication between agents in two different platforms running on two different hosts and communicating by means of the IIOP MTP.
+				<br></br>
+				NOTE: The Test suite remote daemon (test.common.remote.TSDaemon) must be active on another host for this test to succeed.</WhatTest>
+			<HowWorkTest>A "sender" agent sends an ACLMessage to a "receiver" agent, active in a different platform, who replies with another ACLMessage. 
+				This process is repeated n times and the average value is computed.
+				The number of couples sender-receiver can be configured to measure how the roud trip time 
+				varies when the number of active agents and exchanged messages increases.</HowWorkTest>
+			<WhenTestPass>The test completes without exceptions.</WhenTestPass>
+		</Test>		
+	</TestsList>

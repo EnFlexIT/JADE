@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Note that targets in this ANT build file are always invoked by other targets in the 
+     main LEAP build file. In some cases they refer to properties that are not set locally -->        
+<project name="JADE-LEAP for MIDP" default="do-lib">
+	<!-- PROPERTIES specific for MIDP -->
+	<property name="src" value="${midp-root}/src"/>
+	<property name="classes" value="${midp-root}/classes"/>
+	<property name="lib" value="${midp-root}/lib"/>
+	<property name="doc" value="${midp-root}/doc"/>
+	<property name="unverified" value="${midp-root}/unverified"/>
+	<property name="midp-title" value="${title} v${version} for MIDP"/>
+
+
+	<!-- INIT -->
+	<target name="do-init"  description="Create the appropriate directories">
+		<mkdir dir="${midp-root}"/>
+		<mkdir dir="${src}"/>
+		<mkdir dir="${classes}"/>
+		<mkdir dir="${lib}"/>
+		<mkdir dir="${doc}"/>
+		<mkdir dir="${unverified}"/>
+	</target>
+
+	
+	<!-- SETUP SMS -->
+	<target name="do-setup-sms" depends="do-init" if="wma-classes" description="Copy the files that require the WMA to be compiled">
+	  <copy todir="${src}">
+			<fileset dir="${leap-src}">
+				<include name="**/jade/imtp/leap/sms/*"/>
+			</fileset>
+		</copy>
+	</target>
+	
+	<!-- SETUP -->
+	<target name="do-setup" depends="do-setup-sms" description="Setup the build environment">
+	  <!-- 1) Copy JADE sources -->
+	  <copy todir="${src}">
+			<fileset dir="${jade-src}">
+				<include name="**/jade/**"/>
+				
+				<exclude name="**/jade/core/mobility/**"/>
+				<exclude name="**/jade/core/event/**"/>
+				<exclude name="**/jade/core/sam/**"/>
+				<exclude name="**/jade/domain/introspection/**"/>
+				<exclude name="**/jade/domain/mobility/**"/>
+				<exclude name="**/jade/domain/DFGUIManagement/**"/>
+				<exclude name="**/jade/imtp/rmi/**"/>
+				<exclude name="**/jade/mtp/iiop/**"/>
+				<exclude name="**/jade/mtp/http/**"/>
+				<exclude name="**/jade/gui/**"/>
+				<exclude name="**/jade/tools/**"/>
+				<exclude name="**/jade/wrapper/**"/>
+				<!-- The following files cannot include preprocessor directives. They must be excluded manually -->
+				<exclude name="**/jade/lang/acl/ASCII_CharStream.java"/>
+				<exclude name="**/jade/lang/acl/ACLParser.java"/>
+				<exclude name="**/jade/lang/acl/ACLParserConstants.java"/>
+				<exclude name="**/jade/lang/acl/ACLParserTokenManager.java"/>
+				<exclude name="**/jade/lang/acl/ParseException.java"/>
+				<exclude name="**/jade/lang/acl/Token.java"/>
+				<exclude name="**/jade/lang/acl/TokenMgrError.java"/>
+				<exclude name="**/jade/content/lang/sl/ASCII_CharStream.java"/>
+				<exclude name="**/jade/content/lang/sl/SLParser.java"/>
+				<exclude name="**/jade/content/lang/sl/SLParserConstants.java"/>
+				<exclude name="**/jade/content/lang/sl/SLParserTokenManager.java"/>
+				<exclude name="**/jade/content/lang/sl/ExtendedSLParser.java"/>
+				<exclude name="**/jade/content/lang/sl/ExtendedSLParserConstants.java"/>
+				<exclude name="**/jade/content/lang/sl/ExtendedSLParserTokenManager.java"/>
+				<exclude name="**/jade/content/lang/sl/ParseException.java"/>
+				<exclude name="**/jade/content/lang/sl/Token.java"/>
+				<exclude name="**/jade/content/lang/sl/TokenMgrError.java"/>
+			</fileset>
+		</copy>
+		<!-- 2) Copy LEAP sources -->
+		<copy todir="${src}" overwrite="yes">
+			<fileset dir="${leap-src}">
+				<exclude name="**/jade/mtp/http/**"/>
+				<exclude name="**/jade/imtp/leap/sms/*"/>
+				<exclude name="**/jade/gui/*"/>
+				<exclude name="**/*.java@"/>
+				<exclude name="**/*.java#"/>
+			</fileset>
+		</copy>
+		<!-- 3) Preprocess the whole for MIDP -->
+		<pproc basedir="${src}" type="midp"/>
+	  
+		<!-- 4) Preprocess the whole for CUSTOM directives -->
+		<pproc basedir="${src}" type="${additional-pproc-type}"/>
+	</target>
+
+	
+	<!-- RESET -->
+	<target name="do-reset" description="Reset the build environment">
+		<delete dir = "${midp-root}"/>
+	</target>
+
+	
+	<!-- CLEAN -->
+	<target name="do-clean" description="Clean class files">
+		<delete dir = "${classes}"/>
+		<delete dir = "${unverified}"/>
+		<delete dir = "${doc}"/>
+		<delete dir = "${lib}"/>
+		<mkdir dir="${classes}"/>
+		<mkdir dir="${unverified}"/>
+		<mkdir dir="${lib}"/>
+		<mkdir dir="${doc}"/>
+	</target>
+
+
+	<!-- COMPILE -->
+	<target name="do-compile" depends="do-setup" description="Compile sources">
+		<echo>MIDP version: ${midp-version}</echo>
+		<echo>Bootclasspath: ${boot-midp-classes}</echo>
+		<javac srcdir="${src}"
+		       destdir="${unverified}"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="on"
+		       bootclasspath="${boot-midp-classes}"
+		       fork="yes"
+		       compiler="classic"
+		       source="1.2"
+		       target="1.1"/>
+		<preverify unverified="${unverified}" verified="${classes}"/>
+	</target>
+
+	
+	<!-- LIB -->
+	<target name="do-lib" depends="do-compile" description="Create Jade-leap jar file">
+		<delete file="${lib}/JadeLeap.jar" quiet="true"/>
+		<condition property="manifest-file" value="resources/build/jade-leap.manifest">
+			<equals arg1="${midp-version}" arg2="1.0" trim="true" />
+		</condition>
+		<condition property="manifest-file" value="resources/build/jade-leap-midp20.manifest">
+			<equals arg1="${midp-version}" arg2="2.0" trim="true" />
+		</condition>
+		<jar jarfile="${lib}/JadeLeap.jar" basedir="${classes}" manifest="${manifest-file}"/>
+		
+		<!-- Update jad file -->          
+		<copy file="${manifest-file}" toFile="jade-leap.jad" overWrite="yes" />
+		<manifest file="jade-leap.jad" mode="update">
+			<attribute name="MIDlet-Jar-URL" value="${lib}/JadeLeap.jar" />
+		</manifest>
+		<updatejad jad="jade-leap.jad" />
+	</target>
+
+	
+	<!-- JAVADOC -->
+	<target name="do-javadoc" depends="do-setup" description="Generate javadoc">
+		<javadoc sourcepath="${src}"
+		         destdir="${doc}"
+		         classpath="${classes};${boot-midp-classes}"
+		         doctitle="&lt;h1>${midp-title}&lt;/h1>"
+		         bottom="${javadoc-footer}"
+		         verbose="false"
+		         windowtitle="${midp-title}"
+		         packagenames="jade.*, starlight.* "/>
+	</target>
+
+
+	<!-- DEMO -->
+	<target name="do-demo" depends="do-init, check-resources" description="Build the demo">
+		<delete dir = "${demo-preprocessed}" quiet="true"/>
+		<delete dir = "${demo-unverified}" quiet="true"/>
+		<delete dir = "${demo-classes}" quiet="true"/>
+		<mkdir dir="${demo-preprocessed}"/>
+		<mkdir dir="${demo-unverified}"/>
+		<mkdir dir="${demo-classes}"/>
+		
+		<copy todir="${demo-preprocessed}" overwrite="yes">
+			<fileset dir="${demo-src}">
+			</fileset>
+		</copy>
+		
+		<pproc basedir="${demo-preprocessed}" type="midp"/>
+	  
+		<javac srcdir="${demo-preprocessed}"
+		       destdir="${demo-unverified}"
+		       classpath="${lib}/JadeLeap.jar"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="off"
+		       bootclasspath="${boot-midp-classes}"
+		       fork="yes"
+		       compiler="classic"
+		       source="1.2"
+		       target="1.1"/>
+		       
+		<preverify unverified="${demo-unverified}" verified="${demo-classes}" classpath="${lib}/JadeLeap.jar"/>		
+	  
+		<unjar src="${lib}/JadeLeap.jar" dest="${demo-classes}"/>
+		
+		<delete file="${demo}/lib/chatMidp.jar" quiet="true"/>
+		<jar jarfile="${demo}/lib/chatMidp.jar" basedir="${demo-classes}" manifest="${demo}/chat.manifest"/>
+
+		<!-- Update MIDP version according to buildLEAP.properties file -->  
+		<manifest file="${demo}/chat.manifest" mode="update">
+			<attribute name="MicroEdition-Profile" value="MIDP-${midp-version}" />
+		</manifest>
+        
+		<!-- Update jad file -->          
+		<copy file="${demo}/chat.manifest" toFile="${demo}/lib/chat.jad" overWrite="yes" />
+		<manifest file="${demo}/lib/chat.jad" mode="update">
+			<attribute name="MIDlet-Jar-URL" value="chatMidp.jar" />
+		</manifest>
+		<updatejad jad="${demo}/lib/chat.jad" />
+	</target>
+
+	<!-- The following targets are there to ensure that the JadeLeap.jar file for MIDP is available
+	     as it is necessary for the compilation of the demo. More in details:
+	     - If the jar file is already there, just do nothing
+	     - else if the JADE sources are available, create the jar 
+	     - else ask the user to insert the location of the jar file --> 
+	<target name="check-resources">
+		<available file="${lib}/JadeLeap.jar" property="JadeLeap" value="${lib}/JadeLeap.jar"/>
+		<available file="${jade-home}/src/jade/Boot.java" property="jade-sources-available" value="true"/>
+
+		<antcall target="get-leap-jar"/>
+	</target>
+
+	<target name="get-leap-jar" unless="JadeLeap">
+		<antcall target="create-leap-jar"/>
+		<antcall target="input-leap-jar"/>
+	</target>
+
+	<target name="create-leap-jar" if="jade-sources-available">
+		<antcall target="do-lib"/>
+	</target>
+
+	<target name="input-leap-jar" unless="jade-sources-available">
+		<input message="Insert the pathname of the JADE-LEAP jar file for MIDP -->" addProperty="JadeLeap"/>
+		<mkdir dir="${lib}"/>
+		<copy file="${JadeLeap}" tofile="${lib}/JadeLeap.jar"/>
+	</target>
+
+</project>
