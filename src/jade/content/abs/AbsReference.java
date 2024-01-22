@@ -165,15 +165,21 @@ public class AbsReference extends AbsObjectImpl implements AbsTerm {
 	}
 	
 	public boolean isInstance() {
-		return getName().contains(REFERENCE_ATTRIBUTE_SEPARATOR);
+		return getName().indexOf(REFERENCE_ATTRIBUTE_SEPARATOR) > -1;
+		
 	}
 	
 	public boolean isAttribute() {
-		return !getName().contains(REFERENCE_ATTRIBUTE_SEPARATOR);
+		return getName().indexOf(REFERENCE_ATTRIBUTE_SEPARATOR) == -1;
 	}
 	
 	public static final String asString(String type, String name) {
+		//#MIDP_EXCLUDE_BEGIN
 		StringBuilder sb = new StringBuilder(REFERENCE_PREFIX);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+		 StringBuffer sb = new StringBuffer(REFERENCE_PREFIX);
+		 #MIDP_INCLUDE_END*/		
 		sb.append(type);
 		sb.append(REFERENCE_NAME_SEPARATOR);
 		sb.append(name);
@@ -181,7 +187,12 @@ public class AbsReference extends AbsObjectImpl implements AbsTerm {
 	}
 	
 	public static final String asString(String type, String id, String attribute) {
+		//#MIDP_EXCLUDE_BEGIN
 		StringBuilder sb = new StringBuilder(REFERENCE_PREFIX);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+		 StringBuffer sb = new StringBuffer(REFERENCE_PREFIX);
+		 #MIDP_INCLUDE_END*/		
 		sb.append(REFERENCE_NAME_SEPARATOR);
 		sb.append(id);
 		if (attribute != null) {

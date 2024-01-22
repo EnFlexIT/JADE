@@ -34,7 +34,9 @@ import jade.core.ServiceHelper;
  @author Giovanni Caire - Telecom Italia
  */
 public interface NotificationHelper extends ServiceHelper {
+	//#PJAVA_EXCLUDE_BEGIN
 	public static final String SERVICE_NAME = NotificationService.NAME;
+	//#PJAVA_EXCLUDE_END
 	
 	/**
 	 * Register a listener of message events
