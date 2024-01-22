@@ -175,6 +175,7 @@
 		              Include and export all packages under the package jade and fipa
 		            -->
 		            <Export-Package>${bundle.namespace}.*,FIPA.*;version=!;-noimport:=true</Export-Package>
+					<Import-Package>!*</Import-Package>
 		            <!--
 		              Include the Jars of the dependencies stated in this pom under lib/dependency
 		            
