@@ -1,0 +1,285 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>de.enflexit.jade</groupId>
+	<artifactId>de.enflexit.jade</artifactId>
+	<version>4.6.0.${build.timestamp}</version>
+	<packaging>bundle</packaging>
+	
+	<!-- License of the bundle-->
+	<licenses>
+	  <license>
+	   <name>GNU Lesser General Public License, Version 2.1</name>
+       <url>http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html</url>   
+	  </license>
+	</licenses>
+
+
+	<developers>
+	  <developer>
+	     <name>${bundle.vendor}</name>
+	     <email>christian.derksen@uni-due.de</email>
+	     <organization>EnFlex.IT</organization>
+      	 <organizationUrl>https://www.enflex.it/</organizationUrl>
+	  </developer>
+	</developers>
+	
+	<!-- Repository information, needed for Deplyoment in Maven Central-->
+	<scm>
+	  <connection>scm:git:https://github.com/EnFlexIT/JADE.git</connection>
+	  <url>https://github.com/EnFlexIT/JADE.git</url>
+	  <developerConnection>scm:https://github.com/EnFlexIT/JADE.git</developerConnection>
+	  <tag>HEAD</tag>
+	</scm>
+	
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.test.skip>true</maven.test.skip>
+		<maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<bundle.symbolicName>de.enflexit.jade</bundle.symbolicName>
+   		<bundle.namespace>jade</bundle.namespace>
+   		<maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
+    	<build.timestamp>${maven.build.timestamp}</build.timestamp>
+    	<bundle.vendor>EnFlex.IT</bundle.vendor>
+	</properties>
+		
+	<!--Dependencies which need to be included inside the bundle-->
+	<dependencies>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.15</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		<!--
+		<dependency>
+			<groupId>com.toedter</groupId>
+			<artifactId>jcalendar</artifactId>
+			<version>1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.corba</groupId>
+			<artifactId>glassfish-corba-orb</artifactId>
+			<version>4.2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.corba</groupId>
+			<artifactId>glassfish-corba-omgapi</artifactId>
+			<version>4.2.4</version>
+		</dependency>
+		-->
+	</dependencies>
+
+	
+
+	<build>
+		<sourceDirectory>${basedir}/src/</sourceDirectory>
+		<testSourceDirectory>${basedir}/src/test/</testSourceDirectory>
+		<resources>
+			<resource>
+				<directory>src/jade/gui/images</directory>
+				<targetPath>jade/gui/images</targetPath>
+			</resource>
+			<resource>
+				<directory>src/jade/tools/rma/images</directory>
+				<targetPath>jade/tools/rma/images</targetPath>
+			</resource>
+			<resource>
+				<directory>src/jade/tools/dfgui/images</directory>
+				<targetPath>jade/tools/dfgui/images</targetPath>
+			</resource>
+			<resource>
+				<directory>src/jade/tools/DummyAgent/images</directory>
+				<targetPath>jade/tools/DummyAgent/images</targetPath>
+			</resource>
+			<resource>
+				<directory>src/jade/tools/introspector/gui/images</directory>
+				<targetPath>jade/tools/introspector/gui/images</targetPath>
+			</resource>
+			<resource>
+				<directory>src/jade/tools/logging/images</directory>
+				<targetPath>jade/tools/logging/images</targetPath>
+			</resource>
+			<resource>
+				<directory>src/jade/tools/logging/gui/images</directory>
+				<targetPath>jade/tools/logging/gui/images</targetPath>
+			</resource>
+			<resource>
+				<directory>src/jade/tools/sniffer/images</directory>
+				<targetPath>jade/tools/sniffer/images</targetPath>
+			</resource>
+			<resource>
+				<directory>src/jade/tools/testagent/images</directory>
+				<targetPath>jade/tools/testagent/images</targetPath>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<!-- For building the jar-->
+			  <groupId>org.apache.maven.plugins</groupId>
+			  <artifactId>maven-jar-plugin</artifactId>
+			  <version>3.3.0</version>
+			  <configuration>
+			    <archive>  
+			      <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+			    </archive> 
+			  </configuration>
+			</plugin> 	
+			<plugin>
+				<!-- Exclude the test, example and demo folders-->
+	            <groupId>org.apache.maven.plugins</groupId>
+	            <artifactId>maven-compiler-plugin</artifactId>
+	            <version>3.12.1</version>
+	            <configuration>
+	                <excludes>
+	                    <exclude>**/test/**/*.java</exclude>
+	                    <exclude>**/demo/**/*.java</exclude>
+	                    <exclude>**/examples/**/*.java</exclude>
+	                </excludes>
+	            </configuration>
+        	</plugin>
+        	<!-- Plugins to build the JAR with OSGI-Mainfest-->
+			<plugin>
+				<!--https://bnd.bndtools.org/tools/felix-maven.html-->
+				<!-- https://felix.apache.org/documentation/subprojects/apache-felix-maven-bundle-plugin-bnd.html-->
+		        <groupId>org.apache.felix</groupId>
+		        <artifactId>maven-bundle-plugin</artifactId>
+		        <version>5.1.9</version>
+		        <extensions>true</extensions>
+		        <!-- Executions only needed in combination with jar plugin -->
+		          <executions>
+				    <execution>
+				      <id>bundle-manifest</id>
+				      <phase>process-classes</phase>
+				      <goals>    
+				        <goal>manifest</goal>
+				      </goals>   
+				    </execution>
+				  </executions>
+		        <configuration>
+		          <manifestLocation>META-INF</manifestLocation>
+		          <instructions>
+					<!-- Varibales set above under properties-->
+		            <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
+		            <Bundle-Version>${pom.version}</Bundle-Version>
+		            <Bundle-Vendor>${bundle.vendor}</Bundle-Vendor>
+		            <!--
+		              Include and export all packages under the package jade and fipa
+		            -->
+		            <Export-Package>${bundle.namespace}.*,FIPA.*;version=!;-noimport:=true</Export-Package>
+		            <!--
+		              Include the Jars of the dependencies stated in this pom under lib/dependency
+		            
+		            <Embed-Dependency>*;scope=compile|runtime;inline=false</Embed-Dependency>
+		            <Embed-Directory>lib</Embed-Directory>
+		            <Embed-StripGroup>true</Embed-StripGroup>
+		            -->
+		          </instructions>
+		        </configuration>
+		      </plugin>
+		      <plugin>
+	            <groupId>org.apache.maven.plugins</groupId>
+	            <artifactId>maven-dependency-plugin</artifactId>
+	            <version>3.6.1</version> 
+	            <executions>
+	                <execution>
+	                    <id>copy-dependencies</id>
+	                    <phase>package</phase>
+	                    <goals>
+	                        <goal>copy-dependencies</goal>
+	                    </goals>
+	                    <configuration>
+	                        <outputDirectory>lib</outputDirectory>
+	                    </configuration>
+	                </execution>
+	            </executions>
+	            </plugin>
+		</plugins>
+	</build>
+		
+	<!-- Profile for the deployment to MVN Central!-->
+	<profiles>
+		 <profile>
+		   <id>release</id>
+		    <build>
+		    <plugins>
+				<plugin>
+					<!-- Generates Source files. Condition for MVN Central!-->
+					<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>3.2.1</version>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<!-- Generates Javadoc. Condition for MVN Central!-->
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>3.3.0</version>
+						<configuration>
+							<doclint>none</doclint>
+							<source>8</source>
+							<excludePackageNames>
+								examples.*:test.*:demo.*					
+							</excludePackageNames>
+						</configuration>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<!-- Signs the JAR with a GPG Key. Condition for MVN Central!-->
+					    <groupId>org.apache.maven.plugins</groupId>
+					    <artifactId>maven-gpg-plugin</artifactId>
+					    <version>3.0.1</version>
+					    <executions>
+					        <execution>
+					            <id>sign-artifacts</id>
+					            <phase>verify</phase>
+					            <goals>
+					                <goal>sign</goal>
+					            </goals>
+					            <configuration>
+					                <gpgArguments>
+					                    <arg>--pinentry-mode</arg>
+					                    <arg>loopback</arg>
+					                </gpgArguments>
+					            </configuration>
+					        </execution>
+					    </executions>
+					</plugin>
+					<plugin>
+						<!-- Deploys the JAR to MVN Central-->
+						<groupId>org.sonatype.central</groupId>
+						<artifactId>central-publishing-maven-plugin</artifactId>
+						<version>0.1.2</version>
+						<extensions>true</extensions>
+						<configuration>
+						  <publishingServerId>central</publishingServerId>
+						  <tokenEnabled>true</tokenEnabled>
+						</configuration>
+					</plugin>
+				</plugins>
+				</build>
+			  </profile>
+		</profiles>
+</project>
