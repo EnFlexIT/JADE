@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.enflexit.jade</groupId>
 	<artifactId>de.enflexit.jade</artifactId>
-	<version>4.6.0.${build.timestamp}</version>
+	<version>4.6.0</version>
 	<packaging>bundle</packaging>
 	
 	<!-- License of the bundle-->
@@ -14,6 +14,10 @@
        <url>http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html</url>   
 	  </license>
 	</licenses>
+	
+	<name>${project.artifactId}</name>
+	<description>JADE from Telecom Italia with changes from EnFlex.IT build as an OSGI-Bundle by the maven-bundle plugin</description>
+	<url>https://github.com/EnFlexIT/JADE.git</url>
 
 
 	<developers>
@@ -28,7 +32,7 @@
 	<!-- Repository information, needed for Deplyoment in Maven Central-->
 	<scm>
 	  <connection>scm:git:https://github.com/EnFlexIT/JADE.git</connection>
-	  <url>https://github.com/EnFlexIT/JADE.git</url>
+	  <url>https://github.com/EnFlexIT/JADE/tree/master</url>
 	  <developerConnection>scm:https://github.com/EnFlexIT/JADE.git</developerConnection>
 	  <tag>HEAD</tag>
 	</scm>
