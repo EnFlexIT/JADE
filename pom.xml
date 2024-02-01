@@ -16,7 +16,7 @@
 	</licenses>
 	
 	<name>${project.artifactId}</name>
-	<description>JADE from Telecom Italia with changes from EnFlex.IT build as an OSGI-Bundle by the maven-bundle plugin</description>
+	<description>JADE from Telecom Italia with changes from EnFlex.IT. It is build as an OSGI-Bundle by the maven-bundle plugin without external JARs.</description>
 	<url>https://github.com/EnFlexIT/JADE.git</url>
 
 
@@ -184,10 +184,11 @@
 					<Import-Package>!*</Import-Package>
 		            <!--
 		              Include the Jars of the dependencies stated in this pom under lib/dependency
-		            -->
+		            
 			        <Bundle-ClassPath>.,{maven-dependencies}</Bundle-ClassPath>
                     <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
                     <Embed-Transitive>true</Embed-Transitive>
+                    -->
 		          </instructions>
 		        </configuration>
 		      </plugin>
