@@ -7,10 +7,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # Action/checkoutv3 checks out the repository
     - uses: actions/checkout@v3
     - name: Set up JAVA 
       uses: actions/setup-java@v3
-      with: # running setup-java again overwrites the settings.xml
+      with: # running setup-java overwrites the settings.xml
+            # For building java version 8, required by JADE
         distribution: 'temurin'
         java-version: '8'
     - name: build artifact
@@ -18,9 +20,11 @@ jobs:
     - name: Prepare for publishing to Mavencnetral
       uses: actions/setup-java@v3
       with: # running setup-java again overwrites the settings.xml
-        distribution: 'temurin'
+            # java version needs to be 11, because it is required by sonatype plugin
+            # https://github.com/actions/setup-java
+        distribution: 'temurin' 
         java-version: '11'
-        server-id: central
+        server-id: central 
         server-username: MAVEN_USERNAME # env variable for username in deploy
         server-password: MAVEN_CENTRAL_TOKEN # env variable for token in deploy
         gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
@@ -28,6 +32,7 @@ jobs:
     - name: Publish to Apache Maven Central
       run: mvn clean deploy -P release
       env:
+        # define the variables with its corresponding Github secrets 
         MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_UT_USER }}
         MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_UT_PSWD }}
         MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
