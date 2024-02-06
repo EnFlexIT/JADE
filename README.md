@@ -1,9 +1,8 @@
-[![Maven Central](https://img.shields.io/maven-central/v/de.enflexit.jade/de.enflexit.jade.svg?label=Maven%20Central)](https://central.sonatype.com/search?namespace=de.enflexit.jade&sort=name)
 
 # JADE
 This repository contains the original JADE code from the [SVN](https://jade.tilab.com/developers/source-repository/) of Telecom Italia
 ## Maven Central
-The Code of the Master branch will be published as an JAR packaged as an OSGI-Bundle. You can find it on  [Maven Central](https://central.sonatype.com/artifact/de.enflexit.jade/de.enflexit.jade). If you want to include it via Maven. You can use this dependency:
+The Code of the Master branch will be published as an JAR packaged as an OSGI-Bundle. You can find it on  [Maven Central](https://central.sonatype.com/artifact/de.enflexit.jade/de.enflexit.jade). If you want to include it via Maven, you can use this dependency:
 ```
 <dependency>
     <groupId>de.enflexit.jade</groupId>
@@ -17,3 +16,4 @@ The workflow for publishing to Maven Central is fully automated through a Github
 Contains our **changes and extensions** to the code of the [JADE](https://jade.tilab.com/) platform. The master branch will also include future changes made by Telecom Italia. 
 ### JADE-TILAB
 This branch contains the original and **current** JADE code from the [SVN](https://jade.tilab.com/developers/source-repository/) of Telecom Italia. It will be updated frequently.
+The update process is documented in Update folder of this repository.
