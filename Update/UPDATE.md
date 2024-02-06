@@ -1,6 +1,6 @@
 ## Download and Install GIT and SVN
 
-1. **GIT Installer**: If you did not install GIT yet. Download the installer from the official [site](https://git-scm.com/downloads and install it).
+1. **GIT Installer**: If you did not install GIT yet. Download the installer from the official [site](https://git-scm.com/downloads) and execute it.
 2. **Subversion (SVN)**:
    - If you did not install SVN yet. Download the [VisualSvnServer Installer](https://git-scm.com/downloads) and execute it.
    - Ensure only the required Administration Tools are selected and add the command line tools to the PATH variable.
