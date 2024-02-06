@@ -16,4 +16,4 @@ The workflow for publishing to Maven Central is fully automated through a Github
 Contains our **changes and extensions** to the code of the [JADE](https://jade.tilab.com/) platform. The master branch will also include future changes made by Telecom Italia. 
 ### JADE-TILAB
 This branch contains the original and **current** JADE code from the [SVN](https://jade.tilab.com/developers/source-repository/) of Telecom Italia. It will be updated frequently.
-The update process is documented in Update folder of this repository.
+The update process and its documentation and scripts can be found in the [update folder](https://github.com/EnFlexIT/JADE/tree/master/Update) of this repository.
