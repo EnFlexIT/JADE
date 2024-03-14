@@ -1,0 +1,90 @@
+name: create AuthorsFile.txt And RevNr.txt
+on:
+  workflow_dispatch:
+      inputs:
+        logLevel:
+          description: 'Log level'
+          required: true
+          default: 'warning'
+        environment:
+          description: 'Umgebung, in der der Workflow ausgeführt wird'
+          required: true
+          default: 'production'
+          
+jobs:
+  sync:
+    runs-on: macos-latest
+    steps:
+
+      - name: Set up JAVA 
+        uses: actions/setup-java@v3
+        with: # running setup-java overwrites the settings.xml
+              # For building java version 8, required by JADE
+          distribution: 'temurin'
+          java-version: '11'
+          
+      # Schritt 1: Checkout master branch
+      - name: Checkout master branch
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          path: JADE
+
+      # Schritt 2: Copy editAuthorfile Jar
+      - name: Copy editAuthorfile.jar from master
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/temp_jars
+          cp JADE/Update/editAuthorfile.jar $GITHUB_WORKSPACE/temp_jars
+          echo "EDIT_AUTHORFILE_JAR_PATH=$GITHUB_WORKSPACE/temp_jars/editAuthorfile.jar" >> $GITHUB_ENV
+          
+      # Schritt 3: Checkout JADE-SVN-Tilab branch in ein separates Verzeichnis
+      - name: Checkout JADE-SVN-Tilab branch
+        uses: actions/checkout@v4
+        with:
+          ref: JADE-SVN-TILAB
+          path: jade_svn_tilab     
+
+      - name: Install SVN
+        run: |
+          brew install subversion
+
+      - name: Install Git (includes git-svn)
+        run: |
+            brew install git-svn
+            
+      - name: Checkout SVN repository
+        env:
+          SVN_USER: ${{ secrets.JADE_USER }}
+          SVN_PASSWORD: ${{ secrets.JADE_PASSWORD }}
+        run: |        
+          mkdir jadeSVN
+          cd jadeSVN
+          sudo svn --username $SVN_USER --password $SVN_PASSWORD --trust-server-cert checkout https://jade.tilab.com/svn/jade/trunk/ . 
+          svn info https://jade.tilab.com/svn/jade/trunk/ --trust-server-cert --show-item revision
+          sudo svn info https://jade.tilab.com/svn/jade/trunk/ --trust-server-cert --show-item revision > "$GITHUB_WORKSPACE/temp_jars/actRevNumber.txt"
+          sudo svn log --trust-server-cert --xml --quiet | grep author | sort -u | perl -pe 's/.*>(.*?)<.*/$1 = /' > "$GITHUB_WORKSPACE/temp_jars/authors.txt"
+          echo "ACT_REV_NUMBER_PATH=$GITHUB_WORKSPACE/temp_jars/actRevNumber.txt" >> $GITHUB_ENV
+          echo "AUTHORS_PATH=$GITHUB_WORKSPACE/temp_jars/authors.txt" >> $GITHUB_ENV
+          cd $GITHUB_WORKSPACE && pwd
+          sudo rm -rf jadeSvn
+          cd temp_jars
+          pwd
+          find . -type f -name "*.txt"
+          
+      - name: Run Java application to create authorfile       
+        run: |
+            sudo cat $GITHUB_WORKSPACE/temp_jars/authors.txt
+            java -jar $EDIT_AUTHORFILE_JAR_PATH $GITHUB_WORKSPACE/temp_jars/authors.txt
+            sudo cat $GITHUB_WORKSPACE/temp_jars/authors.txt
+
+      - name: Upload Authorfile
+        uses: actions/upload-artifact@v3
+        with:
+            name: authorFile
+            path:  ${{ github.workspace }}/temp_jars/authors.txt
+
+      - name: Upload ActRevNumber
+        uses: actions/upload-artifact@v3
+        with:
+            name: revNumber
+            path: ${{ github.workspace }}/temp_jars/actRevNumber.txt
