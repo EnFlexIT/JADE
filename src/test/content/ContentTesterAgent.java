@@ -67,7 +67,7 @@ public class ContentTesterAgent extends TesterAgent {
 				}
 				else {
 					try {
-						codec = (Codec) Class.forName(codecClassName).newInstance();
+						codec = (Codec) JadeClassLoader.forName(codecClassName).newInstance();
 					}
 					catch (Exception e) {
 						throw new TestException("Error loading codec "+codecClassName, e);

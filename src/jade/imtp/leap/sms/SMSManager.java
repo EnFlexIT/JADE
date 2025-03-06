@@ -63,7 +63,7 @@ public abstract class SMSManager {
 				// Try as a string specifying the class to load
 				try {
 					myLogger.log(Logger.FINE, "Creating the SMSManager singleton instance: class is "+tmp);
-					theInstance = (SMSManager) Class.forName((String) tmp).newInstance();
+					theInstance = (SMSManager) JadeClassLoader.forName((String) tmp).newInstance();
 					theInstance.init(pp);
 				}
 				catch (Throwable t) {

@@ -138,11 +138,11 @@ public class LoaderBehaviour extends Behaviour {
 							//#J2ME_EXCLUDE_BEGIN
 							// Try using the local loader if any. Otherwise load from the classpath
 							if (localLoader != null) {
-								b = (Behaviour) Class.forName(className, true, localLoader).newInstance();
+								b = (Behaviour) JadeClassLoader.forName(className, true, localLoader).newInstance();
 							}
 							else {
 							//#J2ME_EXCLUDE_END
-								b = (Behaviour) Class.forName(className).newInstance();
+								b = (Behaviour) JadeClassLoader.forName(className).newInstance();
 							//#J2ME_EXCLUDE_BEGIN
 							}
 							//#J2ME_EXCLUDE_END
@@ -270,7 +270,7 @@ public class LoaderBehaviour extends Behaviour {
 		ClassLoader loader = new HashClassLoader(classes, getClass().getClassLoader());
 		
 		//#J2ME_EXCLUDE_BEGIN
-		Class c = Class.forName(className, true, loader);
+		Class c = JadeClassLoader.forName(className, true, loader);
 		//#J2ME_EXCLUDE_END
 		/*#J2ME_INCLUDE_BEGIN
 		Class c = loader.loadClass(className);

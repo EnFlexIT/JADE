@@ -985,7 +985,7 @@ public class ACLTextArea extends JComponent {
     String methodName = "set" + fieldName;
     String theType = "java.lang.String";
     try {
-      Method sn = msg.getClass().getMethod(methodName, new Class[]{Class.forName(theType)});
+      Method sn = msg.getClass().getMethod(methodName, new Class[]{JadeClassLoader.forName(theType)});
       Object os = value;
       sn.invoke(msg, new Object[]{os});
     }

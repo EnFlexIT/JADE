@@ -26,7 +26,7 @@ public class IntrospectionServer extends CyclicBehaviour {
 	
 	static {
 		try {
-			serializableClass = Class.forName("java.io.Serializable");
+			serializableClass = JadeClassLoader.forName("java.io.Serializable");
 		}
 		catch (Exception e) {
 		}

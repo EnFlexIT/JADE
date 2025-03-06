@@ -116,7 +116,7 @@ public class AgentManagementService extends BaseService {
 				try {
 					if (file.exists()) {
 						JarClassLoader loader = new JarClassLoader(file, getClass().getClassLoader());
-						return (Agent) Class.forName(className, true, loader).newInstance();
+						return (Agent) JadeClassLoader.forName(className, true, loader).newInstance();
 					}
 					else if (warnIfJarNotFound) {
 						myLogger.log(Logger.WARNING, "Jar file "+jarName+" for class "+className+" does not exist");
@@ -140,7 +140,7 @@ public class AgentManagementService extends BaseService {
 	
 	public Class getHorizontalInterface() {
 		try {
-			return Class.forName(AgentManagementSlice.NAME + "Slice");
+			return JadeClassLoader.forName(AgentManagementSlice.NAME + "Slice");
 		}
 		catch(ClassNotFoundException cnfe) {
 			return null;
@@ -609,7 +609,7 @@ public class AgentManagementService extends BaseService {
 				//#J2ME_EXCLUDE_END
 				
 				if (agent == null) {
-					agent = (Agent)Class.forName(className).newInstance();
+					agent = (Agent)JadeClassLoader.forName(className).newInstance();
 				}
 				
 				agent.setArguments(arguments);
@@ -967,7 +967,7 @@ public class AgentManagementService extends BaseService {
 	private boolean isLoadedFromSeparateSpace(Object obj) {
 		try {
 			Class c = obj.getClass();
-			Class reloadedClass = Class.forName(c.getName(), true, getClass().getClassLoader());
+			Class reloadedClass = JadeClassLoader.forName(c.getName(), true, getClass().getClassLoader());
 			if (c == reloadedClass) {
 				return false;
 			}

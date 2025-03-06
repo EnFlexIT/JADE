@@ -112,7 +112,7 @@ public class EnvCommentsTextArea extends JTextArea implements Observer {
     String methodName = "set" + fieldName;
     String theType = "java.lang.String";
     try {
-      Method sn = theObj.getClass().getMethod(methodName, new Class[]{Class.forName(theType)});
+      Method sn = theObj.getClass().getMethod(methodName, new Class[]{JadeClassLoader.forName(theType)});
       Object os = value;
       sn.invoke(theObj, new Object[]{os});
     }

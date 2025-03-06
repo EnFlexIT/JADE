@@ -212,7 +212,7 @@ public class SAMService extends BaseService {
 			for (int i = 0; i < handlerClasses.size(); ++i) {
 				String className = (String) handlerClasses.get(i);
 				myLogger.log(Logger.CONFIG, "Loading SAMInfoHandler class = "+className+"...");
-				handlers[i] = (SAMInfoHandler) Class.forName(className).newInstance();
+				handlers[i] = (SAMInfoHandler) JadeClassLoader.forName(className).newInstance();
 				handlers[i].initialize(myProfile);
 				myLogger.log(Logger.CONFIG, "SAMInfoHandler of class = "+className+" successfully initialized");
 			}

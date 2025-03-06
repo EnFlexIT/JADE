@@ -298,7 +298,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				Specifier spec = (Specifier) codecs.next();
 				String className = spec.getClassName();
 				try{
-					Class c = Class.forName(className);
+					Class c = JadeClassLoader.forName(className);
 					ACLCodec codec = (ACLCodec)c.newInstance();
 					messageEncodings.put(codec.getName().toLowerCase(), codec);
 					if (myLogger.isLoggable(Logger.CONFIG))
@@ -553,7 +553,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	 */
 	public Class getHorizontalInterface() {
 		try {
-			return Class.forName(MessagingSlice.NAME + "Slice");
+			return JadeClassLoader.forName(MessagingSlice.NAME + "Slice");
 		}
 		catch(ClassNotFoundException cnfe) {
 			return null;
@@ -1252,7 +1252,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			
 			try {
 				// Create the MTP
-				Class c = Class.forName(className);
+				Class c = JadeClassLoader.forName(className);
 				MTP proto = (MTP)c.newInstance();
 				
 				InChannel.Dispatcher dispatcher = new InChannel.Dispatcher() {

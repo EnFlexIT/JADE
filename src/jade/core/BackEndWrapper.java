@@ -47,7 +47,7 @@ class BackEndWrapper implements BackEnd {
 		if (connMgrClass == null) {
 			connMgrClass = CONN_MGR_CLASS_DEFAULT;
 		}	
-		connectionManager = (FEConnectionManager) Class.forName(connMgrClass).newInstance();
+		connectionManager = (FEConnectionManager) JadeClassLoader.forName(connMgrClass).newInstance();
 		
 		if (properties.getProperty(MicroRuntime.PLATFORM_KEY) != null) {
 			// Platform-name specified --> Start detached

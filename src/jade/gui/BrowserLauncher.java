@@ -242,12 +242,12 @@ public class BrowserLauncher {
 		switch (jvm) {
 			case MRJ_2_0:
 				try {
-					Class aeTargetClass = Class.forName("com.apple.MacOS.AETarget");
-					macOSErrorClass = Class.forName("com.apple.MacOS.MacOSError");
-					Class osUtilsClass = Class.forName("com.apple.MacOS.OSUtils");
-					Class appleEventClass = Class.forName("com.apple.MacOS.AppleEvent");
-					Class aeClass = Class.forName("com.apple.MacOS.ae");
-					aeDescClass = Class.forName("com.apple.MacOS.AEDesc");
+					Class aeTargetClass = JadeClassLoader.forName("com.apple.MacOS.AETarget");
+					macOSErrorClass = JadeClassLoader.forName("com.apple.MacOS.MacOSError");
+					Class osUtilsClass = JadeClassLoader.forName("com.apple.MacOS.OSUtils");
+					Class appleEventClass = JadeClassLoader.forName("com.apple.MacOS.AppleEvent");
+					Class aeClass = JadeClassLoader.forName("com.apple.MacOS.ae");
+					aeDescClass = JadeClassLoader.forName("com.apple.MacOS.AEDesc");
 
 					aeTargetConstructor = aeTargetClass.getDeclaredConstructor(new Class [] { int.class });
 					appleEventConstructor = appleEventClass.getDeclaredConstructor(new Class[] { int.class, int.class, aeTargetClass, int.class, int.class });
@@ -279,8 +279,8 @@ public class BrowserLauncher {
 				break;
 			case MRJ_2_1:
 				try {
-					mrjFileUtilsClass = Class.forName("com.apple.mrj.MRJFileUtils");
-					mrjOSTypeClass = Class.forName("com.apple.mrj.MRJOSType");
+					mrjFileUtilsClass = JadeClassLoader.forName("com.apple.mrj.MRJFileUtils");
+					mrjOSTypeClass = JadeClassLoader.forName("com.apple.mrj.MRJOSType");
 					Field systemFolderField = mrjFileUtilsClass.getDeclaredField("kSystemFolderType");
 					kSystemFolderType = systemFolderField.get(null);
 					findFolder = mrjFileUtilsClass.getDeclaredMethod("findFolder", new Class[] { mrjOSTypeClass });

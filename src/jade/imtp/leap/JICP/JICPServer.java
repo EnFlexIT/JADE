@@ -216,7 +216,7 @@ implements PDPContextManager.Listener, JICPMediatorManager
 			if (pdpContextManagerClass != null) {
 				try {
 					myLogger.log(Logger.INFO, "Loading PDPContextManager of class " + pdpContextManagerClass);
-					myPDPContextManager = (PDPContextManager) Class.forName(pdpContextManagerClass).newInstance();
+					myPDPContextManager = (PDPContextManager) JadeClassLoader.forName(pdpContextManagerClass).newInstance();
 					myPDPContextManager.init(leapProps);
 					myPDPContextManager.registerListener(this);
 				} catch (Throwable t) {
@@ -742,7 +742,7 @@ implements PDPContextManager.Listener, JICPMediatorManager
 	private JICPMediator startMediator(String id, Properties p) throws Exception {
 		String className = p.getProperty(JICPProtocol.MEDIATOR_CLASS_KEY);
 		if (className != null) {
-			JICPMediator m = (JICPMediator) Class.forName(className).newInstance();
+			JICPMediator m = (JICPMediator) JadeClassLoader.forName(className).newInstance();
 			mergeProperties(p, leapProps);
 			myLogger.log(Logger.FINE, "Initializing mediator "+id+" with properties "+p);
 			m.init(this, id, p);

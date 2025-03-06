@@ -1376,7 +1376,7 @@ public class AgentMobilityService extends BaseService {
 			//#J2ME_EXCLUDE_BEGIN
 			Class c;
 			try {
-				c = Class.forName(v.getName(), true, cl);
+				c = JadeClassLoader.forName(v.getName(), true, cl);
 			} catch (ClassNotFoundException ex) {
 			    c = (Class) primitiveJavaClasses.get(v.getName());
 			    if (c == null) {

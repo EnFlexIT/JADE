@@ -71,7 +71,7 @@ public class AddressNotificationService extends BaseService {
 
 	public Class getHorizontalInterface() {
 		try {
-			return Class.forName(AddressNotificationSlice.NAME + "Slice");
+			return JadeClassLoader.forName(AddressNotificationSlice.NAME + "Slice");
 		}
 		catch(ClassNotFoundException cnfe) {
 			return null;

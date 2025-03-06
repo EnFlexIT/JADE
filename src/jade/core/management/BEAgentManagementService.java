@@ -101,7 +101,7 @@ public class BEAgentManagementService extends BaseService {
 
 	public Class getHorizontalInterface() {
 		try {
-			return Class.forName(AgentManagementSlice.NAME + "Slice");
+			return JadeClassLoader.forName(AgentManagementSlice.NAME + "Slice");
 		}
 		catch(ClassNotFoundException cnfe) {
 			return null;

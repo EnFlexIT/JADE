@@ -24,6 +24,7 @@
  */
 package jade.content.abs;
 
+import jade.JadeClassLoader;
 import jade.content.AgentAction;
 
 /**
@@ -61,7 +62,7 @@ public class AbsAgentAction extends AbsConcept implements AbsContentElement, Age
 	public static Class getJavaClass() {
 		if (absAgentActionClass == null) {
 			try {
-				absAgentActionClass = Class.forName("jade.content.abs.AbsAgentAction");
+				absAgentActionClass = JadeClassLoader.forName("jade.content.abs.AbsAgentAction");
 			}
 			catch (Exception e) {
 				// Should never happen

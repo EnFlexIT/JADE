@@ -108,7 +108,7 @@ public class AIDTextField extends JTextField implements Observer {
     String methodName = "set" + fieldName;
     String theType = "java.lang.String";
     try {
-      Method sn = itsAid.getClass().getMethod(methodName, new Class[]{Class.forName(theType)});
+      Method sn = itsAid.getClass().getMethod(methodName, new Class[]{JadeClassLoader.forName(theType)});
       Object os = value;
       sn.invoke(itsAid, new Object[]{os});
     }

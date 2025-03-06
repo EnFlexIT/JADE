@@ -89,7 +89,7 @@ public class OutputViewer extends MIDlet implements CommandListener {
 	    if (c == clearCommand) {
 	    	try {
 	    		// This will delete the OUTPUT RecordStore
-		    	Class.forName("jade.util.Logger");    	
+		    	JadeClassLoader.forName("jade.util.Logger");    	
 		    	refresh();
 	    	}
 	    	catch (Exception e) {

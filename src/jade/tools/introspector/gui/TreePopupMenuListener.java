@@ -88,7 +88,7 @@ public class TreePopupMenuListener implements ActionListener {
         Object o=null;
               try
               {
-          c=Class.forName(classs);
+          c=JadeClassLoader.forName(classs);
           o=(Object)c.newInstance();
               }
               catch(Exception e)

@@ -327,7 +327,7 @@ public class RMIIMTPManager implements IMTPManager {
 
 	public Service.Slice createSliceProxy(String serviceName, Class itf, Node where) throws IMTPException {
 		try {
-			Class proxyClass = Class.forName(serviceName + "Proxy");
+			Class proxyClass = JadeClassLoader.forName(serviceName + "Proxy");
 			Service.Slice proxy = (Service.Slice) proxyClass.newInstance();
 			if (proxy instanceof SliceProxy) {
 				((SliceProxy) proxy).setNode(where);

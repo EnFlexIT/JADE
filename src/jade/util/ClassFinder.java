@@ -410,6 +410,6 @@ public class ClassFinder {
 	}
 
 	private Class callClassForName(String classname) throws ClassNotFoundException {
-		return Class.forName(classname, false, getClass().getClassLoader());
+		return JadeClassLoader.forName(classname, false, getClass().getClassLoader());
 	}
 }

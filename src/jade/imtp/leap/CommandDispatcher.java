@@ -578,7 +578,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 				// indicated in the profile (otherwise rethrow the exception)
 				String mainTPClass = p.getParameter(MAIN_PROTO_CLASS, null);
 				if (mainTPClass != null) {
-					TransportProtocol tp = (TransportProtocol) Class.forName(mainTPClass).newInstance();
+					TransportProtocol tp = (TransportProtocol) JadeClassLoader.forName(mainTPClass).newInstance();
 					mainTA = tp.stringToAddr(mainURL);
 				}
 				else {

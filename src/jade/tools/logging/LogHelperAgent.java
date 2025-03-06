@@ -142,7 +142,7 @@ public class LogHelperAgent extends Agent {
 					logManagerClass = className;
 				
 				logger.log(Logger.CONFIG, "Log manager class defined: " + logManagerClass);
-				logManager = (LogManager) Class.forName(logManagerClass).newInstance();
+				logManager = (LogManager) JadeClassLoader.forName(logManagerClass).newInstance();
 				
 				List logInfo = logManager.getAllLogInfo();
 				Result r = new Result(actExpr, logInfo);

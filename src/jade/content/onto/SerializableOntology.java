@@ -98,7 +98,7 @@ public class SerializableOntology extends Ontology {
 					protected Class resolveClass(ObjectStreamClass v) throws IOException, ClassNotFoundException {
 						if (myClassLoader != null) {
 							// FIXME: Manage primitive class fields. Refactor with AgentMobilityService
-							return Class.forName(v.getName(), true, myClassLoader);
+							return JadeClassLoader.forName(v.getName(), true, myClassLoader);
 						}
 						else {
 							return super.resolveClass(v);

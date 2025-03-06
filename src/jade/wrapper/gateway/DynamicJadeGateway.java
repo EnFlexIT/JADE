@@ -6,6 +6,7 @@ package jade.wrapper.gateway;
 import java.util.ArrayList;
 import java.util.List;
 
+import jade.JadeClassLoader;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.Profile;
@@ -118,7 +119,7 @@ public class DynamicJadeGateway {
 		}
 		if (myAgent == null) {
 			try {
-				Agent a = (Agent) Class.forName(agentType).newInstance();
+				Agent a = (Agent) JadeClassLoader.forName(agentType).newInstance();
 				if (a instanceof GatewayAgent) {
 					//#DOTNET_EXCLUDE_BEGIN
 					((GatewayAgent) a).setListener(new GatewayListenerImpl());

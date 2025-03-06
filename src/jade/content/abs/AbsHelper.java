@@ -30,6 +30,7 @@ import jade.content.onto.*;
 
 import java.util.Enumeration;
 
+import jade.JadeClassLoader;
 import jade.content.*;
 import jade.content.lang.sl.SL0Vocabulary;
 import jade.content.schema.*;
@@ -320,7 +321,7 @@ public class AbsHelper {
 		java.util.Collection collection;
 
 		try {
-			collection = (java.util.Collection) Class.forName(aggregate.getTypeName()).newInstance();
+			collection = (java.util.Collection) JadeClassLoader.forName(aggregate.getTypeName()).newInstance();
 		} catch (Exception e) {
 			throw new OntologyException("Cannot instantiate java collection of class "+aggregate.getTypeName(), e);
 		}

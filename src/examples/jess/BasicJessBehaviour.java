@@ -163,7 +163,7 @@ public class BasicJessBehaviour extends CyclicBehaviour {
 
         // The jess.MiscFunctions is no more used since JESS 6.0 (see e-mail of Csaba Tenkes
         //try {
-        //jess.addUserpackage((Userpackage)Class.forName("jess.MiscFunctions").newInstance());
+        //jess.addUserpackage((Userpackage)JadeClassLoader.forName("jess.MiscFunctions").newInstance());
         // } catch (Throwable t) { System.out.println(t); }
         try {
             // First I define the ACLMessage template

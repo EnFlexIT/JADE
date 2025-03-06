@@ -24,6 +24,7 @@
  */
 package jade.content.abs;
 
+import jade.JadeClassLoader;
 import jade.content.Concept;
 
 /**
@@ -69,7 +70,7 @@ public class AbsConcept extends AbsPrimitiveSlotsHolder implements AbsTerm, Conc
 	public static Class getJavaClass() {
 		if (absConceptClass == null) {
 			try {
-				absConceptClass = Class.forName("jade.content.abs.AbsConcept");
+				absConceptClass = JadeClassLoader.forName("jade.content.abs.AbsConcept");
 			}
 			catch (Exception e) {
 				// Should never happen

@@ -136,7 +136,7 @@ public class AbsIRE extends AbsObjectImpl implements AbsContentElement, AbsTerm 
 	public static Class getJavaClass() {
 		if (absIREClass == null) {
 			try {
-				absIREClass = Class.forName("jade.content.abs.AbsIRE");
+				absIREClass = JadeClassLoader.forName("jade.content.abs.AbsIRE");
 			}
 			catch (Exception e) {
 				// Should never happen

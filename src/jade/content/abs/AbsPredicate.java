@@ -80,7 +80,7 @@ public class AbsPredicate extends AbsPrimitiveSlotsHolder implements AbsContentE
 	public static Class getJavaClass() {
 		if (absPredicateClass == null) {
 			try {
-				absPredicateClass = Class.forName("jade.content.abs.AbsPredicate");
+				absPredicateClass = JadeClassLoader.forName("jade.content.abs.AbsPredicate");
 			}
 			catch (Exception e) {
 				// Should never happen

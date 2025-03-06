@@ -59,7 +59,7 @@ public class SLOperatorsTesterAgent extends TesterAgent {
 				String codecClassName = "jade.content.lang.sl.SLCodec";
     		Codec codec = null;
     		try {
-    			codec = (Codec) Class.forName(codecClassName).newInstance();
+    			codec = (Codec) JadeClassLoader.forName(codecClassName).newInstance();
     		}
     		catch (Exception e) {
     			throw new TestException("Error loading codec "+codecClassName, e);

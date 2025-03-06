@@ -42,7 +42,7 @@ public class SplitJadeGateway extends DynamicJadeGateway {
 				}
 				
 				try {
-					Class agentClass = Class.forName(agentType);
+					Class agentClass = JadeClassLoader.forName(agentType);
 					if (GatewayAgent.class.isAssignableFrom(agentClass)) {
 						
 						// Include the gateway-listener into the agent arguments (see GatewayAgent)  

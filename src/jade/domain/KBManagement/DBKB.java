@@ -175,7 +175,7 @@ public abstract class DBKB extends KB {
 				if(!drv.equals("null"))
 					driver = drv;
 			}
-			Class.forName(driver).newInstance();
+			JadeClassLoader.forName(driver).newInstance();
 		}
 		catch(Exception e){
 			throw new SQLException("Error loading driver "+driver+". "+e);

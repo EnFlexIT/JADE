@@ -129,7 +129,7 @@ public class ServiceDescriptor implements Serializable {
 		in.defaultReadObject();
 		if (serviceClass != null) {
 			try {
-				myService = (Service) Class.forName(serviceClass).newInstance();
+				myService = (Service) JadeClassLoader.forName(serviceClass).newInstance();
 			}
 			catch (ClassNotFoundException cnfe) {
 				throw cnfe;

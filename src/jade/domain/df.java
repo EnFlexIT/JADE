@@ -389,7 +389,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		DFKBFactory kbFactory = new DFKBFactory(); // Default factory
 		if (kbFactClass != null) {
 			try {
-				Object o = Class.forName(kbFactClass).newInstance();
+				Object o = JadeClassLoader.forName(kbFactClass).newInstance();
 				if (o instanceof DFKBFactory) {
 					kbFactory = (DFKBFactory)o;
 					sb.append("- Factory class = " + kbFactClass);
@@ -1500,7 +1500,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		if (gui == null) 
 		{
 			try{
-				Class c = Class.forName("jade.tools.dfgui.DFGUI");
+				Class c = JadeClassLoader.forName("jade.tools.dfgui.DFGUI");
 				gui = (DFGUIInterface)c.newInstance();
 				gui.setAdapter(df.this); //this method must be called to avoid reflection (the constructor of the df gui has no parameters).		
 				DFAgentDescription matchEverything = new DFAgentDescription();

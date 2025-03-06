@@ -144,7 +144,7 @@ public class AgentReplicationService extends BaseService {
 	@Override
 	public Class getHorizontalInterface() {
 		try {
-			return Class.forName(NAME + "Slice");
+			return JadeClassLoader.forName(NAME + "Slice");
 		} catch (ClassNotFoundException cnfe) {
 			return null;
 		}

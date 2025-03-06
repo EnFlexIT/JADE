@@ -184,7 +184,7 @@ public class Ontology implements Serializable {
 	private static Class absObjectClass = null;
 	static {
 		try {
-			absObjectClass = Class.forName("jade.content.abs.AbsObject");
+			absObjectClass = JadeClassLoader.forName("jade.content.abs.AbsObject");
 		}
 		catch (Exception e) {
 			// Should never happen
@@ -203,7 +203,7 @@ public class Ontology implements Serializable {
 	public Ontology(String name, Ontology base) {
 		this(name, base, null);
 		try {
-			introspector = (Introspector) Class.forName(DEFAULT_INTROSPECTOR_CLASS).newInstance();
+			introspector = (Introspector) JadeClassLoader.forName(DEFAULT_INTROSPECTOR_CLASS).newInstance();
 		}
 		catch (Exception e) {
 			throw new RuntimeException("Class "+DEFAULT_INTROSPECTOR_CLASS+"for default Introspector not found");

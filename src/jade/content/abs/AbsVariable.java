@@ -115,7 +115,7 @@ public class AbsVariable extends AbsObjectImpl implements AbsTerm {
 	public static Class getJavaClass() {
 		if (absVariableClass == null) {
 			try {
-				absVariableClass = Class.forName("jade.content.abs.AbsVariable");
+				absVariableClass = JadeClassLoader.forName("jade.content.abs.AbsVariable");
 			}
 			catch (Exception e) {
 				// Should never happen

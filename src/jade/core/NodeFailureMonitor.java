@@ -265,7 +265,7 @@ public abstract class NodeFailureMonitor {
 	
 	public static NodeFailureMonitor getDefaultFailureMonitor() {
 		try {
-			return (NodeFailureMonitor) Class.forName("jade.core.nodeMonitoring.BlockingNodeFailureMonitor").newInstance();
+			return (NodeFailureMonitor) JadeClassLoader.forName("jade.core.nodeMonitoring.BlockingNodeFailureMonitor").newInstance();
 		}
 		catch (Throwable t) {
 			// Should never happen

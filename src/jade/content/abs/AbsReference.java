@@ -128,7 +128,7 @@ public class AbsReference extends AbsObjectImpl implements AbsTerm {
 	public static Class getJavaClass() {
 		if (absReferenceClass == null) {
 			try {
-				absReferenceClass = Class.forName("jade.content.abs.AbsReference");
+				absReferenceClass = JadeClassLoader.forName("jade.content.abs.AbsReference");
 			}
 			catch (Exception e) {
 				// Should never happen

@@ -286,7 +286,7 @@ public class LogManagerGUI extends JFrame {
 		try {
 			className = JOptionPane.showInputDialog(this, "Insert the fully qualified class name of the LogManager implementation for the desired logging system");
 			if (className != null) {
-				return (LogManager) Class.forName(className).newInstance();
+				return (LogManager) JadeClassLoader.forName(className).newInstance();
 			}
 		}
 		catch (Exception e) {

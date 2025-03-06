@@ -369,7 +369,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 		BECodec codec = (BECodec) serviceBECodecs.get(serviceName);
 		if (codec == null) {
 			try {
-				codec = (BECodec) Class.forName(serviceName+"BECodec").newInstance();	
+				codec = (BECodec) JadeClassLoader.forName(serviceName+"BECodec").newInstance();	
 			}
 			catch (Exception e) {
 				// The service does not have a BECodec --> Use a dummy one

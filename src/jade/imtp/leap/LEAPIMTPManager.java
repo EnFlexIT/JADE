@@ -109,7 +109,7 @@ public class LEAPIMTPManager implements IMTPManager {
 				Specifier s = (Specifier) it.next();
 				
 				try {
-					ICP peer = (ICP) Class.forName(s.getClassName()).newInstance();
+					ICP peer = (ICP) JadeClassLoader.forName(s.getClassName()).newInstance();
 					String id = (s.getArgs() != null ? (String) (s.getArgs()[0]) : null);
 					theDispatcher.addICP(peer, id, theProfile);
 				} 
@@ -245,7 +245,7 @@ public class LEAPIMTPManager implements IMTPManager {
 	// FIXME: this is not IMTP-dependent --> Should be moved elsewhere
 	public Service.Slice createSliceProxy(String serviceName, Class itf, Node where) throws IMTPException {
 		try {
-			Class proxyClass = Class.forName(serviceName + "Proxy");
+			Class proxyClass = JadeClassLoader.forName(serviceName + "Proxy");
 			Service.Slice proxy = (Service.Slice) proxyClass.newInstance();
 			if (proxy instanceof SliceProxy) {
 				((SliceProxy) proxy).setNode(where);

@@ -137,7 +137,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		}
 		else {
 			try {
-				defaultDF = (df) Class.forName(dfClass).newInstance();
+				defaultDF = (df) JadeClassLoader.forName(dfClass).newInstance();
 			}
 			catch (Exception e) {
 				throw new ProfileException("Error loading DF agent", e);
@@ -257,7 +257,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 				String className = (String) replicatedAgents.get(aid);
 				if (className != null) {
 					myLogger.log(Logger.INFO, "Restarting replicated agent "+aid.getName());
-					Agent agent = (Agent)Class.forName(className).newInstance();
+					Agent agent = (Agent)JadeClassLoader.forName(className).newInstance();
 					agent.setRestarting(true);
 					localContainer.initAgent(aid, agent, cp, null); 
 					localContainer.powerUpLocalAgent(aid);

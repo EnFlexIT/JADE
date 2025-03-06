@@ -117,7 +117,7 @@ public class MainReplicationService extends BaseService {
 
 	public Class getHorizontalInterface() {
 		try {
-			return Class.forName(MainReplicationSlice.NAME + "Slice");
+			return JadeClassLoader.forName(MainReplicationSlice.NAME + "Slice");
 		} catch (ClassNotFoundException cnfe) {
 			return null;
 		}

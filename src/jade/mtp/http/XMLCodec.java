@@ -152,7 +152,7 @@ public class XMLCodec extends DefaultHandler
 	 */
   public XMLCodec(String parserClass) throws MTPException {
     try{ 
-			parser = (XMLReader)Class.forName(parserClass).newInstance();
+			parser = (XMLReader)JadeClassLoader.forName(parserClass).newInstance();
 			parser.setContentHandler(this);
 			parser.setErrorHandler(this);
 		}

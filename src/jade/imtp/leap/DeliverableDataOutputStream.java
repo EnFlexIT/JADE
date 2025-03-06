@@ -900,7 +900,7 @@ class DeliverableDataOutputStream extends DataOutputStream {
 		// DEBUG
 		// System.out.println(serName);
 		try {
-			Serializer s = (Serializer) Class.forName(serName).newInstance();
+			Serializer s = (Serializer) JadeClassLoader.forName(serName).newInstance();
 
 			return s;
 		} 

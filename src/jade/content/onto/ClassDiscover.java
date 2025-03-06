@@ -69,7 +69,7 @@ class ClassDiscover {
 						if (e.getName().startsWith(pkgname.replace('.', '/')) && e.getName().endsWith(".class") && !e.getName().contains("$")) {
 							String className = e.getName().replace("/", ".").substring(0, e.getName().length() - 6);
 							myLogger.log(Logger.CONFIG, "Adding class "+className);
-							classes.add(Class.forName(className));
+							classes.add(JadeClassLoader.forName(className));
 						}
 					}
 				} else
@@ -92,7 +92,7 @@ class ClassDiscover {
 					// we are only interested in .class files
 					if (file.endsWith(".class")) {
 						// removes the .class extension
-						classes.add(Class.forName(pkgname + '.' + file.substring(0, file.length() - 6)));
+						classes.add(JadeClassLoader.forName(pkgname + '.' + file.substring(0, file.length() - 6)));
 					}
 				}
 			} else {

@@ -542,7 +542,7 @@ public class ProfileImpl extends Profile {
 			imtpClass = "jade.imtp.rmi.RMIIMTPManager";
 		}
 		try {
-			myIMTPManager = (IMTPManager) Class.forName(imtpClass).newInstance();
+			myIMTPManager = (IMTPManager) JadeClassLoader.forName(imtpClass).newInstance();
 		}
 		catch (Exception e) {
 			throw new ProfileException("Error loading IMTPManager class "+imtpClass);
@@ -559,7 +559,7 @@ public class ProfileImpl extends Profile {
 		 #J2ME_INCLUDE_END*/
 		
 		try {
-			myResourceManager = (ResourceManager) Class.forName(className).newInstance();
+			myResourceManager = (ResourceManager) JadeClassLoader.forName(className).newInstance();
 		}
 		catch (Exception e) {
 			throw new ProfileException("Error loading ResourceManager class "+className);

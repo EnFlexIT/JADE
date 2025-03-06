@@ -178,7 +178,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
                 if (obj instanceof ConnectionListener) {
                     myConnectionListener = (ConnectionListener) obj;
                 } else {
-                    myConnectionListener = (ConnectionListener) Class.forName(obj.toString()).newInstance();
+                    myConnectionListener = (ConnectionListener) JadeClassLoader.forName(obj.toString()).newInstance();
                 }
             } catch (Exception e) {
                 // Just ignore it

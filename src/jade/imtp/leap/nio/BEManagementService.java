@@ -549,7 +549,7 @@ public class BEManagementService extends BaseService {
 			String protoManagerClass = p.getParameter(id + '_' + "protocol", null);
 			ProtocolManager pm = null;
 			try {
-				pm = (ProtocolManager) Class.forName(protoManagerClass).newInstance();
+				pm = (ProtocolManager) JadeClassLoader.forName(protoManagerClass).newInstance();
 			} catch (Exception e) {
 				if (protoManagerClass != null) {
 					myLogger.log(Logger.WARNING, myLogPrefix + "Unable to load protocol-manager class " + protoManagerClass + ", fallback to default " + NIOJICPPeer.class.getName()+"!");
@@ -581,7 +581,7 @@ public class BEManagementService extends BaseService {
 			if (pdpContextManagerClass != null) {
 				try {
 					myLogger.log(Logger.INFO, myLogPrefix + "Loading PDPContextManager of class " + pdpContextManagerClass);
-					myPDPContextManager = (PDPContextManager) Class.forName(pdpContextManagerClass).newInstance();
+					myPDPContextManager = (PDPContextManager) JadeClassLoader.forName(pdpContextManagerClass).newInstance();
 					myPDPContextManager.init(leapProps);
 					myPDPContextManager.registerListener(this);
 				} catch (Throwable t) {
@@ -1244,7 +1244,7 @@ public class BEManagementService extends BaseService {
 				// Default NIOMediator class
 				className = NIOBEDispatcher.class.getName();
 			}
-			NIOMediator m = (NIOMediator) Class.forName(className).newInstance();
+			NIOMediator m = (NIOMediator) JadeClassLoader.forName(className).newInstance();
 			mergeProperties(p, leapProps);
 			myLogger.log(Logger.INFO, myLogPrefix + "Initializing mediator " + id + " with properties " + p);
 			m.init(this, id, p);

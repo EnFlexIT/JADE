@@ -127,7 +127,7 @@ class FullResourceManager implements ResourceManager {
 			// Start the AWT-Toolkit outside the JADE Thread Group to avoid annoying InterruptedException-s on termination
 			// when some agent with a Swing or AWT based GUI is used
 			try {
-				Class.forName("java.awt.Frame").newInstance();
+				JadeClassLoader.forName("java.awt.Frame").newInstance();
 			}
 			catch (Throwable t) {
 				// Ignore failure (e.g. in case we don't have the display)

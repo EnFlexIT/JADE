@@ -178,7 +178,7 @@ class DeliverableDataInputStream extends DataInputStream {
 					//#MIDP_EXCLUDE_END
 				case Serializer.DEFAULT_ID:
 					String     serName = readUTF();
-					Serializer s = (Serializer) Class.forName(serName).newInstance();
+					Serializer s = (Serializer) JadeClassLoader.forName(serName).newInstance();
 					Object     o = s.deserialize(this);
 					return o;
 				default:
@@ -565,7 +565,7 @@ class DeliverableDataInputStream extends DataInputStream {
 		try {
 			name = readUTF();
 			className = readUTF();
-			Service svc = (Service) Class.forName(className).newInstance();
+			Service svc = (Service) JadeClassLoader.forName(className).newInstance();
 			return new ServiceDescriptor(name, svc);
 		}
 		catch (ClassNotFoundException cnfe) {
@@ -580,7 +580,7 @@ class DeliverableDataInputStream extends DataInputStream {
 		String className = null;
 		try {
 			className = readUTF();
-			SliceProxy proxy = (SliceProxy) Class.forName(className).newInstance();
+			SliceProxy proxy = (SliceProxy) JadeClassLoader.forName(className).newInstance();
 			proxy.setNode(readNode());
 			return proxy;
 		}
@@ -596,7 +596,7 @@ class DeliverableDataInputStream extends DataInputStream {
 	private Service.SliceProxy deserializeServiceSliceProxy() throws LEAPSerializationException {
 		try {
 			String   className = readUTF();
-			Service.SliceProxy proxy = (Service.SliceProxy) Class.forName(className).newInstance();
+			Service.SliceProxy proxy = (Service.SliceProxy) JadeClassLoader.forName(className).newInstance();
 			proxy.setNode(readNode());
 			return proxy;
 		}
@@ -660,7 +660,7 @@ class DeliverableDataInputStream extends DataInputStream {
 	private Stub deserializeStub() throws LEAPSerializationException {
 		try {
 			String stubClassName = readUTF();
-			Stub stub = (Stub) Class.forName(stubClassName).newInstance();
+			Stub stub = (Stub) JadeClassLoader.forName(stubClassName).newInstance();
 
 			stub.remoteID = readInt();
 			stub.platformName = readString();
@@ -850,7 +850,7 @@ class DeliverableDataInputStream extends DataInputStream {
 		String className = readString();
 		String message = readString();
 		try {
-			Throwable result = (Throwable)Class.forName(className).newInstance();
+			Throwable result = (Throwable)JadeClassLoader.forName(className).newInstance();
 			// FIXME: How do we set the message?
 			return result;
 		}

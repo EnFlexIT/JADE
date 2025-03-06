@@ -25,6 +25,7 @@ package jade.imtp.leap.http;
 
 import jade.core.FEConnectionManager;
 import jade.core.FrontEnd;
+import jade.JadeClassLoader;
 import jade.core.BackEnd;
 import jade.core.IMTPException;
 import jade.core.Specifier;
@@ -351,7 +352,7 @@ public class HTTPFEDispatcher implements FEConnectionManager, Dispatcher, TimerL
 
 				// In the meanwhile load the ConnectionListener if any 
 				try {
-					myConnectionListener = (ConnectionListener) Class.forName(props.getProperty("connection-listener")).newInstance();
+					myConnectionListener = (ConnectionListener) JadeClassLoader.forName(props.getProperty("connection-listener")).newInstance();
 				}
 				catch (Exception e) {
 					// Just ignore it

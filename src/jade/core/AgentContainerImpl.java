@@ -1151,7 +1151,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	protected ServiceDescriptor startService(String name, boolean activateIt) throws ServiceException {
 
 		try {
-			Class svcClass = Class.forName(name);
+			Class svcClass = JadeClassLoader.forName(name);
 			Service svc = (Service)svcClass.newInstance();
 			svc.init(this, myProfile);
 			ServiceDescriptor dsc = new ServiceDescriptor(svc.getName(), svc);

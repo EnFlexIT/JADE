@@ -138,7 +138,7 @@ public class LightMessagingService extends BaseService
      */
     public Class getHorizontalInterface() {
         try {
-            return Class.forName(MessagingSlice.NAME + "Slice");
+            return JadeClassLoader.forName(MessagingSlice.NAME + "Slice");
         } catch (ClassNotFoundException cnfe) {
             return null;
         }

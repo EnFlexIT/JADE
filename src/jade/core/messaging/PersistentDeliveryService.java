@@ -127,7 +127,7 @@ public class PersistentDeliveryService extends BaseService {
 
 	public Class getHorizontalInterface() {
 		try {
-			return Class.forName(PersistentDeliverySlice.NAME + "Slice");
+			return JadeClassLoader.forName(PersistentDeliverySlice.NAME + "Slice");
 		}
 		catch(ClassNotFoundException cnfe) {
 			return null;
@@ -406,7 +406,7 @@ public class PersistentDeliveryService extends BaseService {
 			// Load the supplied class to filter messages if any
 			String className = myProfile.getParameter(PERSISTENT_DELIVERY_FILTER, null);
 			if(className != null) {
-				Class c = Class.forName(className);
+				Class c = JadeClassLoader.forName(className);
 				messageFilter = (PersistentDeliveryFilter)c.newInstance();
 				myLogger.log(Logger.INFO, "Persistent-Delivery - Using message filter of type "+messageFilter.getClass().getName());
 			}

@@ -36,6 +36,7 @@ import javax.swing.event.ListDataEvent;
 
 import javax.swing.event.ListDataListener;
 
+import jade.JadeClassLoader;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
@@ -399,7 +400,7 @@ public class ACLAIDList extends JPanel {
       String methodName = "add" + fieldName;
       String theType = "jade.core.AID";
       try {
-        Method sn = itsObj.getClass().getMethod(methodName, new Class[]{Class.forName(theType)});
+        Method sn = itsObj.getClass().getMethod(methodName, new Class[]{JadeClassLoader.forName(theType)});
         Object os = newAID;
         sn.invoke(itsObj, new Object[]{os});
       }
@@ -439,7 +440,7 @@ public class ACLAIDList extends JPanel {
       String methodName = "remove" + fieldName;
       String theType = "jade.core.AID";
       try {
-        Method sn = itsObj.getClass().getMethod(methodName, new Class[]{Class.forName(theType)});
+        Method sn = itsObj.getClass().getMethod(methodName, new Class[]{JadeClassLoader.forName(theType)});
         Object os = theRemovedAID;
         sn.invoke(itsObj, new Object[]{os});
       }
@@ -468,10 +469,10 @@ public class ACLAIDList extends JPanel {
 
       String theType = "jade.core.AID";
       try {
-        Method removeMethod = itsObj.getClass().getMethod(removeMethodName, new Class[]{Class.forName(theType)});
+        Method removeMethod = itsObj.getClass().getMethod(removeMethodName, new Class[]{JadeClassLoader.forName(theType)});
         removeMethod.invoke(itsObj, new Object[]{currentAID});
 
-        Method addMethod = itsObj.getClass().getMethod(addMethodName, new Class[]{Class.forName(theType)});
+        Method addMethod = itsObj.getClass().getMethod(addMethodName, new Class[]{JadeClassLoader.forName(theType)});
         removeMethod.invoke(itsObj, new Object[]{theChangedAID});
       }
       catch (Exception ex) {
