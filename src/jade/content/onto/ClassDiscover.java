@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.content.onto;
 
+import jade.JadeClassLoader;
+
 //#J2ME_EXCLUDE_FILE
 //#APIDOC_EXCLUDE_FILE
 
@@ -46,11 +48,11 @@ import java.util.jar.JarFile;
 class ClassDiscover {
 	private static Logger myLogger = Logger.getMyLogger(ClassDiscover.class.getName());
 	
-	static List<Class> getClassesForPackage(String pkgname) throws ClassNotFoundException {
+	static List<Class<?>> getClassesForPackage(String pkgname) throws ClassNotFoundException {
 		// This will hold a list of directories matching the pckgname.
 		// There may be more than one if a package is split over multiple
 		// jars/paths
-		List<Class> classes = new ArrayList<Class>();
+		List<Class<?>> classes = new ArrayList<Class<?>>();
 		ArrayList<File> directories = new ArrayList<File>();
 		try {
 			ClassLoader cld = Thread.currentThread().getContextClassLoader();
@@ -102,9 +104,9 @@ class ClassDiscover {
 		return classes;
 	}
 
-	static List<Class> getClassessOfInterface(String thePackage, Class<Concept> theInterface) throws ClassNotFoundException {
-		List<Class> classList = new ArrayList<Class>();
-		for (Class discovered : getClassesForPackage(thePackage)) {
+	static List<Class<?>> getClassessOfInterface(String thePackage, Class<Concept> theInterface) throws ClassNotFoundException {
+		List<Class<?>> classList = new ArrayList<Class<?>>();
+		for (Class<?> discovered : getClassesForPackage(thePackage)) {
 			if (Arrays.asList(discovered.getInterfaces()).contains(theInterface)) {
 				classList.add(discovered);
 			}

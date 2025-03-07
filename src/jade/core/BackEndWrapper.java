@@ -25,6 +25,7 @@ package jade.core;
 import java.util.Enumeration;
 import java.util.Vector;
 
+import jade.JadeClassLoader;
 import jade.imtp.leap.JICP.JICPProtocol;
 import jade.lang.acl.ACLMessage;
 import jade.security.JADESecurityException;

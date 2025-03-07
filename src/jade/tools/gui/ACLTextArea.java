@@ -32,8 +32,6 @@ import java.awt.datatransfer.*;
 import java.awt.event.*;
 import java.awt.event.*;
 import java.awt.event.*;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyListener;
 import java.lang.*;
 import java.lang.reflect.*;
 import java.util.EventObject;
@@ -50,6 +48,7 @@ import javax.swing.event.*;
 import javax.swing.text.*;
 import javax.swing.text.*;
 
+import jade.JadeClassLoader;
 import jade.lang.acl.ACLMessage;
 import jade.tools.sl.SLFormatter;
 
@@ -614,7 +613,6 @@ public class ACLTextArea extends JComponent {
     }
     int height = painter.getHeight();
     int lineHeight = painter.getFontMetrics().getHeight();
-    int oldVisibleLines = visibleLines;
     visibleLines = height / lineHeight;
     painter.invalidateOffscreen();
     painter.repaint();
@@ -944,7 +942,7 @@ public class ACLTextArea extends JComponent {
     if (contentLanguage.indexOf("SL") >= 0) {
       //Only format when SL
       try {
-        content = (String)new SLFormatter().format(content);
+		content = (String)SLFormatter.format(content);
       }
       catch (Exception ex) {
         //too bad!
@@ -1159,7 +1157,6 @@ public class ACLTextArea extends JComponent {
            = tokenMarker.markTokens(lineSegment, line);
       }
 
-      Toolkit toolkit = painter.getToolkit();
       Font defaultFont = painter.getFont();
       ACLSytntaxStyle[] styles = painter.getStyles();
 
@@ -1261,7 +1258,6 @@ public class ACLTextArea extends JComponent {
       }
 
       int offset = 0;
-      Toolkit toolkit = painter.getToolkit();
       Font defaultFont = painter.getFont();
       ACLSytntaxStyle[] styles = painter.getStyles();
 
@@ -1510,7 +1506,7 @@ public class ACLTextArea extends JComponent {
    */
   protected void processFocusEvent(FocusEvent e) {
     super.processFocusEvent(e);
-    if (e.getID() == e.FOCUS_LOST) {
+    if (e.getID() == FocusEvent.FOCUS_LOST) {
       focusLost(e);
     }
 

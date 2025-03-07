@@ -33,6 +33,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
+import jade.JadeClassLoader;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.AgentContainer;
@@ -254,7 +255,7 @@ public class SAMService extends BaseService {
 	}
 
 	@Override
-	public Class getHorizontalInterface() {
+	public Class<?> getHorizontalInterface() {
 		return SAMSlice.class;
 	}
 	

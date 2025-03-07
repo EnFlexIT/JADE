@@ -33,6 +33,7 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
 
+import jade.JadeClassLoader;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.lang.acl.ACLMessage;
 
@@ -71,7 +72,6 @@ public class ACLTextField extends JTextField implements Observer {
     this.theObj = arg;
     this.fieldName = fieldName;
     String methodName = "get" + fieldName;
-    String theType = "java.lang.String";
     try {
       Method sn = theObj.getClass().getMethod(methodName, (Class[]) null);
       Object res = sn.invoke(theObj, new Object[]{});
@@ -104,7 +104,6 @@ public class ACLTextField extends JTextField implements Observer {
    */
   public void update(Observable ob, Object arg) {
     String methodName = "get" + fieldName;
-    String theType = "java.lang.String";
     try {
       Method sn = theObj.getClass().getMethod(methodName, (Class[]) null);
       Object res = sn.invoke(theObj, new Object[]{});
@@ -145,7 +144,7 @@ public class ACLTextField extends JTextField implements Observer {
    */
   protected void processFocusEvent(FocusEvent e) {
     super.processFocusEvent(e);
-    if (e.getID() == e.FOCUS_LOST) {
+    if (e.getID() == FocusEvent.FOCUS_LOST) {
       focusLost(e);
     }
 

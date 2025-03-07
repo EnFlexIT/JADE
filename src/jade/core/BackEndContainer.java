@@ -39,6 +39,7 @@ import jade.util.leap.HashMap;
 import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
 import jade.security.*;
+import jade.JadeClassLoader;
 import jade.core.messaging.*;
 import jade.util.Logger;
 

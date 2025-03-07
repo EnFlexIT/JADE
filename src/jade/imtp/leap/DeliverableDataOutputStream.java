@@ -41,6 +41,7 @@ import java.util.Date;
 import java.util.Vector;
 import java.util.Enumeration;
 
+import jade.JadeClassLoader;
 import jade.core.*;
 import jade.core.messaging.GenericMessage;
 //#J2ME_EXCLUDE_BEGIN

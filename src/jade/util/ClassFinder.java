@@ -46,6 +46,8 @@ import java.util.Vector;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import jade.JadeClassLoader;
+
 /**
  * This utility class was based originally on Daniel Le Berre's <code>RTSI</code>
  * class. This class can be called in different modes, but the principal use is
@@ -55,7 +57,7 @@ import java.util.jar.JarFile;
  * @author Daniel Le Berre, Elliott Wade, Paolo Cancedda
  */
 public class ClassFinder {
-	private Class searchClass = null;
+	private Class<?> searchClass = null;
 	private Map locations = new HashMap();
 	private Map results = new HashMap();
 	private List errors = new ArrayList();
@@ -150,7 +152,7 @@ public class ClassFinder {
 	 * <code>null</code> will be returned if the given class was not found
 	 * during the last search, or if the result cache has been cleared.
 	 */
-	public final URL getLocationOf(Class cls) {
+	public final URL getLocationOf(Class<?>cls) {
 		if (results != null)
 			return (URL)results.get(cls);
 		else
@@ -301,7 +303,7 @@ public class ClassFinder {
 		return s.replace('/', '.');
 	}
 
-	private final Vector findSubclasses(Class superClass, Map locations) {
+	private final Vector findSubclasses(Class<?>superClass, Map locations) {
 		Set setOfClasses = new TreeSet(CLASS_COMPARATOR);
 		Vector v = new Vector();
 
@@ -318,7 +320,7 @@ public class ClassFinder {
 		return v;
 	}
 
-	private void manageClass(Set setOfClasses, Class superClass, Class c, URL url) {
+	private void manageClass(Set setOfClasses, Class<?>superClass, Class<?>c, URL url) {
 		boolean include;
 		include = superClass.isAssignableFrom(c);
 		if (include && filter != null) {
@@ -334,7 +336,7 @@ public class ClassFinder {
 		}
 	}
 
-	private final void findSubclasses(URL location, String packageName, Class superClass, Set setOfClasses) {
+	private final void findSubclasses(URL location, String packageName, Class<?>superClass, Set setOfClasses) {
 
 		synchronized (results) {
 
@@ -362,7 +364,7 @@ public class ClassFinder {
 
 						try {
 							if (!fqcn.equals(packageName + "." + classname)) {
-								Class c = callClassForName(packageName + "." + classname);
+								Class<?> c = callClassForName(packageName + "." + classname);
 								manageClass(setOfClasses, superClass, c, url);
 							}
 
@@ -393,7 +395,7 @@ public class ClassFinder {
 
 									if (!fqcn.equals(classname)) {
 										
-										Class c = callClassForName(classname);
+										Class<?> c = callClassForName(classname);
 										manageClass(setOfClasses, superClass, c, url);
 									}
 								} catch (Throwable t) {
@@ -409,7 +411,7 @@ public class ClassFinder {
 		} // synch results
 	}
 
-	private Class callClassForName(String classname) throws ClassNotFoundException {
+	private Class<?> callClassForName(String classname) throws ClassNotFoundException {
 		return JadeClassLoader.forName(classname, false, getClass().getClassLoader());
 	}
 }

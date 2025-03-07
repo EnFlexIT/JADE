@@ -35,6 +35,7 @@ import jade.core.BaseService;
 import jade.core.ServiceException;
 import jade.core.Filter;
 import jade.core.Agent;
+import jade.JadeClassLoader;
 import jade.core.AID;
 import jade.core.Node;
 import jade.core.NodeDescriptor;

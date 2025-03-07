@@ -22,6 +22,7 @@ Boston, MA  02111-1307, USA.
  *****************************************************************/
 package jade.imtp.leap.nio;
 
+import jade.JadeClassLoader;
 //#J2ME_EXCLUDE_FILE
 import jade.core.*;
 import jade.core.sam.AverageMeasureProviderImpl;
@@ -502,7 +503,6 @@ public class BEManagementService extends BaseService {
 
 		private String myID;
 		private String myLogPrefix;
-		private int state = INIT_STATE;
 		private ServerSocketChannel mySSChannel;
 		private long mediatorCnt = 1;
 		private Hashtable<String, NIOMediator> mediators = new Hashtable<String, NIOMediator>();

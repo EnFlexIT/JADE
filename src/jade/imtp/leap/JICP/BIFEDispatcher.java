@@ -25,6 +25,7 @@ package jade.imtp.leap.JICP;
 import jade.core.MicroRuntime;
 import jade.core.FEConnectionManager;
 import jade.core.FrontEnd;
+import jade.JadeClassLoader;
 import jade.core.BackEnd;
 import jade.core.IMTPException;
 import jade.core.TimerDispatcher;

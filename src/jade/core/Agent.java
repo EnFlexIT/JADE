@@ -33,6 +33,7 @@ import jade.util.leap.Iterator;
 import java.util.Hashtable;
 import java.util.Enumeration;
 
+import jade.JadeClassLoader;
 import jade.core.behaviours.Behaviour;
 import jade.lang.acl.*;
 import jade.security.JADESecurityException;
@@ -1348,7 +1349,7 @@ public class Agent implements Runnable, Serializable
 		}
 		Agent a = (Agent) in.readObject();
 		
-		Class c = this.getClass();
+		Class<?> c = this.getClass();
 		java.lang.reflect.Field[] ff = c.getDeclaredFields();
 		
 		for (int i=0; i<ff.length; i++) {

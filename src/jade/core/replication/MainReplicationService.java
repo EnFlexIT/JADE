@@ -49,7 +49,7 @@ import jade.core.ProfileException;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.core.NameClashException;
-
+import jade.JadeClassLoader;
 import jade.core.AID;
 import jade.core.ContainerID;
 
@@ -115,7 +115,7 @@ public class MainReplicationService extends BaseService {
 		return MainReplicationSlice.NAME;
 	}
 
-	public Class getHorizontalInterface() {
+	public Class<?> getHorizontalInterface() {
 		try {
 			return JadeClassLoader.forName(MainReplicationSlice.NAME + "Slice");
 		} catch (ClassNotFoundException cnfe) {

@@ -26,14 +26,10 @@
 package jade.tools.gui;
 
 import java.awt.event.*;
-import java.lang.*;
 import java.lang.reflect.*;
 import java.util.*;
 import javax.swing.*;
-import javax.swing.event.*;
-import jade.domain.FIPAAgentManagement.Envelope;
-
-import jade.lang.acl.ACLMessage;
+import jade.JadeClassLoader;
 import jade.util.Logger;
 
 /**
@@ -56,7 +52,6 @@ public class EnvCommentsTextArea extends JTextArea implements Observer {
     this.theObj = arg;
     this.fieldName = fieldName;
     String methodName = "get" + fieldName;
-    String theType = "java.lang.String";
     try {
       Method sn = theObj.getClass().getMethod(methodName, (Class[]) null);
       Object res = sn.invoke(theObj, new Object[]{});
@@ -89,7 +84,6 @@ public class EnvCommentsTextArea extends JTextArea implements Observer {
    */
   public void update(Observable ob, Object arg) {
     String methodName = "get" + fieldName;
-    String theType = "java.lang.String";
     try {
       Method sn = theObj.getClass().getMethod(methodName, (Class[]) null);
       Object res = sn.invoke(theObj, new Object[]{});
@@ -129,7 +123,7 @@ public class EnvCommentsTextArea extends JTextArea implements Observer {
    */
   protected void processFocusEvent(FocusEvent e) {
     super.processFocusEvent(e);
-    if (e.getID() == e.FOCUS_LOST) {
+    if (e.getID() == FocusEvent.FOCUS_LOST) {
       focusLost(e);
     }
 

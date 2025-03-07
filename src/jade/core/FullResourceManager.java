@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+import jade.JadeClassLoader;
+
 //#J2ME_EXCLUDE_FILE
 
 class FullResourceManager implements ResourceManager {

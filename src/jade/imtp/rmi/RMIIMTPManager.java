@@ -29,7 +29,7 @@ import java.rmi.server.*;
 
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
-
+import jade.JadeClassLoader;
 import jade.core.*;
 import jade.security.JADESecurityException;
 import jade.mtp.TransportAddress;
@@ -327,7 +327,7 @@ public class RMIIMTPManager implements IMTPManager {
 
 	public Service.Slice createSliceProxy(String serviceName, Class itf, Node where) throws IMTPException {
 		try {
-			Class proxyClass = JadeClassLoader.forName(serviceName + "Proxy");
+			Class<?> proxyClass = JadeClassLoader.forName(serviceName + "Proxy");
 			Service.Slice proxy = (Service.Slice) proxyClass.newInstance();
 			if (proxy instanceof SliceProxy) {
 				((SliceProxy) proxy).setNode(where);

@@ -21,8 +21,16 @@ public class JadeClassLoader {
 		if (classLoaderService!=null) {
 			return classLoaderService.forName(className);
 		}
-		return JadeClassLoader.forName(className);
+		return Class.forName(className);
 	}
+	
+	public static Class<?> forName(String className, boolean initialize, ClassLoader loader) throws ClassNotFoundException {
+		if (classLoaderService!=null) {
+			return classLoaderService.forName(className, initialize, loader);
+		}
+		return Class.forName(className, initialize, loader);
+	}
+	
 	/**
 	 * Sets the class loader service.
 	 * @param classLoaderService the new class loader service

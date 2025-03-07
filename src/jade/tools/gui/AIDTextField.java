@@ -26,16 +26,12 @@
 package jade.tools.gui;
 
 import java.awt.event.*;
-import java.lang.*;
 import java.lang.reflect.*;
 import java.util.*;
 
 import javax.swing.*;
-import javax.swing.event.*;
+import jade.JadeClassLoader;
 import jade.core.AID;
-import jade.core.Agent;
-
-import jade.lang.acl.ACLMessage;
 
 /**
  *  This class shows a JTextfield showing a AID
@@ -86,7 +82,6 @@ public class AIDTextField extends JTextField implements Observer {
    */
   public void update(Observable ob, Object arg) {
     String methodName = "get" + fieldName;
-    String theType = "java.lang.String";
     try {
       Method sn = itsAid.getClass().getMethod(methodName, (Class[]) null);
       Object res = sn.invoke(itsAid, new Object[]{});
@@ -125,7 +120,7 @@ public class AIDTextField extends JTextField implements Observer {
    */
   protected void processFocusEvent(FocusEvent e) {
     super.processFocusEvent(e);
-    if (e.getID() == e.FOCUS_LOST) {
+    if (e.getID() == FocusEvent.FOCUS_LOST) {
       focusLost(e);
     }
 

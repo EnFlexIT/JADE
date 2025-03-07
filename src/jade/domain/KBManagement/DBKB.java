@@ -25,6 +25,8 @@
 
 package jade.domain.KBManagement;
 
+import jade.JadeClassLoader;
+
 //#J2ME_EXCLUDE_FILE
 
 import jade.core.AID;

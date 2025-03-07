@@ -28,12 +28,8 @@ package jade.core;
 
 import jade.util.leap.Properties;
 import jade.util.leap.List;
+import jade.JadeClassLoader;
 import jade.util.leap.ArrayList;
-
-//#MIDP_EXCLUDE_BEGIN
-import java.net.*;
-//#MIDP_EXCLUDE_END
-
 
 import java.io.IOException;
 import java.util.Vector;

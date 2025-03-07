@@ -63,7 +63,7 @@ import jade.gui.GuiEvent;
 
 import jade.proto.SubscriptionResponder;
 import jade.proto.AchieveREInitiator;
-
+import jade.JadeClassLoader;
 import jade.content.*;
 import jade.content.lang.*;
 import jade.content.lang.sl.*;

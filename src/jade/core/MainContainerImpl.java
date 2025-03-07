@@ -34,7 +34,7 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.LinkedList;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
-
+import jade.JadeClassLoader;
 import jade.core.behaviours.Behaviour;
 
 import jade.core.event.PlatformEvent;

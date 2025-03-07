@@ -52,6 +52,7 @@ import jade.mtp.MTPException;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
 import jade.domain.FIPAAgentManagement.Property;
+import jade.JadeClassLoader;
 import jade.core.AID;
 import jade.util.Logger;
 

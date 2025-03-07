@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+import jade.JadeClassLoader;
 //#APIDOC_EXCLUDE_FILE
 import jade.util.leap.Serializable;
 

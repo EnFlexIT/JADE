@@ -26,6 +26,7 @@ package jade.content.abs;
 
 import jade.content.onto.*;
 import jade.content.schema.*;
+import jade.JadeClassLoader;
 import jade.content.Term;
 
 /**

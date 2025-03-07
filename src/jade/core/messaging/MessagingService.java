@@ -46,6 +46,7 @@ import jade.core.AgentContainer;
 import jade.core.MainContainer;
 import jade.core.CaseInsensitiveString;
 import jade.core.Agent;
+import jade.JadeClassLoader;
 import jade.core.AID;
 import jade.core.ContainerID;
 import jade.core.Profile;
@@ -298,7 +299,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				Specifier spec = (Specifier) codecs.next();
 				String className = spec.getClassName();
 				try{
-					Class c = JadeClassLoader.forName(className);
+					Class<?> c = JadeClassLoader.forName(className);
 					ACLCodec codec = (ACLCodec)c.newInstance();
 					messageEncodings.put(codec.getName().toLowerCase(), codec);
 					if (myLogger.isLoggable(Logger.CONFIG))
@@ -551,7 +552,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	 * @return A <code>Class</code> object, representing the interface
 	 * that is implemented by the slices of this service.
 	 */
-	public Class getHorizontalInterface() {
+	public Class<?> getHorizontalInterface() {
 		try {
 			return JadeClassLoader.forName(MessagingSlice.NAME + "Slice");
 		}
@@ -1252,7 +1253,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			
 			try {
 				// Create the MTP
-				Class c = JadeClassLoader.forName(className);
+				Class<?> c = JadeClassLoader.forName(className);
 				MTP proto = (MTP)c.newInstance();
 				
 				InChannel.Dispatcher dispatcher = new InChannel.Dispatcher() {

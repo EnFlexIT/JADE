@@ -28,6 +28,7 @@ package jade.core.messaging;
 
 import java.io.IOException;
 
+import jade.JadeClassLoader;
 import jade.core.AID;
 import jade.core.Profile;
 

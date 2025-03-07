@@ -4,6 +4,7 @@ import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.*;
 import jade.domain.FIPANames;
+import jade.JadeClassLoader;
 import jade.content.ContentManager;
 import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
@@ -15,14 +16,13 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 
 import java.lang.reflect.*;
-import java.io.Serializable;
 
 public class IntrospectionServer extends CyclicBehaviour {
 	private Codec codec;
 	private Ontology onto;
 	private MessageTemplate template;
 	
-	private static Class serializableClass;
+	private static Class<?> serializableClass;
 	
 	static {
 		try {
@@ -115,7 +115,7 @@ public class IntrospectionServer extends CyclicBehaviour {
 		for (int i = 0; i < mm.length; ++i) {
 			Method method = mm[i];
 			if (method.getName().startsWith("get") && method.getParameterTypes().length == 0) {
-				Class retType = method.getReturnType();
+				Class<?> retType = method.getReturnType();
 				if (retType.isPrimitive() || (serializableClass != null && serializableClass.isAssignableFrom(retType))) {
 					String key = method.getName().substring(3);
 					keys.add(key);

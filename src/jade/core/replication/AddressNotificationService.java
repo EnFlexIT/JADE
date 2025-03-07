@@ -38,7 +38,7 @@ import jade.core.Node;
 import jade.core.Profile;
 import jade.core.ProfileException;
 import jade.core.IMTPException;
-
+import jade.JadeClassLoader;
 import jade.core.AgentContainer;
 
 import jade.util.Logger;
@@ -69,7 +69,7 @@ public class AddressNotificationService extends BaseService {
 		return AddressNotificationSlice.NAME;
 	}
 
-	public Class getHorizontalInterface() {
+	public Class<?> getHorizontalInterface() {
 		try {
 			return JadeClassLoader.forName(AddressNotificationSlice.NAME + "Slice");
 		}

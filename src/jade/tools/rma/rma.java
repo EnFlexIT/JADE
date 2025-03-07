@@ -47,6 +47,7 @@ import jade.gui.AgentTreeModel;
 import jade.lang.acl.ACLMessage;
 
 import jade.content.onto.basic.Result;
+import jade.JadeClassLoader;
 import jade.content.onto.basic.Action;
 
 import jade.proto.SimpleAchieveREInitiator;
@@ -505,7 +506,7 @@ public class rma extends ToolAgent {
 			// with a specified owner name 
 			try
 			{
-				Class c = JadeClassLoader.forName("jade.security.impl.JADEPrincipalImpl");
+				Class<?> c = JadeClassLoader.forName("jade.security.impl.JADEPrincipalImpl");
 				intendedOwner = (JADEPrincipal) c.newInstance();
 				java.lang.reflect.Method setName = c.getDeclaredMethod("setName", new Class[]{ String.class });
 				setName.invoke(intendedOwner, new Object[] {ownerName});

@@ -27,6 +27,7 @@ package jade.content.onto;
 import java.util.Hashtable;
 import java.util.Enumeration;
 
+import jade.JadeClassLoader;
 import jade.content.Concept;
 import jade.content.abs.AbsAggregate;
 import jade.content.abs.AbsHelper;
@@ -181,7 +182,7 @@ public class Ontology implements Serializable {
 
 	// This is required for compatibility with CLDC MIDP where XXX.class
 	// is not supported
-	private static Class absObjectClass = null;
+	private static Class<?> absObjectClass = null;
 	static {
 		try {
 			absObjectClass = JadeClassLoader.forName("jade.content.abs.AbsObject");
@@ -352,7 +353,7 @@ public class Ontology implements Serializable {
 	 * @return the schema associated to the given class or <code>null</code> if the schema is not found.
 	 * @throws OntologyException
 	 */
-	public ObjectSchema getSchema(Class clazz) throws OntologyException {
+	public ObjectSchema getSchema(Class<?> clazz) throws OntologyException {
 		if (clazz == null) {
 			throw new OntologyException("Null class");
 		}
@@ -444,12 +445,12 @@ public class Ontology implements Serializable {
 	 * is found or if no class is associated to that schema.
 	 * @throws OntologyException if name is null
 	 */
-	public Class getClassForElement(String name) throws OntologyException {
+	public Class<?> getClassForElement(String name) throws OntologyException {
 		if (name == null) {
 			throw new OntologyException("Null schema identifier");
 		}
 
-		Class ret = (Class) classes.get(name.toLowerCase());
+		Class<?> ret = (Class<?>) classes.get(name.toLowerCase());
 
 		if (ret == null) {
 			for (int i = 0; i < base.length; ++i) {
@@ -512,7 +513,7 @@ public class Ontology implements Serializable {
 				logger.log(Logger.FINE,"Ontology "+getName()+". Schema for type "+abs.getTypeName()+" found locally: "+schema);
 
 			// Retrieve the java class
-			Class javaClass = (Class) classes.get(lcType);
+			Class<?> javaClass = (Class<?>) classes.get(lcType);
 			if (javaClass == null) {
 				throw new OntologyException("No java class associated to type "+abs.getTypeName());
 			}
@@ -562,7 +563,7 @@ public class Ontology implements Serializable {
 		throw new UnknownSchemaException();
 	}
 
-	private Object internalizeSpecialType(AbsObject abs, ObjectSchema schema, Class javaClass, Ontology globalOnto) throws OntologyException {
+	private Object internalizeSpecialType(AbsObject abs, ObjectSchema schema, Class<?> javaClass, Ontology globalOnto) throws OntologyException {
 		if (introspector == null) {
 			throw new NotASpecialType();
 		}
@@ -626,7 +627,7 @@ public class Ontology implements Serializable {
 		}
 
 		// Retrieve the Java class
-		Class javaClass = obj.getClass();
+		Class<?> javaClass = obj.getClass();
 		if(logger.isLoggable(Logger.FINE))
 			logger.log(Logger.FINE,"Ontology "+getName()+". Translating object of class "+javaClass);
 
@@ -662,7 +663,7 @@ public class Ontology implements Serializable {
 		throw new UnknownSchemaException();
 	}
 
-	private AbsObject externalizeSpecialType(Object obj, ObjectSchema schema, Class javaClass, Ontology globalOnto) throws OntologyException {
+	private AbsObject externalizeSpecialType(Object obj, ObjectSchema schema, Class<?> javaClass, Ontology globalOnto) throws OntologyException {
 		if (introspector == null) {
 			throw new NotASpecialType();
 		}
@@ -711,7 +712,7 @@ public class Ontology implements Serializable {
 	 * Set the value of slot <code>slotName</code> as <code>slotValue</code> to object <code>obj</code>
 	 */
 	public void setSlotValue(String slotName, Object slotValue, Object obj) throws OntologyException {
-		Class javaClass = obj.getClass();
+		Class<?> javaClass = obj.getClass();
 		ObjectSchema schema = (ObjectSchema) schemas.get(javaClass);
 		if (schema != null) {
 			setSlotValue(slotName, slotValue, obj, schema);
@@ -759,7 +760,7 @@ public class Ontology implements Serializable {
 	 * Retrieve the value of slot <code>slotName</code> from object <code>obj</code>
 	 */
 	public Object getSlotValue(String slotName, Object obj) throws OntologyException {
-		Class javaClass = obj.getClass();
+		Class<?> javaClass = obj.getClass();
 		ObjectSchema schema = (ObjectSchema) schemas.get(javaClass);
 		if (schema != null) {
 			return getSlotValue(slotName, obj, schema);
@@ -924,7 +925,7 @@ public class Ontology implements Serializable {
 		return l;
 	}
 	
-	private List getOwnElementNames(Class c) {
+	private List getOwnElementNames(Class<?> c) {
 		List names = new ArrayList();
 		for (Enumeration e = elements.keys(); e.hasMoreElements();){
 			String key  = (String)e.nextElement();
@@ -936,7 +937,7 @@ public class Ontology implements Serializable {
 		return names;
 	}
 
-	private Set getElementNames(Class c){
+	private Set getElementNames(Class<?> c){
 		// We use a Set to avoid duplicating names in case an element is overridden
 		Set names = new HashSet();
 		names.addAll(getOwnElementNames(c));

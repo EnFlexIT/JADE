@@ -1,5 +1,6 @@
 package jade.wrapper.gateway;
 
+import jade.JadeClassLoader;
 import jade.core.AID;
 import jade.core.MicroRuntime;
 import jade.core.NotFoundException;
@@ -42,7 +43,7 @@ public class SplitJadeGateway extends DynamicJadeGateway {
 				}
 				
 				try {
-					Class agentClass = JadeClassLoader.forName(agentType);
+					Class<?> agentClass = JadeClassLoader.forName(agentType);
 					if (GatewayAgent.class.isAssignableFrom(agentClass)) {
 						
 						// Include the gateway-listener into the agent arguments (see GatewayAgent)  

@@ -1,5 +1,6 @@
 package jade.content.abs;
 
+import jade.JadeClassLoader;
 import jade.content.schema.ReferenceSchema;
 import jade.content.schema.VariableSchema;
 

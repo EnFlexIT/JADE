@@ -28,6 +28,7 @@ package jade.core.behaviours;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.JadeClassLoader;
 import jade.content.ContentManager;
 import jade.content.lang.Codec;
 import jade.content.lang.leap.LEAPCodec;
@@ -270,7 +271,7 @@ public class LoaderBehaviour extends Behaviour {
 		ClassLoader loader = new HashClassLoader(classes, getClass().getClassLoader());
 		
 		//#J2ME_EXCLUDE_BEGIN
-		Class c = JadeClassLoader.forName(className, true, loader);
+		Class<?> c = JadeClassLoader.forName(className, true, loader);
 		//#J2ME_EXCLUDE_END
 		/*#J2ME_INCLUDE_BEGIN
 		Class c = loader.loadClass(className);
@@ -294,7 +295,7 @@ public class LoaderBehaviour extends Behaviour {
 			classes = ht;
 		}
 			
-    protected Class findClass(String name) throws ClassNotFoundException {
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
 	    String fileName = name.replace('.', '/') + ".class";
     	byte[] code = (byte[]) classes.get(fileName);
     	if (code != null) {

@@ -29,11 +29,11 @@ import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
 import jade.util.Logger;
 import jade.security.JADESecurityException;
+import jade.JadeClassLoader;
 //#MIDP_EXCLUDE_BEGIN
 import jade.core.behaviours.Behaviour;
 import jade.core.event.ContainerEvent;
 import jade.core.event.JADEEvent;
-import jade.domain.FIPANames;
 import jade.security.*;
 //#MIDP_EXCLUDE_END
 

@@ -27,6 +27,7 @@ package jade.content.onto;
 
 import jade.content.abs.AbsObject;
 import jade.content.abs.AbsPrimitive;
+import jade.JadeClassLoader;
 import jade.content.abs.AbsConcept;
 import jade.content.schema.PrimitiveSchema;
 import jade.content.schema.ConceptSchema;
@@ -95,7 +96,7 @@ public class SerializableOntology extends Ontology {
 				byte[] value = Base64.decodeBase64(stringValue.getBytes("US-ASCII"));
 				//#J2ME_EXCLUDE_BEGIN
 				ObjectInput in = new ObjectInputStream(new ByteArrayInputStream(value)) {
-					protected Class resolveClass(ObjectStreamClass v) throws IOException, ClassNotFoundException {
+					protected Class<?> resolveClass(ObjectStreamClass v) throws IOException, ClassNotFoundException {
 						if (myClassLoader != null) {
 							// FIXME: Manage primitive class fields. Refactor with AgentMobilityService
 							return JadeClassLoader.forName(v.getName(), true, myClassLoader);

@@ -24,6 +24,7 @@
  */
 package jade.content.abs;
 
+import jade.JadeClassLoader;
 import jade.content.schema.*;
 
 /**
@@ -111,8 +112,8 @@ public class AbsVariable extends AbsObjectImpl implements AbsTerm {
 
 	// Easy way to access the Java class representing AbsVariable.
 	// Useful in MIDP where XXX.class is not available
-	private static Class absVariableClass = null;
-	public static Class getJavaClass() {
+	private static Class<?> absVariableClass = null;
+	public static Class<?> getJavaClass() {
 		if (absVariableClass == null) {
 			try {
 				absVariableClass = JadeClassLoader.forName("jade.content.abs.AbsVariable");

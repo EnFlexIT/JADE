@@ -40,6 +40,7 @@ import jade.core.Filter;
 import jade.core.Node;
 
 import jade.core.AgentContainer;
+import jade.JadeClassLoader;
 import jade.core.AID;
 import jade.core.Profile;
 import jade.core.ProfileException;
@@ -125,7 +126,7 @@ public class PersistentDeliveryService extends BaseService {
 		return PersistentDeliverySlice.NAME;
 	}
 
-	public Class getHorizontalInterface() {
+	public Class<?> getHorizontalInterface() {
 		try {
 			return JadeClassLoader.forName(PersistentDeliverySlice.NAME + "Slice");
 		}
@@ -406,7 +407,7 @@ public class PersistentDeliveryService extends BaseService {
 			// Load the supplied class to filter messages if any
 			String className = myProfile.getParameter(PERSISTENT_DELIVERY_FILTER, null);
 			if(className != null) {
-				Class c = JadeClassLoader.forName(className);
+				Class<?> c = JadeClassLoader.forName(className);
 				messageFilter = (PersistentDeliveryFilter)c.newInstance();
 				myLogger.log(Logger.INFO, "Persistent-Delivery - Using message filter of type "+messageFilter.getClass().getName());
 			}

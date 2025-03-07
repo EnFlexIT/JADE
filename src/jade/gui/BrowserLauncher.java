@@ -10,6 +10,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import jade.JadeClassLoader;
+
 /**
  * BrowserLauncher is a class that provides one static method, openURL, which opens the default
  * web browser for the current user of the system to the given URL.  It may support other
@@ -73,25 +75,25 @@ public class BrowserLauncher {
 	private static boolean loadedWithoutErrors;
 
 	/** The com.apple.mrj.MRJFileUtils class */
-	private static Class mrjFileUtilsClass;
+	private static Class<?> mrjFileUtilsClass;
 
 	/** The com.apple.mrj.MRJOSType class */
-	private static Class mrjOSTypeClass;
+	private static Class<?> mrjOSTypeClass;
 
 	/** The com.apple.MacOS.MacOSError class */
-	private static Class macOSErrorClass;
+	private static Class<?> macOSErrorClass;
 	
 	/** The com.apple.MacOS.AEDesc class */
-	private static Class aeDescClass;
+	private static Class<?> aeDescClass;
 	
 	/** The <init>(int) method of com.apple.MacOS.AETarget */
-	private static Constructor aeTargetConstructor;
+	private static Constructor<?> aeTargetConstructor;
 	
 	/** The <init>(int, int, int) method of com.apple.MacOS.AppleEvent */
-	private static Constructor appleEventConstructor;
+	private static Constructor<?> appleEventConstructor;
 	
 	/** The <init>(String) method of com.apple.MacOS.AEDesc */
-	private static Constructor aeDescConstructor;
+	private static Constructor<?> aeDescConstructor;
 	
 	/** The findFolder method of com.apple.mrj.MRJFileUtils */
 	private static Method findFolder;
@@ -242,11 +244,11 @@ public class BrowserLauncher {
 		switch (jvm) {
 			case MRJ_2_0:
 				try {
-					Class aeTargetClass = JadeClassLoader.forName("com.apple.MacOS.AETarget");
+					Class<?> aeTargetClass = JadeClassLoader.forName("com.apple.MacOS.AETarget");
 					macOSErrorClass = JadeClassLoader.forName("com.apple.MacOS.MacOSError");
-					Class osUtilsClass = JadeClassLoader.forName("com.apple.MacOS.OSUtils");
-					Class appleEventClass = JadeClassLoader.forName("com.apple.MacOS.AppleEvent");
-					Class aeClass = JadeClassLoader.forName("com.apple.MacOS.ae");
+					Class<?> osUtilsClass = JadeClassLoader.forName("com.apple.MacOS.OSUtils");
+					Class<?> appleEventClass = JadeClassLoader.forName("com.apple.MacOS.AppleEvent");
+					Class<?> aeClass = JadeClassLoader.forName("com.apple.MacOS.ae");
 					aeDescClass = JadeClassLoader.forName("com.apple.MacOS.AEDesc");
 
 					aeTargetConstructor = aeTargetClass.getDeclaredConstructor(new Class [] { int.class });

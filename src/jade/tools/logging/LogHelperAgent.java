@@ -24,6 +24,7 @@ package jade.tools.logging;
 
 import java.util.Map;
 
+import jade.JadeClassLoader;
 import jade.content.AgentAction;
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
@@ -31,7 +32,6 @@ import jade.content.onto.basic.Action;
 import jade.content.onto.basic.Result;
 import jade.core.AID;
 import jade.core.Agent;
-import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.FailureException;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.RefuseException;
@@ -39,7 +39,6 @@ import jade.domain.introspection.AMSSubscriber;
 import jade.domain.introspection.Event;
 import jade.domain.introspection.IntrospectionVocabulary;
 import jade.domain.introspection.DeadAgent;
-import jade.domain.introspection.AMSSubscriber.EventHandler;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.proto.SimpleAchieveREResponder;

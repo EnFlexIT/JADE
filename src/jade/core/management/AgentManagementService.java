@@ -36,6 +36,7 @@ import jade.core.Node;
 import jade.core.Profile;
 import jade.core.Agent;
 import jade.core.AgentState;
+import jade.JadeClassLoader;
 import jade.core.AID;
 import jade.core.ContainerID;
 import jade.core.AgentContainer;
@@ -138,7 +139,7 @@ public class AgentManagementService extends BaseService {
 		return AgentManagementSlice.NAME;
 	}
 	
-	public Class getHorizontalInterface() {
+	public Class<?> getHorizontalInterface() {
 		try {
 			return JadeClassLoader.forName(AgentManagementSlice.NAME + "Slice");
 		}
@@ -966,8 +967,8 @@ public class AgentManagementService extends BaseService {
 	//#J2ME_EXCLUDE_BEGIN
 	private boolean isLoadedFromSeparateSpace(Object obj) {
 		try {
-			Class c = obj.getClass();
-			Class reloadedClass = JadeClassLoader.forName(c.getName(), true, getClass().getClassLoader());
+			Class<?> c = obj.getClass();
+			Class<?> reloadedClass = JadeClassLoader.forName(c.getName(), true, getClass().getClassLoader());
 			if (c == reloadedClass) {
 				return false;
 			}

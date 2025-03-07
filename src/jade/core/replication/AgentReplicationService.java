@@ -33,6 +33,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
+import jade.JadeClassLoader;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.AgentContainer;
@@ -142,7 +143,7 @@ public class AgentReplicationService extends BaseService {
 	}
 
 	@Override
-	public Class getHorizontalInterface() {
+	public Class<?> getHorizontalInterface() {
 		try {
 			return JadeClassLoader.forName(NAME + "Slice");
 		} catch (ClassNotFoundException cnfe) {

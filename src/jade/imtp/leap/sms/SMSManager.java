@@ -27,6 +27,7 @@ package jade.imtp.leap.sms;
 
 import jade.util.Logger;
 import jade.util.leap.Properties;
+import jade.JadeClassLoader;
 import jade.imtp.leap.ICPException;
 
 /**

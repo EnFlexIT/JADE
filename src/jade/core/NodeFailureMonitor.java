@@ -29,7 +29,7 @@ package jade.core;
 import jade.util.leap.HashMap;
 import jade.util.leap.Iterator;
 import jade.util.leap.Map;
-
+import jade.JadeClassLoader;
 import jade.core.nodeMonitoring.NodeMonitoringService;
 
 /**

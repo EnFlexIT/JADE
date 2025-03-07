@@ -9,6 +9,7 @@ import java.net.URL;
 import java.util.Map;
 import java.util.HashMap;
 
+import jade.JadeClassLoader;
 import jade.content.onto.basic.Action;
 import jade.core.Agent;
 import jade.core.AID;

@@ -24,6 +24,7 @@
  */
 package jade.content.abs;
 
+import jade.JadeClassLoader;
 import jade.content.Predicate;
 
 /**

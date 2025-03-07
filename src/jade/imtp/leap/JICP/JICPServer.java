@@ -34,6 +34,8 @@
  */
 package jade.imtp.leap.JICP;
 
+import jade.JadeClassLoader;
+
 //#MIDP_EXCLUDE_FILE
 
 import jade.core.Profile;

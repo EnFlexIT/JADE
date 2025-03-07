@@ -23,6 +23,8 @@
 
 package jade.core.nodeMonitoring;
 
+import jade.JadeClassLoader;
+
 // Take care that the DOTNET build file (dotnet.xml) uses this file (it is copied just after the preprocessor excluded it)
 //#J2ME_EXCLUDE_FILE
 //#APIDOC_EXCLUDE_FILE

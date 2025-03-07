@@ -56,6 +56,7 @@ import jade.core.LifeCycle;
 import jade.core.Profile;
 import jade.core.Agent;
 import jade.core.Agent.Interrupted;
+import jade.JadeClassLoader;
 import jade.core.AID;
 import jade.core.CaseInsensitiveString;
 import jade.core.ContainerID;
@@ -155,7 +156,7 @@ public class AgentMobilityService extends BaseService {
 		return AgentMobilitySlice.NAME;
 	}
 	
-	public Class getHorizontalInterface() {
+	public Class<?> getHorizontalInterface() {
 		return AgentMobilitySlice.class;
 	}
 	
@@ -1354,7 +1355,7 @@ public class AgentMobilityService extends BaseService {
 		
 		/**
 		 */
-		protected Class resolveClass(ObjectStreamClass v) throws IOException, ClassNotFoundException {
+		protected Class<?> resolveClass(ObjectStreamClass v) throws IOException, ClassNotFoundException {
 			String key = createClassLoaderKey(agentName, classSiteName);
 			MobileAgentClassLoader cl = (MobileAgentClassLoader)loaders.get(key);
 			if (cl == null) {
@@ -1374,7 +1375,7 @@ public class AgentMobilityService extends BaseService {
 				}
 			}
 			//#J2ME_EXCLUDE_BEGIN
-			Class c;
+			Class<?> c;
 			try {
 				c = JadeClassLoader.forName(v.getName(), true, cl);
 			} catch (ClassNotFoundException ex) {
@@ -1396,7 +1397,7 @@ public class AgentMobilityService extends BaseService {
 		
 	}    // END of inner class Deserializer
 	
-	private static final java.util.HashMap primitiveJavaClasses = new java.util.HashMap(8, 1.0F);
+	private static final java.util.HashMap<String, Class<?>> primitiveJavaClasses = new java.util.HashMap<String, Class<?>>(8, 1.0F);
     static {
     	primitiveJavaClasses.put("boolean", boolean.class);
     	primitiveJavaClasses.put("byte", byte.class);

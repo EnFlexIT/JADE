@@ -39,6 +39,7 @@ package jade.imtp.leap;
 
 import jade.core.PlatformManager;
 import jade.core.Node;
+import jade.JadeClassLoader;
 import jade.core.IMTPException;
 import jade.core.Profile;
 import jade.core.UnreachableException;

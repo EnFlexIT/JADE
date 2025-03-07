@@ -35,14 +35,12 @@
 package jade.imtp.leap;
 
 
+import jade.JadeClassLoader;
 import jade.core.*;
-import jade.lang.acl.ACLMessage;
 import jade.mtp.TransportAddress;
 import jade.util.leap.*;
 import jade.imtp.leap.JICP.JICPProtocol;
-import jade.imtp.leap.JICP.Connection;
 import jade.util.Logger;
-import java.io.IOException;
 
 /**
  * @author Giovanni Caire - Telecom Italia Lab
@@ -245,7 +243,7 @@ public class LEAPIMTPManager implements IMTPManager {
 	// FIXME: this is not IMTP-dependent --> Should be moved elsewhere
 	public Service.Slice createSliceProxy(String serviceName, Class itf, Node where) throws IMTPException {
 		try {
-			Class proxyClass = JadeClassLoader.forName(serviceName + "Proxy");
+			Class<?> proxyClass = JadeClassLoader.forName(serviceName + "Proxy");
 			Service.Slice proxy = (Service.Slice) proxyClass.newInstance();
 			if (proxy instanceof SliceProxy) {
 				((SliceProxy) proxy).setNode(where);

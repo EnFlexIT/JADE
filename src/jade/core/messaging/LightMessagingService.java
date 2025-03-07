@@ -22,6 +22,7 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 package jade.core.messaging;
 
+import jade.JadeClassLoader;
 import jade.core.AID;
 import jade.core.AgentContainer;
 import jade.core.BaseService;
@@ -31,14 +32,12 @@ import jade.core.Filter;
 import jade.core.GenericCommand;
 import jade.core.HorizontalCommand;
 import jade.core.IMTPException;
-import jade.core.MainContainer;
 import jade.core.Node;
 import jade.core.NotFoundException;
 import jade.core.Profile;
 import jade.core.ProfileException;
 import jade.core.Service;
 import jade.core.ServiceException;
-import jade.core.ServiceFinder;
 import jade.core.Sink;
 import jade.core.UnreachableException;
 import jade.core.VerticalCommand;
@@ -56,8 +55,6 @@ import jade.mtp.MTPException;
 import jade.security.JADESecurityException;
 
 import jade.util.leap.Iterator;
-
-import java.util.Date;
 
 
 /**
@@ -136,7 +133,7 @@ public class LightMessagingService extends BaseService
      * @return A <code>Class</code> object, representing the interface
      * that is implemented by the slices of this service.
      */
-    public Class getHorizontalInterface() {
+    public Class<?> getHorizontalInterface() {
         try {
             return JadeClassLoader.forName(MessagingSlice.NAME + "Slice");
         } catch (ClassNotFoundException cnfe) {

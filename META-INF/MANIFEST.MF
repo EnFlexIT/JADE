@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1741274379418
+Bnd-LastModified: 1741343787952
 Build-Jdk-Spec: 21
 Bundle-Description: JADE from Telecom Italia with changes from EnFlex.IT
  . It is build as an OSGI-Bundle by the maven-bundle plugin without exte
