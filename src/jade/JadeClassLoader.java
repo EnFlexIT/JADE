@@ -10,9 +10,9 @@ public class JadeClassLoader {
 	private static JadeClassLoaderService classLoaderService;
 	
 	/**
-	 * Central forName method for getting class instances the JADE bundle.
+	 * Central forName method for getting class instances from the JADE bundle.
 	 *
-	 * @param className the class name
+	 * @param className the fully qualified name of the desired class
 	 * @return the class
 	 * @throws ClassNotFoundException the class not found exception
 	 */
@@ -24,6 +24,14 @@ public class JadeClassLoader {
 		return Class.forName(className);
 	}
 	
+	/**
+	 * Central forName method for getting class instances from the JADE bundle, using the given class loader.
+	 * @param className the fully qualified name of the desired class
+	 * @param initialize whether the class must be initialized
+	 * @param loader the class loader from which the class must be loaded
+	 * @return the class
+	 * @throws ClassNotFoundException the class not found exception
+	 */
 	public static Class<?> forName(String className, boolean initialize, ClassLoader loader) throws ClassNotFoundException {
 		if (classLoaderService!=null) {
 			return classLoaderService.forName(className, initialize, loader);
