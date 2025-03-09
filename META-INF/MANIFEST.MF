@@ -9,7 +9,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: de.enflexit.jade
 Bundle-SymbolicName: de.enflexit.jade
 Bundle-Vendor: EnFlex.IT
-Bundle-Version: 4.6.2
+Bundle-Version: 4.6.3
 Created-By: Apache Maven Bundle Plugin 5.1.9
 Export-Package: FIPA;version="4.6.1",
  jade;version="4.6.1";uses:="jade.core,jade.util,jade.util.leap",
