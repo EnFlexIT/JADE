@@ -14,7 +14,7 @@ public interface JadeClassLoaderService {
 	 * @param className the fully qualified name of the desired class
 	 * @return the class
 	 */
-	public Class<?> forName(String className);
+	public Class<?> forName(String className) throws ClassNotFoundException, NoClassDefFoundError;
 	
 	/**
 	 * Returns the Class object associated with the class or interface with the given string name, using the given class loader.
@@ -23,6 +23,6 @@ public interface JadeClassLoaderService {
 	 * @param loader the class loader from which the class must be loaded
 	 * @return the class
 	 */
-	public Class<?> forName(String className, boolean initialize, ClassLoader loader);
+	public Class<?> forName(String className, boolean initialize, ClassLoader loader) throws ClassNotFoundException, NoClassDefFoundError;
 	
 }
