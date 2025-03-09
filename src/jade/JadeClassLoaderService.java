@@ -1,5 +1,12 @@
 package jade;
 
+/**
+ * The Interface JadeClassLoaderService describes the method structure that enables
+ * to place an alternative method that loads classes that are described by their names.
+ * In an OSGI context, this won't work, since each bundle has its own ClassLoader.  
+ *
+ * @author Christian Derksen - SOFTEC - ICB - University of Duisburg-Essen
+ */
 public interface JadeClassLoaderService {
 
 	/**

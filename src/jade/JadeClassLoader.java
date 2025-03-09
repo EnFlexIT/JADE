@@ -1,7 +1,10 @@
 package jade;
 
 /**
- * The Class JadeClassLoader.
+ * The Class JadeClassLoader serves as central class that enable class loading by a class name.
+ * For this, all methods used within JADE were substituted with corresponding static methods.  
+ * To enable class loading in an OSGI environment you may implement your own {@link JadeClassLoaderService}
+ * and use the static method {@link #setClassLoaderService(JadeClassLoaderService)} to enable its usage. 
  *
  * @author Christian Derksen - SOFTEC - ICB - University of Duisburg-Essen
  */
@@ -40,7 +43,7 @@ public class JadeClassLoader {
 	}
 	
 	/**
-	 * Sets the class loader service.
+	 * Sets the individual {@link JadeClassLoaderService} to be used for class loading.
 	 * @param classLoaderService the new class loader service
 	 */
 	public static void setClassLoaderService(JadeClassLoaderService classLoaderService) {
