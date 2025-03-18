@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.enflexit.jade</groupId>
 	<artifactId>de.enflexit.jade</artifactId>
-	<version>4.6.3</version>
+	<version>4.6.4</version>
 	<packaging>bundle</packaging>
 	
 	<!-- License of the bundle-->
@@ -45,7 +45,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<bundle.symbolicName>de.enflexit.jade</bundle.symbolicName>
    		<bundle.namespace>jade</bundle.namespace>
-   		<maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
+   		<maven.build.timestamp.format>dd.MM.yyyy-HH:mm:ss</maven.build.timestamp.format>
     	<build.timestamp>${maven.build.timestamp}</build.timestamp>
     	<bundle.vendor>EnFlex.IT</bundle.vendor>
 	</properties>
@@ -177,11 +177,13 @@
 		            <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
 		            <Bundle-Version>${pom.version}</Bundle-Version>
 		            <Bundle-Vendor>${bundle.vendor}</Bundle-Vendor>
+		            <Bundle-Date>${build.timestamp}</Bundle-Date>
 		            <!--
 		              Include and export all packages under the package jade and fipa
 		            -->
 		            <Export-Package>${bundle.namespace}.*,FIPA.*;version=!;-noimport:=true</Export-Package>
-					<Import-Package>!*</Import-Package>
+					<Import-Package>*</Import-Package>
+					<DynamicImport-Package>*</DynamicImport-Package>
 		            <!--
 		              Include the Jars of the dependencies stated in this pom under lib/dependency
 		            

@@ -72,9 +72,7 @@ public class Runtime {
 	//#MIDP_EXCLUDE_BEGIN
 	private ThreadGroup criticalThreads;
 	//#MIDP_EXCLUDE_END
-	private String version = "UNKNOWN";
-	private String revision = "UNKNOWN";
-	private String date = "UNKNOWN";
+	private VersionManager versionManager;
 	
 	private int activeContainers = 0;
 	private LinkedList terminators = new LinkedList();
@@ -87,10 +85,7 @@ public class Runtime {
 	private Runtime() {
 		//#MIDP_EXCLUDE_BEGIN
 		//#DOTNET_EXCLUDE_BEGIN
-		VersionManager vm = new VersionManager();
-		version = vm.getVersion();
-		revision = vm.getRevision();
-		date = vm.getDate();
+		this.versionManager = new VersionManager();
 		//#DOTNET_EXCLUDE_END
 		//#MIDP_EXCLUDE_END
 	}
@@ -326,19 +321,30 @@ public class Runtime {
      Return the version number and date of this JADE Runtime.
 	 */
 	public static String getVersionInfo() {
-		return "JADE "+getVersion() + " - revision "+getRevision()+" of "+getDate();
+		if (getRevision()==null) {
+			return "JADE " + getVersion() + " (" + getDate() + ") provided by " + getBundleVendor();
+		}
+		return "JADE " + getVersion() + " - revision " + getRevision() + " of "+ getDate();
 	}
 	
 	public static String getVersion() {
-		return theInstance.version;
+		return theInstance.versionManager.getVersion();
 	}
 	
 	public static String getRevision() {
-		return theInstance.revision;
+		return theInstance.versionManager.getRevision();
 	}
 	
 	public static String getDate() {
-		return theInstance.date;
+		return theInstance.versionManager.getDate();
+	}
+	
+	public static String getBundleName() {
+		return theInstance.versionManager.getBundleName();
+	}
+	
+	public static String getBundleVendor() {
+		return theInstance.versionManager.getBundleVendor();
 	}
 }
 
