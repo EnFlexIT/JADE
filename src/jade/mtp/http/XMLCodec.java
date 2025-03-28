@@ -46,6 +46,8 @@ package jade.mtp.http;
 import java.io.*;
 //import java.net.*;
 
+import javax.xml.parsers.SAXParserFactory;
+
 import jade.util.leap.Iterator;
 
 import jade.mtp.MTPException;
@@ -152,8 +154,14 @@ public class XMLCodec extends DefaultHandler
 	 * @param parserClass the SAX parser class to use
 	 */
   public XMLCodec(String parserClass) throws MTPException {
-    try{ 
-			parser = (XMLReader)JadeClassLoader.forName(parserClass).newInstance();
+    try{
+    	
+    		// --- The approach from the original JADE version ------
+//			parser = (XMLReader)JadeClassLoader.forName(parserClass).newInstance();
+    	
+    		// --- Compatible with current JAVA versions ------------
+	    	parser = SAXParserFactory.newInstance().newSAXParser().getXMLReader();
+	    	
 			parser.setContentHandler(this);
 			parser.setErrorHandler(this);
 		}

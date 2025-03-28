@@ -1915,8 +1915,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	
 	
 	private void forwardMessage(GenericMessage msg, AID receiver, String address) throws MTPException {
-		// FIXME what if there is no envelope?
-		AID aid = msg.getEnvelope().getFrom();
+		AID aid = null;
+		if (msg.getEnvelope()!=null) {
+			aid = msg.getEnvelope().getFrom();
+		}
 		
 		if (aid == null) {
 			//System.err.println("ERROR: null message sender. Aborting message dispatch...");

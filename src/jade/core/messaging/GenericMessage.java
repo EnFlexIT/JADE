@@ -34,7 +34,6 @@ import jade.security.Credentials;
 
 //#MIDP_EXCLUDE_BEGIN
 import jade.lang.acl.LEAPACLCodec;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 //#MIDP_EXCLUDE_END
@@ -49,6 +48,8 @@ import java.io.IOException;
  */
 public class GenericMessage implements Serializable {
 
+	private static final long serialVersionUID = -6847398858738636483L;
+	
 	private transient ACLMessage msg;
 	private Envelope env;
 	private byte[] payload;
@@ -79,6 +80,9 @@ public class GenericMessage implements Serializable {
 
 	public final Envelope getEnvelope(){
 		return env;
+	}
+	protected void setEnvelope(Envelope envelope) {
+		this.env = envelope;
 	}
 
 	public final ACLMessage getACLMessage(){
