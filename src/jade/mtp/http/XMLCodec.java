@@ -54,7 +54,6 @@ import jade.mtp.MTPException;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
 import jade.domain.FIPAAgentManagement.Property;
-import jade.JadeClassLoader;
 import jade.core.AID;
 import jade.util.Logger;
 
@@ -111,6 +110,11 @@ public class XMLCodec extends DefaultHandler
   public final static String CT = ">";
   public final static String NULL = "";
   
+  // Feature name constants to address feature settings of the XMLReader 
+  public static final String SAX_FEATURE_PREFIX = "http://xml.org/sax/features/";
+  public static final String NAMESPACES_FEATURE = "namespaces";
+  public static final String NAMESPACE_PREFIXES_FEATURE = "namespace-prefixes";
+  
 	/*#DOTNET_INCLUDE_BEGIN
 	public final static char[] badChars  = { '\r', '\n', ' ' };
 	public final static String CHARS_CODEC = "ISO-8859-1";
@@ -161,6 +165,10 @@ public class XMLCodec extends DefaultHandler
     	
     		// --- Compatible with current JAVA versions ------------
 	    	parser = SAXParserFactory.newInstance().newSAXParser().getXMLReader();
+	    	
+	    	// --- Configure the XMLReader as required by JADE's HTTP MTP
+	    	parser.setFeature(SAX_FEATURE_PREFIX + NAMESPACE_PREFIXES_FEATURE, false);
+	    	parser.setFeature(SAX_FEATURE_PREFIX + NAMESPACES_FEATURE, true);
 	    	
 			parser.setContentHandler(this);
 			parser.setErrorHandler(this);
@@ -467,7 +475,7 @@ public class XMLCodec extends DefaultHandler
       env.setAclRepresentation(accumulator.toString());
     }
     else if (LENGTH_TAG.equalsIgnoreCase(localName)) {
-      env.setPayloadLength(new Long(accumulator.toString()));
+      env.setPayloadLength(Long.parseLong(accumulator.toString()));
       if(logger.isLoggable(Logger.WARNING))
       	logger.log(Logger.FINE,"Length: "+env.getPayloadLength());
     }
