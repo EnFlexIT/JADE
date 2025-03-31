@@ -46,6 +46,7 @@ package jade.mtp.http;
 import java.io.*;
 //import java.net.*;
 
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 
 import jade.util.leap.Iterator;
@@ -54,6 +55,7 @@ import jade.mtp.MTPException;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
 import jade.domain.FIPAAgentManagement.Property;
+import jade.JadeClassLoader;
 import jade.core.AID;
 import jade.util.Logger;
 
@@ -158,25 +160,47 @@ public class XMLCodec extends DefaultHandler
 	 * @param parserClass the SAX parser class to use
 	 */
   public XMLCodec(String parserClass) throws MTPException {
-    try{
-    	
-    		// --- The approach from the original JADE version ------
-//			parser = (XMLReader)JadeClassLoader.forName(parserClass).newInstance();
-    	
-    		// --- Compatible with current JAVA versions ------------
-	    	parser = SAXParserFactory.newInstance().newSAXParser().getXMLReader();
-	    	
-	    	// --- Configure the XMLReader as required by JADE's HTTP MTP
-	    	parser.setFeature(SAX_FEATURE_PREFIX + NAMESPACE_PREFIXES_FEATURE, false);
-	    	parser.setFeature(SAX_FEATURE_PREFIX + NAMESPACES_FEATURE, true);
-	    	
-			parser.setContentHandler(this);
-			parser.setErrorHandler(this);
-		}
-    catch(Exception e) {
+	  try{
+		  parser = this.getXmlReader(parserClass);
+	  	} catch(Exception e) {
 			throw new MTPException(e.toString());
 		}
 	}
+  
+  	/**
+	   * Gets the XMLReader to be used for parsing contents. Tries the original JADE approach using
+	   * the class loader first, to allow specifying a custom parser class. If this fails due to the
+	   * stricter modularization concept of modern java versions, the default factory method will be
+	   * used instead, resulting in an instance of the systems default sax parser class.
+	   * @param parserClassName the parser class name
+	   * @return the xml reader
+	   * @throws SAXException the SAX exception
+	   * @throws ParserConfigurationException the parser configuration exception
+	   * @throws InstantiationException the instantiation exception
+	   * @throws ClassNotFoundException the class not found exception
+	   */
+	  private XMLReader getXmlReader(String parserClassName) throws SAXException, ParserConfigurationException, InstantiationException, ClassNotFoundException {
+  		XMLReader xmlReader = null;
+  		
+  		try {
+  			// --- The approach from the original JADE version ------
+  			xmlReader = (XMLReader)JadeClassLoader.forName(parserClassName).newInstance();
+    	} catch(IllegalAccessException ex) {
+    		// --- Compatible with current JAVA versions ------------
+    		xmlReader = SAXParserFactory.newInstance().newSAXParser().getXMLReader();
+	    	
+	    	// --- Configure the XMLReader as required by JADE's HTTP MTP
+    		xmlReader.setFeature(SAX_FEATURE_PREFIX + NAMESPACE_PREFIXES_FEATURE, false);
+    		xmlReader.setFeature(SAX_FEATURE_PREFIX + NAMESPACES_FEATURE, true);
+    	}
+  		
+  		xmlReader.setContentHandler(this);
+  		xmlReader.setErrorHandler(this);
+  		
+  		return xmlReader;
+  		
+  	}
+  
 	//#DOTNET_EXCLUDE_END
 
 	/*#DOTNET_INCLUDE_BEGIN
